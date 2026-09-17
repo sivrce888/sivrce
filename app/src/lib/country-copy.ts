@@ -89,10 +89,10 @@ export const DE_HUB_DE: CountryCopy = {
     'sivrce in Deutschland: Berlin zuerst. Kauf und Miete mit Notar, Grundbuch und Grunderwerbsteuer. Inserate nur verifiziert.',
   h1: 'Immobilien in Deutschland',
   lede:
-    'Deutschland durchsuchen wie Georgien: kaufen oder mieten, Stadt wählen, 3D-Karte öffnen. Berlin zuerst — Notar, Grundbuch und Grunderwerbsteuer stehen unter der Suche. Live-Inserate in Euro, plus straßenverifizierte Neubauten.',
+    'Kaufen oder mieten, Stadt wählen, 3D-Karte öffnen. Berlin zuerst — Notar, Grundbuch und Grunderwerbsteuer stehen unter der Suche. Live-Inserate in Euro, plus straßenverifizierte Neubauten.',
   body: [
     'Deutschland ist ein Mietermarkt. Kapitalanleger rechnen mit Leerstand und Mietspiegel, nicht mit Touristenauslastung. Berlin, Hamburg, München, Frankfurt und Köln sind die ersten Metropolen — jede Stadtseite ist ein eigenes Briefing, keine Doorway-Seite.',
-    'Ein Kauf ist kein Handschlag. Der Notar verliest den Vertrag, Grunderwerbsteuer (in Berlin 6 %) plus Notar- und Grundbuchkosten werden fällig. Ausländer dürfen Volleigentum erwerben. sivrce veröffentlicht nur, was sich so prüfen lässt wie in Georgien.',
+    'Ein Kauf ist kein Handschlag. Der Notar verliest den Vertrag, Grunderwerbsteuer (in Berlin 6 %) plus Notar- und Grundbuchkosten werden fällig. Ausländer dürfen Volleigentum erwerben. sivrce veröffentlicht nur Inserate, die sich amtlich belegen lassen — Notar, Grundbuch, Energieausweis.',
     'Stadtguides für Lage, Pendeln und den rechtlichen Weg. Die Karte zeigt amtliche Geometrie (ALKIS, B-Plan, StEP Wohnen 2040). Super-VIP- und VIP+-Schienen sind Live-Inventar — Bauträger und Neubau folgen darunter.',
   ],
   faqs: [
@@ -197,7 +197,7 @@ export const DE_BERLIN_HUB_DE: CountryCopy = {
   ],
   faqs: [
     { q: 'Dürfen Ausländer in Berlin kaufen?', a: 'Ja. Kein Staatsangehörigkeitsverbot. Notar, rund 8–12 % Nebenkosten, Eigentum entsteht mit der Grundbucheintragung — nicht mit dem Portal.' },
-    { q: 'Wann erscheinen Berliner Inserate auf sivrce?', a: 'Soft Launch mit Guides. Inserate kommen, sobald Makler und Eigentümer unter denselben Prüfregeln stehen wie in Georgien.' },
+    { q: 'Wann erscheinen Berliner Inserate auf sivrce?', a: 'Live-Inventar steht, sobald Makler und Eigentümer unter denselben Prüfregeln stehen: amtliche Adresse, Energieausweis, nachvollziehbarer Preis.' },
   ],
 }
 
@@ -207,7 +207,7 @@ export const DE_BERLIN_BUY_DE: CountryCopy = {
     'Kauf in Berlin: Notar, Grundbuch, 6 % Grunderwerbsteuer, Nebenkosten. Keine erfundenen Angebote.',
   h1: 'Kaufen in Berlin',
   lede:
-    'Berlin durchsuchen wie Tbilisi: Typ, Bezirk, dann die 3D-Karte. Notar, 6 % Grunderwerbsteuer und Grundbuch stehen unter der Suche. Ausländer dürfen kaufen.',
+    'Berlin durchsuchen: Typ, Bezirk, dann die 3D-Karte. Notar, 6 % Grunderwerbsteuer und Grundbuch stehen unter der Suche. Ausländer dürfen kaufen.',
   body: [
     'Der Notar verliest den Vertrag. Eigentum wechselt mit der Grundbucheintragung, nicht mit der Anzahlung. Wochen, nicht Stunden. Banken verlangen von Nicht-Residenten oft mehr Eigenkapital.',
     'Mitte, Prenzlauer Berg und Charlottenburg sind teuer relativ zur Rendite. Neukölln, Lichtenberg und äußere Bezirke rechnen oft über Cashflow. sivrce erfindet keine Inserate — diese Seite bleibt ein Briefing, bis geprüftes Inventar da ist.',
@@ -227,7 +227,7 @@ export const DE_BERLIN_RENT_DE: CountryCopy = {
     'Berlin ist eine Mietstadt. Die meisten Haushalte mieten, die Kaution ist gedeckelt (in der Regel drei Kaltmieten), die Angebotsmiete gehört gegen den Mietspiegel gehalten.',
   body: [
     'Warmmiete enthält Heizung und Betriebskosten, Kaltmiete nicht. SCHUFA und Einkommensnachweis sind Standard. Unmöbliert ist der Normalfall — möbliert oft befristet.',
-    'Kurzzeit steht unter eigenen Regeln. Das georgische Tagesmiet-Produkt ist nicht das Berliner Modell. Wenn Mieten hier live gehen, zuerst als Langzeit.',
+    'Kurzzeit steht unter eigenen Regeln — Touristensteuer, Mindestaufenthalt, keine Parties. Langzeitmiete bleibt das Berliner Normalmodell: unbefristet, unmöbliert, Mietspiegel.',
   ],
   faqs: [
     { q: 'Wie hoch darf die Kaution in Berlin sein?', a: 'In der Regel bis zu drei Kaltmieten, getrennt angelegt (§551 BGB). Mehr ist keine Marktausnahme.' },
@@ -246,7 +246,7 @@ export const DE_MUNICH_HUB_DE: CountryCopy = {
   body: [
     'München ist Deutschlands teuerster Markt: knappes Bauland an der Isar, BMW, Siemens und ein tiefer Arbeitsmarkt halten die Nachfrage hoch. Altstadt-Lehel und Maxvorstadt sind die Spitzenlagen, Schwabing und das Glockenbachviertel ziehen jüngere Mieter.',
     'Bayern erhebt die niedrigste Grunderwerbsteuer im Bundesvergleich (3,5 %) — Notar und Grundbucheintragung kommen trotzdem oben drauf, wie überall in Deutschland.',
-    'sivrce veröffentlicht in München nur, was sich so prüfen lässt wie in Georgien. Bis dahin bleibt diese Seite ein Briefing.',
+    'sivrce veröffentlicht in München nur, was sich amtlich belegen lässt — Notar, Grundbuch, Energieausweis.',
   ],
   faqs: [
     { q: 'Warum ist München so teuer?', a: 'Hohe Löhne, knappes Bauland und anhaltender Zuzug. Der Leerstand ist niedrig, deshalb bleiben Mieten stabil, auch wenn die Rendite gering wirkt.' },
@@ -311,7 +311,7 @@ export const DE_HAMBURG_HUB_DE: CountryCopy = {
   body: [
     'Der Hafen, Medienunternehmen und die Luftfahrtindustrie treiben die Nachfrage. HafenCity und Blankenese liegen an der Spitze, Eimsbüttel und Wandsbek sind die Familienlagen mit mehr Fläche fürs Geld.',
     'Hamburgs Grunderwerbsteuer liegt bei 5,5 % — Notar und Grundbucheintragung kommen wie in ganz Deutschland hinzu.',
-    'sivrce veröffentlicht Hamburger Inserate erst, wenn sie sich so prüfen lassen wie in Berlin und Georgien.',
+    'sivrce veröffentlicht Hamburger Inserate, sobald sie sich amtlich belegen lassen — Notar, Grundbuch, Energieausweis.',
   ],
   faqs: [
     { q: 'Ist Hamburg teurer als Berlin?', a: 'In der Regel ja pro Quadratmeter, aber günstiger als München. Wasserlagen und HafenCity markieren die Spitze.' },
@@ -376,7 +376,7 @@ export const DE_FRANKFURT_HUB_DE: CountryCopy = {
   body: [
     'Frankfurt ist das kontinentaleuropäische Finanzzentrum: EZB, Bundesbank, Großbanken und der Flughafen prägen die kaufkräftige Nachfrage nach hochwertigen City-Wohnungen und Neubauprojekten.',
     'Hessen erhebt 6,0 % Grunderwerbsteuer. Notar und Grundbucheintragung schließen den Kauf rechtskräftig ab.',
-    'sivrce veröffentlicht in Frankfurt nur verifizierte Objekte nach denselben Prüfmaßstäben wie in Berlin und Georgien.',
+    'sivrce veröffentlicht in Frankfurt nur verifizierte Objekte — amtliche Adresse, Energieausweis, nachvollziehbarer Preis.',
   ],
   faqs: [
     { q: 'Ist Frankfurt nur für Banker attraktiv?', a: 'Nein. Neben dem Bankensektor sorgen IT-, Beratungs- und Kreativbranchen sowie internationale Institutionen für eine breite, liquide Mieternachfrage.' },
@@ -1013,9 +1013,63 @@ function generatedDePack(c: DeCity): CityPack {
   )
 }
 
+/** Native German packs for `/de/de/{city}` — handwritten flagships stay
+ *  canonical; every other Großstadt is generated from DE_CITIES anchors
+ *  (tax, €/m², yield) so German visitors never land on English copy. */
+function generatedDePackDe(c: DeCity): CityPack {
+  const pct = (n: number) => n.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+  const buy = c.buyEurSqm.toLocaleString('de-DE')
+  const rent = c.rentEurSqm.toLocaleString('de-DE', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
+  const y = pct(grossYieldPct(c))
+  const ex = buyerCostBreakdown(500_000, c.slug)
+  const extras = ex
+    ? `${(ex.transferTax + ex.notary + ex.register).toLocaleString('de-DE')} €`
+    : 'rund 8 % des Kaufpreises'
+  return {
+    name: c.de,
+    hub: {
+      title: `Immobilien ${c.de} — Kauf & Miete | sivrce`,
+      description: `${c.de} (${c.state}): kaufen und mieten mit Notar, Grundbuch und ${pct(c.transferTaxPct)} % Grunderwerbsteuer. Bestandsmarken ${buy} €/m² Kauf, ${rent} €/m² Kaltmiete.`,
+      h1: `Immobilien in ${c.de}`,
+      lede: `${c.de} liegt in ${c.state} auf der sivrce-Deutschlandkarte — Bestandskauf um ${buy} €/m², Kaltmiete um ${rent} €/m² (ca. ${y} % Brutto) und ${pct(c.transferTaxPct)} % Grunderwerbsteuer nach Landesrecht.`,
+      body: [
+        `Die lokalen Zahlen zuerst: Kaufniveau rund ${buy} €/m², Kaltmiete rund ${rent} €/m² — grob ${y} % Bruttomietrendite vor Kosten. ${c.state} erhebt ${pct(c.transferTaxPct)} % Grunderwerbsteuer; bei 500.000 € Kaufpreis kommen etwa ${extras} für Steuer, Notar und Grundbuch vor einer Maklerzeile dazu.`,
+        `Inserate in ${c.de} erscheinen, sobald sie sich amtlich belegen lassen — Notar, Grundbuch, Energieausweis. Diese Seite ist die Orientierung mit echten Ankern, kein Doorway-Text.`,
+      ],
+      faqs: [
+        {
+          q: `Dürfen Ausländer in ${c.de} kaufen?`,
+          a: 'Ja. Deutschland kennt kein Staatsangehörigkeitsverbot. Jeder Kauf läuft über den Notar und endet im Grundbuch; rechnen Sie mit rund 8–12 % Nebenkosten auf den Kaufpreis.',
+        },
+        {
+          q: `Was kostet ein Kauf in ${c.de}?`,
+          a: `${c.state} erhebt ${pct(c.transferTaxPct)} % Grunderwerbsteuer, plus rund 1,5 % Notar und 0,5 % Grundbuch; bei Maklerbeteiligung beträgt der Käuferanteil 3,57 % inkl. MwSt. (§ 656c BGB).`,
+        },
+      ],
+    },
+  }
+}
+
+const DE_NATIVE_PACKS: Record<string, CityPack> = {
+  berlin: { name: 'Berlin', hub: DE_BERLIN_HUB_DE, buy: DE_BERLIN_BUY_DE, rent: DE_BERLIN_RENT_DE },
+  munich: { name: 'München', hub: DE_MUNICH_HUB_DE, buy: DE_MUNICH_BUY_DE, rent: DE_MUNICH_RENT_DE },
+  hamburg: { name: 'Hamburg', hub: DE_HAMBURG_HUB_DE, buy: DE_HAMBURG_BUY_DE, rent: DE_HAMBURG_RENT_DE },
+  frankfurt: { name: 'Frankfurt am Main', hub: DE_FRANKFURT_HUB_DE, buy: DE_FRANKFURT_BUY_DE, rent: DE_FRANKFURT_RENT_DE },
+  cologne: { name: 'Köln', hub: DE_COLOGNE_HUB_DE },
+}
+
 const DE_GENERATED: Record<string, CityPack> = Object.fromEntries(
   DE_CITY_ROWS.filter((c) => !DE_CITIES[c.slug]).map((c) => [c.slug, generatedDePack(c)]),
 )
+
+const DE_GENERATED_DE: Record<string, CityPack> = Object.fromEntries(
+  DE_CITY_ROWS.filter((c) => !DE_NATIVE_PACKS[c.slug]).map((c) => [c.slug, generatedDePackDe(c)]),
+)
+
+/** Native German city pack for `/de/de/{slug}` — handwritten flagships, then generated. */
+export function deNativeCityPack(slug: string): CityPack | null {
+  return DE_NATIVE_PACKS[slug] ?? DE_GENERATED_DE[slug] ?? null
+}
 
 export function cityPack(country: string, slug: string): CityPack | null {
   if (country === 'de') return DE_CITIES[slug] ?? DE_GENERATED[slug] ?? null

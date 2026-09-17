@@ -7,6 +7,7 @@ import Footer from '@/components/sections/Footer'
 import { BLOG_POSTS, relatedPosts } from '@/data/blog'
 import { getBlogPost } from '@/lib/blog-live'
 import { jsonLd, ogImage } from '@/lib/utils'
+import { requestOrigin } from '@/lib/request-market'
 import { avifCardOf, cardOf } from '@/lib/media'
 import {kaOnlyAlternates,  } from '@/lib/i18n/server'
 
@@ -23,6 +24,7 @@ export function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const origin = await requestOrigin()
   const { slug } = await params
   const post = await getBlogPost(slug)
   if (!post) return {}
@@ -34,7 +36,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title: post.title,
       description: post.excerpt,
       type: 'article',
-      url: `https://sivrce.ge/blog/${post.slug}`,
+      url: `${origin}/blog/${post.slug}`,
       siteName: 'sivrce',
       locale: 'ka_GE',
       publishedTime: `${post.publishedAt}T00:00:00+04:00`,
@@ -46,7 +48,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 }
 
-function postLd(post: NonNullable<Awaited<ReturnType<typeof getBlogPost>>>) {
+function postLd(post: NonNullable<Awaited<ReturnType<typeof getBlogPost>>>, origin: string) {
   const cover = post.cover.startsWith('http') ? post.cover : `https://sivrce.ge${post.cover}`
   return {
     '@context': 'https://schema.org',
@@ -64,11 +66,11 @@ function postLd(post: NonNullable<Awaited<ReturnType<typeof getBlogPost>>>) {
       '@type': 'Person',
       name: post.author,
       jobTitle: 'უძრავი ქონების რედაქტორი',
-      url: 'https://sivrce.ge/about',
-      worksFor: { '@type': 'Organization', name: 'sivrce', url: 'https://sivrce.ge' },
+      url: `${origin}/about`,
+      worksFor: { '@type': 'Organization', name: 'sivrce', url: origin },
     },
-    publisher: { '@type': 'Organization', name: 'sivrce', url: 'https://sivrce.ge', logo: { '@type': 'ImageObject', url: 'https://sivrce.ge/logo/mark.png' } },
-    mainEntityOfPage: { '@type': 'WebPage', '@id': `https://sivrce.ge/blog/${post.slug}` },
+    publisher: { '@type': 'Organization', name: 'sivrce', url: origin, logo: { '@type': 'ImageObject', url: `${origin}/logo/mark.png` } },
+    mainEntityOfPage: { '@type': 'WebPage', '@id': `${origin}/blog/${post.slug}` },
     keywords: post.tags.join(', '),
     articleSection: 'უძრავი ქონება',
     // Speakable marks the intro paragraph for voice assistants (Google Assistant, Alexa)
@@ -97,6 +99,7 @@ function renderBody(body: string) {
 }
 
 export default async function BlogPostPage({ params }: PageProps) {
+  const origin = await requestOrigin()
   const { slug } = await params
   const post = await getBlogPost(slug)
   if (!post) notFound()
@@ -204,7 +207,7 @@ export default async function BlogPostPage({ params }: PageProps) {
         </LocalizedLink>
       </main>
       <Footer />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(postLd(post)) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(postLd(post, origin)) }} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
@@ -212,9 +215,9 @@ export default async function BlogPostPage({ params }: PageProps) {
             '@context': 'https://schema.org',
             '@type': 'BreadcrumbList',
             itemListElement: [
-              { '@type': 'ListItem', position: 1, name: 'მთავარი', item: 'https://sivrce.ge' },
-              { '@type': 'ListItem', position: 2, name: 'ბლოგი', item: 'https://sivrce.ge/blog' },
-              { '@type': 'ListItem', position: 3, name: post.title, item: `https://sivrce.ge/blog/${post.slug}` },
+              { '@type': 'ListItem', position: 1, name: 'მთავარი', item: origin },
+              { '@type': 'ListItem', position: 2, name: 'ბლოგი', item: `${origin}/blog` },
+              { '@type': 'ListItem', position: 3, name: post.title, item: `${origin}/blog/${post.slug}` },
             ],
           }),
         }}

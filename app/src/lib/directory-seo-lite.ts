@@ -124,6 +124,11 @@ export const CITIES: GeoLoc[] = [
   { slug: 'nuremberg', ka: 'ნიურნბერგი', loc: 'ნიურნბერგში', en: 'Nuremberg', de: 'Nürnberg', ru: 'Нюрнберг', market: 'de' },
   { slug: 'duisburg', ka: 'დუისბურგი', loc: 'დუისბურგში', en: 'Duisburg', ru: 'Дуйсбург', market: 'de' },
   { slug: 'bochum', ka: 'ბოხუმი', loc: 'ბოხუმში', en: 'Bochum', ru: 'Бохум', market: 'de' },
+  // AE market (sivrce.com/ae) — four emirates with unique land-department rules.
+  { slug: 'dubai', ka: 'დუბაი', loc: 'დუბაიში', en: 'Dubai', ru: 'Дубай', market: 'ae' },
+  { slug: 'abu-dhabi', ka: 'აბუ-დაბი', loc: 'აბუ-დაბიში', en: 'Abu Dhabi', ru: 'Абу-Даби', market: 'ae' },
+  { slug: 'sharjah', ka: 'შარჯა', loc: 'შარჯაში', en: 'Sharjah', ru: 'Шарджа', market: 'ae' },
+  { slug: 'ras-al-khaimah', ka: 'რას-ელ-ხაიმა', loc: 'რას-ელ-ხაიმაში', en: 'Ras Al Khaimah', ru: 'Рас-эль-Хайма', market: 'ae' },
 ]
 
 export type District = GeoLoc & { citySlug: string }

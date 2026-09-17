@@ -6,6 +6,7 @@ import Footer from '@/components/sections/Footer'
 import { PageHero } from '@/components/PageHero'
 import { NewThreadForm } from '@/components/forum/NewThreadForm'
 import { listForumThreads } from '@/lib/forum-live'
+import { requestOrigin } from '@/lib/request-market'
 import { jsonLd } from '@/lib/utils'
 import { pageMeta } from '@/lib/i18n/server'
 import { isValidLang } from '@/lib/i18n/core'
@@ -19,6 +20,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { lang: raw } = await params
   const lang = isValidLang(raw) ? raw : 'ka'
+  const origin = await requestOrigin()
   return {
     ...pageMeta('/forum', lang, {
       ka: {
@@ -41,7 +43,7 @@ export async function generateMetadata({
       title: 'ფორუმი — უძრავი ქონების დისკუსიები',
       description: 'ექსპერტებისა და მყიდველების გამოცდილება თბილისსა და ბათუმში.',
       type: 'website',
-      url: 'https://sivrce.ge/forum',
+      url: `${origin}/forum`,
       siteName: 'sivrce',
       locale: 'ka_GE',
     },
@@ -49,6 +51,7 @@ export async function generateMetadata({
 }
 
 export default async function ForumIndex() {
+  const origin = await requestOrigin()
   const sorted = await listForumThreads()
 
   const forumLd = {
@@ -56,12 +59,12 @@ export default async function ForumIndex() {
     '@type': 'DiscussionForumPosting',
     name: 'sivrce ფორუმი',
     description: 'უძრავი ქონების სადისკუსიო თემები საქართველოში',
-    url: 'https://sivrce.ge/forum',
+    url: `${origin}/forum`,
     inLanguage: 'ka',
     mainEntity: sorted.slice(0, 20).map((t, i) => ({
       '@type': 'ListItem',
       position: i + 1,
-      url: `https://sivrce.ge/forum/${t.slug}`,
+      url: `${origin}/forum/${t.slug}`,
       name: t.title,
     })),
   }
@@ -70,8 +73,8 @@ export default async function ForumIndex() {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'მთავარი', item: 'https://sivrce.ge' },
-      { '@type': 'ListItem', position: 2, name: 'ფორუმი', item: 'https://sivrce.ge/forum' },
+      { '@type': 'ListItem', position: 1, name: 'მთავარი', item: origin },
+      { '@type': 'ListItem', position: 2, name: 'ფორუმი', item: `${origin}/forum` },
     ],
   }
 

@@ -29,6 +29,13 @@ const DE_NL_EXAMPLES = [
   'Ruhige 3-Zimmer-Wohnung in Prenzlauer Berg, kein Erdgeschoss',
 ]
 
+const AE_NL_EXAMPLES = [
+  '2-bed apartment in Dubai Marina',
+  'Villa in Arabian Ranches with pool',
+  'Off-plan apartment in JVC',
+  'Rent in Downtown Dubai, Ejari ready',
+]
+
 type Tab = 'buy' | 'rent' | 'projects'
 
 export type CountryCityChip = { slug: string; name: string }
@@ -56,14 +63,16 @@ export default function CountrySearch({
   const [propType, setPropType] = useState<PropType | undefined>(undefined)
   const { capture } = usePostHog()
   const deNl = country === 'de' && lang === 'de'
+  const aeNl = country === 'ae' && lang !== 'ar'
   const [exIdx, setExIdx] = useState(0)
 
   // Rotate NL example placeholder while the box is untouched (typing pauses it).
   useEffect(() => {
-    if (!deNl) return
-    const id = setInterval(() => setExIdx((i) => (i + 1) % DE_NL_EXAMPLES.length), 4000)
+    if (!deNl && !aeNl) return
+    const n = deNl ? DE_NL_EXAMPLES.length : AE_NL_EXAMPLES.length
+    const id = setInterval(() => setExIdx((i) => (i + 1) % n), 4000)
     return () => clearInterval(id)
-  }, [deNl])
+  }, [deNl, aeNl])
 
   useEffect(() => {
     if (city) return
@@ -217,14 +226,18 @@ export default function CountrySearch({
                 ? deNl
                   ? DE_NL_EXAMPLES[exIdx]
                   : 'What are you looking for?'
-                : `${cityName}, ${COUNTRY_NAMES[country]}`
+                : country === 'ae'
+                  ? AE_NL_EXAMPLES[exIdx]
+                  : `${cityName}, ${COUNTRY_NAMES[country]}`
             }
             ariaLabel={
               country === 'de'
                 ? lang === 'de'
                   ? 'Was suchst du? Zum Beispiel 2-Zimmer-Wohnung in Berlin unter 500.000 €'
                   : 'What are you looking for? For example 2-room apartment in Berlin under €500,000'
-                : t('search.keywordPlaceholder')
+                : country === 'ae'
+                  ? 'What are you looking for? For example 2-bed apartment in Dubai Marina'
+                  : t('search.keywordPlaceholder')
             }
             mkt={country === 'de' ? 'de' : undefined}
             city={country === 'de' && citySlug === 'berlin' ? 'Berlin' : undefined}

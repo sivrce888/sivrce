@@ -3,6 +3,7 @@ import ListingCard from '@/components/ListingCard'
 import HScroll from '@/components/HScroll'
 import { Reveal } from '@/components/Reveal'
 import { COUNTRY_NAMES, cityPack } from '@/lib/country-copy'
+import { deCityBySlug } from '@/lib/countries/de'
 import { cardPhotoPayload } from '@/lib/card-gallery-teaser'
 import { homeScopeForCountry, homeSearchHref } from '@/lib/home-scope'
 import { getAllListings, getHomeTierListings, type Listing } from '@/lib/listings-db'
@@ -41,9 +42,17 @@ export default async function MarketListings({
     superVip.length === 0 && vipPlus.length === 0
       ? await getAllListings(8, scope).catch(() => [] as Listing[])
       : []
-  const place = label ?? (city ? (cityPack(country, city)?.name ?? city) : COUNTRY_NAMES[country])
-  const viewAll = homeSearchHref({}, scope)
   const de = lang === 'de'
+  const place =
+    label ??
+    (country === 'de' && de
+      ? city
+        ? (deCityBySlug(city)?.de ?? city)
+        : 'Deutschland'
+      : city
+        ? (cityPack(country, city)?.name ?? city)
+        : COUNTRY_NAMES[country])
+  const viewAll = homeSearchHref({}, scope)
   return (
     <>
       <Listings

@@ -23,6 +23,13 @@ if (tcoGe.totalAcquisitionCostUSD <= 100000) throw new Error('Acquisition cost s
 
 const tcoDe = calculateTotalCostOfOwnership(100000, 'DE')
 if (tcoDe.registrationTaxUSD !== 6000) throw new Error('DE Grunderwerbsteuer should be 6%')
+const tcoDeBy = calculateTotalCostOfOwnership(100000, 'DE', 'munich')
+if (tcoDeBy.registrationTaxUSD !== 3500) throw new Error('Bavaria Grunderwerbsteuer should be 3.5%')
+
+const tcoAe = calculateTotalCostOfOwnership(100000, 'AE')
+if (tcoAe.registrationTaxUSD !== 4000) throw new Error('Dubai DLD should be 4%')
+const tcoAeAd = calculateTotalCostOfOwnership(100000, 'AE', 'abu-dhabi')
+if (tcoAeAd.registrationTaxUSD !== 2000) throw new Error('Abu Dhabi transfer should be 2%')
 
 const tcoFr = calculateTotalCostOfOwnership(200000, 'FR')
 if (tcoFr.registrationTaxUSD !== 15000) throw new Error('FR notaire transfer should be 7.5%')

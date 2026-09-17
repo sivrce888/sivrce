@@ -6,6 +6,7 @@ import {
   bestLangFromHeader,
   suggestLangForCountry,
   autoLocalePath,
+  autoCountryHubPath,
   LANG_COOKIE,
   LANG_LOCALE_TAG,
 } from './accept-language'
@@ -75,5 +76,16 @@ assert(A({ pathname: '/api/bookings', market: 'ge', cookie: 'de' }) === null, 'b
 assert(A({ pathname: '/auth/signin', market: 'ge', cookie: 'en' }) === null, 'auth never prefixed')
 assert(A({ pathname: '/.well-known/webauthn', market: 'ge', cookie: 'en' }) === null, 'well-known never prefixed')
 assert(A({ pathname: '/llms.txt', market: 'ge', cookie: 'de' }) === null, 'txt never prefixed')
+
+// Germany front-door mirror (sivrce.com/de → /de/de, first visit only)
+const H = autoCountryHubPath
+assert(H({ market: 'de', acceptLanguage: 'de-DE,de;q=0.9,en;q=0.8' }) === '/de/de', 'German browser → native hub')
+assert(H({ market: 'de', acceptLanguage: 'en-US,en;q=0.9' }) === null, 'EN browser keeps EN hub')
+assert(H({ market: 'de' }) === null, 'no header stays')
+assert(H({ market: 'de', cookie: 'en', acceptLanguage: 'de' }) === null, 'any sv-lang = decided')
+assert(H({ market: 'de', cookie: 'de', acceptLanguage: 'de' }) === null, 'de cookie no re-redirect')
+assert(H({ market: 'de', acceptLanguage: 'de', crawler: true }) === null, 'crawlers keep EN canonical')
+assert(H({ market: 'de', acceptLanguage: 'de', internal: true }) === null, 'RSC/prefetch untouched')
+assert(H({ market: 'ge', acceptLanguage: 'de' }) === null, 'ge market untouched')
 
 console.log('accept-language: ok')

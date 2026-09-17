@@ -305,4 +305,31 @@ for (const key of ['add.f.yard', 'add.f.terrace', 'add.f.cellar']) {
   assert.ok(gartenQ.features!.includes(key), `missing ${key}`)
 }
 
+assert.equal(parseNlQuery('2-bed apartment in Dubai Marina').city, 'დუბაი')
+assert.equal(parseNlQuery('2-bed apartment in Dubai Marina').bedrooms, 2)
+assert.equal(parseNlQuery('Villa in Abu Dhabi').city, 'აბუ-დაბი')
+assert.equal(parseNlQuery('شقة في دبي').city, 'დუბაი')
+
+const rAe = routeCountryNl({
+  q: 'off-plan in Dubai',
+  tab: 'buy',
+  country: 'ae',
+  cityKa: 'დუბაი',
+  lat: 25.2048,
+  lng: 55.2708,
+})
+assert.equal(rAe.go, 'projects')
+
+const rAeSearch = routeCountryNl({
+  q: '2-bed apartment in Dubai',
+  tab: 'buy',
+  country: 'ae',
+  cityKa: 'დუბაი',
+  lat: 25.2048,
+  lng: 55.2708,
+})
+assert.equal(rAeSearch.go, 'search')
+assert.ok(rAeSearch.href.includes('country=AE'))
+assert.ok(rAeSearch.href.includes('beds=2'))
+
 console.log('ok: nl-search')

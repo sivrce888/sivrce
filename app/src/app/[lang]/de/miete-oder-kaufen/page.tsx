@@ -11,7 +11,7 @@ import { deOnlyAlternates } from '@/lib/i18n/server'
 export const revalidate = 86400
 
 const BASE = 'https://sivrce.com'
-const PATH = '/en/de/miete-oder-kaufen'
+const PATH = '/de/miete-oder-kaufen'
 
 const TITLE = 'Miete oder kaufen? Der Rechner für Deutschland (2026)'
 const DESCRIPTION =

@@ -6,6 +6,9 @@
  * DB-free, lightweight, SSR-safe.
  */
 
+import { deCityBySlug } from '@/lib/countries/de'
+import { aeTransferFeePct } from '@/lib/countries/ae'
+
 export interface ComparisonDimension {
   metricEn: string
   metricKa: string
@@ -157,7 +160,8 @@ export interface TcoBreakdown {
 /** Total Cost of Ownership (TCO) calculator for Georgia, Germany, UAE, and Global markets */
 export function calculateTotalCostOfOwnership(
   priceUSD: number,
-  countryCode = 'GE'
+  countryCode = 'GE',
+  citySlug?: string,
 ): TcoBreakdown {
   const code = countryCode.toUpperCase()
   let regTaxRate = 0.001 // Georgia registration (~$50-$200 flat equivalent)
@@ -167,13 +171,15 @@ export function calculateTotalCostOfOwnership(
 
   switch (code) {
     case 'DE':
-      regTaxRate = 0.06 // Grunderwerbsteuer ~6%
+      // Berlin 6% is the default; Bavaria is 3.5% — never invent a national rate.
+      regTaxRate = (deCityBySlug(citySlug ?? 'berlin')?.transferTaxPct ?? 6) / 100
       notaryRate = 0.015 // Notary ~1.5%
       annualUpkeepRate = 0.015
       annualHoaRate = 0.01
       break
     case 'AE':
-      regTaxRate = 0.04 // DLD fee 4%
+      // Dubai 4% DLD; Abu Dhabi / Sharjah / RAK 2%. Unknown slug → Dubai.
+      regTaxRate = aeTransferFeePct(citySlug) / 100
       notaryRate = 0.005
       annualUpkeepRate = 0.012
       annualHoaRate = 0.008

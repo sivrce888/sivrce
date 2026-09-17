@@ -67,7 +67,7 @@ export default function CountryHero({
           city={city}
           intent={intent}
           cities={cities}
-          showProjects={country === 'de'}
+          showProjects={country === 'de' || country === 'ae'}
         />
 
         <div

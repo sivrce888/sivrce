@@ -1,18 +1,23 @@
 import Link from 'next/link'
 import { Suspense } from 'react'
-import { Building2, Landmark, MapPin, ScrollText, ShieldCheck } from 'lucide-react'
+import { ArrowUpRight, Building2, Landmark, MapPin, ScrollText, ShieldCheck } from 'lucide-react'
 import { Reveal } from '@/components/Reveal'
+import HScroll from '@/components/HScroll'
 import CountryHero from '@/components/country/CountryHero'
 import MarketListings from '@/components/country/MarketListings'
+import DeProjectCard from '@/components/country/DeProjectCard'
 import { COUNTRY_NAMES, cityPack, type CountryCopy } from '@/lib/country-copy'
 import { buyerCosts, cityRateRows, marketCosts, marketMoney } from '@/lib/countries/costs'
+import { AE_EMIRATES, GOLDEN_VISA_AED, aeEmirateBySlug, aeTitleLabel } from '@/lib/countries/ae'
+import { NEW_DEVELOPERS_UAE, NEW_PROJECTS_UAE } from '@/data/projects-new-uae'
 import { COM_ORIGIN, MARKETS, type PathCountryId } from '@/lib/markets'
 import { hoodsByCity } from '@/data/world-neighborhoods'
 import type { Lang } from '@/lib/i18n/core'
 
 /**
- * Market home for every country except Germany, which keeps DeMarketHome for
- * its street-verified project and developer rails.
+ * Market home for every country except Germany, which keeps DeMarketHome.
+ * UAE (`/ae`) gets the same project + developer rails from the UAE seed,
+ * plus emirate-level transfer/title/tenancy facts from lib/countries/ae.ts.
  *
  * Same section rhythm as /de (hero → facts → cities → cost of buying →
  * rental law → briefing → FAQ), but every figure is pulled from that
@@ -221,6 +226,176 @@ function CostAndRules({ country, city }: { country: PathCountryId; city?: string
   )
 }
 
+const AE_DEV_BY_SLUG = new Map(NEW_DEVELOPERS_UAE.map((d) => [d.slug, d.name.en]))
+const nf = new Intl.NumberFormat('en-US')
+
+function aeProjects(citySlug?: string) {
+  const e = citySlug ? AE_EMIRATES.find((x) => x.slug === citySlug) : undefined
+  const scoped = e ? NEW_PROJECTS_UAE.filter((p) => p.city === e.ka) : NEW_PROJECTS_UAE
+  return scoped.slice(0, 12)
+}
+
+function aeDevelopers(citySlug?: string) {
+  const e = citySlug ? AE_EMIRATES.find((x) => x.slug === citySlug) : undefined
+  const scoped = e ? NEW_DEVELOPERS_UAE.filter((d) => d.city === e.ka) : NEW_DEVELOPERS_UAE
+  return scoped.slice(0, 12)
+}
+
+function AeProjectRail({ citySlug, ar }: { citySlug?: string; ar: boolean }) {
+  const rail = aeProjects(citySlug)
+  if (!rail.length) return null
+  const place = citySlug ? aeEmirateBySlug(citySlug).en : 'the UAE'
+  return (
+    <section id="new-builds" className="relative overflow-hidden bg-sv-cloud py-16 md:py-24">
+      <div className="mx-auto max-w-[1440px] px-5 md:px-10">
+        <SectionHead
+          icon={Building2}
+          kicker={ar ? 'مشاريع جديدة' : 'New-builds'}
+          title={ar ? `مشاريع في ${place}` : `New-builds in ${place}`}
+          sub={
+            ar
+              ? 'كل مشروع مربوط بالمطوّر الرسمي — وحدات، تسليم، وسعر المتر حيث نُشر. ليست تصنيفات مجتزأة.'
+              : 'Every project is tied to the official developer — units, handover, published AED/m² where they exist. Not a scraped classifieds dump.'
+          }
+        />
+      </div>
+      <div className="mx-auto max-w-[1440px] px-5 md:px-10">
+        <HScroll aria-label={`New-build projects in ${place}`} step={320} className="gap-5 pb-4">
+          {rail.map((p) => (
+            <DeProjectCard
+              key={p.slug}
+              p={p}
+              dev={AE_DEV_BY_SLUG.get(p.developerSlug ?? '')}
+              de={false}
+              hrefPrefix="/ae/projects"
+              cityFallback="UAE"
+            />
+          ))}
+        </HScroll>
+      </div>
+    </section>
+  )
+}
+
+function AeDeveloperRail({ citySlug, ar }: { citySlug?: string; ar: boolean }) {
+  const rail = aeDevelopers(citySlug)
+  if (!rail.length) return null
+  return (
+    <section className="relative overflow-hidden bg-sv-cloud py-16 md:py-24">
+      <div className="mx-auto max-w-[1440px] px-5 md:px-10">
+        <SectionHead
+          icon={ShieldCheck}
+          kicker={ar ? 'المطورون' : 'Developers'}
+          title={ar ? 'من يبني الأنبوب' : 'The builders behind the pipeline'}
+          sub={
+            ar
+              ? 'مطوّرون مسجّلون — من الإفصاح العام إلى التسليم. لا نصنّع السمعة.'
+              : 'Registered developers tracked from public disclosure to handover. Reputation is never manufactured.'
+          }
+        />
+      </div>
+      <div className="mx-auto max-w-[1440px] px-5 md:px-10">
+        <HScroll aria-label={ar ? 'مطورو الإمارات' : 'UAE developers'} step={320} className="gap-5 pb-4">
+          {rail.map((d) => {
+            const initials = d.name.en
+              .split(/\s+/)
+              .filter(Boolean)
+              .slice(0, 2)
+              .map((w) => w[0])
+              .join('')
+              .toUpperCase()
+            const emirate = AE_EMIRATES.find((e) => e.ka === d.city)?.en ?? d.city
+            const body = (
+              <>
+                <div className="flex items-center gap-3.5">
+                  <span
+                    aria-hidden
+                    className="grid h-12 w-12 shrink-0 place-items-center rounded-control bg-sv-blue/10 text-[15px] font-black text-sv-blue-deep dark:text-sv-blue-light"
+                  >
+                    {initials}
+                  </span>
+                  <div className="min-w-0">
+                    <h3 className="truncate text-[16px] font-black text-sv-ink">{d.name.en}</h3>
+                    <p className="truncate text-[12px] font-bold text-sv-ink/60">
+                      {emirate} · {d.yearsActive} yrs · {nf.format(d.unitsDelivered)} units delivered
+                    </p>
+                  </div>
+                </div>
+                <p className="mt-4 line-clamp-3 border-t border-sv-ink/[0.06] pt-3 text-[13px] font-semibold leading-snug text-sv-ink/60">
+                  {d.description.en}
+                </p>
+                {d.website ? (
+                  <span className="mt-3 inline-flex items-center gap-1 text-[13px] font-extrabold text-sv-blue-deep dark:text-sv-blue-light">
+                    {ar ? 'الموقع الرسمي' : 'Official site'} <ArrowUpRight className="h-3.5 w-3.5" aria-hidden />
+                  </span>
+                ) : null}
+              </>
+            )
+            const cls =
+              'group flex w-[300px] shrink-0 flex-col rounded-tile border border-sv-ink/[0.07] bg-sv-surface p-5 shadow-card transition-all duration-300 hover:-translate-y-1.5 hover:border-sv-blue/30 hover:shadow-card-hover'
+            return d.website ? (
+              <a key={d.slug} href={d.website} target="_blank" rel="noopener noreferrer" className={cls}>{body}</a>
+            ) : (
+              <div key={d.slug} className={cls}>{body}</div>
+            )
+          })}
+        </HScroll>
+      </div>
+    </section>
+  )
+}
+
+function AeRulesBand({ citySlug, ar }: { citySlug?: string; ar: boolean }) {
+  const e = aeEmirateBySlug(citySlug)
+  const visa = GOLDEN_VISA_AED.toLocaleString('en-US')
+  const cards = [
+    {
+      n: `${e.transferFeePct}%`,
+      label: ar ? `رسوم نقل ${e.authority}` : `Transfer fee at ${e.authority}`,
+    },
+    {
+      n: e.title === 'usufruct-100y' ? (ar ? 'انتفاع' : 'Usufruct') : (ar ? 'تملك حر' : 'Freehold'),
+      label: aeTitleLabel(e, ar),
+    },
+    {
+      n: e.tenancy,
+      label: ar ? 'تسجيل الإيجار الذي يجعل العقد نافذاً' : 'Tenancy registration that makes a lease enforceable',
+    },
+    {
+      n: `AED ${visa}`,
+      label: ar
+        ? 'عتبة التأشيرة الذهبية عبر العقار (اتحادي، 2022–)'
+        : 'Golden Visa via property — federal threshold, not an emirate fee',
+    },
+  ]
+  return (
+    <section className="bg-sv-surface py-16 md:py-20">
+      <div className="mx-auto max-w-[1440px] px-5 md:px-10">
+        <SectionHead
+          icon={ScrollText}
+          kicker={ar ? 'قانون الإمارة' : 'Emirate law'}
+          title={ar ? `كيف تشتري في ${e.ar}` : `How a purchase works in ${e.en}`}
+          sub={
+            ar
+              ? `${e.escrow}. لا ضريبة عقارية سنوية — رسم الخدمة هو التكلفة الجارية.`
+              : `${e.escrow}. There is no annual property tax — the service charge is the carry.`
+          }
+        />
+        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          {cards.map((c, i) => (
+            <Reveal key={c.label} delay={i * 0.02} className="h-full">
+              <div className="flex h-full flex-col gap-2 rounded-card border border-sv-ink/[0.07] bg-sv-cloud p-5 shadow-card md:p-6">
+                <span className="text-[22px] font-black tracking-tight text-sv-ink md:text-[26px]">{c.n}</span>
+                <span className="text-[13px] font-bold leading-snug text-sv-ink/60">{c.label}</span>
+              </div>
+            </Reveal>
+          ))}
+        </div>
+      </div>
+    </section>
+  )
+}
+
 export default function MarketHome({
   country,
   copy,
@@ -256,9 +431,12 @@ export default function MarketHome({
         <MarketListings country={country} city={city} intent={intent} lang={lang} />
       </Suspense>
       <FactsBand country={country} />
+      {country === 'ae' ? <AeProjectRail citySlug={city} ar={lang === 'ar'} /> : null}
+      {country === 'ae' ? <AeRulesBand citySlug={city} ar={lang === 'ar'} /> : null}
       <CostAndRules country={country} city={city} />
       <CitiesBand country={country} current={city} />
       <HoodsBand country={country} city={city} cityName={pack?.name ?? ''} />
+      {country === 'ae' ? <AeDeveloperRail citySlug={city} ar={lang === 'ar'} /> : null}
       <section className="bg-sv-cloud pb-16 md:pb-24">
         <div className="mx-auto max-w-3xl px-5 md:px-10">
           {/* Crumbs carry absolute URLs for the JSON-LD graph; the visible nav

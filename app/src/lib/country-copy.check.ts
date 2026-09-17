@@ -14,8 +14,10 @@ import {
   DE_HUB_DE,
   cityPack,
   countrySitemapPaths,
+  deNativeCityPack,
   heroPair,
 } from './country-copy'
+import { DE_CITIES as DE_CITY_ROWS } from './countries/de'
 
 assert.ok(DE_HUB.lede.length > 80)
 assert.ok(DE_HUB.body.length >= 2)
@@ -92,7 +94,24 @@ assert.deepEqual(heroPair('Kaufen in Berlin'), { lead: 'Kaufen', place: 'in Berl
 assert.deepEqual(heroPair('Mieten in Berlin'), { lead: 'Mieten', place: 'in Berlin' })
 assert.ok(DE_HUB_DE.lede !== DE_HUB.lede)
 assert.ok(DE_HUB_DE.body.length >= 2)
+assert.ok(!/wie Georgien|wie Tbilisi|Tiflis/i.test(DE_HUB_DE.lede), 'DE hub must not pitch Georgia')
 assert.ok(DE_BERLIN_BUY_DE.h1.includes('Kaufen'))
+
+const deLedes: string[] = [DE_HUB_DE.lede]
+for (const c of DE_CITY_ROWS) {
+  const pack = deNativeCityPack(c.slug)
+  assert.ok(pack, `missing native German pack for ${c.slug}`)
+  assert.ok(pack.hub.lede.length > 60, `thin DE-de lede ${c.slug}`)
+  assert.ok(pack.hub.body.length >= 2, `thin DE-de body ${c.slug}`)
+  assert.ok(pack.hub.faqs.length >= 2, `DE-de faqs ${c.slug}`)
+  assert.ok(pack.hub.h1.includes(c.de) || pack.hub.h1.includes('Immobilien'), `DE-de h1 ${c.slug}`)
+  deLedes.push(pack.hub.lede)
+}
+assert.equal(deLedes.length, new Set(deLedes).size, 'native German city ledes must be unique')
+assert.equal(deNativeCityPack('berlin')?.buy?.h1, DE_BERLIN_BUY_DE.h1, 'Berlin buy stays handwritten')
+assert.equal(deNativeCityPack('leipzig')?.buy, undefined, 'generated cities are hub-only')
+assert.ok(deNativeCityPack('leipzig')!.hub.lede.includes('Leipzig'))
+assert.ok(deNativeCityPack('leipzig')!.hub.lede.includes('€/m²'))
 assert.deepEqual(heroPair('Berlin real estate'), { lead: 'Berlin', place: 'real estate' })
 assert.deepEqual(heroPair('Buy in Dubai'), { lead: 'Buy', place: 'in Dubai' })
 assert.deepEqual(parseCountryPath('/de/berlin/buy'), { country: 'de', city: 'berlin', intent: 'buy' })

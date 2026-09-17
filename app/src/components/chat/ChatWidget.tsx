@@ -15,6 +15,7 @@ import {
 } from "react"
 import {
   ArrowDown,
+  Ban,
   Check,
   CheckCheck,
   ChevronLeft,
@@ -24,11 +25,14 @@ import {
   HelpCircle,
   LifeBuoy,
   LogOut,
+  Maximize2,
   MessageCircle,
+  Minimize2,
   MoreHorizontal,
   RotateCcw,
   Search,
   Send,
+  Trash2,
   X,
 } from "lucide-react"
 import UserAvatar from "@/components/UserAvatar"
@@ -37,6 +41,8 @@ import { useSession } from "next-auth/react"
 import { useI18n } from "@/lib/i18n/context"
 import { useChat, type ChatRoom } from "./ChatProvider"
 import FaqView from "./FaqView"
+import { canUnsend, presenceOf } from "@/lib/chat-policy"
+import { useAutoGrow } from "./useAutoGrow"
 import {
   clockLabel,
   clearChatDraft,
@@ -44,9 +50,12 @@ import {
   dayLabel,
   mergeMessages,
   peekChatDraft,
+  readRoomDraft,
   sameGroup,
   splitLinks,
   timeAgo,
+  unreadDividerIndex,
+  writeRoomDraft,
   type ChatMessage,
 } from "./messages"
 
@@ -68,7 +77,35 @@ function agoLabel(iso: string, t: TFunc): string {
   return `${n} ${t(key)}`
 }
 
+/** Header presence line — "" when the heartbeat is stale or missing. */
+function presenceLabel(lastSeenAt: string | null | undefined, t: TFunc): string {
+  const { state, n } = presenceOf(lastSeenAt)
+  if (state === "unknown") return ""
+  if (state === "online") return t("chat.presenceOnline")
+  const unit = t(state === "min" ? "chat.timeMin" : state === "hour" ? "chat.timeHour" : "chat.timeDay")
+  return t("chat.presenceAgo", { ago: `${n}${unit}` })
+}
+
 const CHAT_MAX = 2000
+/** Show the counter only once the cap is close enough to matter. */
+const CHAT_COUNTER_FROM = CHAT_MAX - 200
+
+/**
+ * Tap-anywhere dismissal for the popover menus. A menu that only closes on
+ * Escape is a desktop assumption; on a phone it strands the user.
+ */
+function MenuScrim({ onClose }: { onClose: () => void }) {
+  return (
+    <span
+      className="fixed inset-0 z-10 cursor-default"
+      onClick={(e) => {
+        e.stopPropagation()
+        onClose()
+      }}
+      aria-hidden
+    />
+  )
+}
 
 /** Local view-model: adds the one-shot entrance flag to API messages. */
 type UIMessage = ChatMessage & { anim?: boolean }
@@ -118,7 +155,12 @@ function RoomListItem({
       )}
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-2">
-          <span className="truncate text-[14px] font-extrabold text-sv-ink">{name}</span>
+          <span className="flex min-w-0 items-center gap-1.5">
+            <span className="truncate text-[14px] font-extrabold text-sv-ink">{name}</span>
+            {room.blocked && (
+              <Ban className="h-3.5 w-3.5 shrink-0 text-sv-ink/40" aria-label={t("chat.blocked")} />
+            )}
+          </span>
           {lastMsg && (
             <span className="shrink-0 text-[11px] font-bold text-sv-ink/60">
               {agoLabel(lastMsg.createdAt, t)}
@@ -126,8 +168,12 @@ function RoomListItem({
           )}
         </div>
         <div className="mt-0.5 flex items-center justify-between gap-2">
-          <span className="truncate text-[13px] font-medium text-sv-ink/60">
-            {lastMsg ? previewText(lastMsg.content) : "—"}
+          <span
+            className={`truncate text-[13px] font-medium text-sv-ink/60 ${
+              lastMsg?.deleted ? "italic" : ""
+            }`}
+          >
+            {lastMsg ? (lastMsg.deleted ? t("chat.deleted") : previewText(lastMsg.content)) : "—"}
           </span>
           {unreadCount > 0 && (
             <span className="grid h-5 min-w-5 shrink-0 place-items-center rounded-full bg-sv-orange px-1.5 text-[10px] font-black text-sv-ink">
@@ -219,6 +265,7 @@ const MessageBubble = memo(function MessageBubble({
   reported,
   onCopy,
   onReport,
+  onDelete,
 }: {
   msg: ChatMessage
   own: boolean
@@ -229,27 +276,77 @@ const MessageBubble = memo(function MessageBubble({
   lang: string
   onRetry?: (m: ChatMessage) => void
   retryLabel?: string
-  /** Copy/report affordances — report only offered on peer messages. */
-  menu: { copy: string; copied: string; report: string; reported: string; actions: string }
+  /** Copy/report/unsend affordances — report only offered on peer messages. */
+  menu: {
+    copy: string
+    copied: string
+    report: string
+    reported: string
+    actions: string
+    del: string
+    delConfirm: string
+    deleted: string
+  }
   reported: boolean
   onCopy: (m: ChatMessage) => void
   onReport: (m: ChatMessage) => void
+  onDelete: (m: ChatMessage) => void
 }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [armDelete, setArmDelete] = useState(false)
+  const armTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  useEffect(() => () => clearTimeout(armTimer.current), [])
+
+  const deleted = !!msg.deletedAt
+  // `own` already means senderId === me, so canUnsend here is the window check.
+  // The server re-checks both — this only decides whether to show the item.
+  const deletable = own && msg.status !== "pending" && canUnsend(msg, msg.senderId)
+
+  const closeMenu = () => {
+    setMenuOpen(false)
+    setArmDelete(false)
+  }
   const onMenuKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
-    if (e.key === "Escape") setMenuOpen(false)
+    if (e.key === "Escape") closeMenu()
   }
   const doCopy = () => {
-    setMenuOpen(false)
+    closeMenu()
     onCopy(msg)
     setCopied(true)
     window.setTimeout(() => setCopied(false), 1600)
   }
   const doReport = () => {
-    setMenuOpen(false)
+    closeMenu()
     onReport(msg)
   }
+  // Two taps, no modal: the first arms, the second commits, and it disarms
+  // itself after 3 s so a stray tap can never delete a message.
+  const doDelete = () => {
+    if (!armDelete) {
+      setArmDelete(true)
+      clearTimeout(armTimer.current)
+      armTimer.current = setTimeout(() => setArmDelete(false), 3000)
+      return
+    }
+    clearTimeout(armTimer.current)
+    closeMenu()
+    onDelete(msg)
+  }
+
+  if (deleted) {
+    return (
+      <div
+        className={`flex ${own ? "justify-end" : "justify-start"} ${firstOfGroup ? "mt-3" : "mt-0.5"}`}
+      >
+        <div className="inline-flex max-w-[82%] items-center gap-1.5 rounded-2xl border border-dashed border-sv-ink/15 px-3 py-1.5 text-[13px] font-medium italic text-sv-ink/45">
+          <Ban className="h-3.5 w-3.5 shrink-0" aria-hidden />
+          {menu.deleted}
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div
       className={`group flex ${own ? "justify-end" : "justify-start"} ${firstOfGroup ? "mt-3" : "mt-0.5"}`}
@@ -326,6 +423,7 @@ const MessageBubble = memo(function MessageBubble({
                 >
                   <MoreHorizontal className="h-3.5 w-3.5" aria-hidden />
                 </button>
+                {menuOpen && <MenuScrim onClose={closeMenu} />}
                 {menuOpen && (
                   <span
                     role="menu"
@@ -352,6 +450,19 @@ const MessageBubble = memo(function MessageBubble({
                       >
                         <Flag className="h-3.5 w-3.5" aria-hidden />
                         {reported ? menu.reported : menu.report}
+                      </button>
+                    )}
+                    {deletable && (
+                      <button
+                        type="button"
+                        role="menuitem"
+                        onClick={doDelete}
+                        className={`flex w-full items-center gap-2 px-3 py-2 text-left text-[12.5px] font-bold transition-colors hover:bg-sv-ink/[0.05] focus-visible:outline-none focus-visible:bg-sv-ink/[0.05] ${
+                          armDelete ? "text-sv-orange" : "text-sv-ink"
+                        }`}
+                      >
+                        <Trash2 className="h-3.5 w-3.5" aria-hidden />
+                        {armDelete ? menu.delConfirm : menu.del}
                       </button>
                     )}
                   </span>
@@ -381,11 +492,27 @@ function Composer({
   const { t } = useI18n()
   const [input, setInput] = useState(initialValue)
   const typingSentAt = useRef(0)
+  const draftTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+
+  // sessionStorage writes are synchronous; one per keystroke is measurable on
+  // a low-end Android. Trailing 400 ms is invisible to the user and free.
+  const saveDraft = useCallback(
+    (value: string) => {
+      clearTimeout(draftTimer.current)
+      draftTimer.current = setTimeout(() => writeRoomDraft(roomId, value), 400)
+    },
+    [roomId],
+  )
+  useEffect(() => () => clearTimeout(draftTimer.current), [])
+
+  const boxRef = useAutoGrow(input, 112) // 112px = max-h-28
 
   // Sends are fire-and-forget: the optimistic bubble carries pending/failed
   // state, so slow networks never freeze the composer.
   const flush = (text: string) => {
     setInput("")
+    clearTimeout(draftTimer.current)
+    writeRoomDraft(roomId, "")
     if (listingId) clearChatDraft(listingId)
     void sendText(text)
   }
@@ -407,6 +534,7 @@ function Composer({
 
   const onInputChange = (value: string) => {
     setInput(value)
+    saveDraft(value)
     // Typing heartbeat — at most one POST every 3 s while actively typing
     const now = Date.now()
     if (value && now - typingSentAt.current > 3000) {
@@ -415,24 +543,39 @@ function Composer({
     }
   }
 
+  const left = CHAT_MAX - input.length
+
   return (
     <form
       onSubmit={onSend}
       className="flex items-end gap-2 border-t border-sv-ink/[0.08] p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))]"
     >
-      <textarea
-        value={input}
-        onChange={(e) => onInputChange(e.target.value)}
-        onKeyDown={onInputKeyDown}
-        placeholder={t("chat.placeholder")}
-        maxLength={CHAT_MAX}
-        rows={1}
-        enterKeyHint="send"
-        autoCapitalize="sentences"
-        autoComplete="off"
-        aria-label={t("chat.placeholder")}
-        className="max-h-28 min-w-0 flex-1 resize-none rounded-control border border-sv-ink/10 bg-sv-ink/[0.03] px-3.5 py-2.5 text-[14px] font-medium leading-snug text-sv-ink outline-none transition-colors [field-sizing:content] placeholder:text-sv-ink/35 focus:border-sv-blue/40 touch-manipulation"
-      />
+      <div className="relative min-w-0 flex-1">
+        <textarea
+          ref={boxRef}
+          value={input}
+          onChange={(e) => onInputChange(e.target.value)}
+          onKeyDown={onInputKeyDown}
+          placeholder={t("chat.placeholder")}
+          maxLength={CHAT_MAX}
+          rows={1}
+          enterKeyHint="send"
+          autoCapitalize="sentences"
+          autoComplete="off"
+          aria-label={t("chat.placeholder")}
+          className="max-h-28 w-full resize-none rounded-control border border-sv-ink/10 bg-sv-ink/[0.03] px-3.5 py-2.5 text-[14px] font-medium leading-snug text-sv-ink outline-none transition-colors [field-sizing:content] placeholder:text-sv-ink/35 focus:border-sv-blue/40 touch-manipulation"
+        />
+        {input.length >= CHAT_COUNTER_FROM && (
+          <span
+            aria-live="polite"
+            className={`pointer-events-none absolute bottom-1.5 end-2 text-[10.5px] font-bold tabular-nums ${
+              left <= 0 ? "text-sv-orange" : "text-sv-ink/40"
+            }`}
+          >
+            {left}
+          </span>
+        )}
+      </div>
       <button
         type="submit"
         disabled={!input.trim()}
@@ -450,13 +593,20 @@ function MessageThread({
   listingId,
   listingTitle,
   isSupport,
+  blocked = false,
+  blockedByMe = false,
+  onUnblock,
 }: {
   roomId: string
   listingId?: string | null
   listingTitle?: string | null
   isSupport?: boolean
+  /** Either side blocked the other — composer swaps for an explainer. */
+  blocked?: boolean
+  blockedByMe?: boolean
+  onUnblock?: () => void
 }) {
-  const { meId } = useChat()
+  const { meId, refreshRooms } = useChat()
   const { t, lang } = useI18n()
   const me = meId ?? ""
 
@@ -471,6 +621,12 @@ function MessageThread({
   const [live, setLive] = useState(true)
   const [atBottom, setAtBottom] = useState(true)
   const [loadingOlder, setLoadingOlder] = useState(false)
+  /**
+   * Where the reader stopped last time, captured once per room open — the
+   * divider must not jump as markRead lands a second later.
+   */
+  const [openedAtRead, setOpenedAtRead] = useState<string | null>(null)
+  const openedAtReadSet = useRef(false)
 
   const listRef = useRef<HTMLDivElement>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -505,7 +661,8 @@ function MessageThread({
     firstLoadRef.current = true
     nearBottomRef.current = true
 
-    ;(async () => {
+    /** Newest page — the initial read, and the gap-healer after a drop. */
+    const fetchLatest = async (first: boolean) => {
       try {
         const res = await fetch(`/api/chat/${roomId}`)
         if (!res.ok || !alive) return
@@ -514,92 +671,112 @@ function MessageThread({
         setMessages((prev) => mergeMessages(prev, data.messages ?? []))
         setPeerReadAt(data.peerReadAt ?? null)
         setPage({ hasMore: !!data.hasMore, nextCursor: data.nextCursor ?? null })
-        loadedRef.current = true
-        setLoaded(true)
-        queueMarkRead()
-      } catch {
-        if (alive) setLoaded(true)
-      }
-    })()
-
-    /** Refetch the newest page — heals gaps after mobile backgrounding or a drop. */
-    const catchUp = async () => {
-      try {
-        const res = await fetch(`/api/chat/${roomId}`)
-        if (!res.ok || !alive) return
-        const data = await res.json()
-        if (!alive) return
-        setMessages((prev) => mergeMessages(prev, data.messages ?? []))
-        setPeerReadAt(data.peerReadAt ?? null)
-        setPage({ hasMore: !!data.hasMore, nextCursor: data.nextCursor ?? null })
-      } catch {
-        // next visibility tick or SSE seed retries
-      }
-    }
-
-    const es = new EventSource(`/api/chat/${roomId}/stream`)
-
-    es.onopen = () => setLive(true)
-    es.onerror = () => setLive(false)
-
-    // Seed = history as of connect time (initial open or reconnect). Old news:
-    // it never carries the entrance animation.
-    es.addEventListener("seed", (e) => {
-      try {
-        const d = JSON.parse(e.data)
-        setMessages((prev) => mergeMessages(prev, d.messages ?? []))
-        if (d.readAt) setPeerReadAt(d.readAt)
-      } catch {
-        // ignore malformed frames
-      }
-    })
-
-    es.addEventListener("message", (e) => {
-      try {
-        const d = JSON.parse(e.data)
-        const incoming = decorate(d.messages ?? [])
-        const hasPeer = incoming.some((m) => m.senderId !== me)
-        setMessages((prev) => mergeMessages(prev, incoming))
-        // Honest receipts: only read what was actually on screen
-        if (hasPeer && !document.hidden && nearBottomRef.current) queueMarkRead()
-      } catch {
-        // ignore malformed frames
-      }
-    })
-
-    es.addEventListener("read", (e) => {
-      try {
-        setPeerReadAt(JSON.parse(e.data).readAt ?? null)
-      } catch {
-        // ignore
-      }
-    })
-
-    es.addEventListener("typing", (e) => {
-      try {
-        const on = !!JSON.parse(e.data).typing
-        setPeerTyping(on)
-        if (on) {
-          clearTimeout(typingClearTimer.current)
-          typingClearTimer.current = setTimeout(() => setPeerTyping(false), 8000)
+        if (!openedAtReadSet.current) {
+          openedAtReadSet.current = true
+          setOpenedAtRead(data.myLastReadAt ?? null)
+        }
+        if (first) {
+          loadedRef.current = true
+          setLoaded(true)
+          queueMarkRead()
         }
       } catch {
-        // ignore
+        if (first && alive) setLoaded(true)
       }
-    })
+    }
+    void fetchLatest(true)
 
-    // Catch up on messages + read state when the user returns to the tab
+    // ——— SSE, suspended while the tab is in the background ———
+    // A hidden tab holds a serverless function open and polls the database for
+    // nothing. Closing it there is the single largest cost saving in chat.
+    let es: EventSource | null = null
+    let sleepTimer: ReturnType<typeof setTimeout> | undefined
+
+    const openStream = () => {
+      if (es || !alive) return
+      es = new EventSource(`/api/chat/${roomId}/stream`)
+      es.onopen = () => setLive(true)
+      es.onerror = () => setLive(false)
+
+      // Seed = history as of connect time (initial open or reconnect). Old news:
+      // it never carries the entrance animation.
+      es.addEventListener("seed", (e) => {
+        try {
+          const d = JSON.parse(e.data)
+          setMessages((prev) => mergeMessages(prev, d.messages ?? []))
+        } catch {
+          // ignore malformed frames
+        }
+      })
+
+      es.addEventListener("message", (e) => {
+        try {
+          const d = JSON.parse(e.data)
+          const incoming = decorate(d.messages ?? [])
+          const hasPeer = incoming.some((m: ChatMessage) => m.senderId !== me && !m.deletedAt)
+          setMessages((prev) => {
+            // A tombstone for a message this client never loaded would appear
+            // out of nowhere above the oldest loaded page — drop those.
+            const known = new Set(prev.map((x) => x.id))
+            return mergeMessages(
+              prev,
+              incoming.filter((m) => !m.deletedAt || known.has(m.id)),
+            )
+          })
+          // Honest receipts: only read what was actually on screen
+          if (hasPeer && !document.hidden && nearBottomRef.current) queueMarkRead()
+        } catch {
+          // ignore malformed frames
+        }
+      })
+
+      es.addEventListener("read", (e) => {
+        try {
+          setPeerReadAt(JSON.parse(e.data).readAt ?? null)
+        } catch {
+          // ignore
+        }
+      })
+
+      es.addEventListener("typing", (e) => {
+        try {
+          const on = !!JSON.parse(e.data).typing
+          setPeerTyping(on)
+          if (on) {
+            clearTimeout(typingClearTimer.current)
+            typingClearTimer.current = setTimeout(() => setPeerTyping(false), 8000)
+          }
+        } catch {
+          // ignore
+        }
+      })
+    }
+
+    const closeStream = () => {
+      es?.close()
+      es = null
+      setPeerTyping(false)
+    }
+
+    openStream()
+
+    // Grace period: switching apps for ten seconds should not cost a reconnect.
     const onVisible = () => {
-      if (!document.hidden) {
-        queueMarkRead()
-        void catchUp()
+      clearTimeout(sleepTimer)
+      if (document.hidden) {
+        sleepTimer = setTimeout(closeStream, 20_000)
+        return
       }
+      openStream()
+      queueMarkRead()
+      void fetchLatest(false)
     }
     document.addEventListener("visibilitychange", onVisible)
 
     return () => {
       alive = false
-      es.close()
+      clearTimeout(sleepTimer)
+      closeStream()
       clearTimeout(markReadTimer.current)
       clearTimeout(typingClearTimer.current)
       document.removeEventListener("visibilitychange", onVisible)
@@ -681,6 +858,9 @@ function MessageThread({
           setMessages((prev) =>
             prev.map((m) => (m.clientId === cid ? { ...m, status: "failed" as const } : m)),
           )
+          // A block landed mid-conversation: pull the room list so the composer
+          // swaps for the explainer instead of failing send after send.
+          if (res.status === 403) void refreshRooms()
         }
       } catch {
         setMessages((prev) =>
@@ -688,7 +868,7 @@ function MessageThread({
         )
       }
     },
-    [roomId, me, listingId],
+    [roomId, me, listingId, refreshRooms],
   )
 
   /** Stable identity — memoized bubbles compare it without re-rendering. */
@@ -724,6 +904,28 @@ function MessageThread({
     },
     [roomId],
   )
+  /** Unsend: optimistic tombstone, rolled back if the server refuses. */
+  const deleteMsg = useCallback(
+    async (m: ChatMessage) => {
+      const stamp = new Date().toISOString()
+      setMessages((prev) =>
+        prev.map((x) => (x.id === m.id ? { ...x, content: "", deletedAt: stamp } : x)),
+      )
+      try {
+        const res = await fetch(`/api/chat/${roomId}/message`, {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ messageId: m.id }),
+        })
+        if (res.ok) return
+      } catch {
+        // fall through to the rollback
+      }
+      setMessages((prev) => prev.map((x) => (x.id === m.id ? { ...m } : x)))
+    },
+    [roomId],
+  )
+
   const menuLabels = useMemo(
     () => ({
       copy: t("chat.copy"),
@@ -731,6 +933,9 @@ function MessageThread({
       report: t("chat.report"),
       reported: t("chat.reported"),
       actions: t("chat.msgActions"),
+      del: t("chat.delete"),
+      delConfirm: t("chat.deleteConfirm"),
+      deleted: t("chat.deleted"),
     }),
     [t],
   )
@@ -743,7 +948,9 @@ function MessageThread({
     )
   }
 
-  const seed = listingId ? (peekChatDraft(listingId) ?? "") : ""
+  // A draft typed in this room wins; the LeadForm handoff seeds a fresh one.
+  const seed = readRoomDraft(roomId) || (listingId ? (peekChatDraft(listingId) ?? "") : "")
+  const dividerAt = unreadDividerIndex(messages, openedAtRead, me)
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -805,10 +1012,19 @@ function MessageThread({
             return (
               <Fragment key={m.id}>
                 {showDay && (
-                  <div className="flex justify-center py-2">
-                    <span className="rounded-full bg-sv-ink/[0.05] px-3 py-1 text-[11px] font-bold text-sv-ink/60">
+                  <div className="sticky top-0 z-[1] flex justify-center py-2">
+                    <span className="rounded-full bg-sv-surface/85 px-3 py-1 text-[11px] font-bold text-sv-ink/60 shadow-[0_1px_2px_rgba(0,0,0,0.04)] ring-1 ring-sv-ink/[0.06] backdrop-blur">
                       {dayLabel(m.createdAt, lang, t("chat.today"), t("chat.yesterday"))}
                     </span>
+                  </div>
+                )}
+                {i === dividerAt && (
+                  <div className="my-2 flex items-center gap-2" role="separator">
+                    <span className="h-px flex-1 bg-sv-orange/30" />
+                    <span className="text-[10.5px] font-black uppercase tracking-wide text-sv-orange">
+                      {t("chat.newMessages")}
+                    </span>
+                    <span className="h-px flex-1 bg-sv-orange/30" />
                   </div>
                 )}
                 <MessageBubble
@@ -825,6 +1041,7 @@ function MessageThread({
                   reported={reportedIds.has(m.id)}
                   onCopy={copyMsg}
                   onReport={reportMsg}
+                  onDelete={deleteMsg}
                 />
               </Fragment>
             )
@@ -854,7 +1071,7 @@ function MessageThread({
         )}
       </div>
 
-      {messages.length === 0 && !isSupport && listingId && !seed && (
+      {messages.length === 0 && !isSupport && listingId && !seed && !blocked && (
         <div className="border-t border-sv-ink/[0.06] px-3 pb-1 pt-2">
           <p className="px-0.5 pb-2 text-[11.5px] font-bold text-sv-ink/60">{t("chat.suggestHint")}</p>
           <div className="flex gap-2 overflow-x-auto overscroll-x-contain pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -878,13 +1095,36 @@ function MessageThread({
         </div>
       )}
 
-      {/* Composer — owns the draft, so typing never re-renders the log */}
-      <Composer
-        roomId={roomId}
-        listingId={listingId}
-        initialValue={seed}
-        sendText={sendText}
-      />
+      {/* Blocked threads keep their history but lose the composer. The person
+          who blocked gets the undo; the blocked side is told nothing about who
+          did it — only that the conversation is closed. */}
+      {blocked ? (
+        <div className="flex items-center gap-3 border-t border-sv-ink/[0.08] p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))]">
+          <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-sv-ink/[0.06] text-sv-ink/50">
+            <Ban className="h-4 w-4" aria-hidden />
+          </span>
+          <p className="min-w-0 flex-1 text-[12.5px] font-semibold leading-snug text-sv-ink/60">
+            {blockedByMe ? t("chat.blockedByYou") : t("chat.blockedNotice")}
+          </p>
+          {blockedByMe && onUnblock && (
+            <button
+              type="button"
+              onClick={onUnblock}
+              className="min-h-11 shrink-0 rounded-control bg-sv-blue px-3.5 text-[13px] font-bold text-white transition hover:bg-sv-blue-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 touch-manipulation"
+            >
+              {t("chat.unblock")}
+            </button>
+          )}
+        </div>
+      ) : (
+        /* Composer — owns the draft, so typing never re-renders the log */
+        <Composer
+          roomId={roomId}
+          listingId={listingId}
+          initialValue={seed}
+          sendText={sendText}
+        />
+      )}
     </div>
   )
 }
@@ -895,14 +1135,30 @@ function MessageThread({
 
 const SHEET_EASE = "ease-[cubic-bezier(0.32,0.72,0,1)]"
 
-/** Per-room ⋯ menu: jump to the listing, or leave (two-tap, no modal). */
-function RoomMenu({ room, onLeave }: { room: ChatRoom; onLeave: (id: string) => void }) {
+/** Per-room ⋯ menu: jump to the listing, block, or leave (two-tap, no modal). */
+function RoomMenu({
+  room,
+  onLeave,
+  onBlock,
+}: {
+  room: ChatRoom
+  onLeave: (id: string) => void
+  onBlock: (id: string, blocked: boolean) => void
+}) {
   const { t } = useI18n()
   const [menuOpen, setMenuOpen] = useState(false)
   const [armLeave, setArmLeave] = useState(false)
+  const [armBlock, setArmBlock] = useState(false)
   const armTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+  const blockTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
-  useEffect(() => () => clearTimeout(armTimer.current), [])
+  useEffect(
+    () => () => {
+      clearTimeout(armTimer.current)
+      clearTimeout(blockTimer.current)
+    },
+    [],
+  )
   // Fresh room → fresh menu state via key={room.id} at the call site (no
   // armed Leave leaking across rooms, no set-state-in-effect).
 
@@ -910,11 +1166,13 @@ function RoomMenu({ room, onLeave }: { room: ChatRoom; onLeave: (id: string) => 
     if (e.key === "Escape") {
       setMenuOpen(false)
       setArmLeave(false)
+      setArmBlock(false)
     }
   }
   const tapLeave = () => {
     if (!armLeave) {
       setArmLeave(true)
+      setArmBlock(false)
       clearTimeout(armTimer.current)
       armTimer.current = setTimeout(() => setArmLeave(false), 3000)
       return
@@ -923,6 +1181,25 @@ function RoomMenu({ room, onLeave }: { room: ChatRoom; onLeave: (id: string) => 
     setMenuOpen(false)
     setArmLeave(false)
     void onLeave(room.id)
+  }
+  // Unblock is a single tap (it only ever restores access); block arms first.
+  const tapBlock = () => {
+    if (room.blockedByMe) {
+      setMenuOpen(false)
+      onBlock(room.id, false)
+      return
+    }
+    if (!armBlock) {
+      setArmBlock(true)
+      setArmLeave(false)
+      clearTimeout(blockTimer.current)
+      blockTimer.current = setTimeout(() => setArmBlock(false), 3000)
+      return
+    }
+    clearTimeout(blockTimer.current)
+    setMenuOpen(false)
+    setArmBlock(false)
+    onBlock(room.id, true)
   }
 
   return (
@@ -941,6 +1218,15 @@ function RoomMenu({ room, onLeave }: { room: ChatRoom; onLeave: (id: string) => 
         <MoreHorizontal className="h-4.5 w-4.5" aria-hidden />
       </button>
       {menuOpen && (
+        <MenuScrim
+          onClose={() => {
+            setMenuOpen(false)
+            setArmLeave(false)
+            setArmBlock(false)
+          }}
+        />
+      )}
+      {menuOpen && (
         <span
           role="menu"
           className="absolute end-0 top-10 z-20 w-44 overflow-hidden rounded-control bg-sv-surface py-1 shadow-panel-dark ring-1 ring-sv-ink/10"
@@ -954,6 +1240,23 @@ function RoomMenu({ room, onLeave }: { room: ChatRoom; onLeave: (id: string) => 
               <ExternalLink className="h-3.5 w-3.5" aria-hidden />
               {t("chat.viewListing")}
             </a>
+          )}
+          {!room.isSupport && (
+            <button
+              type="button"
+              role="menuitem"
+              onClick={tapBlock}
+              className={`flex w-full items-center gap-2 px-3 py-2 text-left text-[13px] font-bold transition-colors hover:bg-sv-ink/[0.05] focus-visible:outline-none focus-visible:bg-sv-ink/[0.05] ${
+                armBlock ? "text-sv-orange" : "text-sv-ink"
+              }`}
+            >
+              <Ban className="h-3.5 w-3.5" aria-hidden />
+              {room.blockedByMe
+                ? t("chat.unblock")
+                : armBlock
+                  ? t("chat.blockConfirm")
+                  : t("chat.block")}
+            </button>
           )}
           <button
             type="button"
@@ -993,6 +1296,7 @@ export default function ChatWidget() {
     totalUnread,
     openSupportChat,
     leaveRoom,
+    setRoomBlocked,
   } = useChat()
 
   const launcherRef = useRef<HTMLButtonElement>(null)
@@ -1114,17 +1418,54 @@ export default function ChatWidget() {
     : view === "faq"
       ? t("chat.help")
       : t("chat.title")
+  // Presence outranks the listing line: "is this person around?" is the
+  // question a buyer actually has. Never shown on a blocked thread.
+  const presence =
+    activeRoom && !activeRoom.isSupport && !activeRoom.blocked
+      ? presenceLabel(activeRoom.counterpart?.lastSeenAt, t)
+      : ""
   const headerSub = activeRoom
     ? activeRoom.isSupport
       ? t("chat.supportSub")
-      : activeRoom.counterpart?.name && activeRoom.listing?.title
-        ? activeRoom.listing.title
-        : null
+      : activeRoom.blocked
+        ? t("chat.blocked")
+        : presence ||
+          (activeRoom.counterpart?.name && activeRoom.listing?.title
+            ? activeRoom.listing.title
+            : null)
     : null
+  const headerOnline =
+    !!activeRoom && !activeRoom.isSupport && !activeRoom.blocked &&
+    presenceOf(activeRoom.counterpart?.lastSeenAt).state === "online"
 
   const close = () => {
     closeChat()
     setView("rooms")
+  }
+
+  /**
+   * Desktop-only size toggle. A 380×560 card is right for a quick reply and
+   * cramped for a long negotiation; the choice persists so it is made once.
+   * Mobile is already full-screen, so the control never renders there.
+   */
+  // ChatWidget is dynamic(ssr:false), so reading storage in the initializer is
+  // hydration-safe and costs no extra render.
+  const [expanded, setExpanded] = useState(() => {
+    try {
+      return localStorage.getItem("sv-chat-expanded") === "1"
+    } catch {
+      return false // storage blocked — the default size is the safe one
+    }
+  })
+  const toggleExpanded = () => {
+    setExpanded((v) => {
+      try {
+        localStorage.setItem("sv-chat-expanded", v ? "0" : "1")
+      } catch {
+        // ignore
+      }
+      return !v
+    })
   }
 
   const onPanelKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
@@ -1205,7 +1546,8 @@ export default function ChatWidget() {
           onKeyDown={onPanelKeyDown}
           className={`fixed z-50 flex flex-col overflow-hidden bg-sv-surface shadow-panel-dark outline-none
             max-md:inset-x-0 max-md:top-0 max-md:bottom-0 max-md:h-[100dvh] max-md:w-full max-md:rounded-none max-md:pt-[env(safe-area-inset-top,0px)]
-            md:bottom-6 md:end-6 md:h-[560px] md:w-[380px] md:rounded-card md:border md:border-sv-ink/[0.08]
+            md:bottom-6 md:end-6 md:rounded-card md:border md:border-sv-ink/[0.08]
+            ${expanded ? "md:h-[min(760px,88vh)] md:w-[min(560px,92vw)]" : "md:h-[560px] md:w-[380px]"}
             transition-[opacity,transform] duration-[260ms] ${SHEET_EASE} motion-reduce:transition-none
             ${panelIn ? "translate-y-0 opacity-100 md:scale-100" : "max-md:translate-y-full md:translate-y-3 md:scale-[0.98] md:opacity-0"}`}
         >
@@ -1228,15 +1570,24 @@ export default function ChatWidget() {
                 <LifeBuoy className="h-4 w-4" aria-hidden />
               </span>
             ) : activeRoom ? (
-              <UserAvatar
-                name={activeRoom.counterpart?.name}
-                image={activeRoom.counterpart?.image}
-                gradient={activeRoom.counterpart?.avatarStyle}
-                color={activeRoom.counterpart?.avatarColor}
-                icon={activeRoom.counterpart?.avatarIcon}
-                size={34}
-                className="shrink-0"
-              />
+              <span className="relative shrink-0">
+                <UserAvatar
+                  name={activeRoom.counterpart?.name}
+                  image={activeRoom.counterpart?.image}
+                  gradient={activeRoom.counterpart?.avatarStyle}
+                  color={activeRoom.counterpart?.avatarColor}
+                  icon={activeRoom.counterpart?.avatarIcon}
+                  size={34}
+                />
+                {/* BRAND.md §3: positive state on a light surface is sv-blue,
+                    never green — green is reserved for dark surfaces. */}
+                {headerOnline && (
+                  <span
+                    className="absolute -bottom-0.5 -end-0.5 h-3 w-3 rounded-full bg-sv-blue ring-2 ring-sv-surface"
+                    aria-hidden
+                  />
+                )}
+              </span>
             ) : view === "faq" ? (
               <span className="grid h-[34px] w-[34px] shrink-0 place-items-center rounded-full bg-sv-blue/10 text-sv-blue-deep">
                 <HelpCircle className="h-4 w-4" aria-hidden />
@@ -1248,7 +1599,26 @@ export default function ChatWidget() {
                 <p className="truncate text-[11.5px] font-semibold text-sv-ink/60">{headerSub}</p>
               )}
             </div>
-            {activeRoom && <RoomMenu key={activeRoom.id} room={activeRoom} onLeave={leaveRoom} />}
+            {activeRoom && (
+              <RoomMenu
+                key={activeRoom.id}
+                room={activeRoom}
+                onLeave={leaveRoom}
+                onBlock={(id, on) => void setRoomBlocked(id, on)}
+              />
+            )}
+            <button
+              onClick={toggleExpanded}
+              aria-label={expanded ? t("chat.collapse") : t("chat.expand")}
+              aria-pressed={expanded}
+              className="hidden h-9 w-9 shrink-0 place-items-center rounded-control text-sv-ink/60 transition-colors hover:bg-sv-ink/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue md:grid"
+            >
+              {expanded ? (
+                <Minimize2 className="h-4 w-4" aria-hidden />
+              ) : (
+                <Maximize2 className="h-4 w-4" aria-hidden />
+              )}
+            </button>
             <button
               onClick={close}
               aria-label={t("chat.close")}
@@ -1266,6 +1636,9 @@ export default function ChatWidget() {
               listingId={activeRoom?.listingId}
               listingTitle={activeRoom?.listing?.title}
               isSupport={activeRoom?.isSupport}
+              blocked={activeRoom?.blocked}
+              blockedByMe={activeRoom?.blockedByMe}
+              onUnblock={() => void setRoomBlocked(activeRoomId, false)}
             />
           ) : view === "faq" ? (
             <FaqView key={lang} onContactSupport={openSupport} />

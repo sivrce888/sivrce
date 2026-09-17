@@ -490,7 +490,7 @@ export const NEIGHBORHOODS: Neighborhood[] = [
       ru: 'Столица Германии и первый город sivrce за пределами Грузии — от музеев Митте до уличной культуры Кройцберга. Цены высокие, но спрос на аренду один из самых стабильных в Европе.',
     },
     scores: { transport: 10, schools: 8, green: 8, safety: 8, nightlife: 10 },
-    avgPriceM2USD: 5500, img: '/images/og-brand.png', coords: { lat: 52.52, lng: 13.405 },
+    avgPriceM2USD: 5500, img: '/images/de/apt-5.webp', coords: { lat: 52.52, lng: 13.405 },
   },
   {
     slug: 'mitte',
@@ -502,7 +502,7 @@ export const NEIGHBORHOODS: Neighborhood[] = [
       ru: 'Исторический центр Берлина — Музейный остров, Бранденбургские ворота и правительственный квартал. Самый дорогой м² в городе; покупают ради престижа и надёжной долгосрочной аренды.',
     },
     scores: { transport: 10, schools: 7, green: 6, safety: 9, nightlife: 8 },
-    avgPriceM2USD: 7500, img: '/images/og-brand.png', coords: { lat: 52.52, lng: 13.4 },
+    avgPriceM2USD: 7500, img: '/images/de/penthouse-1.webp', coords: { lat: 52.52, lng: 13.4 },
   },
   {
     slug: 'kreuzberg',
@@ -514,7 +514,7 @@ export const NEIGHBORHOODS: Neighborhood[] = [
       ru: 'Сердце альтернативного Берлина — стрит-арт, рынки и ночная жизнь. Старые квартиры с высокими потолками; спрос на аренду со стороны молодёжи и экспатов не иссякает.',
     },
     scores: { transport: 9, schools: 6, green: 6, safety: 7, nightlife: 10 },
-    avgPriceM2USD: 6000, img: '/images/og-brand.png', coords: { lat: 52.499, lng: 13.43 },
+    avgPriceM2USD: 6000, img: '/images/de/loft-1.webp', coords: { lat: 52.499, lng: 13.43 },
   },
   {
     slug: 'prenzlauer-berg',
@@ -526,7 +526,7 @@ export const NEIGHBORHOODS: Neighborhood[] = [
       ru: 'Семейный Берлин — отреставрированные старые дома, кафе и Мауэрпарк. Цены близки к Митте, но дворы тихие; семьи остаются на десятилетия.',
     },
     scores: { transport: 9, schools: 9, green: 8, safety: 9, nightlife: 6 },
-    avgPriceM2USD: 6500, img: '/images/og-brand.png', coords: { lat: 52.54, lng: 13.42 },
+    avgPriceM2USD: 6500, img: '/images/de/apt-6.webp', coords: { lat: 52.54, lng: 13.42 },
   },
   {
     slug: 'charlottenburg',
@@ -538,7 +538,7 @@ export const NEIGHBORHOODS: Neighborhood[] = [
       ru: 'Элегантный запад — Кудамм, дворец Шарлоттенбург и Берлин старых денег. Просторные квартиры с лепниной; выбор консервативного покупателя со стабильными ценами.',
     },
     scores: { transport: 9, schools: 8, green: 7, safety: 9, nightlife: 5 },
-    avgPriceM2USD: 6200, img: '/images/og-brand.png', coords: { lat: 52.51, lng: 13.3 },
+    avgPriceM2USD: 6200, img: '/images/de/villa-1.webp', coords: { lat: 52.51, lng: 13.3 },
   },
   {
     slug: 'neukoelln',
@@ -550,7 +550,7 @@ export const NEIGHBORHOODS: Neighborhood[] = [
       ru: 'Самый быстро меняющийся район Берлина — дешёвый вход, новые галереи и Темпельхофер-Фельд. Цены ниже центра, а динамика роста одна из самых высоких в городе.',
     },
     scores: { transport: 8, schools: 6, green: 8, safety: 6, nightlife: 9 },
-    avgPriceM2USD: 5000, img: '/images/og-brand.png', coords: { lat: 52.48, lng: 13.44 },
+    avgPriceM2USD: 5000, img: '/images/de/apt-1.webp', coords: { lat: 52.48, lng: 13.44 },
   },
   {
     slug: 'friedrichshain',
@@ -562,7 +562,7 @@ export const NEIGHBORHOODS: Neighborhood[] = [
       ru: 'Восточный берег Шпрее — Ист-Сайд Гэлери, офисы Медиашпрее и молодые арендаторы. Оживлённый каждый день недели; заполняемость предсказуема для инвесторов.',
     },
     scores: { transport: 9, schools: 6, green: 7, safety: 7, nightlife: 9 },
-    avgPriceM2USD: 5800, img: '/images/og-brand.png', coords: { lat: 52.515, lng: 13.45 },
+    avgPriceM2USD: 5800, img: '/images/de/terrasse-1.webp', coords: { lat: 52.515, lng: 13.45 },
   },
   {
     slug: 'pankow',
@@ -574,7 +574,7 @@ export const NEIGHBORHOODS: Neighborhood[] = [
       ru: 'Самый населённый округ Берлина на севере — тихие улицы, парки и семейные новостройки за Пренцлауэр-Бергом. Цены ниже центра, 20 минут до центра на S-Bahn.',
     },
     scores: { transport: 8, schools: 8, green: 8, safety: 9, nightlife: 4 },
-    avgPriceM2USD: 5200, img: '/images/og-brand.png', coords: { lat: 52.569, lng: 13.401 },
+    avgPriceM2USD: 5200, img: '/images/de/neubau-1.webp', coords: { lat: 52.569, lng: 13.401 },
   },
   {
     slug: 'reinickendorf',
@@ -586,7 +586,7 @@ export const NEIGHBORHOODS: Neighborhood[] = [
       ru: 'Зелёный северо-запад — озеро Тегель, лес и новый квартал на месте бывшего аэропорта. Тихий семейный округ с одним из самых доступных м² в городе.',
     },
     scores: { transport: 7, schools: 7, green: 9, safety: 8, nightlife: 3 },
-    avgPriceM2USD: 4500, img: '/images/og-brand.png', coords: { lat: 52.587, lng: 13.353 },
+    avgPriceM2USD: 4500, img: '/images/de/house-1.webp', coords: { lat: 52.587, lng: 13.353 },
   },
   {
     slug: 'spandau',
@@ -598,7 +598,7 @@ export const NEIGHBORHOODS: Neighborhood[] = [
       ru: 'Старый город на Хафеле на западе — цитадель, дома у воды и ощущение отдельного города. Самый дешёвый вход в западном Берлине, 30 минут до центра на U-Bahn.',
     },
     scores: { transport: 7, schools: 7, green: 8, safety: 8, nightlife: 3 },
-    avgPriceM2USD: 4200, img: '/images/og-brand.png', coords: { lat: 52.532, lng: 13.205 },
+    avgPriceM2USD: 4200, img: '/images/de/house-2.webp', coords: { lat: 52.532, lng: 13.205 },
   },
   {
     slug: 'steglitz-zehlendorf',
@@ -610,7 +610,7 @@ export const NEIGHBORHOODS: Neighborhood[] = [
       ru: 'Вилловый юго-запад — лес Грюневальд, озеро Ванзее и Свободный университет. Самый зелёный и дорогой округ Берлина со стабильными премиальными ценами.',
     },
     scores: { transport: 8, schools: 9, green: 10, safety: 9, nightlife: 3 },
-    avgPriceM2USD: 5600, img: '/images/og-brand.png', coords: { lat: 52.441, lng: 13.256 },
+    avgPriceM2USD: 5600, img: '/images/de/garden-1.webp', coords: { lat: 52.441, lng: 13.256 },
   },
   {
     slug: 'tempelhof-schoeneberg',
@@ -622,7 +622,7 @@ export const NEIGHBORHOODS: Neighborhood[] = [
       ru: 'Вокруг Темпельхофер-Фельд — старые дома Шёнеберга, юг Кудамма и близость к центру. Баланс цены и локации; спрос на аренду стабильно высок.',
     },
     scores: { transport: 9, schools: 7, green: 8, safety: 8, nightlife: 6 },
-    avgPriceM2USD: 5300, img: '/images/og-brand.png', coords: { lat: 52.461, lng: 13.379 },
+    avgPriceM2USD: 5300, img: '/images/de/living-1.webp', coords: { lat: 52.461, lng: 13.379 },
   },
   {
     slug: 'treptow-koepenick',
@@ -634,7 +634,7 @@ export const NEIGHBORHOODS: Neighborhood[] = [
       ru: 'Крупнейший округ на юго-востоке — озеро Мюггельзее, леса и берега Шпрее. Самая близкая к природе жизнь в Берлине за умеренную цену.',
     },
     scores: { transport: 7, schools: 7, green: 10, safety: 8, nightlife: 4 },
-    avgPriceM2USD: 4600, img: '/images/og-brand.png', coords: { lat: 52.447, lng: 13.574 },
+    avgPriceM2USD: 4600, img: '/images/de/balkon-1.webp', coords: { lat: 52.447, lng: 13.574 },
   },
   {
     slug: 'marzahn-hellersdorf',
@@ -646,7 +646,7 @@ export const NEIGHBORHOODS: Neighborhood[] = [
       ru: 'Восточные панельные кварталы и Сады мира — самый доступный м² в Берлине. Реновация и линия U5 медленно, но стабильно тянут цены вверх.',
     },
     scores: { transport: 7, schools: 6, green: 8, safety: 7, nightlife: 2 },
-    avgPriceM2USD: 3800, img: '/images/og-brand.png', coords: { lat: 52.536, lng: 13.605 },
+    avgPriceM2USD: 3800, img: '/images/de/apt-3.webp', coords: { lat: 52.536, lng: 13.605 },
   },
   {
     slug: 'lichtenberg',
@@ -658,7 +658,7 @@ export const NEIGHBORHOODS: Neighborhood[] = [
       ru: 'Семейный восток — Тирпарк, Викторияштадт и новые жилые проекты. Близко к центру, а цены пока восточные.',
     },
     scores: { transport: 8, schools: 7, green: 7, safety: 7, nightlife: 4 },
-    avgPriceM2USD: 4400, img: '/images/og-brand.png', coords: { lat: 52.515, lng: 13.502 },
+    avgPriceM2USD: 4400, img: '/images/de/apt-2.webp', coords: { lat: 52.515, lng: 13.502 },
   },
 ]
 

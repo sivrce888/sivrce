@@ -9,7 +9,7 @@ import { jsonLd } from '@/lib/utils'
 import { deOnlyAlternates } from '@/lib/i18n/server'
 
 const BASE = 'https://sivrce.com'
-const PATH = '/en/de/metro/germany'
+const PATH = '/de/metro/germany'
 
 export const revalidate = 86400
 
@@ -110,7 +110,7 @@ export default function GermanyMetroPage() {
             </li>
             <li className="flex items-center gap-1.5">
               <ChevronRight className="h-3.5 w-3.5 text-sv-ink/30" aria-hidden />
-              <Link href="/en/de/metro" className="transition-colors hover:text-sv-blue">
+              <Link href="/de/metro" className="transition-colors hover:text-sv-blue">
                 U-Bahn & S-Bahn
               </Link>
             </li>
@@ -147,7 +147,7 @@ export default function GermanyMetroPage() {
             {BERLIN_U_STATIONS.length + BERLIN_S_STATIONS.length} Stationen auf sivrce.
           </p>
           <Link
-            href="/en/de/metro"
+            href="/de/metro"
             className="inline-flex items-center gap-2 rounded-module bg-sv-blue px-5 py-2.5 text-[13px] font-black text-white shadow-card transition-all hover:shadow-card-hover"
           >
             Alle Berliner Stationen

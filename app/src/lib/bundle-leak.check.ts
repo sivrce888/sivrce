@@ -119,6 +119,16 @@ const BANNED: { entry: string; forbidden: string; why: string }[] = [
     forbidden: "lib/countries/de.ts",
     why: "the DE city catalog must never ride the publish wizard to a phone",
   },
+  {
+    entry: "components/sections/Navbar.tsx",
+    forbidden: "lib/map/user-place.ts",
+    why: "the navbar renders on ~208 routes: one city label here shipped data/world-places (88 KB of rows, measured 106 KB raw in the shared chunk) to every page. The 3D-map link passes ?city=<slug> and /map resolves it via user-place.server; NavLocationBadge shows country only",
+  },
+  {
+    entry: "components/sections/Footer.tsx",
+    forbidden: "lib/map/user-place.ts",
+    why: "same ~208 routes as the navbar — the footer address line uses the market-city-label leaf (74 rows, drift-locked by market-city-label.check.ts)",
+  },
 ]
 
 for (const { entry, forbidden, why } of BANNED) {

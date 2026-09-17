@@ -53,6 +53,20 @@ Once per clone: `./scripts/setup-hooks.sh`
 Enforced on commit (pre-commit), push (pre-push `--ci`), install (`prepare`),
 CI/Vercel (`prebuild --ci` + `postbuild --build`). Over cap = fail, no deploy.
 
+# Master engineering rule (LOCKED 2026-09-17)
+
+Full text: root `AGENTS.md` § Master engineering rule · Cursor rule
+`.cursor/rules/sivrce-master-rule.mdc` (alwaysApply). Wiring is asserted by
+`src/lib/governance.check.ts` in `prebuild` — strip it and CI/Vercel fail.
+
+Short form: autonomous principal engineer, 100/100 production bar. Inspect →
+options → highest-EV → implement → test → audit → retest → commit. Decide
+technical alternatives yourself. Priority on conflict: correctness →
+security/privacy → UX → performance → a11y → SEO/AEO/GEO → conversion →
+scalability → maintainability → cost. One platform, one data model, country
+differences in config not code. Never suppress a failing check. This rule
+outranks the ponytail level above where they conflict.
+
 <!-- BEGIN:nextjs-agent-rules -->
 
 # This is NOT the Next.js you know

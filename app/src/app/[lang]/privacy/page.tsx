@@ -7,6 +7,7 @@ import { isValidLang } from '@/lib/i18n/core'
 import {pageAlternates,  } from '@/lib/i18n/server'
 
 import { jsonLd } from '@/lib/utils'
+import { requestOrigin } from '@/lib/request-market'
 
 export const revalidate = 86400
 
@@ -161,6 +162,7 @@ export default async function PrivacyPage({
 }: {
   params: Promise<{ lang: string }>
 }) {
+  const origin = await requestOrigin()
   const { lang: raw } = await params
   const lang = isValidLang(raw) ? raw : 'ka'
   const m = META[lang] ?? META.ka
@@ -170,12 +172,12 @@ export default async function PrivacyPage({
     '@graph': [
       {
         '@type': 'WebPage',
-        '@id': 'https://sivrce.ge/privacy#webpage',
-        url: 'https://sivrce.ge/privacy',
+        '@id': `${origin}/privacy#webpage`,
+        url: `${origin}/privacy`,
         name: m.title,
         description: m.description,
         inLanguage: lang,
-        isPartOf: { '@id': 'https://sivrce.ge/#website' },
+        isPartOf: { '@id': `${origin}/#website` },
         speakable: {
           '@type': 'SpeakableSpecification',
           cssSelector: ['h1', 'h2', 'p'],
@@ -184,8 +186,8 @@ export default async function PrivacyPage({
       {
         '@type': 'BreadcrumbList',
         itemListElement: [
-          { '@type': 'ListItem', position: 1, name: 'sivrce', item: 'https://sivrce.ge' },
-          { '@type': 'ListItem', position: 2, name: m.title, item: 'https://sivrce.ge/privacy' },
+          { '@type': 'ListItem', position: 1, name: 'sivrce', item: origin },
+          { '@type': 'ListItem', position: 2, name: m.title, item: `${origin}/privacy` },
         ],
       },
     ],

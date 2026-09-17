@@ -40,8 +40,8 @@ export interface DeInventoryCounts {
 export const DE_INVENTORY: DeInventoryCounts = {
   listings: 180,
   cities: 82,
-  projects: 121,
-  developers: 59,
+  projects: 138,
+  developers: 72,
 }
 
 /**
@@ -260,7 +260,7 @@ export const GERMANY_PLAYERS: readonly Player[] = [
       },
       engineering: {
         score: 100,
-        note: '116 deterministic self-checks run on every prebuild, repo-weight lock (≤96 MB), brand lock, and DB-free SSR-safe modules.',
+        note: '121 deterministic self-checks run on every prebuild, repo-weight lock (≤96 MB), brand lock, and DB-free SSR-safe modules.',
         evidence: 'package.json',
       },
     },

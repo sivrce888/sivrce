@@ -503,6 +503,10 @@ export const SOURCE_REGISTRY: SourceDef[] = [
   { slug: "de-statistik-bb", country: "DE", kind: "institution", name: "Amt für Statistik Berlin-Brandenburg", baseUrl: "https://www.statistik-berlin-brandenburg.de", facts: ["price", "completion_date"], refreshHours: 720, access: "dataset", notes: "Baugenehmigungen / Baufertigstellungen — supply pipeline." },
   { slug: "de-destatis", country: "DE", kind: "institution", name: "Destatis (Bautätigkeit)", baseUrl: "https://www.destatis.de", facts: ["price", "completion_date"], refreshHours: 720, access: "dataset", notes: "National construction permits/completions — Germany-wide supply." },
   { slug: "de-handelsregister", country: "DE", kind: "registry", name: "Handelsregister", baseUrl: "https://www.handelsregister.de", facts: ["company_identity", "contact"], refreshHours: 720, access: "html", notes: "Public company registration; no auth bypass, rate-limited." },
+  // ── UAE (AE adapter): official land + tenancy sources only ──
+  { slug: "ae-dld", country: "AE", kind: "registry", name: "Dubai Land Department", baseUrl: "https://www.dubailand.gov.ae", facts: ["address", "permit_status", "project_status", "company_identity"], refreshHours: 168, access: "html", notes: "Title, Ejari, off-plan escrow public services. No auth bypass." },
+  { slug: "ae-rera", country: "AE", kind: "government", name: "RERA (Dubai Real Estate Regulatory Agency)", baseUrl: "https://www.rera.gov.ae", facts: ["permit_status", "project_status", "company_identity"], refreshHours: 168, access: "html", notes: "Broker + developer licensing; escrow supervision. Public pages only." },
+  { slug: "ae-dmt", country: "AE", kind: "government", name: "Abu Dhabi Department of Municipalities and Transport", baseUrl: "https://www.dmt.gov.abudhabi", facts: ["address", "permit_status", "project_status"], refreshHours: 168, access: "html", notes: "Abu Dhabi title + Tawtheeq path. Not Dubai DLD." },
   { slug: "official-developer", country: "*", kind: "official_company", name: "Developer official site (per-entity)", baseUrl: "", facts: ["price", "availability", "amenities", "specifications", "project_status", "completion_date", "media", "contact"], refreshHours: 72, access: "html", notes: "Registered per developer; robots.txt + rate limits enforced." },
   { slug: "partner-feed", country: "*", kind: "company_profile", name: "Partner feed (Partner/ImportJob)", baseUrl: "", facts: ["price", "availability", "address", "coordinates"], refreshHours: 24, access: "feed", notes: "Existing Partner infra; facts only, no copied content." },
 ]
@@ -627,7 +631,10 @@ export function parseIntelQuery(raw: string): IntelQuery | null {
   else if (/dusseldorf|düsseldorf/.test(q)) out.city = "Düsseldorf"
   else if (/leipzig/.test(q)) out.city = "Leipzig"
   else if (/dresden/.test(q)) out.city = "Dresden"
-  else if (/dubai|დუბაი/.test(q)) out.city = "Dubai"
+  else if (/dubai|დუბაი|دبي/.test(q)) out.city = "დუბაი"
+  else if (/abu\s*dhabi|აბუ-დაბი|أبوظبي/.test(q)) out.city = "აბუ-დაბი"
+  else if (/sharjah|შარჯა|الشارقة/.test(q)) out.city = "შარჯა"
+  else if (/ras\s*al[\s-]*khaimah|რას-ელ-ხაიმა|رأس الخيمة/.test(q)) out.city = "რას-ელ-ხაიმა"
   const vake = /vake|ვაკე/.test(q)
   const districtHit = q.match(/(vake|saburtalo|didube|gldani|isani|samgori|chugureti|mtatsminda|nadzaladevi|didi digomi|ვაკე|საბურთალო|დიდუბე|გლდანი|ისანი|სამგორი|ჩუღურეთი|მთაწმინდა|ნაძალადევი|დიდი დიღომი)/)
   if (districtHit) out.district = vake ? "ვაკე" : districtHit[1]

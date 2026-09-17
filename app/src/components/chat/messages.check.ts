@@ -11,6 +11,7 @@ import {
   sameGroup,
   splitLinks,
   timeAgo,
+  unreadDividerIndex,
   type ChatMessage,
 } from './messages'
 
@@ -41,6 +42,14 @@ const merged = mergeMessages([temp], [echoed])
 assert.equal(merged.length, 1, 'temp replaced by server echo')
 assert.equal(merged[0]!.id, 'srv1')
 assert.equal(merged[0]!.clientId, undefined, 'clientId cleared with the temp slot')
+
+// ——— mergeMessages: a re-sent row replaces in place (unsend tombstone) ———
+const live = msg({ id: 'd1', content: 'wrong price 1000' })
+const tomb = { ...live, content: '', deletedAt: '2026-09-17T12:00:00Z' }
+const afterUnsend = mergeMessages([live], [tomb])
+assert.equal(afterUnsend.length, 1, 'tombstone replaces, never duplicates')
+assert.equal(afterUnsend[0]!.content, '')
+assert.equal(afterUnsend[0]!.deletedAt, '2026-09-17T12:00:00Z')
 
 // ——— mergeMessages: (createdAt, id) order survives out-of-order delivery ———
 const early = msg({ id: 'zz', createdAt: '2026-01-01T00:00:00Z' })
@@ -97,5 +106,30 @@ assert.equal(
   'hello owner',
 )
 assert.equal(parseChatDraft(JSON.stringify({ listingId: 'l1', text: 'x'.repeat(2500) }), 'l1')?.length, 2000)
+
+// ——— unreadDividerIndex: where "New messages" goes ———
+const read = '2026-01-01T10:00:00Z'
+const thread: ChatMessage[] = [
+  msg({ id: 'u1', senderId: 'peer', createdAt: '2026-01-01T09:00:00Z' }),
+  msg({ id: 'u2', senderId: 'peer', createdAt: '2026-01-01T11:00:00Z' }),
+  msg({ id: 'u3', senderId: 'peer', createdAt: '2026-01-01T11:05:00Z' }),
+]
+assert.equal(unreadDividerIndex(thread, read, 'me'), 1, 'first message past the read mark')
+assert.equal(unreadDividerIndex(thread, null, 'me'), -1, 'never read = no divider')
+assert.equal(unreadDividerIndex(thread, 'garbage', 'me'), -1)
+assert.equal(
+  unreadDividerIndex(thread, '2026-01-01T23:00:00Z', 'me'),
+  -1,
+  'all read = no divider',
+)
+assert.equal(
+  unreadDividerIndex(
+    [msg({ id: 'm1', senderId: 'me', createdAt: '2026-01-01T11:00:00Z' })],
+    read,
+    'me',
+  ),
+  -1,
+  'my own message never opens an unread run',
+)
 
 console.log('chat/messages.check.ts — all green')

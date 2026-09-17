@@ -6,7 +6,6 @@ import { usePathname } from 'next/navigation'
 import { Heart, Menu, X, Plus, Search, Phone } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import { LangSwitcher } from '@/components/LangSwitcher'
-import { MarketSwitcher } from '@/components/MarketSwitcher'
 import { CurrencySwitcher } from '@/components/CurrencySwitcher'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { AccountMenu } from '@/components/nav/AccountMenu'
@@ -16,16 +15,8 @@ import { useFavorites } from '@/lib/favorites'
 import { useI18n, localizedHref, stripLangPrefix } from '@/lib/i18n/context'
 import type { DictKey } from '@/lib/i18n/context'
 import { MARKETS, intentHref, parseCountryPath } from '@/lib/markets'
-import { mapHrefForPlace } from '@/lib/map/map-href'
-import { cityBySlug } from '@/lib/map/user-place'
 
-export default function Navbar({
-  marketIso,
-  marketCity,
-}: {
-  marketIso?: string
-  marketCity?: string
-} = {}) {
+export default function Navbar({ marketIso }: { marketIso?: string } = {}) {
   const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
   const { count } = useFavorites()
@@ -37,8 +28,9 @@ export default function Navbar({
   const market = parseCountryPath(bare)
   const prefix = market ? MARKETS[market.country].pathPrefix : ''
   const citySlug = market?.city ?? (market ? MARKETS[market.country].defaultCitySlug : '')
-  const pin = citySlug ? cityBySlug(citySlug) : null
-  const mapTo = pin ? mapHrefForPlace(pin.lat, pin.lng) : '/map'
+  // ?city=<slug> is resolved server-side by /map (user-place.server), so the
+  // navbar never ships the city catalog to the browser. Locked by bundle-leak.check.
+  const mapTo = citySlug ? `/map?city=${citySlug}` : '/map'
   const isMarketHome = bare === '/' || !!market
   const menuBtnRef = useRef<HTMLButtonElement>(null)
 
@@ -131,9 +123,13 @@ export default function Navbar({
             : 'bg-transparent'
         }`}
       >
-        <div className="shrink-0 flex items-center gap-2 sm:gap-2.5">
+        {/* Left cluster = identity, then scope. The hairline keeps the market
+            switcher out of the logo lockup: brand reads as brand, the pill
+            reads as a control. */}
+        <div className="relative shrink-0 flex items-center gap-2 sm:gap-2.5">
           <Logo adaptive href={market ? prefix : localizedHref('/', lang)} />
-          <NavLocationBadge light={light} marketIso={marketIso} marketCity={marketCity} />
+          <span aria-hidden className={`h-5 w-px shrink-0 ${light ? 'bg-sv-ink/10' : 'bg-sv-ink/10 dark:bg-white/20'}`} />
+          <NavLocationBadge light={light} marketIso={marketIso} />
         </div>
 
         <nav
@@ -287,12 +283,9 @@ export default function Navbar({
               </span>
               <CurrencySwitcher light />
             </div>
-            <div className="mt-2 flex items-center justify-between rounded-control bg-sv-ink/[0.04] px-4 py-3">
-              <span className="text-[12px] font-extrabold uppercase tracking-wide text-sv-ink/60">
-                Market
-              </span>
-              <MarketSwitcher light />
-            </div>
+            {/* No "Market" row — NavLocationBadge in the bar above is the one
+                market control. The old MarketSwitcher duplicated it with
+                English-only labels and a second cookie writer. */}
             <div className="mt-2 flex items-center justify-between rounded-control bg-sv-ink/[0.04] px-4 py-3">
               <span className="text-[12px] font-extrabold uppercase tracking-wide text-sv-ink/60">
                 {t('nav.language')}

@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import { Manrope, Noto_Sans_Georgian } from "next/font/google";
 import I18nProvider from "@/components/I18nProvider";
 import PostHogProvider from "@/components/PostHogProvider";
@@ -8,6 +9,7 @@ import { GoogleTags } from "@/components/GoogleTags";
 import ConsentBanner from "@/components/consent/ConsentBanner";
 import { NativeShell } from "@/components/native/NativeShell";
 import { BRAND } from "@/lib/brand";
+import { apexOriginFor, hostKind } from "@/lib/site-host";
 // globals.css: app/layout.tsx (root). Importing only here used to work; keep
 // root as the single CSS entry so [lang] pages never lose the stylesheet.
 
@@ -33,20 +35,27 @@ const notoGeorgian = Noto_Sans_Georgian({
   preload: false,
 });
 
-export const metadata: Metadata = {
-  metadataBase: new URL("https://sivrce.ge"),
-  icons: {
-    icon: [
-      { url: "/favicon.ico", sizes: "48x48" },
-      { url: "/icons/favicon-32.png", type: "image/png", sizes: "32x32" },
-      { url: "/icon.png", type: "image/png", sizes: "512x512" },
-    ],
-    apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
-  },
-  ...(process.env.GOOGLE_SITE_VERIFICATION
-    ? { verification: { google: process.env.GOOGLE_SITE_VERIFICATION } }
-    : {}),
-};
+// Host-aware: /auth serves on both origins (sivrce.ge signups and sivrce.com
+// signups) — relative icons/og must resolve against the serving origin.
+export async function generateMetadata(): Promise<Metadata> {
+  const h = await headers();
+  const host = (h.get("x-forwarded-host") || h.get("host") || "").split(",")[0]!;
+  const origin = apexOriginFor(hostKind(host, process.env.VERCEL_ENV)) ?? "https://sivrce.ge";
+  return {
+    metadataBase: new URL(origin),
+    icons: {
+      icon: [
+        { url: "/favicon.ico", sizes: "48x48" },
+        { url: "/icons/favicon-32.png", type: "image/png", sizes: "32x32" },
+        { url: "/icon.png", type: "image/png", sizes: "512x512" },
+      ],
+      apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
+    },
+    ...(process.env.GOOGLE_SITE_VERIFICATION
+      ? { verification: { google: process.env.GOOGLE_SITE_VERIFICATION } }
+      : {}),
+  };
+}
 
 export const viewport: Viewport = {
   width: "device-width",

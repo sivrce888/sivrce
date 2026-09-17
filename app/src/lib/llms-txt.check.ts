@@ -38,7 +38,7 @@ assert.ok(!/myhome|ss\.ge/i.test(full), 'llms-full must not name competitors')
 assert.ok(llmsFullTxt('com').includes('https://sivrce.ge/llms-full.txt'), 'com llms-full must point at Georgia catalog')
 
 const inventory = new Set(['tbilisi', 'batumi', 'kutaisi'])
-for (const c of CITIES) {
+for (const c of CITIES.filter((c) => !c.market || c.market === 'ge')) {
   assert.ok(parseSeoSlug([c.slug]), `${c.slug} must resolve to a page`)
   assert.ok(full.includes(`/${c.slug}`), `llms-full missing city ${c.slug}`)
   if (!inventory.has(c.slug)) {

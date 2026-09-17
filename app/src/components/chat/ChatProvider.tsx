@@ -23,6 +23,8 @@ export interface ChatCounterpartInfo {
   avatarStyle: number | null
   avatarColor: string | null
   avatarIcon: string | null
+  /** 5-min throttled heartbeat — the header presence line reads this. */
+  lastSeenAt: string | null
 }
 
 export interface ChatRoom {
@@ -35,7 +37,17 @@ export interface ChatRoom {
   counterpart: ChatCounterpartInfo | null
   /** sivrce support line — branded header instead of the counterpart name */
   isSupport: boolean
-  lastMessage: { content: string; createdAt: string; senderId: string; kind: string } | null
+  /** Either side blocked the other — the thread is frozen for both. */
+  blocked: boolean
+  /** I pressed Block, so Unblock is mine to press. */
+  blockedByMe: boolean
+  lastMessage: {
+    content: string
+    createdAt: string
+    senderId: string
+    kind: string
+    deleted: boolean
+  } | null
 }
 
 /** What a pending open should create/jump into once the panel is up. */
@@ -71,6 +83,8 @@ interface ChatContextValue {
   refreshRooms: () => Promise<void>
   /** Leave a room (drops it from the list; history stays for the peer) */
   leaveRoom: (roomId: string) => Promise<void>
+  /** Block or unblock the room's counterparty (server resolves the peer) */
+  setRoomBlocked: (roomId: string, blocked: boolean) => Promise<void>
   /** Pending target (open the panel onto this room when it opens) */
   pendingTarget: ChatTarget | null
   /** Signed-in user's id — own vs peer message routing */
@@ -214,6 +228,24 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
     setActiveRoomId((cur) => (cur === roomId ? null : cur))
   }, [])
 
+  const setRoomBlocked = useCallback(async (roomId: string, blocked: boolean) => {
+    try {
+      const res = await fetch(`/api/chat/${roomId}/block`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ block: blocked }),
+      })
+      if (!res.ok) return
+    } catch {
+      return // ponytail: offline — the menu item stays, retry on next tap
+    }
+    // The room stays in the list on purpose: a blocked thread the user cannot
+    // see is a thread they can never unblock.
+    setRooms((prev) =>
+      prev.map((r) => (r.id === roomId ? { ...r, blocked, blockedByMe: blocked } : r)),
+    )
+  }, [])
+
   // Panel opened with a target → get/create the room, jump into it. The
   // target is consumed once resolved so a later plain open lands on the list.
   useEffect(() => {
@@ -238,9 +270,15 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
         if (!res.ok) {
           setPendingTarget(null)
           lastTargetRef.current = null
-          // Catalog rows / deleted listings: chat cannot seat an owner.
-          // Recover onto the phone form already on the page.
-          if (target.kind === "listing" && (res.status === 409 || res.status === 404)) {
+          // Catalog rows, deleted listings, or a block standing between the
+          // two sides: chat cannot open this room. Recover onto the phone form
+          // already on the page rather than leaving the tap doing nothing.
+          // 403 stays deliberately indistinguishable from the other two — the
+          // blocked side is never told a block exists.
+          if (
+            target.kind === "listing" &&
+            (res.status === 409 || res.status === 404 || res.status === 403)
+          ) {
             setOpen(false)
             window.setTimeout(() => {
               const form = document.getElementById("lead-form")
@@ -272,6 +310,8 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
                     listing: data.room.listing ?? null,
                     counterpart: null,
                     isSupport: target.kind === "support",
+                    blocked: false,
+                    blockedByMe: false,
                     lastMessage: null,
                   },
                   ...prev,
@@ -345,6 +385,7 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
       totalUnread,
       refreshRooms,
       leaveRoom,
+      setRoomBlocked,
       pendingTarget,
       meId,
     }),
@@ -361,6 +402,7 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
       totalUnread,
       refreshRooms,
       leaveRoom,
+      setRoomBlocked,
       pendingTarget,
       meId,
     ],

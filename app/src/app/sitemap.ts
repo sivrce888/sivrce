@@ -18,8 +18,9 @@ import { listingPath } from '@/lib/listing-slug'
 import { listingVideoObject } from '@/lib/listing-video'
 import { SERVICE_CATEGORIES, SERVICE_PROVIDERS } from '@/lib/services'
 import { COM_ORIGIN, COUNTRY_IDS } from '@/lib/markets'
-import { countrySitemapPaths } from '@/lib/country-copy'
+import { countrySitemapPaths, deNativeCityPack } from '@/lib/country-copy'
 import { BERLIN_BEZIRKE, DE_CITIES } from '@/lib/countries/de'
+import { AE_EMIRATES } from '@/lib/countries/ae'
 
 const BASE = 'https://sivrce.ge'
 
@@ -102,7 +103,8 @@ async function georgiaSitemap(): Promise<MetadataRoute.Sitemap> {
     { path: '/forum', changeFrequency: 'daily', priority: 0.7 },
     { path: '/neighborhoods', changeFrequency: 'monthly', priority: 0.7 },
     { path: '/market', changeFrequency: 'weekly', priority: 0.8 },
-    { path: '/countries', changeFrequency: 'weekly', priority: 0.8 },
+    // /countries is the worldwide index — it canonicalises to, and now 308s to,
+    // sivrce.com, so it is listed in countrySitemap() instead.
     { path: '/projects', changeFrequency: 'daily', priority: 0.85 },
     // New-build sub-hubs (ka/en/ru corpus in directory-seo PROJECT_HUBS).
     { path: '/projects/tbilisi', changeFrequency: 'daily', priority: 0.8 },
@@ -295,23 +297,40 @@ async function countrySitemap(): Promise<MetadataRoute.Sitemap> {
         },
       },
     },
+    {
+      url: `${COM_ORIGIN}/countries`,
+      changeFrequency: 'weekly',
+      priority: 0.8,
+      alternates: { languages: { en: `${COM_ORIGIN}/countries`, 'x-default': `${COM_ORIGIN}/countries` } },
+    },
   ]
   for (const cc of COUNTRY_IDS) {
     for (const path of countrySitemapPaths(cc)) {
       const url = `${COM_ORIGIN}${path}`
       const languages: Record<string, string> = { en: url, 'x-default': url }
       if (cc === 'ae') languages.ar = `${COM_ORIGIN}/ar${path}`
-      // German DE variant exists for the hub + Berlin (reciprocal hreflang).
-      if (cc === 'de' && (path === '/de' || path.startsWith('/de/berlin'))) {
-        languages.de = `${COM_ORIGIN}/de${path}`
+      // Reciprocal de alternates: native German copy exists for the hub, every
+      // city hub, and the flagship buy/rent intents (mirror of deNativeCopy in
+      // countryMetadata — a cluster member the page does not declare is dropped).
+      if (cc === 'de') {
+        const parts = path === '/de' ? [] : path.slice(4).split('/')
+        const native = parts[0] ? deNativeCityPack(parts[0]) : null
+        const hasDe =
+          parts.length === 0 ||
+          (parts.length === 1 && Boolean(native)) ||
+          (parts.length === 2 && Boolean(native?.[parts[1] as 'buy' | 'rent']))
+        if (hasDe) languages.de = `${COM_ORIGIN}/de${path}`
       }
       out.push({ url, changeFrequency: 'weekly', priority: path.split('/').length <= 2 ? 0.85 : 0.7, alternates: { languages } })
     }
   }
-  // DE flagship content: hand-curated project detail pages under /de/projects.
+  // DE/AE flagship content: catalog project detail pages under /{cc}/projects.
   for (const p of PROJECTS) {
     if (DE_CITIES.some((c) => c.ka === p.city)) {
       out.push({ url: `${COM_ORIGIN}/de/projects/${p.slug}`, changeFrequency: 'weekly', priority: 0.7 })
+    }
+    if (AE_EMIRATES.some((e) => e.ka === p.city)) {
+      out.push({ url: `${COM_ORIGIN}/ae/projects/${p.slug}`, changeFrequency: 'weekly', priority: 0.7 })
     }
   }
   // Berlin Bezirk pages (12) — derived from the catalog, German variant included.
@@ -325,12 +344,13 @@ async function countrySitemap(): Promise<MetadataRoute.Sitemap> {
     })
   }
   // German metro programmatic SEO: station index + all-systems page + 339
-  // Berlin U/S-Bahn station pages (de-only — no hreflang cluster).
-  out.push({ url: `${COM_ORIGIN}/en/de/metro`, changeFrequency: 'weekly', priority: 0.8 })
-  out.push({ url: `${COM_ORIGIN}/en/de/miete-oder-kaufen`, changeFrequency: 'monthly', priority: 0.7 })
-  out.push({ url: `${COM_ORIGIN}/en/de/metro/germany`, changeFrequency: 'monthly', priority: 0.7 })
+  // Berlin U/S-Bahn station pages (de-only — no hreflang cluster). Public
+  // /de/… URLs; the /en/de/… route form is an internal proxy rewrite (308).
+  out.push({ url: `${COM_ORIGIN}/de/metro`, changeFrequency: 'weekly', priority: 0.8 })
+  out.push({ url: `${COM_ORIGIN}/de/miete-oder-kaufen`, changeFrequency: 'monthly', priority: 0.7 })
+  out.push({ url: `${COM_ORIGIN}/de/metro/germany`, changeFrequency: 'monthly', priority: 0.7 })
   for (const s of [...BERLIN_U_STATIONS, ...BERLIN_S_STATIONS]) {
-    out.push({ url: `${COM_ORIGIN}/en/de/metro/${s.slug}`, changeFrequency: 'monthly', priority: 0.6 })
+    out.push({ url: `${COM_ORIGIN}/de/metro/${s.slug}`, changeFrequency: 'monthly', priority: 0.6 })
   }
   // World listings (every non-GE country) — the sivrce.com half of the unified
   // inventory. Canonical /en URLs, en + x-default cluster (world listings

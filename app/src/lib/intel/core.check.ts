@@ -105,6 +105,8 @@ console.assert(sourcesFor("GE", "permit_status").some((s) => s.slug === "ge-napr
 console.assert(sourcesFor("DE", "permit_status").some((s) => s.slug === "de-alkis"), "DE permits covered")
 console.assert(sourcesFor("DE", "permit_status").some((s) => s.slug === "de-bplaene"), "DE B-Plan covered")
 console.assert(sourcesFor("DE", "company_identity").some((s) => s.slug === "de-handelsregister"), "DE identity covered")
+console.assert(sourcesFor("AE", "permit_status").some((s) => s.slug === "ae-dld"), "AE DLD covered")
+console.assert(sourcesFor("AE", "company_identity").some((s) => s.slug === "ae-rera"), "AE RERA covered")
 const iq = parseIntelQuery("Show me every active development in Tbilisi")
 console.assert(iq?.entity === "project" && iq?.city === "თბილისი" && iq?.status === "active", "active-tbilisi parses")
 const iqBerlin = parseIntelQuery("Show me every active development in Berlin")
@@ -114,6 +116,8 @@ console.assert(parseIntelQuery("developers with multiple active projects")?.minA
 console.assert(parseIntelQuery("new apartments in Vake under $300k")?.maxPrice === 300000, "money parses")
 console.assert(parseIntelQuery("Neubau in Kreuzberg unter €500k")?.maxPrice === 500000, "euro money parses")
 console.assert(parseIntelQuery("Neubau in Kreuzberg unter €500k")?.district === "კროიცბერგი", "berlin district parses")
+console.assert(parseIntelQuery("Show me every active development in Dubai")?.city === "დუბაი", "dubai city")
+console.assert(parseIntelQuery("off-plan in Abu Dhabi")?.city === "აბუ-დაბი", "abu dhabi city")
 console.assert(parseIntelQuery("hello there friend") === null, "chit-chat → null")
 
 console.log("intel-core: ok")

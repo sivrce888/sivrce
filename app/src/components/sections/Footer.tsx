@@ -10,7 +10,7 @@ import { useI18n, localizedHref, type DictKey } from '@/lib/i18n/context'
 import { stripLangPrefix } from '@/lib/i18n/core'
 import { CONTACT_PHONE, telHref, waHref } from '@/lib/inquiries/phone'
 import { chromeMarket, countryBasePath, countryIsoForMarket, MARKETS, type PathCountryId } from '@/lib/markets'
-import { cityBySlug } from '@/lib/map/user-place'
+import { marketCityLabel } from '@/lib/market-city-label'
 import type { SeoLoc } from '@/lib/seo-pages'
 import { FOOTER_COLS } from '@/lib/footer-cols.gen'
 
@@ -68,7 +68,7 @@ const COLS: { titleKey: DictKey; links: { key: DictKey; href: string }[] }[] = [
 
 function regionName(iso: string, lang: string): string {
   try {
-    const loc = lang === 'ka' ? 'ka' : lang === 'ru' ? 'ru' : 'en'
+    const loc = lang === 'ka' || lang === 'ru' || lang === 'de' ? lang : 'en'
     return new Intl.DisplayNames([loc], { type: 'region' }).of(iso) ?? iso
   } catch {
     return iso
@@ -90,11 +90,14 @@ export default function Footer({
   const offGe = market !== 'ge'
   const iso = offGe ? (countryIsoForMarket(market) ?? marketIso?.toUpperCase()) : undefined
   const region = iso ? regionName(iso, lang) : ''
-  const pin =
-    marketCity ||
-    (offGe && market !== 'global' ? cityBySlug(MARKETS[market as PathCountryId].defaultCitySlug) : null)
+  // marketCity arrives pre-resolved from the server; otherwise the market's
+  // default city comes from the 74-row leaf, not the 88 KB city catalog —
+  // Footer renders on ~208 routes. Locked by bundle-leak.check.
   const cityLabel =
-    typeof pin === 'string' ? pin : pin ? (lang === 'ka' ? pin.ka : pin.en) : ''
+    marketCity ||
+    (offGe && market !== 'global'
+      ? marketCityLabel(MARKETS[market as PathCountryId].defaultCitySlug, lang)
+      : '')
 
   const pathId = market !== 'ge' && market !== 'global' ? market : null
   const searchQ = iso ? `country=${iso}&` : ''
@@ -131,7 +134,7 @@ export default function Footer({
           <div>
             <Logo light href={localizedHref(homeHref, lang)} />
             <p data-cms-key="footer.tagline" className="mt-5 max-w-[320px] text-[14px] font-medium leading-relaxed text-white/50">
-              {offGe
+              {offGe && lang !== 'de'
                 ? `sivrce — ${region ? `${region}. ` : ''}Buy · rent · new developments.`
                 : t('footer.tagline')}
             </p>
@@ -226,9 +229,19 @@ export default function Footer({
           <p className="text-[13px] font-semibold text-white/55">
             {offGe ? '© 2026 Sivrce • sivrce.com' : t('footer.rights')}
           </p>
-          <div className="flex items-center gap-6 text-[13px] font-semibold text-white/60">
-            <Link href={localizedHref("/terms", lang)} data-cms-key="footer.terms" className="rounded-sm transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy">{t('footer.terms')}</Link>
-            <Link href={localizedHref("/privacy", lang)} data-cms-key="footer.privacy" className="rounded-sm transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy">{t('footer.privacy')}</Link>
+          <div className="flex flex-wrap items-center gap-6 text-[13px] font-semibold text-white/60">
+            {market === 'de' ? (
+              <>
+                <Link href={localizedHref('/legal/impressum', lang)} className="rounded-sm transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy">Impressum</Link>
+                <Link href={localizedHref('/legal/datenschutz', lang)} data-cms-key="footer.privacy" className="rounded-sm transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy">{t('footer.privacy')}</Link>
+                <Link href={localizedHref('/legal/agb', lang)} data-cms-key="footer.terms" className="rounded-sm transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy">{t('footer.terms')}</Link>
+              </>
+            ) : (
+              <>
+                <Link href={localizedHref("/terms", lang)} data-cms-key="footer.terms" className="rounded-sm transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy">{t('footer.terms')}</Link>
+                <Link href={localizedHref("/privacy", lang)} data-cms-key="footer.privacy" className="rounded-sm transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy">{t('footer.privacy')}</Link>
+              </>
+            )}
             {/* Withdrawal must be as easy as consent (DSGVO Art. 7(3)): one
                 click clears the decision, purges tracker state, reopens the prompt. */}
             <button type="button" onClick={() => setConsent(null)} data-cms-key="footer.cookies" className="rounded-sm transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy">{t('footer.cookies')}</button>

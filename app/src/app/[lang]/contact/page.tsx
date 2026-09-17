@@ -8,6 +8,7 @@ import { Reveal } from '@/components/Reveal'
 import { getConfig } from '@/lib/config'
 import { CONTACT_PHONE, telHref, waHref } from '@/lib/inquiries/phone'
 import { jsonLd } from '@/lib/utils'
+import { requestOrigin } from '@/lib/request-market'
 import { pageMeta } from '@/lib/i18n/server'
 import { isValidLang } from '@/lib/i18n/core'
 import { dirLoc, type DirLoc } from '@/lib/directory-seo'
@@ -66,6 +67,7 @@ const T: Record<DirLoc, {
 }
 
 export default async function ContactPage({ params }: { params: Promise<{ lang: string }> }) {
+  const origin = await requestOrigin()
   const { lang: raw } = await params
   const loc = dirLoc(isValidLang(raw) ? raw : 'ka')
   const t = T[loc]
@@ -89,15 +91,15 @@ export default async function ContactPage({ params }: { params: Promise<{ lang: 
     '@graph': [
       {
         '@type': 'ContactPage',
-        '@id': 'https://sivrce.ge/contact#webpage',
+        '@id': `${origin}/contact#webpage`,
         name: t.ldName,
-        url: 'https://sivrce.ge/contact',
+        url: `${origin}/contact`,
         inLanguage: loc,
-        isPartOf: { '@id': 'https://sivrce.ge/#website' },
+        isPartOf: { '@id': `${origin}/#website` },
         about: {
           '@type': 'Organization',
           name: 'sivrce',
-          url: 'https://sivrce.ge',
+          url: origin,
           email,
           telephone: phone,
           address: {
@@ -114,8 +116,8 @@ export default async function ContactPage({ params }: { params: Promise<{ lang: 
       {
         '@type': 'BreadcrumbList',
         itemListElement: [
-          { '@type': 'ListItem', position: 1, name: 'sivrce', item: 'https://sivrce.ge' },
-          { '@type': 'ListItem', position: 2, name: t.title, item: 'https://sivrce.ge/contact' },
+          { '@type': 'ListItem', position: 1, name: 'sivrce', item: origin },
+          { '@type': 'ListItem', position: 2, name: t.title, item: `${origin}/contact` },
         ],
       },
     ],

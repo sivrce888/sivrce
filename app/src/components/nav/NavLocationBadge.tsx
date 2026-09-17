@@ -7,7 +7,6 @@ import { Flag, type FlagCode } from '@/components/Flag'
 import { COUNTRY_IDS, MARKETS, isPathCountry, marketFromIso, parseCountryPath, type PathCountryId } from '@/lib/markets'
 import { useI18n } from '@/lib/i18n/context'
 import { stripLangPrefix } from '@/lib/i18n/core'
-import { cityByName, cityBySlug } from '@/lib/map/user-place'
 
 const noopSubscribe = () => () => {}
 
@@ -70,19 +69,22 @@ const TOP_ITEMS: { id: 'ge' | PathCountryId; flag: FlagCode }[] = [
   ...COUNTRY_IDS.map((id) => ({ id, flag: id as FlagCode })),
 ]
 
-function isComHost() {
-  if (typeof window === 'undefined') return false
-  const h = window.location.hostname
-  return h === 'sivrce.com' || h === 'www.sivrce.com'
-}
-
-function marketHref(id: 'ge' | PathCountryId, currentLang = 'ka'): string {
-  if (id === 'ge') {
-    return isComHost() ? '/ge' : (currentLang && currentLang !== 'ka' ? `/${currentLang}` : '/')
-  }
-  const path = MARKETS[id].pathPrefix
-  const l = currentLang && currentLang !== 'ka' ? currentLang : (id === 'de' ? 'de' : id === 'ae' ? 'ar' : 'en')
-  return isComHost() ? path : `/${l}${path}`
+/**
+ * Market path that resolves on either origin, so the badge renders the same
+ * href on the server and after hydration (the old `window.location` sniff
+ * rendered one href on the server and another in the browser).
+ *
+ * `/ge/…` is the Georgian catalog on sivrce.com and folds to the unprefixed
+ * canonical on sivrce.ge. `/en/<cc>` is the country-market form: sivrce.com
+ * 308s it to /<cc>, sivrce.ge 308s it across to sivrce.com. The two locale
+ * forms a country market publishes (German Germany, Arabic UAE) keep their
+ * locale. ponytail: one 308 on a nav click beats a host branch.
+ */
+export function marketHref(id: 'ge' | PathCountryId, currentLang = 'ka'): string {
+  if (id === 'ge') return currentLang && currentLang !== 'ka' ? `/ge/${currentLang}` : '/ge'
+  if (id === 'de' && currentLang === 'de') return '/de/de'
+  if (id === 'ae' && currentLang === 'ar') return '/ar/ae'
+  return `/en${MARKETS[id].pathPrefix}`
 }
 
 function cookieVal(): string | null {
@@ -95,14 +97,22 @@ function isMarketId(v: string | null | undefined): v is 'ge' | 'global' | PathCo
   return v === 'ge' || v === 'global' || (!!v && isPathCountry(v))
 }
 
+/**
+ * Market (country) switcher for the navbar.
+ *
+ * Country only — deliberately no `· City`. The popover switches countries, so
+ * a city label here was state this control could not change, it was hidden
+ * below `sm` (phones never saw it), it duplicated the hero WHERE field, and
+ * the lookup it needed dragged `map/user-place` → `data/world-places` (88 KB
+ * of city rows) into the navbar chunk on every route. City/district is the
+ * search field's axis; country is this one's. Locked by bundle-leak.check.
+ */
 export function NavLocationBadge({
   light = false,
   marketIso,
-  marketCity,
 }: {
   light?: boolean
   marketIso?: string
-  marketCity?: string
 }) {
   const pathname = usePathname()
   const { lang } = useI18n()
@@ -125,12 +135,7 @@ export function NavLocationBadge({
     const cook = cookieVal()
     const raw = fromIso || (isMarketId(html) ? html : null) || cook
     const country: 'ge' | 'global' | PathCountryId = isMarketId(raw) ? raw : 'global'
-    const cityQ = sp.get('city')
-    const pin = cityQ ? cityByName(cityQ) : null
-    const city =
-      pin?.slug ??
-      (country !== 'global' && country !== 'ge' ? MARKETS[country]?.defaultCitySlug : undefined)
-    return { country, city }
+    return country
     // pathname is the invalidation signal, not a read value: navigation is what
     // changes location.search/data-market. useSearchParams() would read them
     // "properly" but opts every page that renders the navbar out of static.
@@ -138,17 +143,9 @@ export function NavLocationBadge({
   }, [mounted, pathname])
 
   const countryId: 'ge' | 'global' | PathCountryId =
-    parsed?.country ?? (fromProp && fromProp !== 'global' ? fromProp : null) ?? sticky?.country ?? 'global'
-  const propCity = marketCity ? cityByName(marketCity)?.slug : undefined
-  const citySlug =
-    parsed?.city ??
-    propCity ??
-    sticky?.city ??
-    (countryId !== 'global' && countryId !== 'ge' ? MARKETS[countryId]?.defaultCitySlug : countryId === 'ge' ? 'tbilisi' : undefined)
-  const cityObj = citySlug ? cityBySlug(citySlug) : null
+    parsed?.country ?? (fromProp && fromProp !== 'global' ? fromProp : null) ?? sticky ?? 'global'
 
   const countryName = (lang === 'ka' ? MARKET_LABELS[countryId]?.ka : MARKET_LABELS[countryId]?.en) ?? countryId.toUpperCase()
-  const cityName = cityObj ? (lang === 'ka' ? cityObj.ka : cityObj.en) : ''
 
   useEffect(() => {
     if (!open) return
@@ -176,8 +173,14 @@ export function NavLocationBadge({
       })
     : TOP_ITEMS
 
+  // The wrapper is deliberately NOT `relative`: the popover anchors to the
+  // navbar's left cluster (which is), so it opens flush with the logo instead
+  // of flush with the pill. Pill-anchored, a 16rem panel started ~148px in and
+  // ran off the right edge of a 390px phone; logo-aligned it fits from 320px up
+  // with no viewport math, no JS measuring and no CSS anchor positioning
+  // (Chrome-only). ponytail: used outside Navbar, give its wrapper `relative`.
   return (
-    <div ref={rootRef} className="relative inline-flex items-center">
+    <div ref={rootRef} className="inline-flex items-center">
       <button
         type="button"
         onClick={() => {
@@ -186,7 +189,10 @@ export function NavLocationBadge({
         }}
         aria-haspopup="menu"
         aria-expanded={open}
-        className={`group flex h-8 items-center gap-1.5 rounded-full border border-sv-ink/10 px-2.5 text-[11px] font-bold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue ${
+        aria-label={`${lang === 'ka' ? 'ბაზარი' : 'Market'}: ${countryName}`}
+        // before: = invisible 44px touch target around the 32px pill (Apple HIG
+        // minimum) without inflating the nav row.
+        className={`group relative flex h-8 items-center gap-1.5 rounded-full border border-sv-ink/10 px-2.5 text-[11px] font-bold transition-all duration-200 before:absolute before:inset-x-0 before:-inset-y-1.5 before:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue ${
           light
             ? 'bg-sv-ink/5 text-sv-ink hover:bg-sv-ink/10'
             : 'bg-sv-ink/5 text-sv-ink hover:bg-sv-ink/10 dark:border-white/15 dark:bg-white/10 dark:text-white dark:hover:bg-white/20'
@@ -197,10 +203,7 @@ export function NavLocationBadge({
         ) : (
           <Flag code={countryId as FlagCode} size={14} />
         )}
-        <span className="max-w-[110px] truncate tracking-tight sm:max-w-[160px]">
-          {countryName}
-          {cityName ? <span className="hidden opacity-60 sm:inline"> · {cityName}</span> : null}
-        </span>
+        <span className="max-w-[136px] truncate tracking-tight sm:max-w-none">{countryName}</span>
         <ChevronDown className={`h-3 w-3 shrink-0 opacity-60 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
       </button>
 
@@ -209,7 +212,7 @@ export function NavLocationBadge({
         aria-label="Location & Market"
         inert={!open}
         data-open={open || undefined}
-        className="sv-pop glass-light absolute start-0 top-full z-50 mt-2 max-h-[min(24rem,70vh)] w-64 origin-top-start overflow-hidden rounded-2xl border border-sv-ink/10 p-2 shadow-card"
+        className="sv-pop glass-light absolute start-0 top-full z-50 mt-2 max-h-[min(24rem,70vh)] w-[min(16rem,calc(100vw-2.5rem))] origin-top-start overflow-hidden rounded-2xl border border-sv-ink/10 p-2 shadow-card"
       >
         <div className="mb-2 px-1">
           <input

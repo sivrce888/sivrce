@@ -215,18 +215,26 @@ function galleryPaths(p: Project): string[] {
 
 async function main() {
   fs.mkdirSync(DIR, { recursive: true })
-  const all: Project[] = PROJECTS
+  const args = process.argv.slice(2)
+  const force = args.includes('--force')
+  const regionArg = args.find((a) => a.startsWith('--region='))?.split('=')[1]
+
+  let all: Project[] = PROJECTS
+  if (regionArg === 'de') {
+    all = all.filter((p) => p.city === 'ბერლინი' || p.city === 'Berlin' || p.cc === 'DE' || ['Munich', 'Frankfurt', 'Hamburg', 'Cologne', 'Stuttgart', 'Düsseldorf', 'Leipzig', 'Dresden', 'Nuremberg'].includes(p.city) || /\d{5}\s/.test(p.location))
+  }
+
   let heroes = 0
   let cards = 0
   for (const p of all) {
     const heroPath = path.join(DIR, path.basename(p.img))
-    if (!fs.existsSync(heroPath)) {
+    if (!fs.existsSync(heroPath) || force) {
       await sharp(hero(p)).resize(960).webp({ quality: 72, effort: 6 }).toFile(heroPath)
       heroes++
     }
     for (const g of galleryPaths(p)) {
       const out = path.join(DIR, path.basename(g))
-      if (fs.existsSync(out)) continue
+      if (fs.existsSync(out) && !force) continue
       const i = suffixes.findIndex((sfx) => path.basename(g).endsWith(`${sfx}.webp`))
       await sharp(renderers[i](p)).resize(720).webp({ quality: 64, effort: 6 }).toFile(out)
       cards++
@@ -237,7 +245,7 @@ async function main() {
     console.error('STILL MISSING:', missing.map((p) => p.img).join(', '))
     process.exit(1)
   }
-  console.log(`renders: +${heroes} heroes (were missing), +${cards} gallery cards, ${all.length} projects. OK`)
+  console.log(`renders: +${heroes} heroes, +${cards} gallery cards, ${all.length} projects processed. OK`)
 }
 
 main().catch((e) => {

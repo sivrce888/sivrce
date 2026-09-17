@@ -138,9 +138,33 @@ const comDeDe = decideHost({ host: 'sivrce.com', pathname: '/de/de/berlin', verc
 assert.deepEqual(comDeDe, { type: 'pass', market: 'de' })
 const comDeDeHub = decideHost({ host: 'sivrce.com', pathname: '/de/de', vercelEnv: 'production' })
 assert.deepEqual(comDeDeHub, { type: 'pass', market: 'de' })
-// Same form on the GE host keeps serving (unchanged behavior, market label only).
+// sivrce.ge is Georgia-only: country markets move to .com instead of serving
+// the same page on two origins.
 const geDeDe = decideHost({ host: 'sivrce.ge', pathname: '/de/de/berlin', vercelEnv: 'production' })
-assert.equal(geDeDe.type, 'pass')
+assert.deepEqual(geDeDe, { type: 'redirect', origin: COM_ORIGIN, pathname: '/de/de/berlin' })
+const geEnDe = decideHost({ host: 'sivrce.ge', pathname: '/en/de', vercelEnv: 'production' })
+assert.deepEqual(geEnDe, { type: 'redirect', origin: COM_ORIGIN, pathname: '/de' })
+const geEnUsCity = decideHost({ host: 'sivrce.ge', pathname: '/en/us/new-york', vercelEnv: 'production' })
+assert.deepEqual(geEnUsCity, { type: 'redirect', origin: COM_ORIGIN, pathname: '/us/new-york' })
+const geArAe = decideHost({ host: 'sivrce.ge', pathname: '/ar/ae', vercelEnv: 'production' })
+assert.deepEqual(geArAe, { type: 'redirect', origin: COM_ORIGIN, pathname: '/ar/ae' })
+// Arabic UAE is a published URL; `ar` is also Argentina's path prefix.
+const comArAe = decideHost({ host: 'sivrce.com', pathname: '/ar/ae', vercelEnv: 'production' })
+assert.deepEqual(comArAe, { type: 'pass', market: 'ae' })
+const comArAeCity = decideHost({ host: 'sivrce.com', pathname: '/ar/ae/dubai', vercelEnv: 'production' })
+assert.deepEqual(comArAeCity, { type: 'pass', market: 'ae' })
+const comArgentina = decideHost({ host: 'sivrce.com', pathname: '/ar/buenos-aires', vercelEnv: 'production' })
+assert.deepEqual(comArgentina, { type: 'rewrite', pathname: '/en/ar/buenos-aires', market: 'ar' })
+const comArHub = decideHost({ host: 'sivrce.com', pathname: '/ar', vercelEnv: 'production' })
+assert.deepEqual(comArHub, { type: 'rewrite', pathname: '/en/ar', market: 'ar' })
+const geTrTr = decideHost({ host: 'sivrce.ge', pathname: '/tr/tr', vercelEnv: 'production' })
+assert.deepEqual(geTrTr, { type: 'redirect', origin: COM_ORIGIN, pathname: '/tr/tr' })
+// Georgian-product locales whose code collides with a country stay put.
+const geRuDe = decideHost({ host: 'sivrce.ge', pathname: '/ru/de', vercelEnv: 'production' })
+assert.deepEqual(geRuDe, { type: 'pass', market: 'ge' })
+// Preview/dev still serve country markets locally (no cross-origin bounce).
+const localEnDe = decideHost({ host: 'localhost', pathname: '/en/de' })
+assert.deepEqual(localEnDe, { type: 'pass', market: 'de' })
 // English market URL untouched by the rule.
 const comDeBerlin = decideHost({ host: 'sivrce.com', pathname: '/de/berlin', vercelEnv: 'production' })
 assert.deepEqual(comDeBerlin, { type: 'rewrite', pathname: '/en/de/berlin', market: 'de' })
@@ -213,6 +237,19 @@ const comEnSearch = decideHost({ host: 'sivrce.com', pathname: '/en/search', ver
 assert.deepEqual(comEnSearch, { type: 'rewrite', pathname: '/en/search', market: 'global' })
 const geSearch = decideHost({ host: 'sivrce.ge', pathname: '/search', vercelEnv: 'production' })
 assert.deepEqual(geSearch, { type: 'pass', market: 'ge' })
+// The worldwide country directory belongs to .com (it canonicalises there anyway).
+const geCountries = decideHost({ host: 'sivrce.ge', pathname: '/countries', vercelEnv: 'production' })
+assert.deepEqual(geCountries, { type: 'redirect', origin: COM_ORIGIN, pathname: '/countries' })
+const geEnCountries = decideHost({ host: 'sivrce.ge', pathname: '/en/countries', vercelEnv: 'production' })
+assert.deepEqual(geEnCountries, { type: 'redirect', origin: COM_ORIGIN, pathname: '/countries' })
+// Georgian company pages stay on .ge.
+for (const seg of ['/about', '/blog', '/faq', '/contact', '/terms', '/privacy']) {
+  assert.deepEqual(
+    decideHost({ host: 'sivrce.ge', pathname: seg, vercelEnv: 'production' }),
+    { type: 'pass', market: 'ge' },
+    `${seg} must stay on sivrce.ge`,
+  )
+}
 
 // Root-mounted paths under /ge must rewrite to the root mount, not /[lang] (was a 404).
 const comGeAuth = decideHost({ host: 'sivrce.com', pathname: '/ge/auth/signin', vercelEnv: 'production' })

@@ -47,7 +47,7 @@ sivrce-ზე დღიური განცხადების დამა�
     enExcerpt:
       'What a nightly apartment costs across Tbilisi districts, which location yields more, and how to pick an investment unit.',
     tags: ['დღიური ქირა', 'თბილისი', 'ინვესტიცია'],
-    cover: '/images/p3.webp?v15k',
+    cover: '/images/neighborhoods/vake.webp?v15k',
     author: 'sivrce რედაქცია',
     publishedAt: '2026-07-12',
     updatedAt: '2026-07-17',
@@ -75,7 +75,7 @@ sivrce-ზე დღიური განცხადების დამა�
     enExcerpt:
       'Tbilisi rental market in 2026: average monthly prices, which district is worth it, paperwork and protection for tenant and landlord.',
     tags: ['ქირავდება', 'თბილისი', 'ბინა'],
-    cover: '/images/p1.webp?v15k',
+    cover: '/images/de/living-1.webp?v15k',
     author: 'sivrce რედაქცია',
     publishedAt: '2026-07-05',
     readingMinutes: 4,
@@ -102,7 +102,7 @@ sivrce-ზე დღიური განცხადების დამა�
     enExcerpt:
       'Batumi apartment market: prices per m², daily-rental yield, new projects, and what to verify before buying.',
     tags: ['იყიდება', 'ბათუმი', 'ინვესტიცია'],
-    cover: '/images/p2.webp?v15k',
+    cover: '/images/neighborhoods/batumi.webp?v15k',
     author: 'sivrce რედაქცია',
     publishedAt: '2026-06-28',
     readingMinutes: 6,
@@ -136,7 +136,7 @@ sivrce-ზე დღიური განცხადების დამა�
     enExcerpt:
       'Complete guide for foreign buyers: your rights, required documents, fees and paths to residency.',
     tags: ['უძრავი ქონება', 'უცხოელები', 'ინვესტიცია'],
-    cover: '/images/p4.webp?v15k',
+    cover: '/images/de/penthouse-1.webp?v15k',
     author: 'sivrce რედაქცია',
     publishedAt: '2026-06-20',
     readingMinutes: 7,
@@ -167,7 +167,7 @@ sivrce-ზე დღიური განცხადების დამა�
     enExcerpt:
       'Comparison of two popular districts: prices, infrastructure, transport, schools, development outlook.',
     tags: ['ვაკე', 'საბურთალო', 'იყიდება'],
-    cover: '/images/p5.webp?v15k',
+    cover: '/images/neighborhoods/saburtalo.webp?v15k',
     author: 'sivrce რედაქცია',
     publishedAt: '2026-06-15',
     readingMinutes: 5,
@@ -229,7 +229,7 @@ sivrce-ზე დღიური განცხადების დამა�
     enExcerpt:
       'How foreigners buy apartments in Georgia: legal side, taxes, banking and registry. A step-by-step from contract to ownership.',
     tags: ['უცხოელები', 'იურიდიული', 'ინვესტიცია'],
-    cover: '/images/p5.webp?v15k',
+    cover: '/images/de/apt-5.webp?v15k',
     author: 'sivrce რედაქცია',
     publishedAt: '2026-07-16',
     readingMinutes: 7,
@@ -264,7 +264,7 @@ sivrce-ის AI ფასის შეფასება ადარებს 
     enExcerpt:
       'Average per-m² prices by Tbilisi district — premium, mid-tier, and budget segments. What to expect in the 2026 market.',
     tags: ['ფასები', 'თბილისი', 'ბინა'],
-    cover: '/images/p2.webp?v15k',
+    cover: '/images/neighborhoods/mtatsminda.webp?v15k',
     author: 'sivrce რედაქცია',
     publishedAt: '2026-07-15',
     readingMinutes: 6,
@@ -299,7 +299,7 @@ sivrce-ის იპოთეკის კალკულატორი იყ�
     enExcerpt:
       'Mortgage rates in 2026, down payment, term, Georgian bank comparison. How to choose the right loan.',
     tags: ['იპოთეკა', 'ბანკი', 'ფინანსები'],
-    cover: '/images/p4.webp?v15k',
+    cover: '/images/de/office-1.webp?v15k',
     author: 'sivrce რედაქცია',
     publishedAt: '2026-07-14',
     readingMinutes: 5,
@@ -361,7 +361,7 @@ sivrce-ის იპოთეკის კალკულატორი იყ�
     enExcerpt:
       'How apartment pledging works in Tbilisi, typical amounts, contract terms and how to protect yourself.',
     tags: ['გირავდება', 'თბილისი', 'ბინა'],
-    cover: '/images/p1.webp?v15k',
+    cover: '/images/de/apt-3.webp?v15k',
     author: 'sivrce რედაქცია',
     publishedAt: '2026-09-05',
     readingMinutes: 5,
@@ -388,7 +388,7 @@ sivrce-ის იპოთეკის კალკულატორი იყ�
     enExcerpt:
       'How land lease differs from rent, yearly rates by region, and what the contract must include.',
     tags: ['იჯარა', 'მიწის ნაკვეთი', 'იურიდიული'],
-    cover: '/images/p3.webp?v15k',
+    cover: '/images/de/land-1.webp?v15k',
     author: 'sivrce რედაქცია',
     publishedAt: '2026-09-03',
     readingMinutes: 5,
@@ -442,7 +442,7 @@ sivrce-ის იპოთეკის კალკულატორი იყ�
     enExcerpt:
       'Commercial rents per m² by district, lease clauses to demand, and location logic by business type.',
     tags: ['კომერციული', 'ქირავდება', 'თბილისი'],
-    cover: '/images/p5.webp?v15k',
+    cover: '/images/de/commercial-1.webp?v15k',
     author: 'sivrce რედაქცია',
     publishedAt: '2026-08-28',
     readingMinutes: 5,
@@ -469,7 +469,7 @@ sivrce-ის იპოთეკის კალკულატორი იყ�
     enExcerpt:
       'Agricultural vs non-agricultural status, cadastre checks, regional prices and 7 costly mistakes.',
     tags: ['მიწის ნაკვეთი', 'იყიდება', 'ინვესტიცია'],
-    cover: '/images/p2.webp?v15k',
+    cover: '/images/de/land-1.webp?v15k',
     author: 'sivrce რედაქცია',
     publishedAt: '2026-08-25',
     readingMinutes: 6,
@@ -496,7 +496,7 @@ sivrce-ის იპოთეკის კალკულატორი იყ�
     enExcerpt:
       'Suburban districts and prices, regional cottages, and an 8-point inspection checklist for houses with yards.',
     tags: ['სახლი', 'აგარაკი', 'იყიდება'],
-    cover: '/images/p4.webp?v15k',
+    cover: '/images/de/garden-1.webp?v15k',
     author: 'sivrce რედაქცია',
     publishedAt: '2026-08-22',
     readingMinutes: 6,
@@ -523,7 +523,7 @@ sivrce-ის იპოთეკის კალკულატორი იყ�
     enExcerpt:
       'Full legal guide: 7 steps from registry extract to keys, every fee, and 5 common scams with defenses.',
     tags: ['იურიდიული', 'ბინის ყიდვა', 'რეესტრი'],
-    cover: '/images/p3.webp?v15k',
+    cover: '/images/de/apt-6.webp?v15k',
     author: 'sivrce რედაქცია',
     publishedAt: '2026-08-20',
     readingMinutes: 7,
@@ -550,7 +550,7 @@ sivrce-ის იპოთეკის კალკულატორი იყ�
     enExcerpt:
       'Cosmetic vs capital vs designer renovation rates, where budgets leak, and how to stay on budget.',
     tags: ['რემონტი', 'ფასები', 'ბინა'],
-    cover: '/images/p5.webp?v15k',
+    cover: '/images/de/kitchen-1.webp?v15k',
     author: 'sivrce რედაქცია',
     publishedAt: '2026-08-18',
     readingMinutes: 5,
@@ -577,7 +577,7 @@ sivrce-ის იპოთეკის კალკულატორი იყ�
     enExcerpt:
       'Kutaisi market vs Tbilisi prices, district guide, and investor math on rental yield.',
     tags: ['ქუთაისი', 'იყიდება', 'ინვესტიცია'],
-    cover: '/images/p1.webp?v15k',
+    cover: '/images/de/apt-2.webp?v15k',
     author: 'sivrce რედაქცია',
     publishedAt: '2026-08-15',
     readingMinutes: 5,
@@ -604,7 +604,7 @@ sivrce-ის იპოთეკის კალკულატორი იყ�
     enExcerpt:
       'Frame types explained, price gaps, and which pays off: finished vs frame plus renovation.',
     tags: ['კარკასი', 'ახალი პროექტები', 'ბინის ყიდვა'],
-    cover: '/images/p2.webp?v15k',
+    cover: '/images/de/neubau-1.webp?v15k',
     author: 'sivrce რედაქცია',
     publishedAt: '2026-08-12',
     readingMinutes: 5,
@@ -631,7 +631,7 @@ sivrce-ის იპოთეკის კალკულატორი იყ�
     enExcerpt:
       'Prices, rental income, liquidity, and which suits students, couples and investors.',
     tags: ['სტუდიო', 'ბინის ყიდვა', 'ინვესტიცია'],
-    cover: '/images/p4.webp?v15k',
+    cover: '/images/de/apt-4.webp?v15k',
     author: 'sivrce რედაქცია',
     publishedAt: '2026-08-10',
     readingMinutes: 5,

@@ -119,6 +119,18 @@ export function decideHost(input: { host: string; pathname: string; vercelEnv?: 
   const restSegs = rest.split('/').filter(Boolean)
   const restFirst = restSegs[0] ?? ''
 
+  // sivrce.ge is Georgia-only. Every country-market URL form — /en/de,
+  // /de/de/berlin, /ar/ae — belongs to sivrce.com; serving them here put the
+  // same page on two origins and split its ranking. Only the forms a country
+  // market actually publishes redirect: /ru/de stays the Georgian product's
+  // Russian locale.
+  if (!local && kind === 'ge' && isPathCountry(restFirst)) {
+    const cc = restFirst as PathCountryId
+    if (lang === 'en' || lang === cc || (lang === 'ar' && cc === 'ae')) {
+      return { type: 'redirect', origin: COM_ORIGIN, pathname: lang === 'en' ? rest : path }
+    }
+  }
+
   // /en/de/… is the internal rewrite target. On sivrce.com the public URL
   // is /de/… (308). Locally keep /en/de so it does not collide with German /de.
   if (lang === 'en' && isPathCountry(restFirst)) {
@@ -150,6 +162,13 @@ export function decideHost(input: { host: string; pathname: string; vercelEnv?: 
     }
     if (!lang && isPathCountry(restFirst) && !LOCALE_SET.has(restFirst)) {
       return { type: 'redirect', origin: COM_ORIGIN, pathname: rest }
+    }
+    // The all-countries directory is the worldwide index: it already
+    // canonicalises to sivrce.com, so serving it here only spends .ge crawl
+    // budget on a page that is not Georgia. Other COM_PAGE_SEGS (about, blog,
+    // faq…) are genuine Georgian pages and stay.
+    if (restFirst === 'countries') {
+      return { type: 'redirect', origin: COM_ORIGIN, pathname: '/countries' }
     }
     return { type: 'pass', market: 'ge' }
   }
@@ -197,11 +216,14 @@ export function decideHost(input: { host: string; pathname: string; vercelEnv?: 
       const mapped = first === 'en' ? path : `/en${path}`
       return { type: 'rewrite', pathname: mapped, market: 'global' }
     }
-    if (isPathCountry(first)) {
-      return { type: 'rewrite', pathname: `/en${path}`, market: first }
-    }
+    // Arabic UAE (/ar/ae/…) before the country test: `ar` is also Argentina's
+    // path, so /ar/ae used to serve Argentina — on a URL llms.txt advertises.
+    // Argentina's own paths (/ar, /ar/<city>) never start with a country code.
     if (lang === 'ar' && restFirst === 'ae') {
       return { type: 'pass', market: 'ae' }
+    }
+    if (isPathCountry(first)) {
+      return { type: 'rewrite', pathname: `/en${path}`, market: first }
     }
     const pageSeg = lang ? restFirst : first
     if (isComPageSeg(pageSeg)) {

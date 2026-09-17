@@ -131,7 +131,7 @@ test.describe("SEO", () => {
     const res = await page.goto(`${BASE}/robots.txt`)
     expect(res?.status()).toBe(200)
     const text = await page.content()
-    expect(text).toContain("sitemap.xml")
+    expect(text).toContain("sitemap/ge.xml")
     expect(text).toMatch(/sivrce\.com\/sitemap/)
   })
 

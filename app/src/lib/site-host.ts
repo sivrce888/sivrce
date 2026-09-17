@@ -116,8 +116,10 @@ export function publicOriginKind(kind: HostKind): 'ge' | 'com' {
 }
 
 /**
- * Sitemap URL set for this host.
- * Prod splits so each origin only lists itself. Dev/preview keep both so local e2e still sees /de.
+ * Sitemap URL set for this host (pure helper — mirrors the ge/com shard
+ * choice). Both hosts serve BOTH shards at /sitemap/{ge,com}.xml and robots
+ * advertises both: shard contents are origin-pure, so cross-submission in
+ * Search Console works from either origin.
  */
 export function sitemapScope(kind: HostKind): 'ge' | 'com' | 'all' {
   if (kind === 'dev' || kind === 'preview') return 'all'

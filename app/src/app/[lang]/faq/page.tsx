@@ -5,6 +5,7 @@ import Footer from '@/components/sections/Footer'
 import { PageHero } from '@/components/PageHero'
 import { Reveal } from '@/components/Reveal'
 import { jsonLd } from '@/lib/utils'
+import { requestOrigin } from '@/lib/request-market'
 import { pageMeta } from '@/lib/i18n/server'
 import { isValidLang } from '@/lib/i18n/core'
 import { dirLoc, type DirLoc } from '@/lib/directory-seo'
@@ -43,7 +44,7 @@ export async function generateMetadata({
   })
 }
 
-function faqLdFor(loc: DirLoc | 'de') {
+function faqLdFor(loc: DirLoc | 'de', origin: string) {
   const homeLabel = loc === 'ka' ? 'მთავარი' : loc === 'ru' ? 'Главная' : loc === 'de' ? 'Startseite' : 'Home'
   const faqLabel = loc === 'ka' ? 'ხშირი კითხვები' : loc === 'ru' ? 'Частые вопросы' : loc === 'de' ? 'Häufige Fragen' : 'FAQ'
   return {
@@ -52,7 +53,7 @@ function faqLdFor(loc: DirLoc | 'de') {
       {
         '@type': 'FAQPage',
         inLanguage: loc,
-        isPartOf: { '@id': 'https://sivrce.ge/#website' },
+        isPartOf: { '@id': `${origin}/#website` },
         speakable: {
           '@type': 'SpeakableSpecification',
           cssSelector: ['h1', 'summary'],
@@ -68,8 +69,8 @@ function faqLdFor(loc: DirLoc | 'de') {
       {
         '@type': 'BreadcrumbList',
         itemListElement: [
-          { '@type': 'ListItem', position: 1, name: homeLabel, item: 'https://sivrce.ge' },
-          { '@type': 'ListItem', position: 2, name: faqLabel, item: 'https://sivrce.ge/faq' },
+          { '@type': 'ListItem', position: 1, name: homeLabel, item: origin },
+          { '@type': 'ListItem', position: 2, name: faqLabel, item: `${origin}/faq` },
         ],
       },
     ],
@@ -101,6 +102,7 @@ const HERO_DE = {
 } as const
 
 export default async function FaqPage({ params }: { params: Promise<{ lang: string }> }) {
+  const origin = await requestOrigin()
   const { lang: raw } = await params
   const lang = isValidLang(raw) ? raw : 'ka'
   const loc = dirLoc(lang)
@@ -111,7 +113,7 @@ export default async function FaqPage({ params }: { params: Promise<{ lang: stri
   const sections: (typeof FAQ_SECTIONS)[FaqLoc] = isDe ? FAQ_SECTIONS.de : FAQ_SECTIONS[loc]
   return (
     <div className="min-h-screen bg-sv-cloud">
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(faqLdFor(isDe ? 'de' : loc)) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(faqLdFor(isDe ? 'de' : loc, origin)) }} />
       <Navbar />
       <main id="main">
         <PageHero tone="light" kicker={hero.kicker} title={hero.title} subtitle={hero.subtitle} />

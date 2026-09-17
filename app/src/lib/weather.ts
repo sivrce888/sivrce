@@ -54,6 +54,10 @@ export const CITY_COORDS: Record<string, { lat: number; lng: number }> = {
   nuremberg: { lat: 49.4521, lng: 11.0767 },
   duisburg: { lat: 51.4344, lng: 6.7623 },
   bochum: { lat: 51.4818, lng: 7.2162 },
+  dubai: { lat: 25.2048, lng: 55.2708 },
+  'abu-dhabi': { lat: 24.4539, lng: 54.3773 },
+  sharjah: { lat: 25.3463, lng: 55.4209 },
+  'ras-al-khaimah': { lat: 25.7895, lng: 55.9432 },
 }
 
 export function cityCoords(slug?: string): { lat: number; lng: number } | undefined {

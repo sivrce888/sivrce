@@ -1,4 +1,4 @@
-import { MessagesSquare, MessageSquareText, Radio } from "lucide-react"
+import { Ban, MessagesSquare, MessageSquareText, Radio } from "lucide-react"
 import Link from "next/link"
 
 import { DataTable, THeadRow, TRow, td, th } from "@/components/admin/ui/DataTable"
@@ -47,10 +47,11 @@ export default async function AdminChatsPage({
   if (state === "active") where.status = "active"
   if (q) where.title = { contains: q, mode: "insensitive" }
 
-  const [activeCount, activeTodayCount, messageCount, rows, total] = await Promise.all([
+  const [activeCount, activeTodayCount, messageCount, blockCount, rows, total] = await Promise.all([
     db.chatRoom.count({ where: { status: "active" } }),
     db.chatRoom.count({ where: { updatedAt: { gte: today } } }),
     db.chatMessage.count(),
+    db.chatBlock.count(),
     db.chatRoom.findMany({
       where,
       include: {
@@ -80,7 +81,7 @@ export default async function AdminChatsPage({
         description={`${fmtNum(total)} chat rooms · read-only monitoring, message content is not shown`}
       />
 
-      <div className="mb-6 grid gap-4 sm:grid-cols-3">
+      <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           label="Active rooms"
           value={fmtNum(activeCount)}
@@ -100,6 +101,15 @@ export default async function AdminChatsPage({
           value={fmtNum(messageCount)}
           hint="Across all rooms"
           icon={MessageSquareText}
+          tone="ink"
+        />
+        {/* A rising block count is the earliest signal of chat abuse — the
+            reports queue only ever sees the users who bothered to file one. */}
+        <StatCard
+          label="Blocks in force"
+          value={fmtNum(blockCount)}
+          hint="User-to-user chat blocks"
+          icon={Ban}
           tone="ink"
         />
       </div>

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 
 import { LifeBuoy, Send } from "lucide-react"
 import { useI18n } from "@/lib/i18n/context"
 import { faqLoc, faqMatch, faqSuggestions } from "@/lib/faq"
+import { useAutoGrow } from "./useAutoGrow"
 
 /**
  * In-chat FAQ assistant — instant, offline answers from the /faq dataset.
@@ -34,6 +35,7 @@ export default function FaqView({ onContactSupport }: { onContactSupport: () => 
   const [missCta, setMissCta] = useState(false)
 
   const bottomRef = useRef<HTMLDivElement>(null)
+  const boxRef = useAutoGrow(input, 112) // 112px = max-h-28
   /** Entries from the cached transcript (or greeting) don't replay the entrance. */
   const [animatedFrom] = useState(() => log.length)
 
@@ -140,20 +142,22 @@ export default function FaqView({ onContactSupport }: { onContactSupport: () => 
         className="flex items-end gap-2 border-t border-sv-ink/[0.08] p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))]"
       >
         <textarea
+          ref={boxRef}
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={onInputKeyDown}
           placeholder={t("chat.faqPlaceholder")}
           maxLength={300}
           rows={1}
+          enterKeyHint="send"
           aria-label={t("chat.faqPlaceholder")}
-          className="max-h-28 min-w-0 flex-1 resize-none rounded-control border border-sv-ink/10 bg-sv-ink/[0.03] px-3.5 py-2.5 text-[14px] font-medium leading-snug text-sv-ink outline-none transition-colors [field-sizing:content] placeholder:text-sv-ink/35 focus:border-sv-blue/40"
+          className="max-h-28 min-w-0 flex-1 resize-none rounded-control border border-sv-ink/10 bg-sv-ink/[0.03] px-3.5 py-2.5 text-[14px] font-medium leading-snug text-sv-ink outline-none transition-colors [field-sizing:content] placeholder:text-sv-ink/35 focus:border-sv-blue/40 touch-manipulation"
         />
         <button
           type="submit"
           disabled={!input.trim()}
           aria-label={t("chat.send")}
-          className="grid h-11 w-11 shrink-0 place-items-center rounded-control bg-sv-blue text-white transition hover:bg-sv-blue-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 disabled:opacity-40"
+          className="grid h-11 w-11 shrink-0 place-items-center rounded-control bg-sv-blue text-white transition hover:bg-sv-blue-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 disabled:opacity-40 touch-manipulation"
         >
           <Send className="h-4 w-4 rtl:-scale-x-100" aria-hidden />
         </button>

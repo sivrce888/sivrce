@@ -8,6 +8,7 @@ import { AdSlot } from '@/components/ads/AdSlot'
 import { isValidLang } from '@/lib/i18n/core'
 import { listBlogPosts } from '@/lib/blog-live'
 import { jsonLd } from '@/lib/utils'
+import { requestOrigin } from '@/lib/request-market'
 import { pageMeta } from '@/lib/i18n/server'
 
 export const revalidate = 86400
@@ -19,6 +20,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { lang: raw } = await params
   const lang = isValidLang(raw) ? raw : 'ka'
+  const origin = await requestOrigin()
   return {
     ...pageMeta('/blog', lang, {
       ka: {
@@ -42,25 +44,28 @@ export async function generateMetadata({
       description:
         'საქართველოს უძრავი ქონების ბაზრის ანალიტიკა და გზამკვლევები. ინვესტიციები, ROI, რჩევები.',
       type: 'website',
-      url: 'https://sivrce.ge/blog',
+      url: `${origin}/blog`,
       siteName: 'sivrce',
       locale: 'ka_GE',
     },
   }
 }
 
-function blogLd(posts: { title: string; slug: string; publishedAt: string; updatedAt?: string; author: string }[]) {
+function blogLd(
+  posts: { title: string; slug: string; publishedAt: string; updatedAt?: string; author: string }[],
+  origin: string,
+) {
   return {
     '@context': 'https://schema.org',
     '@type': 'Blog',
     name: 'sivrce ბლოგი',
     description: 'უძრავი ქონების გზამკვლევები საქართველოში',
-    url: 'https://sivrce.ge/blog',
+    url: `${origin}/blog`,
     inLanguage: 'ka',
     blogPost: posts.map((p) => ({
       '@type': 'BlogPosting',
       headline: p.title,
-      url: `https://sivrce.ge/blog/${p.slug}`,
+      url: `${origin}/blog/${p.slug}`,
       datePublished: `${p.publishedAt}T00:00:00+04:00`,
       dateModified: `${p.updatedAt ?? p.publishedAt}T00:00:00+04:00`,
       author: { '@type': 'Organization', name: p.author },
@@ -69,6 +74,7 @@ function blogLd(posts: { title: string; slug: string; publishedAt: string; updat
 }
 
 export default async function BlogIndex({ params }: { params: Promise<{ lang: string }> }) {
+  const origin = await requestOrigin()
   const { lang: raw } = await params
   const lang = isValidLang(raw) ? raw : 'ka'
   const t =
@@ -110,8 +116,8 @@ export default async function BlogIndex({ params }: { params: Promise<{ lang: st
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: homeLabel, item: 'https://sivrce.ge' },
-      { '@type': 'ListItem', position: 2, name: blogLabel, item: 'https://sivrce.ge/blog' },
+      { '@type': 'ListItem', position: 1, name: homeLabel, item: origin },
+      { '@type': 'ListItem', position: 2, name: blogLabel, item: `${origin}/blog` },
     ],
   }
 
@@ -210,7 +216,7 @@ export default async function BlogIndex({ params }: { params: Promise<{ lang: st
         </div>
       </main>
       <Footer />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(blogLd(sorted)) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(blogLd(sorted, origin)) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbLd) }} />
     </div>
   )

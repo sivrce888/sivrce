@@ -3,3 +3,6 @@ set -e
 root="$(git rev-parse --show-toplevel)"
 node "$root/scripts/check-repo-weight.mjs"
 node "$root/scripts/check-repo-weight.mjs" --ci
+# Master engineering rule wiring + banned type/lint escapes. ~1s; fails here
+# instead of 15 min later in CI.
+(cd "$root/app" && npx tsx src/lib/governance.check.ts)

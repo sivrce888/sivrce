@@ -8,6 +8,7 @@ import Footer from '@/components/sections/Footer'
 import { PageHero } from '@/components/PageHero'
 import { Reveal } from '@/components/Reveal'
 import { jsonLd } from '@/lib/utils'
+import { requestOrigin } from '@/lib/request-market'
 import { pageMeta } from '@/lib/i18n/server'
 import { isValidLang, type Lang } from '@/lib/i18n/core'
 import { dirLoc, type DirLoc } from '@/lib/directory-seo'
@@ -160,6 +161,7 @@ const TAIL: Record<DirLoc, { why: string; jobs: string; jobsSub: string; vacanci
 }
 
 export default async function AboutPage({ params }: { params: Promise<{ lang: string }> }) {
+  const origin = await requestOrigin()
   const { lang: raw } = await params
   const lang: Lang = isValidLang(raw) ? raw : 'ka'
   const loc = dirLoc(lang)
@@ -171,12 +173,12 @@ export default async function AboutPage({ params }: { params: Promise<{ lang: st
     '@graph': [
       {
         '@type': 'AboutPage',
-        '@id': 'https://sivrce.ge/about#webpage',
-        url: 'https://sivrce.ge/about',
+        '@id': `${origin}/about#webpage`,
+        url: `${origin}/about`,
         name: lang === 'ka' ? 'ჩვენ შესახებ — sivrce' : lang === 'ru' ? 'О нас — sivrce' : 'About Us — sivrce',
         inLanguage: loc,
-        isPartOf: { '@id': 'https://sivrce.ge/#website' },
-        about: { '@id': 'https://sivrce.ge/#organization' },
+        isPartOf: { '@id': `${origin}/#website` },
+        about: { '@id': `${origin}/#organization` },
         speakable: {
           '@type': 'SpeakableSpecification',
           cssSelector: ['h1', '.speakable-lead', 'h2'],
@@ -185,17 +187,17 @@ export default async function AboutPage({ params }: { params: Promise<{ lang: st
       {
         '@type': 'BreadcrumbList',
         itemListElement: [
-          { '@type': 'ListItem', position: 1, name: 'sivrce', item: 'https://sivrce.ge' },
-          { '@type': 'ListItem', position: 2, name: lang === 'ka' ? 'ჩვენ შესახებ' : lang === 'ru' ? 'О нас' : 'About Us', item: 'https://sivrce.ge/about' },
+          { '@type': 'ListItem', position: 1, name: 'sivrce', item: origin },
+          { '@type': 'ListItem', position: 2, name: lang === 'ka' ? 'ჩვენ შესახებ' : lang === 'ru' ? 'О нас' : 'About Us', item: `${origin}/about` },
         ],
       },
       {
         '@type': 'Organization',
-        '@id': 'https://sivrce.ge/#organization',
+        '@id': `${origin}/#organization`,
         name: 'sivrce',
         alternateName: 'სივრცე',
-        url: 'https://sivrce.ge',
-        logo: { '@type': 'ImageObject', url: 'https://sivrce.ge/icon.png', width: 512, height: 512 },
+        url: origin,
+        logo: { '@type': 'ImageObject', url: `${origin}/icon.png`, width: 512, height: 512 },
         description: lang === 'ka'
           ? 'სივრცე — უძრავი ქონება საქართველოში. ბინები, სახლები და აგარაკები — იყიდება, ქირავდება, დღიურად ქირავდება.'
           : lang === 'ru'
@@ -210,7 +212,7 @@ export default async function AboutPage({ params }: { params: Promise<{ lang: st
           availableLanguage: ['ka', 'en', 'ru'],
         },
         sameAs: [
-          'https://sivrce.ge',
+          origin,
         ],
         address: {
           '@type': 'PostalAddress',

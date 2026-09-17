@@ -20,6 +20,8 @@ import { sourcesHeading, toPublicFacts } from '@/lib/intel/public-facts'
 import { LeadForm } from '@/components/lead/LeadForm'
 import ReviewsSectionServer from '@/components/reviews/ReviewsSectionServer'
 import { FaqSection } from '@/components/seo/FaqSection'
+import { ProjectMediaGallery } from '@/components/entities/ProjectMediaGallery'
+import { listingVideoObject } from '@/lib/listing-video'
 import { PROJECTS, isDelivered } from '@/data/professionals'
 import {
   getLiveProject,
@@ -38,6 +40,7 @@ import { altName, altNameList } from '@/lib/bilingual'
 import { jsonLd, ogImage } from '@/lib/utils'
 import {pageAlternates, OG_LOCALE  } from '@/lib/i18n/server'
 import { DE_CITIES } from '@/lib/countries/de'
+import { aeEmirateByKa } from '@/lib/countries/ae'
 import { isValidLang, type Lang } from '@/lib/i18n/core'
 import { cityByName } from '@/lib/map/user-place'
 import {
@@ -64,7 +67,7 @@ export function generateStaticParams() {
 }
 
 interface PageProps {
-  params: Promise<{ lang: string; slug: string; market?: 'de' }>
+  params: Promise<{ lang: string; slug: string; market?: 'de' | 'ae' }>
 }
 
 function kaAltName(p: { name: string; nameKa?: string; city: string }, lang: string): string {
@@ -103,10 +106,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   // Georgian transliteration wins on ka (users search "ჩარგლის რეზიდენსი", not the Latin brand).
   const displayName = lang === 'ka' && p.nameKa ? p.nameKa : p.name
   const og = ogImage(p.img)
-  // DE-market delegation (sivrce.com/de/projects/*): canonical/OG stay on the
-  // market host — a sivrce.ge canonical would 308 and drop the URL from index.
-  if (market === 'de') {
-    const url = `https://sivrce.com/de/projects/${p.slug}`
+  // DE/AE-market delegation (sivrce.com/{cc}/projects/*): canonical/OG stay on
+  // the market host — a sivrce.ge canonical would 308 and drop the URL from index.
+  if (market === 'de' || market === 'ae') {
+    const url = `https://sivrce.com/${market}/projects/${p.slug}`
     return {
       title,
       description,
@@ -153,7 +156,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function ProjectPage({ params }: PageProps) {
   const { lang, slug, market } = await params
   if (!isValidLang(lang)) notFound()
-  const de = market === 'de'
+  const com = market === 'de' || market === 'ae'
   const isDe = lang === 'de'
   const loc = dirLoc(lang)
   const c = isDe ? PROJECT_DETAIL_DE : PROJECT_DETAIL[loc]
@@ -189,8 +192,8 @@ export default async function ProjectPage({ params }: PageProps) {
   const floorsInfo = cluster ? buildingFloors(cluster) : []
   const isGhost = !!cluster && cluster.status === 'construction' && cluster.listings.length === 0
 
-  const heroAbs = absImg(project.img, de)
-  const galleryAbs = (project.gallery ?? []).map((g) => absImg(g, de))
+  const heroAbs = absImg(project.img, com)
+  const galleryAbs = (project.gallery ?? []).map((g) => absImg(g, com))
   const images = [heroAbs, ...galleryAbs.filter((u) => u !== heroAbs)]
   const lowPrice = priceNumber(project.priceFromM2)
   const currency = priceCurrency(project.priceFromM2)
@@ -206,11 +209,14 @@ export default async function ProjectPage({ params }: PageProps) {
     (n): n is string => !!n && n !== displayName,
   )
 
-  // Market-scoped entity URLs: the DE copy lives on sivrce.com/de, catalog ka
+  // Market-scoped entity URLs: DE/AE copies live on sivrce.com/{cc}, catalog ka
   // city names map to their Latin form for the .com audience.
-  const ldOrigin = de ? 'https://sivrce.com' : 'https://sivrce.ge'
-  const ldPath = de ? `/de/projects/${project.slug}` : `/projects/${project.slug}`
+  const ldOrigin = com ? 'https://sivrce.com' : 'https://sivrce.ge'
+  const ldPath = com && market ? `/${market}/projects/${project.slug}` : `/projects/${project.slug}`
   const deCity = DE_CITIES.find((c) => c.ka === project.city)
+  const aeCity = aeEmirateByKa(project.city)
+  const locality = market === 'de' && deCity ? deCity.de : market === 'ae' && aeCity ? aeCity.en : project.city
+  const addressCountry = market === 'de' ? 'DE' : market === 'ae' ? 'AE' : 'GE'
 
   const projectLd = {
     '@context': 'https://schema.org',
@@ -233,8 +239,8 @@ export default async function ProjectPage({ params }: PageProps) {
     address: {
       '@type': 'PostalAddress',
       streetAddress: project.location,
-      addressLocality: deCity && de ? deCity.de : project.city,
-      addressCountry: de ? 'DE' : 'GE',
+      addressLocality: locality,
+      addressCountry,
     },
     ...(hasGeo && {
       geo: {
@@ -278,8 +284,8 @@ export default async function ProjectPage({ params }: PageProps) {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: c.crumbHome, item: de ? 'https://sivrce.com/de' : 'https://sivrce.ge' },
-      { '@type': 'ListItem', position: 2, name: c.crumbProjects, item: de ? 'https://sivrce.com/de#new-builds' : 'https://sivrce.ge/projects' },
+      { '@type': 'ListItem', position: 1, name: c.crumbHome, item: com && market ? `https://sivrce.com/${market}` : 'https://sivrce.ge' },
+      { '@type': 'ListItem', position: 2, name: c.crumbProjects, item: com && market ? `https://sivrce.com/${market}#new-builds` : 'https://sivrce.ge/projects' },
       {
         '@type': 'ListItem',
         position: 3,
@@ -292,6 +298,15 @@ export default async function ProjectPage({ params }: PageProps) {
   // Visible FAQ + FAQPage JSON-LD come from the same array (stays in sync).
   const faqs = projectFaqs(loc, project, dev)
 
+  const videoLd = project.videoUrl
+    ? listingVideoObject(project.videoUrl, {
+        name: `${displayName} — Video Tour`,
+        description: (pickLoc(project.description, lang === 'de' ? 'de' : loc) || displayName).slice(0, 300),
+        poster: absImg(project.img, com),
+        uploadDate: '2026-01-01',
+      })
+    : null
+
   // Structured facts (crawlable dl) — only rows the data actually supports.
   const detailRows: { label: string; value: string }[] = [
     ...(project.priceFromM2
@@ -302,7 +317,7 @@ export default async function ProjectPage({ params }: PageProps) {
     { label: micro.flats, value: unitsLabel(project.flats, chromeLoc) },
     ...(project.floors ? [{ label: c.floorsRow, value: floorsLabel(project.floors, chromeLoc) }] : []),
     ...(project.cadastral ? [{ label: c.cadastral, value: project.cadastral }] : []),
-    { label: c.location, value: `${project.location}, ${de && deCity ? deCity.de : project.city}` },
+    { label: c.location, value: `${project.location}, ${locality}` },
   ]
 
   const anchors = [
@@ -311,8 +326,7 @@ export default async function ProjectPage({ params }: PageProps) {
       : []),
     ...(floorsFc || hasGeo ? [{ id: 'area', label: placeLabels(chromeLoc).area }] : []),
     { id: 'details', label: c.details },
-    ...((project.gallery?.length ?? 0) > 0 ? [{ id: 'gallery', label: c.gallery }] : []),
-    ...(project.passportUrl ? [{ id: 'plans', label: c.floorPlan }] : []),
+    { id: 'gallery', label: c.gallery },
     ...(aboutText ? [{ id: 'about', label: c.aboutProject }] : []),
     ...(listings.length > 0 ? [{ id: 'listings', label: micro.listingsShort }] : []),
     ...(factRows.length > 0 ? [{ id: 'sources', label: sourcesCopy.title }] : []),
@@ -322,7 +336,7 @@ export default async function ProjectPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-sv-cloud">
-      <Navbar marketIso={cityByName(project.city)?.cc} marketCity={cityByName(project.city)?.en} />
+      <Navbar marketIso={cityByName(project.city)?.cc} />
       <main id="main">
         {/* Hero */}
         <div className="relative aspect-[16/9] max-h-[520px] w-full overflow-hidden md:aspect-[21/9]">
@@ -343,7 +357,7 @@ export default async function ProjectPage({ params }: PageProps) {
           <div aria-hidden className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-sv-navy/55 to-transparent" />
           <div className="absolute inset-x-0 bottom-0 mx-auto max-w-[1440px] px-5 pb-8 md:px-10">
             <nav aria-label="breadcrumb" className="mb-3 text-[12px] font-semibold text-white/60">
-              <Link href="/projects" className="hover:text-white">
+              <Link href={com && market ? `/${market}` : '/projects'} className="hover:text-white">
                 {c.crumbProjects}
               </Link>
               <span aria-hidden className="mx-1.5">
@@ -532,46 +546,15 @@ export default async function ProjectPage({ params }: PageProps) {
           />
         )}
 
-        {(project.gallery?.length ?? 0) > 0 && (
-          <section id="gallery" className="mx-auto max-w-[1440px] scroll-mt-[7.5rem] px-5 py-12 md:px-10">
-            <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
-              {c.gallery}
-            </h2>
-            <HScroll aria-label={c.gallery} step={300} className="mt-6 gap-3 pb-1">
-              {project.gallery!.map((src, i) => (
-                <div
-                  key={src}
-                  className="relative aspect-video w-64 shrink-0 overflow-hidden rounded-module bg-sv-cloud md:w-80"
-                >
-                  <Image
-                    src={src}
-                    alt={`${project.name} — ${c.renderAlt(i + 1)}`}
-                    fill
-                    sizes="320px"
-                    className="object-cover"
-                  />
-                </div>
-              ))}
-            </HScroll>
-          </section>
-        )}
-
-        {project.passportUrl && (
-          <section id="plans" className="mx-auto max-w-[1440px] scroll-mt-[7.5rem] px-5 py-12 md:px-10">
-            <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
-              {c.floorPlan}
-            </h2>
-            <div className="relative mt-6 aspect-[4/3] max-w-3xl overflow-hidden rounded-card bg-sv-cloud">
-              <Image
-                src={project.passportUrl}
-                alt={`${project.name} — ${c.floorPlan}`}
-                fill
-                sizes="(max-width: 768px) 100vw, 768px"
-                className="object-contain"
-              />
-            </div>
-          </section>
-        )}
+        <ProjectMediaGallery
+          projectName={displayName}
+          developerName={dev ? pickLoc(dev.name, loc) : undefined}
+          heroImage={project.img}
+          gallery={project.gallery}
+          passportUrl={project.passportUrl}
+          videoUrl={project.videoUrl}
+          lang={chromeLoc}
+        />
 
         {aboutText && (
           <section id="about" className="mx-auto max-w-[1440px] scroll-mt-[7.5rem] px-5 py-12 md:px-10">
@@ -624,7 +607,7 @@ export default async function ProjectPage({ params }: PageProps) {
         {listings.length > 0 && (
           <section id="listings" className="mx-auto max-w-[1440px] scroll-mt-[7.5rem] px-5 pb-12 md:px-10">
             <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
-              {micro.listingsIn(isDe ? (deCity?.de ?? project.city) : project.city)}
+              {micro.listingsIn(locality)}
             </h2>
             <div className="mt-6 sv-card-grid-3">
               {listings.map((l, i) => (
@@ -664,6 +647,9 @@ export default async function ProjectPage({ params }: PageProps) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(projectLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(faqPageLd(faqs)) }} />
+      {videoLd && (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(videoLd) }} />
+      )}
     </div>
   )
 }

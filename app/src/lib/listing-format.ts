@@ -77,6 +77,9 @@ export function stayLine(
   t: (k: 'spec.rooms' | 'spec.beds') => string,
   lang: Lang = 'ka',
 ): string {
+  // German listings lead with Zimmer (ImmoScout-grade). Beds stay in the
+  // detail spec; the card chrome matches what buyers type into search.
+  if (lang === 'de' && l.rooms > 0) return `${l.rooms} Zimmer`
   const s = stayCount(l)
   if (s.n <= 0) return ''
   const one = SINGULAR[lang]

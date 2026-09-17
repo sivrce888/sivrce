@@ -6,6 +6,7 @@ import { Reveal } from '@/components/Reveal'
 import { isValidLang } from '@/lib/i18n/core'
 import { kaOnlyAlternates, pageMeta } from '@/lib/i18n/server'
 import { jsonLd } from '@/lib/utils'
+import { requestOrigin } from '@/lib/request-market'
 
 export const revalidate = 86400
 
@@ -70,18 +71,19 @@ const SECTIONS = [
   },
 ]
 
-export default function TermsPage() {
+export default async function TermsPage() {
+  const origin = await requestOrigin()
   const termsLd = {
     '@context': 'https://schema.org',
     '@graph': [
       {
         '@type': 'WebPage',
-        '@id': 'https://sivrce.ge/terms#webpage',
-        url: 'https://sivrce.ge/terms',
+        '@id': `${origin}/terms#webpage`,
+        url: `${origin}/terms`,
         name: 'წესები და პირობები — sivrce',
         description: 'sivrce-ის გამოყენების წესები და პირობები — განცხადებების განთავსება, ვერიფიკაცია, VIP სერვისები და პასუხისმგებლობა.',
         inLanguage: 'ka',
-        isPartOf: { '@id': 'https://sivrce.ge/#website' },
+        isPartOf: { '@id': `${origin}/#website` },
         speakable: {
           '@type': 'SpeakableSpecification',
           cssSelector: ['h1', 'h2', 'p'],
@@ -90,8 +92,8 @@ export default function TermsPage() {
       {
         '@type': 'BreadcrumbList',
         itemListElement: [
-          { '@type': 'ListItem', position: 1, name: 'sivrce', item: 'https://sivrce.ge' },
-          { '@type': 'ListItem', position: 2, name: 'წესები და პირობები', item: 'https://sivrce.ge/terms' },
+          { '@type': 'ListItem', position: 1, name: 'sivrce', item: origin },
+          { '@type': 'ListItem', position: 2, name: 'წესები და პირობები', item: `${origin}/terms` },
         ],
       },
     ],

@@ -75,3 +75,118 @@ Chat was fully dormant: `ChatProvider` never mounted, `ChatShell` parked the wid
 | **Q. File / presence / Redis / guest SSE** | **≤55** | Same v3 reject. |
 
 **Shipped:** G–M. Rollback: revert this chat slice (still no schema).
+
+---
+
+# Live Chat v4 — trust, presence, cost (2026-09-17)
+
+## State found (v3.1 in tree)
+
+Working and kept: SSE + optimistic send + receipts + typing + pagination +
+icebreakers + Inquiry lead + support line + FAQ assistant + push + i18n ×10.
+
+Real gaps found by inspection, not invented:
+
+1. **Report without recourse.** A harassed user could file a Complaint and then
+   keep receiving messages from the same person. Report is a message to *us*;
+   the user had no way to stop the sender.
+2. **Nothing is retractable.** A mis-pasted phone number or a wrong price stayed
+   on the counterparty's screen forever.
+3. **No answer to "is this person around?"** — the single question a buyer has
+   before waiting for a reply. `User.lastSeenAt` already existed, unused here.
+4. **Pagination bug.** `getChatMessages` returned the *newest* row of the page as
+   `nextCursor`; "Earlier messages" re-served the same page and advanced one
+   message per click.
+5. **Hidden tabs kept a serverless function open**, polling Postgres 3× every
+   2 s for a conversation nobody was looking at.
+6. **New admins were blind** to support rooms opened before they joined —
+   support seats are created once, at room creation.
+7. **Composer never grew** on Chrome 111–122 / Safari 16.4–17.3 (the declared
+   browserslist floor): `field-sizing: content` is the only growth mechanism.
+8. Popover menus closed on Escape only — a desktop assumption on a phone.
+9. Returning to a busy thread dropped you at the bottom with no marker for
+   where you had stopped reading.
+
+## Option analysis (score 0–100, highest-EV wins)
+
+| # | Option | Score | Verdict |
+| --- | --- | --- | --- |
+| **A** | **Block / unblock a peer** | **96** ✅ | Closes gap 1. Stored one-way, enforced both ways at the write. Room stays visible (otherwise unblocking is impossible). Support line is not blockable — it is the escalation path. |
+| **B** | **Unsend own message (24 h window)** | **94** ✅ | Closes gap 2. Tombstone stays, so history cannot be silently rewritten; row stays, so a Complaint already filed still has its evidence. |
+| **C** | **Presence from `lastSeenAt`** | **93** ✅ | Zero schema, zero new query (one extra column on a `findMany` the list already runs). Stale heartbeat renders *nothing* rather than a guess. |
+| **D** | **Fix the pagination cursor** | **99** ✅ | Correctness. One line. |
+| **E** | **Close SSE on hidden tab (20 s grace) + one batched tick + idle backoff** | **95** ✅ | 3 round-trips → 1; 2 s → 6 s when quiet; 0 while backgrounded. Largest Vercel-spend cut available without new infrastructure. No UX loss: return re-opens and heals the gap. |
+| **F** | **Support-seat backfill for new admins** | **90** ✅ | An unanswered support line is worse than none. 10-min per-instance throttle keeps it near-free. |
+| **G** | **`useAutoGrow` fallback** | **88** ✅ | Honours the repo's own browserslist floor instead of assuming evergreen Chrome. Costs nothing where `field-sizing` works. |
+| **H** | **Tap-outside menu dismissal** | **86** ✅ | 12 lines, shared scrim, both menus. |
+| **I** | **"New messages" divider + sticky day chips + per-room drafts + char counter** | **84** ✅ | The four cheapest points of Apple-grade thread polish. Drafts are debounced 400 ms — `sessionStorage` is synchronous and per-keystroke writes are measurable on low-end Android. |
+| **J** | **Desktop expand toggle (380×560 ⇄ 560×min(760,88vh))** | **82** ✅ | 90 % of the value of a dedicated `/messages` route for ~15 lines, persisted per browser. |
+| **K** | **Blocks surfaced on `/admin/chats`** | **80** ✅ | A rising block count is the earliest abuse signal; the reports queue only ever sees users who bothered to file. |
+| L | Dedicated `/messages` page | 58 | Duplicates the panel UI, adds a route + bundle for zero SEO value; mobile is already full-screen and `?chat=` deep-links anywhere. Superseded by **J**. |
+| M | Image / file attachments | 52 | No blob storage in `package.json` — needs a new dependency **and** a storage bill, against two standing locks. Third rejection (v2, v3, v4); revisit only when owners ask and storage exists for another reason. |
+| N | Redis pub/sub instead of polling | 50 | New infrastructure + monthly cost to replace a transport that already feels instant. **E** takes most of the cost win for zero new services. Revisit at sustained concurrent-room volume. |
+| O | Reactions / emoji | 40 | Social-app feature. Nobody negotiates a lease with a 👍. |
+| P | Message edit | 38 | Editing a price after the other side read it is a fraud surface. Unsend + resend is the honest primitive. |
+| Q | In-thread message search | 35 | 50-message pages and day separators cover recall at real thread lengths. |
+| R | Notification sound | 25 | Unrequested audio on a property site. Push + badge + title flash already cover it. |
+
+**Shipped: A–K.** Rejected with reasons recorded: L–R.
+
+## Product contract — who, what, when, where
+
+| Surface | Who sees it | When it appears | What the user does |
+| --- | --- | --- | --- |
+| Launcher FAB (`bottom-24 end-4`, `lg:bottom-6 end-6`) | Everyone, every page | Always; flips to the **left** corner on `/map` below `lg` so it clears the map control rail; hidden while the panel is open | Tap → guests land on Help, signed-in users land on their room list |
+| Unread badge on the FAB | Signed-in | `totalUnread > 0`; `(n)` also flashes in the tab title while the tab is hidden | Tap to go straight to the list |
+| Help (FAQ assistant) | Everyone | Default view for guests; "Help" tile for signed-in users | Ask in free text or tap a suggested question; a miss offers **Message us** |
+| Support line | Signed-in | "Message us" tile, or the Help miss CTA. Guests are routed to sign-in with a callback | Writes to every admin at once; any admin can answer from their own chat |
+| Listing **Message** CTA | Everyone, on a listing | Guest → scrolls to the phone lead form. Signed-in → opens the listing room. No owner / deleted listing → closes and recovers onto `#lead-form` | Sends; the first message also files one Inquiry per buyer×listing per 7 days |
+| Icebreaker chips | Signed-in | Empty listing thread, no draft, not blocked | One tap sends a complete, polite opener |
+| Lead-form handoff | Guests who just submitted | "Continue in chat" after sign-in (`?message=<listingId>`) | Their own words are waiting in the composer — never auto-sent |
+| Profile **Message** button | Signed-in, on `/u/[id]` and company pages | Never on your own profile | Opens (or creates) a direct room |
+| Presence line | Signed-in, in a room | Counterparty heartbeat < 7 days old; never on support, never on a blocked thread | Reads "Active now" (+ blue dot) or "Active 20m ago". Older than 7 days shows nothing |
+| "New messages" divider | Signed-in, in a room | Reopening a room with unread peer messages | Scroll up from the divider to catch up |
+| ⋯ on a message | Signed-in | Hover/focus on desktop, tap on touch | **Copy** always · **Report** on peer messages (files a Complaint into the existing moderation queue) · **Unsend** on own messages < 24 h old, two taps |
+| ⋯ on a room | Signed-in, in a room | Room header | **View listing** · **Block** (two taps; hidden on support) · **Leave** (two taps) |
+| Blocked banner | Both sides | Either side has blocked the other | Blocker sees "You blocked this person" + **Unblock** (one tap). The blocked side is told only that the conversation is closed — never who closed it |
+| Expand ⇱ | Desktop only (`md:`) | Panel header | Toggles 380×560 ⇄ 560×min(760,88vh); the choice persists |
+| Push notification | Signed-in with a subscription | New message while away | Opens `/?chat=<roomId>` straight into the thread |
+
+## Rules the implementation must keep
+
+- **Authorization is server-side, always.** Participant seats are created at room
+  creation and never granted by a request. Block, unsend and send are re-checked
+  at the write — the client's copy only decides what to *render*.
+- **The blocked side learns nothing.** No "you were blocked" string exists.
+- **Unsent bodies never cross the wire again** (`redact()` is the single gate),
+  but the row survives for moderation.
+- **Presence degrades to silence.** `lastSeenAt` is a 5-minute throttled
+  heartbeat, so "Active now" tolerates one missed beat and anything older than
+  7 days renders nothing rather than a guess.
+- **Receipts stay honest**: `markRead` fires only when the tab is visible *and*
+  the reader is near the bottom.
+
+## Cost model (per open room)
+
+| | v3.1 | v4 |
+| --- | --- | --- |
+| DB round-trips / active tick | 3 | 1 |
+| Tick interval, quiet room | 2 s | 2 → 6 s |
+| Backgrounded tab | full rate, indefinitely | stream closed after 20 s |
+
+## Validation
+
+`tsc --noEmit` clean · `eslint` clean · `messages.check.ts`,
+`chat-policy.check.ts` (new, wired into `prebuild`), `chat-lead.check.ts`,
+`i18n.check.ts` + both i18n audits, `governance`, `device-budget`,
+`bundle-leak`, `repo-weight` all green · migration SQL verified byte-for-byte
+against `prisma migrate diff --from-empty` output · panel exercised in-browser
+at 1024×768 and 375×812 (expand, persistence, `aria-modal`, scroll lock,
+textarea growth).
+
+**Not run locally:** `prisma migrate deploy` (the live database is the owner's;
+CI applies migrations to a throwaway PostGIS container) and `next build` (the
+owner's dev server holds `.next`).
+
+**Rollback**: revert this slice, then `ALTER TABLE chat_messages DROP COLUMN
+deleted_at; DROP TABLE chat_blocks;` — no other table is touched.

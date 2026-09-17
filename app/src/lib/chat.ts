@@ -7,8 +7,45 @@
 import { db } from "@/lib/db"
 import { Prisma } from "@/generated/prisma/client"
 import { inquiryDealOf, shouldRecordChatLead } from "@/lib/chat-lead"
+import { canUnsend, isConversationBlocked } from "@/lib/chat-policy"
 import { getConfig } from "@/lib/config"
 import { sendInquiryNotification } from "@/lib/email"
+
+// ---------------------------------------------------------------------------
+// Blocks
+// ---------------------------------------------------------------------------
+
+/**
+ * True iff either side has blocked the other — the room-open gate. One
+ * indexed read covering both directions.
+ */
+export async function isPairBlocked(a: string, b: string): Promise<boolean> {
+  const rows = await db.chatBlock.findMany({
+    where: {
+      OR: [
+        { blockerId: a, blockedId: b },
+        { blockerId: b, blockedId: a },
+      ],
+    },
+    select: { blockerId: true, blockedId: true },
+  })
+  return isConversationBlocked(rows, a, b)
+}
+
+/** Block a peer. Idempotent; self-block is refused. */
+export async function blockUser(blockerId: string, blockedId: string) {
+  if (blockerId === blockedId) throw new Error("self_block")
+  await db.chatBlock.upsert({
+    where: { blockerId_blockedId: { blockerId, blockedId } },
+    create: { blockerId, blockedId },
+    update: {},
+  })
+}
+
+/** Undo my own block. A block placed by the peer is theirs to lift. */
+export async function unblockUser(blockerId: string, blockedId: string) {
+  await db.chatBlock.deleteMany({ where: { blockerId, blockedId } })
+}
 
 // ---------------------------------------------------------------------------
 // Chat rooms
@@ -50,6 +87,7 @@ export async function getOrCreateChatRoom(listingId: string, userId: string) {
   if (!listing) throw new Error("listing_not_found")
   if (!listing.ownerId) throw new Error("no_owner")
   if (listing.ownerId === userId) throw new Error("self_chat")
+  if (await isPairBlocked(userId, listing.ownerId)) throw new Error("blocked")
 
   return db.chatRoom.create({
     data: {
@@ -120,6 +158,7 @@ export async function getOrCreateDirectRoom(userId: string, peerId: string) {
     select: { name: true },
   })
   if (!peer) throw new Error("peer_not_found")
+  if (await isPairBlocked(userId, peerId)) throw new Error("blocked")
 
   // The role:"support" guard keeps a direct room with an admin from colliding
   // with their support room.
@@ -159,6 +198,8 @@ export interface ChatCounterpart {
   avatarStyle: number | null
   avatarColor: string | null
   avatarIcon: string | null
+  /** 5-min throttled heartbeat — drives the header presence line. */
+  lastSeenAt: string | null
 }
 
 export interface ChatRoomSummary {
@@ -171,11 +212,16 @@ export interface ChatRoomSummary {
   counterpart: ChatCounterpart | null
   /** True for the listing-less sivrce support line. */
   isSupport: boolean
+  /** Either side blocked the other — the thread is frozen for both. */
+  blocked: boolean
+  /** I am the blocker, so the Unblock action is mine to take. */
+  blockedByMe: boolean
   lastMessage: {
     content: string
     createdAt: string
     senderId: string
     kind: string
+    deleted: boolean
   } | null
 }
 
@@ -192,13 +238,20 @@ export async function getUserChats(userId: string): Promise<ChatRoomSummary[]> {
       messages: {
         orderBy: { createdAt: "desc" },
         take: 1,
-        select: { content: true, createdAt: true, senderId: true, kind: true },
+        select: {
+          content: true,
+          createdAt: true,
+          senderId: true,
+          kind: true,
+          deletedAt: true,
+        },
       },
     },
     orderBy: { updatedAt: "desc" },
   })
 
-  // One extra query for every counterparty's display identity
+  // Two batched reads for the whole list: counterparty identities, and every
+  // block row touching me (both directions).
   const otherIds = [
     ...new Set(
       rooms
@@ -206,39 +259,68 @@ export async function getUserChats(userId: string): Promise<ChatRoomSummary[]> {
         .filter((id): id is string => !!id),
     ),
   ]
-  const users = otherIds.length
-    ? await db.user.findMany({
-        where: { id: { in: otherIds } },
-        select: {
-          id: true,
-          name: true,
-          image: true,
-          avatarStyle: true,
-          avatarColor: true,
-          avatarIcon: true,
-        },
-      })
-    : []
-  const byId = new Map(users.map((u) => [u.id, u]))
+  const [users, blocks] = await Promise.all([
+    otherIds.length
+      ? db.user.findMany({
+          where: { id: { in: otherIds } },
+          select: {
+            id: true,
+            name: true,
+            image: true,
+            avatarStyle: true,
+            avatarColor: true,
+            avatarIcon: true,
+            lastSeenAt: true,
+          },
+        })
+      : Promise.resolve([]),
+    otherIds.length
+      ? db.chatBlock.findMany({
+          where: {
+            OR: [
+              { blockerId: userId, blockedId: { in: otherIds } },
+              { blockerId: { in: otherIds }, blockedId: userId },
+            ],
+          },
+          select: { blockerId: true, blockedId: true },
+        })
+      : Promise.resolve([]),
+  ])
+  const byId = new Map(
+    users.map((u) => [
+      u.id,
+      { ...u, lastSeenAt: u.lastSeenAt ? u.lastSeenAt.toISOString() : null },
+    ]),
+  )
+  const blockedByMe = new Set(blocks.filter((b) => b.blockerId === userId).map((b) => b.blockedId))
+  const blockedMe = new Set(blocks.filter((b) => b.blockedId === userId).map((b) => b.blockerId))
 
-  return rooms.map((r) => ({
-    id: r.id,
-    listingId: r.listingId,
-    title: r.title,
-    status: r.status,
-    updatedAt: r.updatedAt.toISOString(),
-    listing: r.listing,
-    counterpart: byId.get(r.participants.find((p) => p.userId !== userId)?.userId ?? "") ?? null,
-    isSupport: r.participants.some((p) => p.userId !== userId && p.role === SUPPORT_ROLE),
-    lastMessage: r.messages[0]
-      ? {
-          content: r.messages[0].content,
-          createdAt: r.messages[0].createdAt.toISOString(),
-          senderId: r.messages[0].senderId,
-          kind: r.messages[0].kind,
-        }
-      : null,
-  }))
+  return rooms.map((r) => {
+    const peerId = r.participants.find((p) => p.userId !== userId)?.userId ?? ""
+    const last = r.messages[0]
+    return {
+      id: r.id,
+      listingId: r.listingId,
+      title: r.title,
+      status: r.status,
+      updatedAt: r.updatedAt.toISOString(),
+      listing: r.listing,
+      counterpart: byId.get(peerId) ?? null,
+      isSupport: r.participants.some((p) => p.userId !== userId && p.role === SUPPORT_ROLE),
+      blocked: blockedByMe.has(peerId) || blockedMe.has(peerId),
+      blockedByMe: blockedByMe.has(peerId),
+      lastMessage: last
+        ? {
+            // Unsent bodies never leave the server, not even as a list preview.
+            content: last.deletedAt ? "" : last.content,
+            createdAt: last.createdAt.toISOString(),
+            senderId: last.senderId,
+            kind: last.kind,
+            deleted: last.deletedAt !== null,
+          }
+        : null,
+    }
+  })
 }
 
 /** Per-room unread counts for a user in one indexed query. */
@@ -248,6 +330,7 @@ export async function getChatUnread(userId: string): Promise<Record<string, numb
     FROM chat_messages m
     JOIN chat_participants p ON p.room_id = m.room_id AND p.user_id = ${userId}
     WHERE m.sender_id <> ${userId}
+      AND m.deleted_at IS NULL
       AND (p.last_read_at IS NULL OR m.created_at > p.last_read_at)
     GROUP BY m.room_id
   `
@@ -273,7 +356,42 @@ const MESSAGE_SELECT = {
   kind: true,
   metadata: true,
   createdAt: true,
+  deletedAt: true,
 } as const
+
+type MessageRow = {
+  id: string
+  roomId: string
+  senderId: string
+  content: string
+  kind: string
+  metadata: Prisma.JsonValue
+  createdAt: Date
+  deletedAt: Date | null
+}
+
+export interface ChatMessageDto {
+  id: string
+  roomId: string
+  senderId: string
+  content: string
+  kind: string
+  metadata: Prisma.JsonValue
+  createdAt: Date
+  /** ISO string when the author unsent it; the client renders a tombstone. */
+  deletedAt: string | null
+}
+
+/**
+ * The only place a message row becomes client-visible. An unsent body stays in
+ * the database for the moderation queue that may already hold a Complaint
+ * about it, but it never crosses the wire again.
+ */
+function redact(m: MessageRow): ChatMessageDto {
+  return m.deletedAt
+    ? { ...m, content: "", metadata: {}, deletedAt: m.deletedAt.toISOString() }
+    : { ...m, deletedAt: null }
+}
 
 /** Get paginated messages for a chat room (cursor-based), oldest first. */
 export async function getChatMessages(roomId: string, cursor?: string) {
@@ -281,38 +399,119 @@ export async function getChatMessages(roomId: string, cursor?: string) {
     ? { roomId, createdAt: { lt: new Date(cursor) } }
     : { roomId }
 
-  const messages = await db.chatMessage.findMany({
+  const newestFirst = await db.chatMessage.findMany({
     where,
     orderBy: { createdAt: "desc" },
     take: MESSAGES_PAGE_SIZE,
     select: MESSAGE_SELECT,
   })
+  const hasMore = newestFirst.length === MESSAGES_PAGE_SIZE
 
   return {
-    messages: messages.reverse(), // oldest first for display
-    nextCursor: messages.length === MESSAGES_PAGE_SIZE
-      ? messages[messages.length - 1]?.createdAt.toISOString() ?? null
+    messages: newestFirst.map(redact).reverse(), // oldest first for display
+    // The next page walks backwards, so the cursor is the OLDEST row here —
+    // the newest would re-serve this same page one row at a time.
+    nextCursor: hasMore
+      ? (newestFirst[newestFirst.length - 1]?.createdAt.toISOString() ?? null)
       : null,
-    hasMore: messages.length === MESSAGES_PAGE_SIZE,
+    hasMore,
   }
 }
 
-/** Messages newer than a (createdAt, id) position — the SSE poller's delta read. */
-export async function getChatMessagesAfter(roomId: string, afterId: string, afterAt: Date) {
-  return db.chatMessage.findMany({
-    where: {
-      roomId,
-      OR: [{ createdAt: { gt: afterAt } }, { createdAt: afterAt, id: { gt: afterId } }],
-    },
-    orderBy: [{ createdAt: "asc" }, { id: "asc" }],
-    take: 20,
-    select: MESSAGE_SELECT,
+/**
+ * One batched round-trip per SSE tick: new messages after the (createdAt, id)
+ * cursor, tombstones for messages unsent since the last tick, the peer's read
+ * position and their typing flag. Four statements, one database request —
+ * SSE runs for as long as the panel is open, so the round-trip count is the
+ * cost that matters.
+ */
+export async function getRoomTick(
+  roomId: string,
+  userId: string,
+  cursor: { id: string; at: Date } | null,
+  since: Date,
+) {
+  const [fresh, unsent, peers, typing] = await db.$transaction([
+    db.chatMessage.findMany({
+      // The caller always has a cursor by the time it polls (an empty room gets
+      // a connect-time one); the null branch is a belt-and-braces no-op.
+      where: cursor
+        ? {
+            roomId,
+            OR: [
+              { createdAt: { gt: cursor.at } },
+              { createdAt: cursor.at, id: { gt: cursor.id } },
+            ],
+          }
+        : { roomId, id: "" },
+      orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+      take: 20,
+      select: MESSAGE_SELECT,
+    }),
+    db.chatMessage.findMany({
+      where: { roomId, deletedAt: { gt: since } },
+      orderBy: { createdAt: "asc" },
+      take: 20,
+      select: MESSAGE_SELECT,
+    }),
+    db.chatParticipant.findMany({
+      where: { roomId, userId: { not: userId } },
+      select: { lastReadAt: true },
+    }),
+    db.chatTyping.findMany({
+      where: {
+        roomId,
+        userId: { not: userId },
+        updatedAt: { gt: new Date(Date.now() - TYPING_TTL_MS) },
+      },
+      take: 1,
+      select: { userId: true },
+    }),
+  ])
+
+  const maxRead = peers.reduce<Date | null>(
+    (acc, p) => (p.lastReadAt && (!acc || p.lastReadAt > acc) ? p.lastReadAt : acc),
+    null,
+  )
+  return {
+    fresh: fresh.map(redact),
+    unsent: unsent.map(redact),
+    peerReadAt: maxRead ? maxRead.toISOString() : null,
+    typing: typing.length > 0,
+  }
+}
+
+/**
+ * Unsend one's own message inside UNSEND_WINDOW_MS. Throws "forbidden" when
+ * the caller is not the author or the window has closed.
+ */
+export async function unsendMessage(roomId: string, messageId: string, userId: string) {
+  const msg = await db.chatMessage.findUnique({
+    where: { id: messageId },
+    select: { id: true, roomId: true, senderId: true, createdAt: true, deletedAt: true },
+  })
+  if (!msg || msg.roomId !== roomId) throw new Error("not_found")
+  if (
+    !canUnsend(
+      {
+        senderId: msg.senderId,
+        createdAt: msg.createdAt.toISOString(),
+        deletedAt: msg.deletedAt?.toISOString() ?? null,
+      },
+      userId,
+    )
+  ) {
+    throw new Error("forbidden")
+  }
+  await db.chatMessage.update({
+    where: { id: messageId },
+    data: { deletedAt: new Date() },
   })
 }
 
 /**
  * Send a message to a chat room. Throws "not_participant" | "too_long" |
- * "rate_limited" — the route maps them to 403/400/429.
+ * "rate_limited" | "blocked" — the route maps them to 403/400/429.
  */
 export async function sendMessage(
   roomId: string,
@@ -321,21 +520,35 @@ export async function sendMessage(
   kind: "text" | "image" | "file" | "system" = "text",
   metadata: Record<string, unknown> = {},
 ) {
-  // Verify sender is a participant
-  const participant = await db.chatParticipant.findUnique({
-    where: { roomId_userId: { roomId, userId: senderId } },
-  })
-
-  if (!participant) {
-    // Rooms are private: membership is granted at room creation only.
-    throw new Error("not_participant")
-  }
-
+  // Free check first — no database round-trip to reject an oversized body.
   if (text.length > CHAT_MESSAGE_MAX) throw new Error("too_long")
 
-  const recent = await db.chatMessage.count({
-    where: { roomId, senderId, createdAt: { gt: new Date(Date.now() - FLOOD_WINDOW_MS) } },
-  })
+  // Send is the hottest write path: seat, block gate and flood counter travel
+  // as one batched round-trip. The block join covers both directions, so a
+  // block by either side freezes the thread — enforced here, at the write,
+  // where no client state can talk its way past it.
+  const [participant, blocks, recent] = await db.$transaction([
+    db.chatParticipant.findUnique({
+      where: { roomId_userId: { roomId, userId: senderId } },
+      select: { userId: true },
+    }),
+    db.$queryRaw<{ ok: number }[]>`
+      SELECT 1 AS ok
+      FROM chat_blocks b
+      JOIN chat_participants p
+        ON p.room_id = ${roomId} AND p.user_id <> ${senderId}
+      WHERE (b.blocker_id = ${senderId} AND b.blocked_id = p.user_id)
+         OR (b.blocker_id = p.user_id AND b.blocked_id = ${senderId})
+      LIMIT 1
+    `,
+    db.chatMessage.count({
+      where: { roomId, senderId, createdAt: { gt: new Date(Date.now() - FLOOD_WINDOW_MS) } },
+    }),
+  ])
+
+  // Rooms are private: membership is granted at room creation only.
+  if (!participant) throw new Error("not_participant")
+  if (blocks.length > 0) throw new Error("blocked")
   if (recent >= FLOOD_MAX) throw new Error("rate_limited")
 
   const [message] = await Promise.all([
@@ -482,6 +695,49 @@ export async function markRead(roomId: string, userId: string) {
 }
 
 /**
+ * My own read position, read before the thread marks itself read — this is
+ * what draws the "New messages" divider in the right place.
+ */
+export async function getMyLastReadAt(roomId: string, userId: string): Promise<string | null> {
+  const p = await db.chatParticipant.findUnique({
+    where: { roomId_userId: { roomId, userId } },
+    select: { lastReadAt: true },
+  })
+  return p?.lastReadAt ? p.lastReadAt.toISOString() : null
+}
+
+const SUPPORT_BACKFILL_TTL_MS = 10 * 60_000
+const supportBackfillAt = new Map<string, number>()
+
+/**
+ * Seat any admin who joined after a support room was opened. Without this an
+ * admin hired on Tuesday is blind to every conversation started on Monday —
+ * a silently unanswered support line is worse than none.
+ */
+export async function backfillSupportSeats(adminId: string) {
+  // The rooms poll runs every 15–45 s; the backfill only needs to be eventually
+  // true. Per-instance throttle keeps it near-free.
+  const last = supportBackfillAt.get(adminId) ?? 0
+  if (Date.now() - last < SUPPORT_BACKFILL_TTL_MS) return
+  supportBackfillAt.set(adminId, Date.now())
+
+  const missing = await db.chatRoom.findMany({
+    where: {
+      status: "active",
+      listingId: null,
+      participants: { some: { role: SUPPORT_ROLE }, none: { userId: adminId } },
+    },
+    select: { id: true },
+    take: 200,
+  })
+  if (missing.length === 0) return
+  await db.chatParticipant.createMany({
+    data: missing.map((r) => ({ roomId: r.id, userId: adminId, role: SUPPORT_ROLE })),
+    skipDuplicates: true,
+  })
+}
+
+/**
  * Leave a room: drop the caller's participant seat (zero-migration soft
  * leave — history stays for the other side; reopening recreates the seat).
  * Support seats are sticky: leaving the support line just hides it until the
@@ -532,15 +788,5 @@ export async function setChatTyping(roomId: string, userId: string) {
   })
 }
 
-/** True iff the counterparty sent a live typing heartbeat. */
-export async function isPeerTyping(roomId: string, userId: string): Promise<boolean> {
-  const row = await db.chatTyping.findFirst({
-    where: {
-      roomId,
-      userId: { not: userId },
-      updatedAt: { gt: new Date(Date.now() - TYPING_TTL_MS) },
-    },
-    select: { userId: true },
-  })
-  return row !== null
-}
+// The typing read lives inside getRoomTick — it rides the same batched
+// round-trip as messages and read receipts, so no standalone reader exists.

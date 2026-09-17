@@ -101,7 +101,7 @@ function stationLd(
   title: string,
   description: string,
 ) {
-  const path = `/en/de/metro/${station.slug}`
+  const path = `/de/metro/${station.slug}`
   return {
     '@context': 'https://schema.org',
     '@graph': [
@@ -162,7 +162,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   if (!ctx) return {}
   const title = titleOfStation(ctx.station, ctx.listings.length)
   const description = descriptionOfStation(ctx.station, ctx.listings)
-  const path = `/en/de/metro/${ctx.station.slug}`
+  const path = `/de/metro/${ctx.station.slug}`
   return {
     title,
     description,
@@ -195,8 +195,8 @@ export default async function BerlinMetroStationPage({ params }: PageProps) {
 
   const crumbs = [
     { name: 'Immobilien Deutschland', href: '/de/de' },
-    { name: 'U-Bahn & S-Bahn', href: '/en/de/metro' },
-    { name: station.name, href: `/en/de/metro/${station.slug}` },
+    { name: 'U-Bahn & S-Bahn', href: '/de/metro' },
+    { name: station.name, href: `/de/metro/${station.slug}` },
   ]
 
   return (
@@ -275,7 +275,7 @@ export default async function BerlinMetroStationPage({ params }: PageProps) {
           {station.interchange && station.lines.length > 1 && (
             <Chip label={`${station.name} — Alle Linien`} href={`/de/search?country=DE&q=${encodeURIComponent(station.name)}`} active />
           )}
-          <Chip label="Alle Stationen" href="/en/de/metro" />
+          <Chip label="Alle Stationen" href="/de/metro" />
         </div>
 
         {/* Station map */}
@@ -315,7 +315,7 @@ export default async function BerlinMetroStationPage({ params }: PageProps) {
             </p>
             <div className="mt-6 flex flex-wrap justify-center gap-2">
               <Chip label={`Suche: ${station.name}`} href={`/de/search?country=DE&q=${encodeURIComponent(station.name)}`} active />
-              <Chip label="Alle Stationen" href="/en/de/metro" />
+              <Chip label="Alle Stationen" href="/de/metro" />
             </div>
           </section>
         )}

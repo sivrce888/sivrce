@@ -16,6 +16,7 @@ import { PageHero } from '@/components/PageHero'
 import { Reveal } from '@/components/Reveal'
 import CareersApplyForm from '@/components/careers/CareersApplyForm'
 import { jsonLd } from '@/lib/utils'
+import { requestOrigin } from '@/lib/request-market'
 import { pageMeta } from '@/lib/i18n/server'
 import { isValidLang } from '@/lib/i18n/core'
 
@@ -182,6 +183,7 @@ const COPY: Record<string, Copy> = {
 }
 
 export default async function CareersPage({ params }: { params: Promise<{ lang: string }> }) {
+  const origin = await requestOrigin()
   const { lang: raw } = await params
   const lang = isValidLang(raw) ? raw : 'ka'
   const c = COPY[lang] ?? COPY.ka
@@ -190,12 +192,12 @@ export default async function CareersPage({ params }: { params: Promise<{ lang: 
     '@graph': [
       {
         '@type': 'WebPage',
-        '@id': 'https://sivrce.ge/careers#webpage',
-        url: 'https://sivrce.ge/careers',
+        '@id': `${origin}/careers#webpage`,
+        url: `${origin}/careers`,
         name: c.jobTitle,
         description: c.jobDescription,
         inLanguage: lang,
-        isPartOf: { '@id': 'https://sivrce.ge/#website' },
+        isPartOf: { '@id': `${origin}/#website` },
         speakable: {
           '@type': 'SpeakableSpecification',
           cssSelector: ['h1', '.speakable-lead', 'h2'],
@@ -204,8 +206,8 @@ export default async function CareersPage({ params }: { params: Promise<{ lang: 
       {
         '@type': 'BreadcrumbList',
         itemListElement: [
-          { '@type': 'ListItem', position: 1, name: 'sivrce', item: 'https://sivrce.ge' },
-          { '@type': 'ListItem', position: 2, name: lang === 'ka' ? 'კარიერა' : lang === 'ru' ? 'Карьера' : 'Careers', item: 'https://sivrce.ge/careers' },
+          { '@type': 'ListItem', position: 1, name: 'sivrce', item: origin },
+          { '@type': 'ListItem', position: 2, name: lang === 'ka' ? 'კარიერა' : lang === 'ru' ? 'Карьера' : 'Careers', item: `${origin}/careers` },
         ],
       },
       {
@@ -216,8 +218,8 @@ export default async function CareersPage({ params }: { params: Promise<{ lang: 
         hiringOrganization: {
           '@type': 'Organization',
           name: 'sivrce',
-          sameAs: 'https://sivrce.ge',
-          logo: 'https://sivrce.ge/logo/lockup-ink.png',
+          sameAs: origin,
+          logo: `${origin}/logo/lockup-ink.png`,
           email: 'hi@sivrce.ge',
         },
         jobLocation: c.cities.map((city) => ({
@@ -226,7 +228,7 @@ export default async function CareersPage({ params }: { params: Promise<{ lang: 
         })),
         employmentType: 'CONTRACTOR',
         directApply: true,
-        url: 'https://sivrce.ge/careers',
+        url: `${origin}/careers`,
       },
     ],
   }

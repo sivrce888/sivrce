@@ -10,6 +10,8 @@ export interface ChatMessage {
   kind: string
   metadata?: Record<string, unknown> | null
   createdAt: string
+  /** Set once the author unsent it — the body arrives empty, render a tombstone. */
+  deletedAt?: string | null
   /** Client-side delivery state — never comes from the API. */
   status?: "pending" | "failed"
   /** Optimistic id ("tmp_*") until the server echo replaces it via metadata.clientId. */
@@ -25,22 +27,44 @@ function clientIdOf(msg: ChatMessage): string | null {
 }
 
 /**
- * Merge server messages into the local list: dedupe by id, reconcile
- * optimistic temps via metadata.clientId, keep (createdAt, id) order.
+ * Merge server messages into the local list: reconcile optimistic temps via
+ * metadata.clientId, replace any row the server re-sends (an unsend arrives as
+ * the same id with deletedAt set), keep (createdAt, id) order.
  * ponytail: linear scan, no map — page size is ≤50 messages.
  */
 export function mergeMessages(prev: ChatMessage[], incoming: ChatMessage[]): ChatMessage[] {
-  const known = new Set(prev.filter((m) => !m.id.startsWith("tmp_")).map((m) => m.id))
   const next = [...prev]
   for (const msg of incoming) {
-    if (known.has(msg.id)) continue
-    known.add(msg.id)
+    const known = next.findIndex((m) => m.id === msg.id && !m.id.startsWith("tmp_"))
+    if (known >= 0) {
+      next[known] = msg // server truth wins — this is how a tombstone lands
+      continue
+    }
     const clientId = clientIdOf(msg)
     const idx = clientId ? next.findIndex((m) => m.clientId === clientId) : -1
     if (idx >= 0) next[idx] = msg
     else next.push(msg)
   }
   return next.sort((a, b) => earlier(a, b))
+}
+
+/**
+ * Index of the first message the reader has not seen — where the "New
+ * messages" divider goes. -1 when everything is already read, when the
+ * unseen run starts with my own message (I was the last to speak), or when
+ * there is no read position yet (a brand-new room needs no divider).
+ */
+export function unreadDividerIndex(
+  messages: readonly ChatMessage[],
+  lastReadAt: string | null | undefined,
+  meId: string,
+): number {
+  if (!lastReadAt) return -1
+  const readMs = new Date(lastReadAt).getTime()
+  if (!Number.isFinite(readMs)) return -1
+  const idx = messages.findIndex((m) => new Date(m.createdAt).getTime() > readMs)
+  if (idx < 0) return -1
+  return messages[idx]!.senderId === meId ? -1 : idx
 }
 
 const GROUP_GAP_MS = 5 * 60_000
@@ -136,6 +160,33 @@ export function clearChatDraft(listingId: string) {
     const raw = sessionStorage.getItem(CHAT_DRAFT_KEY)
     const d = raw ? (JSON.parse(raw) as { listingId?: unknown }) : null
     if (d?.listingId === listingId) sessionStorage.removeItem(CHAT_DRAFT_KEY)
+  } catch {
+    // ignore
+  }
+}
+
+/**
+ * Per-room composer draft. Switching rooms mid-sentence and coming back to an
+ * empty box is the oldest way to lose a message; sessionStorage costs nothing
+ * and dies with the tab.
+ */
+const ROOM_DRAFT_PREFIX = "sv-chat-draft:"
+
+export function readRoomDraft(roomId: string): string {
+  if (!roomId) return ""
+  try {
+    return (sessionStorage.getItem(ROOM_DRAFT_PREFIX + roomId) ?? "").slice(0, 2000)
+  } catch {
+    return "" // private mode / quota — the composer just starts empty
+  }
+}
+
+export function writeRoomDraft(roomId: string, text: string) {
+  if (!roomId) return
+  try {
+    const trimmed = text.slice(0, 2000)
+    if (trimmed.trim()) sessionStorage.setItem(ROOM_DRAFT_PREFIX + roomId, trimmed)
+    else sessionStorage.removeItem(ROOM_DRAFT_PREFIX + roomId)
   } catch {
     // ignore
   }

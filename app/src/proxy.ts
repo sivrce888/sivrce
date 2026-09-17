@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server"
 
 import { normalizeSource, REF_COOKIE, REF_COOKIE_MAX_AGE } from "@/lib/attribution"
 import { decideHost } from "@/lib/host-redirect"
-import { LANG_COOKIE, autoLocalePath } from "@/lib/i18n/accept-language"
+import { LANG_COOKIE, autoCountryHubPath, autoLocalePath } from "@/lib/i18n/accept-language"
 import {
   GEO_COOKIE,
   GEO_COOKIE_MAX_AGE,
@@ -214,6 +214,20 @@ function autoLocaleRedirect(req: NextRequest, pathname: string, market: string):
   })
 }
 
+/** Native-hub mirror for the Germany front door (sivrce.com/de → /de/de). Same thin-caller pattern. */
+function autoCountryHubRedirect(req: NextRequest, market: string): string | null {
+  return autoCountryHubPath({
+    market,
+    cookie: req.cookies.get(LANG_COOKIE)?.value,
+    acceptLanguage: req.headers.get("accept-language"),
+    crawler: isCrawler(req.headers.get("user-agent")),
+    internal:
+      req.headers.has("rsc") ||
+      req.headers.has("next-router-prefetch") ||
+      req.headers.has("next-router-state-tree"),
+  })
+}
+
 export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl
   const host = hostName(req)
@@ -341,6 +355,16 @@ export function proxy(req: NextRequest) {
       if (nextMarket === "global" && isMapPath(pathname)) {
         const cook = req.cookies.get(GEO_COOKIE)?.value
         if (isGeoLaunch(cook)) nextMarket = cook
+      }
+      // Germany front door: German-browser humans get the native hub on first
+      // visit (302; crawlers keep the EN canonical, see autoCountryHubPath).
+      if (nextMarket === "de" && decision.pathname === "/en/de") {
+        const deHub = autoCountryHubRedirect(req, nextMarket)
+        if (deHub) {
+          const dest = req.nextUrl.clone()
+          dest.pathname = deHub
+          return rememberGeo(req, pass(req, NextResponse.redirect(dest, 302), preview), nextMarket)
+        }
       }
       const url = req.nextUrl.clone()
       url.pathname = decision.pathname

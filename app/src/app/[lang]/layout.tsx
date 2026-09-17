@@ -14,6 +14,7 @@ import { BRAND } from "@/lib/brand";
 import { isValidLang, RTL_LANGS, type Lang } from "@/lib/i18n/core";
 import { getServerT, pageAlternates, OG_LOCALE, SITE_KEYWORDS, SITE_META } from "@/lib/i18n/server";
 import { getDict } from "@/lib/i18n/dicts";
+import { DE_SITE_KEYWORDS, DE_SITE_META, withDeMarketDict } from "@/lib/i18n/de-market";
 import { requestMarket } from "@/lib/request-market";
 import { COM_ORIGIN } from "@/lib/markets";
 import { getCmsOverrides, getBlocksForLang } from "@/lib/cms";
@@ -21,6 +22,7 @@ import { jsonLd } from "@/lib/utils";
 import { CONTACT_PHONE } from "@/lib/inquiries/phone";
 import { LITE_BOOT } from "@/lib/device-budget";
 import { GoogleTags } from "@/components/GoogleTags";
+import { RumBeacon } from "@/components/RumBeacon";
 import ConsentBanner from "@/components/consent/ConsentBanner";
 import { NativeShell } from "@/components/native/NativeShell";
 import { InstallPrompt } from "@/components/pwa/InstallPrompt";
@@ -68,8 +70,9 @@ export async function generateMetadata({ params }: LangLayoutProps): Promise<Met
   const origin = market === "ge" ? SITE_URL : COM_ORIGIN;
   // CMS overrides win over coded meta (/admin/content/pages → SEO meta).
   const cms = await getCmsOverrides(lang);
-  const siteTitle = cms["seo.site.title"] ?? SITE_META[lang].title;
-  const siteDescription = cms["seo.site.description"] ?? SITE_META[lang].description;
+  const deMeta = market === "de" ? DE_SITE_META[lang] : undefined;
+  const siteTitle = cms["seo.site.title"] ?? deMeta?.title ?? SITE_META[lang].title;
+  const siteDescription = cms["seo.site.description"] ?? deMeta?.description ?? SITE_META[lang].description;
   return {
     metadataBase: new URL(origin),
     title: {
@@ -77,7 +80,7 @@ export async function generateMetadata({ params }: LangLayoutProps): Promise<Met
       template: `%s | sivrce`,
     },
     description: siteDescription,
-    keywords: SITE_KEYWORDS[lang],
+    keywords: (market === "de" && DE_SITE_KEYWORDS[lang]) || SITE_KEYWORDS[lang],
     applicationName: SITE_NAME,
     authors: [{ name: SITE_NAME, url: origin }],
     creator: SITE_NAME,
@@ -343,6 +346,7 @@ export default async function LangLayout({ children, params }: LangLayoutProps) 
         {/* No GTM <noscript> iframe: without JS there is no way to collect
             consent, so firing the tag would be an unlawful pre-consent load. */}
         <GoogleTags />
+        <RumBeacon />
         <a
           href="#main"
           className="sr-only bg-sv-blue text-white focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-control focus:px-4 focus:py-2"
@@ -354,7 +358,18 @@ export default async function LangLayout({ children, params }: LangLayoutProps) 
               is fully translated for the requested locale (no client flip).
               Non-ka dictionaries travel as this RSC prop — only ka (fallback)
               ships in the shared JS chunk. */}
-          <I18nProvider initialLang={lang} dict={lang === "ka" ? undefined : getDict(lang)} overrides={cmsOverrides} blocks={cmsBlocks}>
+          <I18nProvider
+            initialLang={lang}
+            dict={
+              lang === "ka"
+                ? undefined
+                : market === "de"
+                  ? withDeMarketDict(getDict(lang), lang)
+                  : getDict(lang)
+            }
+            overrides={cmsOverrides}
+            blocks={cmsBlocks}
+          >
             <CurrencyProvider>
               <PostHogProvider>
                 <ChatShell>{children}</ChatShell>

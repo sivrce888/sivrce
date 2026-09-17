@@ -21,6 +21,7 @@ import { WORLD_PROJECTS, type WorldProject } from './world-projects'
 import { worldDevelopers, type WorldDeveloperEntry } from './world-developers'
 import { PROJECT_GALLERIES } from './project-galleries'
 import { CURATED_GALLERIES } from './project-galleries-curated'
+import { PROJECT_VIDEOS, DEVELOPER_VIDEOS } from './project-media'
 import { ON_REQUEST } from '@/lib/directory-seo-lite'
 
 /**
@@ -113,6 +114,10 @@ export interface Developer {
   website?: string
   /** Owning User.id (DB sync) — enables the in-chat Message button. */
   ownerId?: string | null
+  /** Official presentation / showcase video (YouTube, Vimeo, Stream). */
+  videoUrl?: string
+  /** Hand-curated portfolio / headquarters photography. */
+  gallery?: string[]
 }
 
 export interface AgentProfile {
@@ -143,9 +148,15 @@ export interface Project {
   passportUrl?: string
   /** Official source page — provenance for street-verified DE rows. */
   sourceUrl?: string
+  /** Official 4K/HD video tour or walkthrough (YouTube, Vimeo, Stream, MP4). */
+  videoUrl?: string
+  /** Interactive 360 virtual tour link (Matterport, Kuula). */
+  virtualTourUrl?: string
   location: string
   /** ka city name — matches Listing.city */
   city: string
+  /** ISO country of the project's market (DE/AE rows) — optional ingest hint. */
+  cc?: string
   /** Canonical ka district (district-canon) — filters + card display */
   district?: string
   priceFromM2: string
@@ -256,11 +267,17 @@ function withGeoRenders(p: Project): Project {
   }
 }
 
-/** Real mirrored photos/renders (scripts/mirror-project-renders.ts --galleries) lead; synthetic cards trail. */
+/** Real mirrored photos/renders lead; synthetic cards trail; attaches real video tours. */
 function withRealGallery(p: Project): Project {
   const real = [...(PROJECT_GALLERIES[p.slug] ?? []), ...(CURATED_GALLERIES[p.slug] ?? [])]
-  if (!real.length) return p
-  return { ...p, gallery: [...real, ...(p.gallery ?? [])].filter((g, i, all) => all.indexOf(g) === i) }
+  const video = p.videoUrl ?? PROJECT_VIDEOS[p.slug]
+  const existing = p.gallery ?? []
+  const merged = [...real, ...existing].filter((g, i, all) => all.indexOf(g) === i)
+  return {
+    ...p,
+    ...(video ? { videoUrl: video } : {}),
+    ...(merged.length > 0 ? { gallery: merged } : {}),
+  }
 }
 
 /**
@@ -1730,6 +1747,7 @@ export const DEVELOPERS: Developer[] = [
   .map((d) => ({
     ...d,
     logoUrl: d.logoUrl ?? `/images/developers/${d.slug}.webp`,
+    videoUrl: d.videoUrl ?? DEVELOPER_VIDEOS[d.slug],
   }))
 
 // ——— Agents / agencies ———

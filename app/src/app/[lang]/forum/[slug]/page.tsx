@@ -8,6 +8,7 @@ import { ThreadReplies } from '@/components/forum/ThreadReplies'
 import { FORUM_THREADS } from '@/data/forum'
 import { getForumThread, listForumThreads, relatedForumThreads } from '@/lib/forum-live'
 import { jsonLd } from '@/lib/utils'
+import { requestOrigin } from '@/lib/request-market'
 import {kaOnlyAlternates,  } from '@/lib/i18n/server'
 
 export const revalidate = 60
@@ -21,6 +22,7 @@ export function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const origin = await requestOrigin()
   const { slug } = await params
   const thread = await getForumThread(slug)
   if (!thread) return {}
@@ -32,7 +34,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       title: thread.title,
       description: thread.excerpt,
       type: 'article',
-      url: `https://sivrce.ge/forum/${thread.slug}`,
+      url: `${origin}/forum/${thread.slug}`,
       siteName: 'sivrce',
       locale: 'ka_GE',
       publishedTime: `${thread.createdAt}T00:00:00+04:00`,
@@ -71,6 +73,7 @@ function renderBody(body: string) {
 }
 
 export default async function ForumThreadPage({ params }: PageProps) {
+  const origin = await requestOrigin()
   const { slug } = await params
   const thread = await getForumThread(slug)
   if (!thread) notFound()
@@ -88,7 +91,7 @@ export default async function ForumThreadPage({ params }: PageProps) {
     datePublished: `${thread.createdAt}T00:00:00+04:00`,
     dateModified: `${thread.lastActivityAt}T00:00:00+04:00`,
     author: { '@type': 'Person', name: thread.authorName },
-    url: `https://sivrce.ge/forum/${thread.slug}`,
+    url: `${origin}/forum/${thread.slug}`,
     interactionStatistic: {
       '@type': 'InteractionCounter',
       interactionType: 'https://schema.org/CommentAction',
@@ -207,9 +210,9 @@ export default async function ForumThreadPage({ params }: PageProps) {
             '@context': 'https://schema.org',
             '@type': 'BreadcrumbList',
             itemListElement: [
-              { '@type': 'ListItem', position: 1, name: 'მთავარი', item: 'https://sivrce.ge' },
-              { '@type': 'ListItem', position: 2, name: 'ფორუმი', item: 'https://sivrce.ge/forum' },
-              { '@type': 'ListItem', position: 3, name: thread.title, item: `https://sivrce.ge/forum/${thread.slug}` },
+              { '@type': 'ListItem', position: 1, name: 'მთავარი', item: origin },
+              { '@type': 'ListItem', position: 2, name: 'ფორუმი', item: `${origin}/forum` },
+              { '@type': 'ListItem', position: 3, name: thread.title, item: `${origin}/forum/${thread.slug}` },
             ],
           }),
         }}

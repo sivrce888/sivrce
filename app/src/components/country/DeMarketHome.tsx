@@ -171,7 +171,7 @@ function BezirkeBand({ de }: { de: boolean }) {
             {BERLIN_BEZIRKE.map((b) => (
               <li key={b.slug}>
                 <Link
-                  href={`/de/berlin/${b.slug}`}
+                  href={`${de ? '/de/de' : '/de'}/berlin/${b.slug}`}
                   className="flex items-center justify-between gap-3 rounded-module border border-sv-ink/[0.07] bg-sv-surface px-5 py-4 font-extrabold text-sv-ink shadow-card transition-all duration-300 hover:-translate-y-1 hover:border-sv-blue/30 hover:shadow-card-hover"
                 >
                   <span className="text-[15px]">{b.de}</span>
@@ -211,13 +211,13 @@ function CitiesBand({ de }: { de: boolean }) {
             {DE_CITIES.map((c) => (
               <li key={c.slug}>
                 <Link
-                  href={`/de/${c.slug}`}
+                  href={`${de ? '/de/de' : '/de'}/${c.slug}`}
                   className="flex flex-col gap-1.5 rounded-module border border-sv-ink/[0.07] bg-sv-surface px-5 py-4 font-extrabold text-sv-ink shadow-card transition-all duration-300 hover:-translate-y-1 hover:border-sv-blue/30 hover:shadow-card-hover"
                 >
                   <span className="flex items-center justify-between gap-3">
                     <span className="text-[15px]">{c.de}</span>
                     <span className="text-[12px] font-black text-sv-blue" title="Grunderwerbsteuer">
-                      {c.transferTaxPct.toLocaleString('en-US', { minimumFractionDigits: 1 })}%
+                      {c.transferTaxPct.toLocaleString(de ? 'de-DE' : 'en-US', { minimumFractionDigits: 1 })}%
                     </span>
                   </span>
                   <span className="text-[12px] font-bold text-sv-ink/55">
@@ -417,7 +417,9 @@ export default function DeMarketHome({
   const de = lang === 'de'
   const cities = MARKETS.de.citySlugs.flatMap((s) => {
     const p = cityPack('de', s)
-    return p ? [{ slug: s, name: p.name }] : []
+    if (!p) return []
+    // Native pages carry native names — a German visitor sees München, not Munich.
+    return [{ slug: s, name: de ? (deCityBySlug(s)?.de ?? p.name) : p.name }]
   })
   return (
     <main id="main">

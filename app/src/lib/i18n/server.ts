@@ -4,6 +4,7 @@
  */
 
 import type { Metadata } from 'next'
+import { COM_ORIGIN } from '@/lib/markets'
 import { DEFAULT_LANG, LANGS, type DictKey, type Lang } from './core'
 import { translate } from './dicts'
 
@@ -44,13 +45,16 @@ export function kaOnlyAlternates(path: string) {
 }
 
 /**
- * Alternates for de-only content (Berlin metro, German market pages). Same
- * German copy is served under every locale prefix (`/{lang}/de/...`); callers
- * pass the served `/en/de/...` path — a bare `/de/...` would collide with the
- * German-language site root and 404.
+ * Alternates for de-only content (Berlin metro, German market pages). The
+ * public URL on sivrce.com is the bare `/de/...` form (the proxy rewrites it
+ * to the internal `/en/de/...` route); canonicalizing to the internal form
+ * would point at a 308.
  */
 export function deOnlyAlternates(path: string) {
-  return { canonical: path, languages: { de: path, 'x-default': path } }
+  // Absolute sivrce.com: this content is Germany-market, canonical to .com on
+  // every host (sivrce.ge/de/de/... serves it but must not index it on .ge).
+  const url = `${COM_ORIGIN}${path}`
+  return { canonical: url, languages: { de: url, 'x-default': url } }
 }
 
 /** OpenGraph locale per lang. */export const OG_LOCALE: Record<Lang, string> = {

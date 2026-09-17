@@ -13,6 +13,7 @@ import { isValidLang } from '@/lib/i18n/core'
 import { roleSignupHref } from '@/lib/auth-roles'
 import { formatGel, MONTHLY_RE_TETRI, ADDON_TETRI } from '@/lib/promo-pricing'
 import { jsonLd } from '@/lib/utils'
+import { requestOrigin } from '@/lib/request-market'
 
 export const revalidate = 86400
 
@@ -267,6 +268,7 @@ export async function generateMetadata({
 }
 
 export default async function AdvertisePage({ params }: { params: Promise<{ lang: string }> }) {
+  const origin = await requestOrigin()
   const { lang: raw } = await params
   const lang = isValidLang(raw) ? raw : 'ka'
   const c = COPY[lang] ?? COPY.ka
@@ -471,12 +473,12 @@ export default async function AdvertisePage({ params }: { params: Promise<{ lang
             '@graph': [
               {
                 '@type': 'WebPage',
-                '@id': 'https://sivrce.ge/advertise#webpage',
-                url: 'https://sivrce.ge/advertise',
+                '@id': `${origin}/advertise#webpage`,
+                url: `${origin}/advertise`,
                 name: c.metaTitle,
                 description: c.metaDescription,
                 inLanguage: lang,
-                isPartOf: { '@id': 'https://sivrce.ge/#website' },
+                isPartOf: { '@id': `${origin}/#website` },
                 speakable: {
                   '@type': 'SpeakableSpecification',
                   cssSelector: ['h1', '.speakable-lead', 'h2'],
@@ -485,8 +487,8 @@ export default async function AdvertisePage({ params }: { params: Promise<{ lang
               {
                 '@type': 'BreadcrumbList',
                 itemListElement: [
-                  { '@type': 'ListItem', position: 1, name: 'sivrce', item: 'https://sivrce.ge' },
-                  { '@type': 'ListItem', position: 2, name: c.metaTitle, item: 'https://sivrce.ge/advertise' },
+                  { '@type': 'ListItem', position: 1, name: 'sivrce', item: origin },
+                  { '@type': 'ListItem', position: 2, name: c.metaTitle, item: `${origin}/advertise` },
                 ],
               },
               {

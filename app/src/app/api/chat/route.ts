@@ -8,6 +8,7 @@ import { auth } from "@/auth"
 import { NextResponse } from "next/server"
 import { rateLimitOk } from "@/lib/reviews/rate-limit"
 import {
+  backfillSupportSeats,
   getChatUnread,
   getOrCreateChatRoom,
   getOrCreateDirectRoom,
@@ -22,6 +23,11 @@ export async function GET() {
   }
 
   try {
+    // Admins seat themselves into support rooms opened before they joined —
+    // one indexed no-op read per poll, and no support line goes unanswered.
+    if (session.user.role === "admin") {
+      await backfillSupportSeats(session.user.id).catch(() => {})
+    }
     const [rooms, unread] = await Promise.all([
       getUserChats(session.user.id),
       getChatUnread(session.user.id),
@@ -75,6 +81,9 @@ export async function POST(req: Request) {
     }
     if (msg === "no_owner") {
       return NextResponse.json({ error: "no_owner" }, { status: 409 })
+    }
+    if (msg === "blocked") {
+      return NextResponse.json({ error: "blocked" }, { status: 403 })
     }
     if (msg === "listing_not_found" || msg === "peer_not_found") {
       return NextResponse.json({ error: msg }, { status: 404 })

@@ -10,6 +10,7 @@ import { NextResponse } from "next/server"
 import {
   CHAT_MESSAGE_MAX,
   getChatMessages,
+  getMyLastReadAt,
   getPeerLastReadAt,
   getRoomPushPeers,
   isChatParticipant,
@@ -40,11 +41,14 @@ export async function GET(req: Request, { params }: RouteParams) {
   }
 
   try {
-    const [result, peerReadAt] = await Promise.all([
+    // myLastReadAt is read before the thread marks itself read, so the client
+    // can draw the "New messages" divider where the reader actually stopped.
+    const [result, peerReadAt, myLastReadAt] = await Promise.all([
       getChatMessages(roomId, cursor),
       cursor ? Promise.resolve(null) : getPeerLastReadAt(roomId, session.user.id),
+      cursor ? Promise.resolve(null) : getMyLastReadAt(roomId, session.user.id),
     ])
-    return NextResponse.json({ ...result, peerReadAt })
+    return NextResponse.json({ ...result, peerReadAt, myLastReadAt })
   } catch (error) {
     console.error("[api/chat/roomId] GET failed:", (error as Error).message)
     return NextResponse.json({ error: "server_error" }, { status: 500 })
@@ -104,6 +108,9 @@ export async function POST(req: Request, { params }: RouteParams) {
   } catch (error) {
     if ((error as Error).message === "not_participant") {
       return NextResponse.json({ error: "forbidden" }, { status: 403 })
+    }
+    if ((error as Error).message === "blocked") {
+      return NextResponse.json({ error: "blocked" }, { status: 403 })
     }
     if ((error as Error).message === "too_long") {
       return NextResponse.json({ error: "too_long" }, { status: 400 })

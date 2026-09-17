@@ -3,15 +3,16 @@ import Image from 'next/image'
 import { CalendarCheck } from 'lucide-react'
 import type { Project } from '@/data/professionals'
 import { BERLIN_BEZIRKE, DE_CITIES } from '@/lib/countries/de'
+import { AE_EMIRATES } from '@/lib/countries/ae'
 import { hasPriceFrom, ON_REQUEST } from '@/lib/directory-seo-lite'
 
 /**
- * Shared DE catalog card — used by the /de rails (DeMarketHome) and the
- * Bezirk pages. Label slots stay ka/en (Georgian product); DE market rows
- * carry Latin place names in those slots.
+ * Shared catalog card — /de rails, Berlin Bezirk pages, and /ae rails.
+ * Label slots stay ka/en (Georgian product); DE/AE rows carry Latin names.
  */
 const CITY_EN = new Map([
   ...DE_CITIES.map((c) => [c.ka, c.de] as const),
+  ...AE_EMIRATES.map((e) => [e.ka, e.en] as const),
   ['გელზენკირხენი', 'Gelsenkirchen'] as const,
 ])
 // Catalog rows mix Bezirk-level and Ortsteil-level ka district labels —
@@ -28,8 +29,8 @@ const DISTRICT_EN = new Map([
   ['შარლოტენბურგი', 'Charlottenburg'],
 ])
 
-export function cityEn(p: Project): string {
-  return CITY_EN.get(p.city) ?? 'Germany'
+export function cityEn(p: Project, fallback = 'Germany'): string {
+  return CITY_EN.get(p.city) ?? fallback
 }
 
 export function districtEn(p: Project): string {
@@ -52,10 +53,25 @@ const FINISH_EN = new Map([
 const finishLabel = (p: Project, de: boolean) =>
   (de && p.finish === 'ჩაბარებული' ? 'Fertiggestellt' : FINISH_EN.get(p.finish) ?? p.finish)
 
-export default function DeProjectCard({ p, dev, de, full }: { p: Project; dev?: string; de: boolean; full?: boolean }) {
+export default function DeProjectCard({
+  p,
+  dev,
+  de,
+  full,
+  hrefPrefix = '/de/projects',
+  cityFallback = 'Germany',
+}: {
+  p: Project
+  dev?: string
+  de: boolean
+  full?: boolean
+  hrefPrefix?: string
+  cityFallback?: string
+}) {
+  const place = districtEn(p) || cityEn(p, cityFallback)
   return (
     <Link
-      href={`/de/projects/${p.slug}`}
+      href={`${hrefPrefix}/${p.slug}`}
       className={`group flex ${full ? 'w-full' : 'w-[300px] shrink-0'} flex-col rounded-tile border border-sv-ink/[0.07] bg-sv-surface p-5 shadow-card transition-all duration-300 hover:-translate-y-1.5 hover:border-sv-blue/30 hover:shadow-card-hover`}
     >
       <div className="relative -mx-5 -mt-5 mb-4 h-[170px] overflow-hidden rounded-tile rounded-b-none border-b border-sv-ink/[0.06]">
@@ -64,7 +80,7 @@ export default function DeProjectCard({ p, dev, de, full }: { p: Project; dev?: 
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="truncate text-[11px] font-black uppercase tracking-wider text-sv-blue">
-            {districtEn(p) || cityEn(p)}
+            {place}
           </p>
           <h3 className="mt-1 truncate text-[17px] font-black text-sv-ink">{p.name}</h3>
         </div>

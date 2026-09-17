@@ -1,6 +1,7 @@
 import { headers, cookies } from 'next/headers'
 import { MARKET_HEADER } from '@/lib/site-host'
 import { isPathCountry, type MarketId } from '@/lib/markets'
+import { canonicalOrigin } from '@/lib/site-host'
 import { GEO_COOKIE, isGeoLaunch, marketFromIso } from '@/lib/geo-market'
 
 export async function requestMarket(): Promise<MarketId> {
@@ -23,3 +24,8 @@ export async function requestMarket(): Promise<MarketId> {
   return 'ge'
 }
 
+
+/** Absolute origin of the market serving this request (GE catalog vs sivrce.com). */
+export async function requestOrigin(): Promise<string> {
+  return canonicalOrigin(await requestMarket())
+}

@@ -13,6 +13,8 @@ import { collectPhotos, placeLabels } from '@/lib/place-context'
 import { LeadForm } from '@/components/lead/LeadForm'
 import ReviewsSectionServer from '@/components/reviews/ReviewsSectionServer'
 import { FaqSection } from '@/components/seo/FaqSection'
+import { DeveloperMediaGallery } from '@/components/entities/DeveloperMediaGallery'
+import { listingVideoObject } from '@/lib/listing-video'
 import {
   DEVELOPERS,
 } from '@/data/professionals'
@@ -218,6 +220,15 @@ export default async function DeveloperPage({ params }: PageProps) {
   // Visible FAQ + FAQPage JSON-LD come from the same array (stays in sync).
   const faqs = devFaqs(loc, dev, projects)
 
+  const videoLd = dev.videoUrl
+    ? listingVideoObject(dev.videoUrl, {
+        name: `${name} — Official Showcase`,
+        description: (pickLoc(dev.description, chromeLoc) || name).slice(0, 300),
+        poster: flagshipImg || (dev.logoUrl ? absImg(dev.logoUrl) : ''),
+        uploadDate: '2026-01-01',
+      })
+    : null
+
   // Every render across the portfolio — hero + gallery art, deduped, capped.
   const allPhotos = collectPhotos(projects.flatMap((p) => [p.img, p.gallery ?? []]))
   const areaLabels = placeLabels(chromeLoc)
@@ -226,7 +237,7 @@ export default async function DeveloperPage({ params }: PageProps) {
     { id: 'about', label: c.about },
     { id: 'location', label: c.location },
     { id: 'area', label: areaLabels.area },
-    ...(allPhotos.length > 0 ? [{ id: 'photos', label: areaLabels.photos }] : []),
+    ...(allPhotos.length > 0 || dev.videoUrl ? [{ id: 'photos', label: areaLabels.photos }] : []),
     ...(projects.length > 0 ? [{ id: 'projects', label: c.projects }] : []),
     ...(listings.length > 0 ? [{ id: 'listings', label: micro.listingsShort }] : []),
     { id: 'faq', label: c.faqChip },
@@ -345,6 +356,15 @@ export default async function DeveloperPage({ params }: PageProps) {
           photoAlt={name}
         />
 
+        <DeveloperMediaGallery
+          developerName={name}
+          developerSlug={dev.slug}
+          videoUrl={dev.videoUrl}
+          photos={allPhotos}
+          projects={projects}
+          lang={chromeLoc}
+        />
+
         {projects.length > 0 && (
           <section id="projects" className="mx-auto max-w-[1440px] scroll-mt-[7.5rem] px-5 pb-12 md:px-10">
             <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
@@ -424,6 +444,9 @@ export default async function DeveloperPage({ params }: PageProps) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(projectListLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(faqPageLd(faqs)) }} />
+      {videoLd && (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(videoLd) }} />
+      )}
     </div>
   )
 }

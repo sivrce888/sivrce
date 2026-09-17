@@ -70,6 +70,8 @@ model User {
   behaviors                 UserBehavior[]
   embedding                 UserEmbedding?
   propertyTours             PropertyTour[]
+  chatBlocksMade            ChatBlock[]             @relation("ChatBlockBlocker")
+  chatBlocksReceived        ChatBlock[]             @relation("ChatBlockBlocked")
 
   @@index([lastSeenAt])
   @@map("users")
@@ -2310,12 +2312,31 @@ model ChatMessage {
   kind      ChatMessageKind @default(text)
   metadata  Json            @default("{}")
   createdAt DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  /// Unsent by its author — body is wiped, the row stays so ordering and
+  /// moderation history survive. Rendered as "Message deleted" on both sides.
+  deletedAt DateTime?       @map("deleted_at") @db.Timestamptz(6)
 
   room ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
 
   @@index([roomId, createdAt(sort: Desc)], map: "chat_messages_room_created_idx")
   @@index([senderId, createdAt(sort: Desc)], map: "chat_messages_sender_created_idx")
   @@map("chat_messages")
+}
+
+/// One-way mute+shield: blocker never receives from blocked, and blocked can
+/// no longer send into (or open) a room they share. Enforced server-side in
+/// lib/chat.ts — never trusted from the client.
+model ChatBlock {
+  blockerId String   @map("blocker_id") @db.VarChar(120)
+  blockedId String   @map("blocked_id") @db.VarChar(120)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  blocker User @relation("ChatBlockBlocker", fields: [blockerId], references: [id], onDelete: Cascade)
+  blocked User @relation("ChatBlockBlocked", fields: [blockedId], references: [id], onDelete: Cascade)
+
+  @@id([blockerId, blockedId], map: "chat_blocks_pkey")
+  @@index([blockedId], map: "chat_blocks_blocked_idx")
+  @@map("chat_blocks")
 }
 
 enum TourStatus {

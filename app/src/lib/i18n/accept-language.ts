@@ -120,3 +120,31 @@ export function autoLocalePath(input: AutoLocaleInput): string | null {
   const best = bestLangFromHeader(acceptLanguage)
   return best && best !== DEFAULT_LANG ? `/${best}` : null
 }
+
+/** The one country market with a native-locale hub mirror (/de ↔ /de/de). */
+const DE_HUB_MIRROR = { market: 'de', hub: '/de/de', door: '/de' } as const
+
+export interface AutoCountryHubInput {
+  market: string
+  /** Explicit choice (sv-lang cookie). Any value counts as "decided". */
+  cookie?: string | null
+  acceptLanguage?: string | null
+  crawler?: boolean
+  internal?: boolean
+}
+
+/**
+ * Front-door locale mirror for country markets: a German-browser human hitting
+ * sivrce.com/de on first visit gets the native hub /de/de. Same Airbnb rules
+ * as autoLocalePath — explicit cookie wins (any value = decided), crawlers and
+ * framework internals stay on the EN canonical URL, and it must be a 302 so
+ * nothing caches it as canonical.
+ * ponytail: de only; add an entry to DE_HUB_MIRROR-style table when another
+ * market ships a native hub (e.g. /ar/ae).
+ */
+export function autoCountryHubPath(input: AutoCountryHubInput): string | null {
+  const { market, cookie, acceptLanguage, crawler, internal } = input
+  if (market !== DE_HUB_MIRROR.market) return null
+  if (crawler || internal || cookie) return null
+  return bestLangFromHeader(acceptLanguage) === 'de' ? DE_HUB_MIRROR.hub : null
+}

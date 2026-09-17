@@ -6,6 +6,7 @@
 import { canonicalizeDistrict } from '@/lib/district-canon'
 import { geoDistrictsOf } from '@/data/georgia-locations'
 import { BERLIN_BEZIRKE, DE_CITIES, bezirkSlugOfOrtsteil } from '@/lib/countries/de'
+import { AE_EMIRATES } from '@/lib/countries/ae'
 import { MARKETS, isPathCountry } from '@/lib/markets'
 import { searchHref } from '@/lib/search-location'
 
@@ -72,6 +73,9 @@ const CITIES: [string, string][] = [
 
 for (const c of DE_CITIES) {
   CITIES.push([c.ka, c.ka], [c.de.toLowerCase(), c.ka], [c.slug, c.ka])
+}
+for (const e of AE_EMIRATES) {
+  CITIES.push([e.ka, e.ka], [e.en.toLowerCase(), e.ka], [e.slug.replace(/-/g, ' '), e.ka], [e.ar, e.ka])
 }
 for (const [alias, slug] of [
   ['muenchen', 'munich'],
@@ -536,10 +540,12 @@ export function routeCountryNl(p: {
   if (p.kind) parsed.propertyType = p.kind
 
   const projectish =
-    p.country === 'de' &&
-    /neubau|bauprojekt|bautr[aä]ger|wohnungsunternehmen|projektentwickler|new[\s-]?developments?|new[\s-]?builds?|off[\s-]?plan/i.test(
-      raw,
-    ) &&
+    ((p.country === 'de' &&
+      /neubau|bauprojekt|bautr[aä]ger|wohnungsunternehmen|projektentwickler|new[\s-]?developments?|new[\s-]?builds?|off[\s-]?plan/i.test(
+        raw,
+      )) ||
+      (p.country === 'ae' &&
+        /off[\s-]?plan|new[\s-]?builds?|new[\s-]?developments?|rera|escrow|developer/i.test(raw))) &&
     parsed.rooms == null &&
     parsed.maxPrice == null &&
     parsed.minPrice == null

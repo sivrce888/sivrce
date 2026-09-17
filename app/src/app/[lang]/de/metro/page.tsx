@@ -9,7 +9,7 @@ import { jsonLd } from '@/lib/utils'
 import { deOnlyAlternates } from '@/lib/i18n/server'
 
 const BASE = 'https://sivrce.com'
-const PATH = '/en/de/metro'
+const PATH = '/de/metro'
 
 export const revalidate = 86400
 
@@ -145,7 +145,7 @@ export default function BerlinMetroIndexPage() {
                     {stations.map((s) => (
                       <Link
                         key={s.slug}
-                        href={`/en/de/metro/${s.slug}`}
+                        href={`/de/metro/${s.slug}`}
                         className="group flex items-center justify-between gap-3 rounded-control border border-transparent px-3 py-2 transition-all hover:border-sv-ink/[0.06] hover:bg-sv-cloud"
                       >
                         <span className="min-w-0">
@@ -196,7 +196,7 @@ export default function BerlinMetroIndexPage() {
                     {stations.map((s) => (
                       <Link
                         key={s.slug}
-                        href={`/en/de/metro/${s.slug}`}
+                        href={`/de/metro/${s.slug}`}
                         className="group flex items-center justify-between gap-3 rounded-control border border-transparent px-3 py-2 transition-all hover:border-sv-ink/[0.06] hover:bg-sv-cloud"
                       >
                         <span className="min-w-0">

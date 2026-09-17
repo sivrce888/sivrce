@@ -15,21 +15,9 @@ import {
   AE_HUB_AR,
   COUNTRY_HUBS,
   COUNTRY_NAMES,
-  DE_BERLIN_BUY_DE,
-  DE_BERLIN_HUB_DE,
-  DE_BERLIN_RENT_DE,
-  DE_COLOGNE_HUB_DE,
-  DE_FRANKFURT_BUY_DE,
-  DE_FRANKFURT_HUB_DE,
-  DE_FRANKFURT_RENT_DE,
-  DE_HAMBURG_BUY_DE,
-  DE_HAMBURG_HUB_DE,
-  DE_HAMBURG_RENT_DE,
   DE_HUB_DE,
-  DE_MUNICH_BUY_DE,
-  DE_MUNICH_HUB_DE,
-  DE_MUNICH_RENT_DE,
   cityPack,
+  deNativeCityPack,
   type CountryCopy,
 } from '@/lib/country-copy'
 import DeMarketHome from '@/components/country/DeMarketHome'
@@ -37,15 +25,19 @@ import HoodPage, { hoodMetadata } from '@/components/country/HoodPage'
 import { hoodBySlug } from '@/data/world-neighborhoods'
 import ProjectPage, { generateMetadata as projectPageMetadata } from '@/app/[lang]/projects/[slug]/page'
 import { DE_CITIES } from '@/lib/countries/de'
+import { isAeProjectCity } from '@/lib/countries/ae'
 import { getProject } from '@/data/professionals'
 import { COUNTRIES, type WorldCountry } from '@/data/world-countries'
 import type { WorldNeighborhood } from '@/data/world-neighborhoods'
 
-/** True when the slug targets a German-catalog project detail page. */
-function deProjectSlug(country: PathCountryId, slug: string[] | undefined): string | null {
-  if (country !== 'de' || slug?.[0] !== 'projects' || !slug?.[1]) return null
+/** True when the slug targets a DE/AE catalog project detail page. */
+function marketProjectSlug(country: PathCountryId, slug: string[] | undefined): { slug: string; market: 'de' | 'ae' } | null {
+  if (slug?.[0] !== 'projects' || !slug[1]) return null
   const p = getProject(slug[1])
-  return p && DE_CITIES.some((c) => c.ka === p.city) ? slug[1] : null
+  if (!p) return null
+  if (country === 'de' && DE_CITIES.some((c) => c.ka === p.city)) return { slug: slug[1], market: 'de' }
+  if (country === 'ae' && isAeProjectCity(p.city)) return { slug: slug[1], market: 'ae' }
+  return null
 }
 
 export const revalidate = 86400
@@ -78,25 +70,16 @@ function hoodFor(country: PathCountryId, slug: Slug): { citySlug: string; hood: 
 }
 
 /**
- * Cities whose `/de/de/...` URL ships native German copy. Single source of
- * truth for both the hreflang `de` alternate and the fall-back-to-English
- * redirect — a city listed here without a buy/rent entry has a German hub
- * page only.
+ * Native German copy for a `/de` path, or null when only the English page exists.
+ * Flagship cities (Berlin, München, Hamburg, Frankfurt, Köln) are handwritten;
+ * every other Großstadt is generated from statutory tax + €/m² anchors so a
+ * German visitor never lands on an English city hub.
  */
-const DE_DE_COPY: Record<string, { hub: CountryCopy; buy?: CountryCopy; rent?: CountryCopy }> = {
-  berlin: { hub: DE_BERLIN_HUB_DE, buy: DE_BERLIN_BUY_DE, rent: DE_BERLIN_RENT_DE },
-  munich: { hub: DE_MUNICH_HUB_DE, buy: DE_MUNICH_BUY_DE, rent: DE_MUNICH_RENT_DE },
-  hamburg: { hub: DE_HAMBURG_HUB_DE, buy: DE_HAMBURG_BUY_DE, rent: DE_HAMBURG_RENT_DE },
-  frankfurt: { hub: DE_FRANKFURT_HUB_DE, buy: DE_FRANKFURT_BUY_DE, rent: DE_FRANKFURT_RENT_DE },
-  cologne: { hub: DE_COLOGNE_HUB_DE },
-}
-
-/** Native German copy for a `/de` path, or null when only the English page exists. */
 function deNativeCopy(slug: Slug): CountryCopy | null {
   if (!slug?.length) return DE_HUB_DE
   if (slug.length > 2) return null
   const [citySlug, intentRaw] = slug
-  const pack = citySlug ? DE_DE_COPY[citySlug] : undefined
+  const pack = citySlug ? deNativeCityPack(citySlug) : null
   if (!pack) return null
   if (!intentRaw) return pack.hub
   const intent = canonicalIntent(intentRaw)
@@ -145,7 +128,7 @@ function copyFor(
         : { copy: native, kind: 'city', city: citySlug }
     }
     // Listed city, unusable intent (cologne/buy, berlin/garbage) — no German page.
-    if (DE_DE_COPY[citySlug]) return null
+    if (deNativeCityPack(citySlug)) return null
   }
   const pack = cityPack(country, citySlug)
   if (!pack) return null
@@ -183,9 +166,9 @@ export async function countryMetadata(
   const { lang: raw, slug: rawSlug } = await params
   const lang: Lang = isValidLang(raw) ? raw : 'en'
   const slug = normalizeDeSlug(rawSlug)
-  const projectSlug = deProjectSlug(country, slug)
-  if (projectSlug) {
-    return projectPageMetadata({ params: Promise.resolve({ lang, slug: projectSlug, market: 'de' }) })
+  const project = marketProjectSlug(country, slug)
+  if (project) {
+    return projectPageMetadata({ params: Promise.resolve({ lang, slug: project.slug, market: project.market }) })
   }
   if (slug?.[1] === 'sale') {
     return {}
@@ -469,15 +452,15 @@ export default async function CountryPage({
   if (country === 'de' && lang === 'de' && slug?.length === 1 && (slug[0] === 'buy' || slug[0] === 'rent')) {
     redirect(`/de/de/${MARKETS.de.defaultCitySlug}/${slug[0]}`)
   }
-  // Anything without native German copy (other cities, project pages, an
-  // intent page the city does not ship) goes to the English URL instead of a
-  // language-mismatched soft-404. DE_DE_COPY is the single source of truth.
+  // Anything without native German copy (project pages, an intent the city
+  // does not ship, unknown slugs) goes to the English URL instead of a
+  // language-mismatched soft-404. deNativeCityPack is the single source.
   if (country === 'de' && lang === 'de' && slug?.length && !deNativeCopy(slug)) {
     redirect(`${MARKETS.de.pathPrefix}/${slug.join('/')}`)
   }
-  const projectSlug = deProjectSlug(country, slug)
-  if (projectSlug) {
-    return <ProjectPage params={Promise.resolve({ lang, slug: projectSlug, market: 'de' })} />
+  const project = marketProjectSlug(country, slug)
+  if (project) {
+    return <ProjectPage params={Promise.resolve({ lang, slug: project.slug, market: project.market })} />
   }
   if (slug?.[1] === 'sale' && slug[0]) {
     permanentRedirect(`/en${MARKETS[country].pathPrefix}/${slug[0]}/buy`)
