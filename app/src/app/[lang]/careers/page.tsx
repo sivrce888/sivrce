@@ -46,10 +46,29 @@ export async function generateMetadata({
         description:
           'Ищем менеджеров по продажам в Тбилиси и Батуми. Лиды с сайта, свободный график.',
       },
+      de: {
+        title: 'Karriere — Vertriebsmanager',
+        description:
+          'Wir suchen Vertriebsmanager in Tiflis und Batumi. Anfragen kommen von der Website, flexible Arbeitszeiten.',
+      },
     }),
     openGraph: {
-      title: lang === 'en' ? 'Careers — Sales Manager' : lang === 'ru' ? 'Карьера — менеджер по продажам' : 'კარიერა — გაყიდვების მენეჯერი',
-      description: lang === 'en' ? 'Sales managers in Tbilisi and Batumi.' : lang === 'ru' ? 'Менеджеры по продажам в Тбилиси и Батуми.' : 'გაყიდვების მენეჯერები თბილისსა და ბათუმში.',
+      title:
+        lang === 'en'
+          ? 'Careers — Sales Manager'
+          : lang === 'ru'
+          ? 'Карьера — менеджер по продажам'
+          : lang === 'de'
+          ? 'Karriere — Vertriebsmanager'
+          : 'კარიერა — გაყიდვების მენეჯერი',
+      description:
+        lang === 'en'
+          ? 'Sales managers in Tbilisi and Batumi.'
+          : lang === 'ru'
+          ? 'Менеджеры по продажам в Тбилиси и Батуми.'
+          : lang === 'de'
+          ? 'Vertriebsmanager in Tiflis und Batumi.'
+          : 'გაყიდვების მენეჯერები თბილისსა და ბათუმში.',
       type: 'website',
     },
   }
@@ -180,6 +199,42 @@ const COPY: Record<string, Copy> = {
     jobTitle: 'Менеджер по продажам — недвижимость',
     jobDescription: 'Ищем менеджеров по продажам в Тбилиси и Батуми.',
   },
+  de: {
+    hero: { kicker: 'Karriere', titleA: 'Werde Teil unseres ', titleB: 'Verkaufsteams', titleC: '', subtitle: 'Wir suchen gute Vertriebler in Tiflis und Batumi.', cta: 'Bewerben' },
+    cities: [
+      { city: 'Tiflis', note: 'Neubau und Bestand' },
+      { city: 'Batumi', note: 'Meer und Investment' },
+    ],
+    whyTitle: 'Warum bei uns',
+    whySub: 'Immobilien an einem Ort. Deine Aufgabe: Kunden helfen und Abschlüsse machen.',
+    benefits: [
+      { icon: Inbox, title: 'Kunden kommen zu dir', text: 'Anfragen kommen von Website und App. Du musst keine Käufer mehr auf der Straße suchen.' },
+      { icon: Wallet, title: 'Einkommen aus Verkäufen', text: 'Provision pro geschlossenem Deal. Je mehr du verkaufst, desto mehr verdienst du. Konditionen im Gespräch.' },
+      { icon: Clock3, title: 'Dein Zeitplan', text: 'Du manages deine Zeit selbst. Zählt tut das Ergebnis.' },
+      { icon: GraduationCap, title: 'Wir helfen beim Start', text: 'Wir zeigen dir Produkt, System und unsere Arbeitsweise.' },
+    ],
+    howTitle: 'So läuft es ab',
+    steps: [
+      { n: '1', title: 'Anfrage kommt', text: 'Kunde schreibt auf der Website oder in der App — du nimmst sie an.' },
+      { n: '2', title: 'Du sprichst', text: 'Du erfährst, was wichtig ist und welches Budget da ist.' },
+      { n: '3', title: 'Du wählst die Wohnung', text: 'Du zeigst passende Optionen auf sivrce.' },
+      { n: '4', title: 'Du begleitest bis zum Schluss', text: 'Von der Besichtigung bis zum Vertrag bist du dabei.' },
+      { n: '5', title: 'Du bekommst die Provision', text: 'Deal geschlossen — dein Anteil ist deiner.' },
+    ],
+    traitsTitle: 'Was du mitbringst',
+    traits: [
+      'Du verkaufst gut',
+      'Du gehst mit Einwänden um',
+      'Du erreichst deine Ziele',
+      'Du gehst gut mit Kunden um',
+      'Du bist organisiert und zuverlässig',
+      'Du lernst und wächst',
+    ],
+    applyTitle: 'Schreib uns',
+    applySub: 'Füll das Formular aus und lade deinen Lebenslauf hoch (PDF, DOC oder DOCX).',
+    jobTitle: 'Vertriebsmanager — Immobilien',
+    jobDescription: 'Wir suchen Vertriebsmanager in Tiflis und Batumi.',
+  },
 }
 
 export default async function CareersPage({ params }: { params: Promise<{ lang: string }> }) {
@@ -207,7 +262,7 @@ export default async function CareersPage({ params }: { params: Promise<{ lang: 
         '@type': 'BreadcrumbList',
         itemListElement: [
           { '@type': 'ListItem', position: 1, name: 'sivrce', item: origin },
-          { '@type': 'ListItem', position: 2, name: lang === 'ka' ? 'კარიერა' : lang === 'ru' ? 'Карьера' : 'Careers', item: `${origin}/careers` },
+          { '@type': 'ListItem', position: 2, name: lang === 'ka' ? 'კარიერა' : lang === 'ru' ? 'Карьера' : lang === 'de' ? 'Karriere' : 'Careers', item: `${origin}/careers` },
         ],
       },
       {

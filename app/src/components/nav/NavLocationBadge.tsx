@@ -10,58 +10,65 @@ import { stripLangPrefix } from '@/lib/i18n/core'
 
 const noopSubscribe = () => () => {}
 
-const MARKET_LABELS: Record<string, { ka: string; en: string }> = {
-  ge: { ka: 'საქართველო', en: 'Georgia' },
-  global: { ka: 'მსოფლიო', en: 'Worldwide' },
-  de: { ka: 'გერმანია', en: 'Germany' },
-  ae: { ka: 'არაბთა საამიროები', en: 'UAE' },
-  us: { ka: 'აშშ', en: 'USA' },
-  gb: { ka: 'დიდი ბრიტანეთი', en: 'UK' },
-  es: { ka: 'ესპანეთი', en: 'Spain' },
-  fr: { ka: 'საფრანგეთი', en: 'France' },
-  tr: { ka: 'თურქეთი', en: 'Turkey' },
-  cy: { ka: 'კვიპროსი', en: 'Cyprus' },
-  gr: { ka: 'საბერძნეთი', en: 'Greece' },
-  it: { ka: 'იტალია', en: 'Italy' },
-  pt: { ka: 'პორტუგალია', en: 'Portugal' },
-  nl: { ka: 'ნიდერლანდები', en: 'Netherlands' },
-  ch: { ka: 'შვეიცარია', en: 'Switzerland' },
-  at: { ka: 'ავსტრია', en: 'Austria' },
-  pl: { ka: 'პოლონეთი', en: 'Poland' },
-  cz: { ka: 'ჩეხეთი', en: 'Czech Republic' },
-  hu: { ka: 'უნგრეთი', en: 'Hungary' },
-  ie: { ka: 'ირლანდია', en: 'Ireland' },
-  se: { ka: 'შვედეთი', en: 'Sweden' },
-  dk: { ka: 'დანია', en: 'Denmark' },
-  no: { ka: 'ნორვეგია', en: 'Norway' },
-  fi: { ka: 'ფინეთი', en: 'Finland' },
-  be: { ka: 'ბელგია', en: 'Belgium' },
-  lu: { ka: 'ლუქსემბურგი', en: 'Luxembourg' },
-  sa: { ka: 'საუდის არაბეთი', en: 'Saudi Arabia' },
-  qa: { ka: 'ყატარი', en: 'Qatar' },
-  kw: { ka: 'ქუვეითი', en: 'Kuwait' },
-  bh: { ka: 'ბაჰრეინი', en: 'Bahrain' },
-  om: { ka: 'ომანი', en: 'Oman' },
-  il: { ka: 'ისრაელი', en: 'Israel' },
-  sg: { ka: 'სინგაპური', en: 'Singapore' },
-  jp: { ka: 'იაპონია', en: 'Japan' },
-  kr: { ka: 'სამხრეთ კორეა', en: 'South Korea' },
-  au: { ka: 'ავსტრალია', en: 'Australia' },
-  nz: { ka: 'ახალი ზელანდია', en: 'New Zealand' },
-  ca: { ka: 'კანადა', en: 'Canada' },
-  mx: { ka: 'მექსიკა', en: 'Mexico' },
-  br: { ka: 'ბრაზილია', en: 'Brazil' },
-  ar: { ka: 'არგენტინა', en: 'Argentina' },
-  cl: { ka: 'ჩილე', en: 'Chile' },
-  th: { ka: 'ტაილანდი', en: 'Thailand' },
-  id: { ka: 'ინდონეზია', en: 'Indonesia' },
-  my: { ka: 'მალაიზია', en: 'Malaysia' },
-  vn: { ka: 'ვიეტნამი', en: 'Vietnam' },
-  ph: { ka: 'ფილიპინები', en: 'Philippines' },
-  in: { ka: 'ინდოეთი', en: 'India' },
-  kz: { ka: 'ყაზახეთი', en: 'Kazakhstan' },
-  uz: { ka: 'უზბეკეთი', en: 'Uzbekistan' },
-  za: { ka: 'სამხრეთ აფრიკა', en: 'South Africa' },
+const MARKET_LABELS: Record<string, { ka: string; en: string; de?: string }> = {
+  ge: { ka: 'საქართველო', en: 'Georgia', de: 'Georgien' },
+  global: { ka: 'მსოფლიო', en: 'Worldwide', de: 'Weltweit' },
+  de: { ka: 'გერმანია', en: 'Germany', de: 'Deutschland' },
+  ae: { ka: 'არაბთა საამიროები', en: 'UAE', de: 'VAE' },
+  us: { ka: 'აშშ', en: 'USA', de: 'USA' },
+  gb: { ka: 'დიდი ბრიტანეთი', en: 'UK', de: 'Großbritannien' },
+  es: { ka: 'ესპანეთი', en: 'Spain', de: 'Spanien' },
+  fr: { ka: 'საფრანგეთი', en: 'France', de: 'Frankreich' },
+  tr: { ka: 'თურქეთი', en: 'Turkey', de: 'Türkei' },
+  cy: { ka: 'კვიპროსი', en: 'Cyprus', de: 'Zypern' },
+  gr: { ka: 'საბერძნეთი', en: 'Greece', de: 'Griechenland' },
+  it: { ka: 'იტალია', en: 'Italy', de: 'Italien' },
+  pt: { ka: 'პორტუგალია', en: 'Portugal', de: 'Portugal' },
+  nl: { ka: 'ნიდერლანდები', en: 'Netherlands', de: 'Niederlande' },
+  ch: { ka: 'შვეიცარია', en: 'Switzerland', de: 'Schweiz' },
+  at: { ka: 'ავსტრია', en: 'Austria', de: 'Österreich' },
+  pl: { ka: 'პოლონეთი', en: 'Poland', de: 'Polen' },
+  cz: { ka: 'ჩეხეთი', en: 'Czech Republic', de: 'Tschechien' },
+  hu: { ka: 'უნგრეთი', en: 'Hungary', de: 'Ungarn' },
+  ie: { ka: 'ირლანდია', en: 'Ireland', de: 'Irland' },
+  se: { ka: 'შვედეთი', en: 'Sweden', de: 'Schweden' },
+  dk: { ka: 'დანია', en: 'Denmark', de: 'Dänemark' },
+  no: { ka: 'ნორვეგია', en: 'Norway', de: 'Norwegen' },
+  fi: { ka: 'ფინეთი', en: 'Finland', de: 'Finnland' },
+  be: { ka: 'ბელგია', en: 'Belgium', de: 'Belgien' },
+  lu: { ka: 'ლუქსემბურგი', en: 'Luxembourg', de: 'Luxemburg' },
+  sa: { ka: 'საუდის არაბეთი', en: 'Saudi Arabia', de: 'Saudi-Arabien' },
+  qa: { ka: 'ყატარი', en: 'Qatar', de: 'Katar' },
+  kw: { ka: 'ქუვეითი', en: 'Kuwait', de: 'Kuwait' },
+  bh: { ka: 'ბაჰრეინი', en: 'Bahrain', de: 'Bahrain' },
+  om: { ka: 'ომანი', en: 'Oman', de: 'Oman' },
+  il: { ka: 'ისრაელი', en: 'Israel', de: 'Israel' },
+  sg: { ka: 'სინგაპური', en: 'Singapore', de: 'Singapur' },
+  jp: { ka: 'იაპონია', en: 'Japan', de: 'Japan' },
+  kr: { ka: 'სამხრეთ კორეა', en: 'South Korea', de: 'Südkorea' },
+  au: { ka: 'ავსტრალია', en: 'Australia', de: 'Australien' },
+  nz: { ka: 'ახალი ზელანდია', en: 'New Zealand', de: 'Neuseeland' },
+  ca: { ka: 'კანადა', en: 'Canada', de: 'Kanada' },
+  mx: { ka: 'მექსიკა', en: 'Mexico', de: 'Mexiko' },
+  br: { ka: 'ბრაზილია', en: 'Brazil', de: 'Brasilien' },
+  ar: { ka: 'არგენტინა', en: 'Argentina', de: 'Argentinien' },
+  cl: { ka: 'ჩილე', en: 'Chile', de: 'Chile' },
+  th: { ka: 'ტაილანდი', en: 'Thailand', de: 'Thailand' },
+  id: { ka: 'ინდონეზია', en: 'Indonesia', de: 'Indonesien' },
+  my: { ka: 'მალაიზია', en: 'Malaysia', de: 'Malaysia' },
+  vn: { ka: 'ვიეტნამი', en: 'Vietnam', de: 'Vietnam' },
+  ph: { ka: 'ფილიპინები', en: 'Philippines', de: 'Philippinen' },
+  in: { ka: 'ინდოეთი', en: 'India', de: 'Indien' },
+  kz: { ka: 'ყაზახეთი', en: 'Kazakhstan', de: 'Kasachstan' },
+  uz: { ka: 'უზბეკეთი', en: 'Uzbekistan', de: 'Usbekistan' },
+  za: { ka: 'სამხრეთ აფრიკა', en: 'South Africa', de: 'Südafrika' },
+}
+
+/** Market label in the UI locale — de falls back to en for unlisted names. */
+function marketLabel(id: string, lang: string): string {
+  const m = MARKET_LABELS[id]
+  if (!m) return id.toUpperCase()
+  return lang === 'ka' ? m.ka : lang === 'de' ? (m.de ?? m.en) : m.en
 }
 
 const TOP_ITEMS: { id: 'ge' | PathCountryId; flag: FlagCode }[] = [
@@ -116,6 +123,8 @@ export function NavLocationBadge({
 }) {
   const pathname = usePathname()
   const { lang } = useI18n()
+  // Tri-lang chrome strings (ka/de/en) — matches the de-market overlay ceiling.
+  const T = (ka: string, de: string, en: string) => (lang === 'ka' ? ka : lang === 'de' ? de : en)
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
   const mounted = useSyncExternalStore(noopSubscribe, () => true, () => false)
@@ -145,7 +154,7 @@ export function NavLocationBadge({
   const countryId: 'ge' | 'global' | PathCountryId =
     parsed?.country ?? (fromProp && fromProp !== 'global' ? fromProp : null) ?? sticky ?? 'global'
 
-  const countryName = (lang === 'ka' ? MARKET_LABELS[countryId]?.ka : MARKET_LABELS[countryId]?.en) ?? countryId.toUpperCase()
+  const countryName = marketLabel(countryId, lang)
 
   useEffect(() => {
     if (!open) return
@@ -168,7 +177,7 @@ export function NavLocationBadge({
   const filteredItems = search.trim()
     ? TOP_ITEMS.filter((m) => {
         const q = search.trim().toLowerCase()
-        const label = (lang === 'ka' ? MARKET_LABELS[m.id]?.ka : MARKET_LABELS[m.id]?.en) || m.id
+        const label = marketLabel(m.id, lang)
         return label.toLowerCase().includes(q) || m.id.toLowerCase().includes(q)
       })
     : TOP_ITEMS
@@ -189,7 +198,7 @@ export function NavLocationBadge({
         }}
         aria-haspopup="menu"
         aria-expanded={open}
-        aria-label={`${lang === 'ka' ? 'ბაზარი' : 'Market'}: ${countryName}`}
+        aria-label={`${T('ბაზარი', 'Markt', 'Market')}: ${countryName}`}
         // before: = invisible 44px touch target around the 32px pill (Apple HIG
         // minimum) without inflating the nav row.
         className={`group relative flex h-8 items-center gap-1.5 rounded-full border border-sv-ink/10 px-2.5 text-[11px] font-bold transition-all duration-200 before:absolute before:inset-x-0 before:-inset-y-1.5 before:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue ${
@@ -209,7 +218,7 @@ export function NavLocationBadge({
 
       <div
         role="menu"
-        aria-label="Location & Market"
+        aria-label={T('მდებარეობა და ბაზარი', 'Standort & Markt', 'Location & Market')}
         inert={!open}
         data-open={open || undefined}
         className="sv-pop glass-light absolute start-0 top-full z-50 mt-2 max-h-[min(24rem,70vh)] w-[min(16rem,calc(100vw-2.5rem))] origin-top-start overflow-hidden rounded-2xl border border-sv-ink/10 p-2 shadow-card"
@@ -219,8 +228,8 @@ export function NavLocationBadge({
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder={lang === 'ka' ? 'ქვეყნის ძიება…' : 'Search country…'}
-            aria-label={lang === 'ka' ? 'ქვეყნის ძიება' : 'Search country'}
+            placeholder={T('ქვეყნის ძიება…', 'Land suchen…', 'Search country…')}
+            aria-label={T('ქვეყნის ძიება', 'Land suchen', 'Search country')}
             className="w-full rounded-xl border border-sv-ink/10 bg-sv-surface px-3 py-1.5 text-[12px] font-semibold text-sv-ink placeholder:text-sv-ink/40 focus:border-sv-blue focus:outline-none focus:ring-2 focus:ring-sv-blue/20"
             autoFocus={open}
           />
@@ -228,7 +237,7 @@ export function NavLocationBadge({
         <div className="max-h-[min(18rem,55vh)] overflow-y-auto overscroll-contain">
           {filteredItems.map((m) => {
             const on = m.id === countryId
-            const label = (lang === 'ka' ? MARKET_LABELS[m.id]?.ka : MARKET_LABELS[m.id]?.en) ?? m.id.toUpperCase()
+            const label = marketLabel(m.id, lang)
             return (
               <a
                 key={m.id}
@@ -251,7 +260,7 @@ export function NavLocationBadge({
           })}
           {filteredItems.length === 0 && (
             <div className="py-4 text-center text-[12px] font-semibold text-sv-ink/50">
-              {lang === 'ka' ? 'ვერ მოიძებნა' : 'No country found'}
+              {T('ვერ მოიძებნა', 'Kein Land gefunden', 'No country found')}
             </div>
           )}
         </div>

@@ -8,30 +8,127 @@ import { useSession } from "next-auth/react"
 import { saveAvatarColor, saveAvatarIcon, saveAvatarImage, saveAvatarStyle } from "@/app/[lang]/settings/actions"
 import UserAvatar from "@/components/UserAvatar"
 import { avatarInitials, avatarVisual, GRADIENTS, ICONS, isPlaceholderImage } from "@/lib/avatar"
+import { useI18n } from "@/lib/i18n/context"
 import type { AvatarIcon } from "@/lib/avatar"
 import type { LucideIcon } from "lucide-react"
 
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/avif"])
 const MAX_SIZE = 10 * 1024 * 1024 // mirrors /api/upload
 
-const ERR_TYPE = "მხოლოდ JPG, PNG, WebP ან AVIF ფაილი"
-const ERR_SIZE = "ფაილი ძალიან დიდია — მაქსიმუმ 10 მბ"
-const ERR_UPLOAD = "ატვირთვა ვერ მოხერხდა — სცადე ხელახლა"
-const ERR_SAVE = "შენახვა ვერ მოხერხდა — სცადე ხელახლა"
-
-/** Georgian names for the glyph swatches (aria + title only). */
-const ICON_LABELS: Record<AvatarIcon, string> = {
-  house: "სახლი",
-  building: "შენობა",
-  key: "გასაღები",
-  star: "ვარსკვლავი",
-  heart: "გული",
-  sun: "მზე",
-  mountain: "მთა",
-  trees: "ბუნება",
-  sofa: "დივანი",
-  paw: "ცხოველი",
-}
+const L = {
+  ka: {
+    errType: "მხოლოდ JPG, PNG, WebP ან AVIF ფაილი",
+    errSize: "ფაილი ძალიან დიდია — მაქსიმუმ 10 მბ",
+    errUpload: "ატვირთვა ვერ მოხერხდა — სცადე ხელახლა",
+    errSave: "შენახვა ვერ მოხერხდა — სცადე ხელახლა",
+    avatarTitle: "ავატარი",
+    avatarDesc: "ატვირთე ფოტო ან აირჩიე გრადიენტი — ასე გამოჩნდები შენს პროფილზე.",
+    uploading: "იტვირთება…",
+    uploadPhoto: "ატვირთე ფოტო",
+    removePhoto: "ფოტოს მოცილება",
+    uploadAria: "პროფილის ფოტოს ატვირთვა",
+    gradient: "გრადიენტი",
+    gradientDesc:
+      "ავტო — შენს სახელზე გამოთვლილი; ბოლო ბეჭედი — შენივე ფერი, ყველა გვერდზე ერთნაირად.",
+    gradientGroup: "ავატარის გრადიენტი",
+    auto: "ავტო",
+    gradientN: (n: number) => `გრადიენტი ${n}`,
+    yourColor: "შენი ფერი",
+    yourColorAria: "შენი ფერის არჩევა",
+    symbol: "სიმბოლო",
+    symbolDesc: "ავტო — შენი ინიციალებია; არჩეული სიმბოლო იმუშავებს ყველა გვერდზე.",
+    symbolGroup: "ავატარის სიმბოლო",
+    autoInitials: "ავტო — ინიციალები",
+    symbolLabel: (name: string) => `სიმბოლო — ${name}`,
+    iconNames: {
+      house: "სახლი",
+      building: "შენობა",
+      key: "გასაღები",
+      star: "ვარსკვლავი",
+      heart: "გული",
+      sun: "მზე",
+      mountain: "მთა",
+      trees: "ბუნება",
+      sofa: "დივანი",
+      paw: "ცხოველი",
+    },
+  },
+  en: {
+    errType: "Only JPG, PNG, WebP or AVIF files",
+    errSize: "File is too large — 10 MB max",
+    errUpload: "Upload failed — try again",
+    errSave: "Couldn’t save — try again",
+    avatarTitle: "Avatar",
+    avatarDesc: "Upload a photo or pick a gradient — that’s how you appear on your profile.",
+    uploading: "Uploading…",
+    uploadPhoto: "Upload photo",
+    removePhoto: "Remove photo",
+    uploadAria: "Upload profile photo",
+    gradient: "Gradient",
+    gradientDesc:
+      "Auto — computed from your name; the last swatch is your own color, the same on every page.",
+    gradientGroup: "Avatar gradient",
+    auto: "Auto",
+    gradientN: (n: number) => `Gradient ${n}`,
+    yourColor: "Your color",
+    yourColorAria: "Pick your color",
+    symbol: "Symbol",
+    symbolDesc: "Auto — your initials; a chosen symbol works on every page.",
+    symbolGroup: "Avatar symbol",
+    autoInitials: "Auto — initials",
+    symbolLabel: (name: string) => `Symbol — ${name}`,
+    iconNames: {
+      house: "House",
+      building: "Building",
+      key: "Key",
+      star: "Star",
+      heart: "Heart",
+      sun: "Sun",
+      mountain: "Mountain",
+      trees: "Nature",
+      sofa: "Sofa",
+      paw: "Animal",
+    },
+  },
+  de: {
+    errType: "Nur JPG-, PNG-, WebP- oder AVIF-Dateien",
+    errSize: "Die Datei ist zu groß – maximal 10 MB",
+    errUpload: "Upload fehlgeschlagen – bitte erneut versuchen",
+    errSave: "Speichern nicht möglich – bitte erneut versuchen",
+    avatarTitle: "Avatar",
+    avatarDesc:
+      "Laden Sie ein Foto hoch oder wählen Sie einen Farbverlauf – so erscheinen Sie in Ihrem Profil.",
+    uploading: "Wird hochgeladen…",
+    uploadPhoto: "Foto hochladen",
+    removePhoto: "Foto entfernen",
+    uploadAria: "Profilfoto hochladen",
+    gradient: "Farbverlauf",
+    gradientDesc:
+      "Auto – aus Ihrem Namen berechnet; das letzte Feld ist Ihre eigene Farbe, auf allen Seiten identisch.",
+    gradientGroup: "Avatar-Farbverlauf",
+    auto: "Auto",
+    gradientN: (n: number) => `Farbverlauf ${n}`,
+    yourColor: "Ihre Farbe",
+    yourColorAria: "Ihre Farbe wählen",
+    symbol: "Symbol",
+    symbolDesc: "Auto – Ihre Initialen; ein gewähltes Symbol funktioniert auf allen Seiten.",
+    symbolGroup: "Avatar-Symbol",
+    autoInitials: "Auto – Initialen",
+    symbolLabel: (name: string) => `Symbol – ${name}`,
+    iconNames: {
+      house: "Haus",
+      building: "Gebäude",
+      key: "Schlüssel",
+      star: "Stern",
+      heart: "Herz",
+      sun: "Sonne",
+      mountain: "Berg",
+      trees: "Natur",
+      sofa: "Sofa",
+      paw: "Tier",
+    },
+  },
+} as const
 
 function Swatch({
   checked,
@@ -82,6 +179,9 @@ export default function AvatarStudio({
 }) {
   const { update } = useSession()
   const router = useRouter()
+  const { lang } = useI18n()
+  const loc = lang === "en" ? "en" : lang === "de" ? "de" : "ka"
+  const t = L[loc]
   const [style, setStyle] = useState<number | null>(style0)
   const [color, setColor] = useState<string | null>(color0 ?? null)
   const [icon, setIcon] = useState<string | null>(icon0)
@@ -110,7 +210,7 @@ export default function AvatarStudio({
       if (!r.ok) {
         setStyle(style0)
         setColor(color0 ?? null)
-        setErr(ERR_SAVE)
+        setErr(t.errSave)
         return
       }
       await update()
@@ -127,7 +227,7 @@ export default function AvatarStudio({
       if (!r.ok) {
         setColor(color0 ?? null)
         setStyle(style0)
-        setErr(ERR_SAVE)
+        setErr(t.errSave)
         return
       }
       await update()
@@ -142,7 +242,7 @@ export default function AvatarStudio({
       const r = await saveAvatarIcon(next)
       if (!r.ok) {
         setIcon(icon0)
-        setErr(ERR_SAVE)
+        setErr(t.errSave)
         return
       }
       await update()
@@ -153,8 +253,8 @@ export default function AvatarStudio({
     const file = e.target.files?.[0]
     e.target.value = ""
     if (!file || busy) return
-    if (!ALLOWED_TYPES.has(file.type)) return setErr(ERR_TYPE)
-    if (file.size > MAX_SIZE) return setErr(ERR_SIZE)
+    if (!ALLOWED_TYPES.has(file.type)) return setErr(t.errType)
+    if (file.size > MAX_SIZE) return setErr(t.errSize)
 
     const url = URL.createObjectURL(file)
     setPreview((old) => {
@@ -179,7 +279,7 @@ export default function AvatarStudio({
       router.refresh()
     } catch {
       setPreview(null)
-      setErr(ERR_UPLOAD)
+      setErr(t.errUpload)
     } finally {
       setBusy(false)
     }
@@ -191,7 +291,7 @@ export default function AvatarStudio({
     startTransition(async () => {
       const r = await saveAvatarImage(null)
       if (!r.ok) {
-        setErr(ERR_SAVE)
+        setErr(t.errSave)
         return
       }
       setPreview((old) => {
@@ -217,10 +317,8 @@ export default function AvatarStudio({
           <ImagePlus size={18} aria-hidden />
         </span>
         <div className="min-w-0">
-          <h2 className="text-[15px] font-extrabold text-sv-ink">ავატარი</h2>
-          <p className="mt-1 text-[13px] font-medium text-sv-ink/60">
-            ატვირთე ფოტო ან აირჩიე გრადიენტი — ასე გამოჩნდები შენს პროფილზე.
-          </p>
+          <h2 className="text-[15px] font-extrabold text-sv-ink">{t.avatarTitle}</h2>
+          <p className="mt-1 text-[13px] font-medium text-sv-ink/60">{t.avatarDesc}</p>
         </div>
       </div>
 
@@ -233,7 +331,7 @@ export default function AvatarStudio({
             disabled={busy}
             className="inline-flex h-10 items-center gap-1.5 rounded-full bg-sv-blue px-5 text-[13px] font-extrabold text-white transition hover:bg-sv-blue-deep disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
           >
-            {busy ? "იტვირთება…" : "ატვირთე ფოტო"}
+            {busy ? t.uploading : t.uploadPhoto}
           </button>
           {hasPhoto ? (
             <button
@@ -243,7 +341,7 @@ export default function AvatarStudio({
               className="inline-flex h-10 items-center gap-1.5 rounded-full border border-sv-ink/12 px-5 text-[13px] font-extrabold text-sv-ink/70 transition hover:border-sv-blue hover:text-sv-blue disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
             >
               <Trash2 className="h-3.5 w-3.5" aria-hidden />
-              ფოტოს მოცილება
+              {t.removePhoto}
             </button>
           ) : null}
           <input
@@ -252,18 +350,16 @@ export default function AvatarStudio({
             accept="image/jpeg,image/png,image/webp,image/avif"
             onChange={onPick}
             className="sr-only"
-            aria-label="პროფილის ფოტოს ატვირთვა"
+            aria-label={t.uploadAria}
           />
         </div>
       </div>
 
       <div className="mt-6 border-t border-sv-ink/6 pt-5">
-        <p className="text-[13px] font-extrabold text-sv-ink">გრადიენტი</p>
-        <p className="mt-0.5 text-[12.5px] font-medium text-sv-ink/60">
-          ავტო — შენს სახელზე გამოთვლილი; ბოლო ბეჭედი — შენივე ფერი, ყველა გვერდზე ერთნაირად.
-        </p>
-        <div role="radiogroup" aria-label="ავატარის გრადიენტი" className="mt-3 flex flex-wrap gap-2.5">
-          <Swatch checked={style === null && color === null} label="ავტო" onClick={() => pickStyle(null)}>
+        <p className="text-[13px] font-extrabold text-sv-ink">{t.gradient}</p>
+        <p className="mt-0.5 text-[12.5px] font-medium text-sv-ink/60">{t.gradientDesc}</p>
+        <div role="radiogroup" aria-label={t.gradientGroup} className="mt-3 flex flex-wrap gap-2.5">
+          <Swatch checked={style === null && color === null} label={t.auto} onClick={() => pickStyle(null)}>
             <span
               aria-hidden
               className="grid h-full w-full place-items-center text-[11px] font-black text-white"
@@ -276,7 +372,7 @@ export default function AvatarStudio({
             <Swatch
               key={i}
               checked={style === i}
-              label={`გრადიენტი ${i + 1}`}
+              label={t.gradientN(i + 1)}
               onClick={() => pickStyle(i)}
             >
               {/* block: h/w don't apply to inline spans — bare h-full collapses to 0×0 */}
@@ -289,7 +385,7 @@ export default function AvatarStudio({
           ))}
           <Swatch
             checked={color !== null}
-            label="შენი ფერი"
+            label={t.yourColor}
             onClick={() => colorRef.current?.click()}
           >
             <span
@@ -313,17 +409,15 @@ export default function AvatarStudio({
           value={color ?? "#2a5fef"}
           onChange={(e) => pickColor(e.target.value)}
           className="sr-only"
-          aria-label="შენი ფერის არჩევა"
+          aria-label={t.yourColorAria}
         />
       </div>
 
       <div className="mt-6 border-t border-sv-ink/6 pt-5">
-        <p className="text-[13px] font-extrabold text-sv-ink">სიმბოლო</p>
-        <p className="mt-0.5 text-[12.5px] font-medium text-sv-ink/60">
-          ავტო — შენი ინიციალებია; არჩეული სიმბოლო იმუშავებს ყველა გვერდზე.
-        </p>
-        <div role="radiogroup" aria-label="ავატარის სიმბოლო" className="mt-3 flex flex-wrap gap-2.5">
-          <Swatch checked={icon === null} label="ავტო — ინიციალები" onClick={() => pickIcon(null)}>
+        <p className="text-[13px] font-extrabold text-sv-ink">{t.symbol}</p>
+        <p className="mt-0.5 text-[12.5px] font-medium text-sv-ink/60">{t.symbolDesc}</p>
+        <div role="radiogroup" aria-label={t.symbolGroup} className="mt-3 flex flex-wrap gap-2.5">
+          <Swatch checked={icon === null} label={t.autoInitials} onClick={() => pickIcon(null)}>
             <span
               aria-hidden
               className="grid h-full w-full place-items-center text-[11px] font-black text-white"
@@ -336,7 +430,7 @@ export default function AvatarStudio({
             <Swatch
               key={key}
               checked={icon === key}
-              label={`სიმბოლო — ${ICON_LABELS[key]}`}
+              label={t.symbolLabel(t.iconNames[key])}
               onClick={() => pickIcon(key)}
             >
               <span

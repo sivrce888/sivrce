@@ -213,7 +213,7 @@ export default function CategoryBar({
 
   return (
     <div className={`w-full ${className}`}>
-      <HScroll size="sm" aria-label={lang === 'ka' ? 'კატეგორიები' : 'Categories'} className="gap-2 py-1.5">
+      <HScroll size="sm" aria-label={lang === 'ka' ? 'კატეგორიები' : lang === 'de' ? 'Kategorien' : 'Categories'} className="gap-2 py-1.5">
         {SEARCH_CATEGORIES.map((item) => {
           const active = activeId === item.id
           const Icon = item.icon
@@ -243,7 +243,7 @@ export default function CategoryBar({
               }
             >
               <span
-                className="grid h-7 w-7 shrink-0 place-items-center rounded-full transition-transform duration-300 group-hover:scale-105"
+                className="grid h-7 w-7 shrink-0 place-items-center rounded-full"
                 style={{
                   backgroundColor: active ? item.brand.chipVar : 'transparent',
                   color: item.brand.hue,

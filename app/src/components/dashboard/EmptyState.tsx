@@ -1,27 +1,37 @@
-import Link from "next/link"
+import type { LucideIcon } from "lucide-react"
+import LocalizedLink from "@/components/LocalizedLink"
 
 interface EmptyStateProps {
   title: string
   body?: string
   actionHref?: string
   actionLabel?: string
+  icon?: LucideIcon
 }
 
-/** Friendly zero-data state with optional CTA. Server component. */
-export default function EmptyState({ title, body, actionHref, actionLabel }: EmptyStateProps) {
+/** Zero-data / recovery. Same rhythm as search empty + errors. */
+export default function EmptyState({
+  title,
+  body,
+  actionHref,
+  actionLabel,
+  icon: Icon,
+}: EmptyStateProps) {
   return (
-    <div className="rounded-card border border-dashed border-sv-ink/15 bg-sv-surface/60 px-6 py-14 text-center">
-      <p className="text-[16px] font-extrabold text-sv-ink/80">{title}</p>
+    <div className="sv-empty">
+      {Icon ? (
+        <span className="grid h-16 w-16 place-items-center rounded-module bg-sv-blue/10 text-sv-blue">
+          <Icon className="h-7 w-7" strokeWidth={1.75} aria-hidden />
+        </span>
+      ) : null}
+      <p className={`text-[16px] font-extrabold text-sv-ink ${Icon ? "mt-5" : ""}`}>{title}</p>
       {body ? (
-        <p className="mx-auto mt-2 max-w-md text-[13px] font-medium text-sv-ink/60">{body}</p>
+        <p className="sv-lead mx-auto mt-2 max-w-md text-sv-ink/60">{body}</p>
       ) : null}
       {actionHref && actionLabel ? (
-        <Link
-          href={actionHref}
-          className="mt-5 inline-block rounded-full bg-sv-blue px-6 py-2.5 text-[13px] font-bold text-white transition hover:bg-sv-blue-deep"
-        >
+        <LocalizedLink href={actionHref} className="sv-cta-blue mt-6">
           {actionLabel}
-        </Link>
+        </LocalizedLink>
       ) : null}
     </div>
   )

@@ -11,6 +11,7 @@ import { usePathname } from 'next/navigation'
 import { marketCurrencyOptions, useCurrency, type Currency } from '@/lib/currency'
 import { parseCountryPath } from '@/lib/markets'
 import { stripLangPrefix } from '@/lib/i18n/core'
+import { useI18n } from '@/lib/i18n/context'
 
 const OPTIONS: { value: Currency; symbol: string; label: string }[] = [
   { value: 'USD', symbol: '$', label: 'US Dollar' },
@@ -21,6 +22,7 @@ const OPTIONS: { value: Currency; symbol: string; label: string }[] = [
 
 export function CurrencySwitcher({ light = false }: { light?: boolean }) {
   const { currency, setCurrency } = useCurrency()
+  const { t } = useI18n()
   const pathname = usePathname()
   // SSR-safe market read: locale-prefixed market paths parse on the server;
   // bare /de resolves to a market only once hydrated on sivrce.com.
@@ -30,7 +32,7 @@ export function CurrencySwitcher({ light = false }: { light?: boolean }) {
   return (
     <div
       role="group"
-      aria-label="Currency"
+      aria-label={t('nav.currency')}
       className={`flex h-10 items-center rounded-full p-1 ${
         light ? 'bg-sv-ink/[0.06]' : 'bg-sv-ink/[0.06] dark:bg-white/10'
       }`}

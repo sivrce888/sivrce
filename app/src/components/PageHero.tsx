@@ -20,7 +20,7 @@ export function PageHero({
       <header className="mx-auto max-w-[1440px] px-5 pb-2 pt-[calc(7rem+env(safe-area-inset-top,0px))] md:px-10 md:pt-[calc(8rem+env(safe-area-inset-top,0px))]">
         <Reveal>
           {kicker ? (
-            <p className="mb-3 text-[12px] font-black uppercase tracking-[0.18em] text-sv-blue">
+            <p className="sv-kicker mb-3 text-sv-blue">
               {kicker}
             </p>
           ) : null}
@@ -28,7 +28,7 @@ export function PageHero({
             {title}
           </h1>
           {subtitle ? (
-            <p className="mt-4 max-w-2xl text-[16px] font-medium leading-relaxed text-sv-ink/60 md:text-[17px]">
+            <p className="sv-lead mt-4 max-w-2xl text-sv-ink/60">
               {subtitle}
             </p>
           ) : null}
@@ -52,7 +52,7 @@ export function PageHero({
       <div className="relative mx-auto max-w-5xl px-6 pb-16 pt-[calc(8rem+env(safe-area-inset-top,0px))] text-center md:pb-24 md:pt-40">
         <Reveal>
           {kicker ? (
-            <p className="text-sm font-bold uppercase tracking-[0.2em] text-sv-blue-light">
+            <p className="sv-kicker text-sv-blue-light">
               {kicker}
             </p>
           ) : null}
@@ -60,7 +60,7 @@ export function PageHero({
             {title}
           </h1>
           {subtitle ? (
-            <p className="mx-auto mt-6 max-w-2xl text-[16px] font-medium leading-relaxed text-white/65 md:text-[17px]">
+            <p className="sv-lead mx-auto mt-6 max-w-2xl text-white/65">
               {subtitle}
             </p>
           ) : null}

@@ -92,7 +92,7 @@ export function TourBooking({ listingId, listingTitle }: TourBookingProps) {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-2 rounded-full bg-sv-blue px-5 py-2.5 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-glow-blue-sm"
+        className="sv-cta-blue"
       >
         <Calendar className="h-4 w-4" />
         {t("detail.tourTitle")}

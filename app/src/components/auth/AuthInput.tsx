@@ -23,7 +23,7 @@ export function AuthInput({ label, error, type = "text", id, className, ...rest 
         <input
           id={inputId}
           type={resolvedType}
-          className={`w-full rounded-control border bg-sv-cloud/80 px-4 py-3 text-[14.5px] font-semibold text-sv-ink outline-none transition placeholder:text-sv-ink/35 focus:border-sv-blue focus:bg-sv-surface focus:ring-2 focus:ring-sv-blue/20 ${
+          className={`min-h-11 w-full rounded-control border bg-sv-cloud/80 px-4 py-3 text-[15px] font-semibold text-sv-ink outline-none transition placeholder:text-sv-ink/35 focus:border-sv-blue focus:bg-sv-surface focus:ring-2 focus:ring-sv-blue/20 ${
             error ? "border-sv-orange-deep/60" : "border-sv-ink/10"
           } ${isPassword ? "pr-11" : ""} ${className ?? ""}`}
           {...rest}
@@ -31,10 +31,10 @@ export function AuthInput({ label, error, type = "text", id, className, ...rest 
         {isPassword ? (
           <button
             type="button"
-            tabIndex={-1}
             onClick={() => setShow((v) => !v)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-sv-ink/60 transition hover:text-sv-ink/70"
-            aria-label={show ? "დამალვა" : "ჩვენება"}
+            className="absolute right-1.5 top-1/2 grid h-11 w-11 -translate-y-1/2 place-items-center text-sv-ink/60 transition-colors hover:text-sv-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
+            aria-label={show ? "Hide password" : "Show password"}
+            aria-pressed={show}
           >
             {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </button>

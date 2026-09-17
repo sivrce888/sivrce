@@ -85,9 +85,15 @@ export default function FavoritesClient() {
 
   if (!mounted || (favs.length > 0 && loading)) {
     return (
-      <div className="sv-card-grid-3">
+      <div className="sv-card-grid-3" aria-busy="true">
         {Array.from({ length: 3 }, (_, i) => (
-          <div key={i} className="h-80 animate-pulse rounded-card bg-sv-cloud ring-1 ring-sv-ink/5" />
+          <div key={i} className="overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card">
+            <div className="sv-skeleton aspect-[4/3]" />
+            <div className="space-y-3 p-4">
+              <div className="sv-skeleton h-6 w-2/5 rounded-full" />
+              <div className="sv-skeleton h-4 w-3/4 rounded-full" />
+            </div>
+          </div>
         ))}
       </div>
     )
@@ -95,22 +101,15 @@ export default function FavoritesClient() {
 
   if (favs.length === 0 || items.length === 0) {
     return (
-      <div className="rounded-card bg-white px-6 py-16 text-center shadow-card ring-1 ring-sv-ink/5">
-        <div className="mx-auto grid h-16 w-16 place-items-center rounded-module bg-sv-orange/10">
-          <Heart className="h-8 w-8 text-sv-orange" />
+      <div className="sv-empty">
+        <div className="grid h-16 w-16 place-items-center rounded-module bg-sv-orange/10 text-sv-orange">
+          <Heart className="h-8 w-8" aria-hidden />
         </div>
-        <h2 className="mt-6 text-2xl font-black tracking-[-0.02em] text-sv-ink text-balance">
-          ფავორიტები ჯერ ცარიელია
-        </h2>
-        <p className="mx-auto mt-3 max-w-md text-[15px] font-medium text-sv-ink/60">
-          დააჭირე ნებისმიერი განცხადების გულის ხატულას — ის აქ შეინახება, შენს მოწყობილობაზე.
-        </p>
-        <LocalizedLink
-          href="/search"
-          className="mt-8 inline-flex items-center gap-2 rounded-full bg-sv-orange px-7 py-3.5 text-sm font-bold text-sv-ink shadow-glow-orange transition hover:-translate-y-0.5 hover:shadow-glow-orange-lg"
-        >
-          <Search className="h-4 w-4" />
-          განცხადებების ძიება
+        <h2 className="sv-h2 mt-5 text-sv-ink">{tt('emptyTitle')}</h2>
+        <p className="sv-lead mx-auto mt-3 max-w-md text-sv-ink/60">{tt('emptyText')}</p>
+        <LocalizedLink href="/search" className="sv-cta mt-8">
+          <Search className="h-4 w-4" aria-hidden />
+          {tt('searchCta')}
         </LocalizedLink>
       </div>
     )
@@ -119,10 +118,10 @@ export default function FavoritesClient() {
   return (
     <>
       <p className="mb-6 text-[15px] font-semibold text-sv-ink/60">
-        შენახული განცხადება: <span className="font-black text-sv-ink">{items.length}</span>
+        {tt('savedCount')}: <span className="font-black text-sv-ink">{items.length}</span>
         {session?.user ? (
           <span className="ml-2 text-[13px] font-medium text-sv-ink/60">
-            · ზარის ნიშანი = ფასის შეტყობინება ელფოსტაზე (ალერტები პარამეტრებში)
+            · {tt('alertHint')}
           </span>
         ) : null}
       </p>
@@ -136,7 +135,7 @@ export default function FavoritesClient() {
                 aria-label={alertOn ? tt('priceAlertOn') : tt('priceAlertOff')}
                 aria-pressed={alertOn}
                 onClick={() => void toggleAlert(l.id)}
-                className={`absolute right-4 top-[68px] z-10 grid h-11 w-11 place-items-center rounded-full backdrop-blur transition-all duration-300 hover:scale-110 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue ${
+                className={`absolute right-4 top-[68px] z-10 grid h-11 w-11 place-items-center rounded-full backdrop-blur transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue ${
                   alertOn
                     ? 'bg-sv-surface text-sv-orange'
                     : 'bg-white/90 text-sv-ink hover:bg-sv-surface hover:text-sv-orange'

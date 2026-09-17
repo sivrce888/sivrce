@@ -1,7 +1,7 @@
 "use client"
 
 import LocalizedLink from "@/components/LocalizedLink"
-import { isInternalHref, sponsoredLabel, type PublicAd } from "@/lib/ads"
+import { ctaFallbackLabel, isInternalHref, sponsoredLabel, type PublicAd } from "@/lib/ads"
 import type { Lang } from "@/lib/i18n/core"
 
 function trackClick(id: string) {
@@ -33,7 +33,7 @@ function Sponsored({ lang, onDark }: { lang: Lang; onDark?: boolean }) {
 }
 
 function CreativeInner({ ad, lang }: { ad: PublicAd; lang: Lang }) {
-  const cta = ad.ctaLabel || (lang === "ka" ? "ნახვა" : "See more")
+  const cta = ad.ctaLabel || ctaFallbackLabel(lang)
 
   switch (ad.format) {
     case "billboard":

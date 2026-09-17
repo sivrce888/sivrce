@@ -3,9 +3,9 @@
 import { useMemo, useState } from 'react'
 import { rentVsBuy, FIXED_ASSUMPTIONS } from '@/lib/rent-buy'
 import { formatUSD } from '@/lib/listing-format'
-import type { DirLoc } from '@/lib/directory-seo'
+import type { Lang } from '@/lib/i18n/core'
 
-const L: Record<DirLoc, {
+const L: Record<'ka'|'en'|'ru'|'de', {
   price: string; rent: string; horizon: string; yearsN: (n: number) => string
   down: (pct: number) => string; rate: string; appreciation: string; altReturn: string
   buyWins: (n: string) => string; rentWins: (n: string) => string
@@ -48,6 +48,18 @@ const L: Record<DirLoc, {
     disclaimer:
       'Это не прогноз — результат зависит от введённых допущений (рост аренды 5%, расходы покупки 2.5%, продажи 2%, содержание 0.8% в год). Не является финансовой консультацией.',
   },
+  de: {
+    price: 'Wohnungspreis', rent: 'Miete pro Monat (vergleichbare Wohnung)', horizon: 'Wie lange bleiben Sie',
+    yearsN: (n) => `${n} Jahre`, down: (pct) => `Eigenkapital (${pct} %)`, rate: 'Hypothekenzins',
+    appreciation: 'Jährliche Preissteigerung', altReturn: 'Rendite der Ersparnisse',
+    buyWins: (n) => `Kaufen gewinnt — Sie enden mit ${n} mehr`,
+    rentWins: (n) => `Mieten gewinnt — Sie enden mit ${n} mehr`,
+    buyWorth: 'Ihr Vermögen beim Kauf', rentWorth: 'Ihr Vermögen bei der Miete',
+    breakEven: (n) => `Kaufen zieht ab Jahr ${n} vorbei`, breakEvenNone: 'Kaufen holt in diesem Zeitraum nie auf',
+    monthlyOwn: 'Monatliche Kosten als Eigentümer', monthlyRent: 'Monatliche Kosten als Mieter',
+    disclaimer:
+      'Dieses Modell ist keine Prognose — das Ergebnis hängt von Ihren Annahmen ab (Mietsteigerung 5 %, Kaufkosten 2,5 %, Verkaufskosten 2 %, Instandhaltung 0,8 %/Jahr). Keine Finanzberatung.',
+  },
 }
 
 const PRESETS = [
@@ -56,8 +68,8 @@ const PRESETS = [
   { label: '$180,000', price: 180_000 },
 ]
 
-export default function RentBuyCalcClient({ loc }: { loc: DirLoc }) {
-  const t = L[loc]
+export default function RentBuyCalcClient({ lang }: { lang: Lang }) {
+  const t = L[lang === 'ka' || lang === 'ru' || lang === 'de' ? lang : 'en']
   const [price, setPrice] = useState(120_000)
   const [rentMonthly, setRentMonthly] = useState(850)
   const [horizonYears, setHorizonYears] = useState(10)

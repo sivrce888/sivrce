@@ -14,7 +14,7 @@ import {
  * can never drift from the pricing source of truth. Server-rendered, zero JS.
  */
 
-type CompareLang = "ka" | "en" | "ru"
+type CompareLang = "ka" | "en" | "ru" | "de"
 
 type RowCopy = { label: string; ours: number; ss: number | null; mh: number | null }
 
@@ -75,10 +75,25 @@ const STR: Record<
     ssNote: "SS.ge не продаёт обновление/цвет отдельно — «—».",
     tieNote: "✓ = самая низкая цена в строке.",
   },
+  de: {
+    kicker: "Preisvergleich",
+    title: "Gleiches Premium, günstigerer Preis",
+    sub: `Offizielle Tagestarife · Wohnimmobilien · 30-Tage-Paket · geprüft ${COMPETITOR_CHECKED_AT}`,
+    bestBadge: "Wir",
+    rows: (vip, vipPlus, superVip) => [
+      { label: "VIP", ours: vip, ss: COMPETITOR.ss.vip_re, mh: COMPETITOR.myhome.vip_re },
+      { label: "VIP+", ours: vipPlus, ss: COMPETITOR.ss.vip_plus_re[1], mh: COMPETITOR.myhome.vip_plus_re },
+      { label: "SUPER VIP", ours: superVip, ss: COMPETITOR.ss.super_vip_re[3], mh: COMPETITOR.myhome.super_vip_re },
+      { label: "Aktualisierung", ours: ADDON_TETRI.refresh_once, ss: null, mh: COMPETITOR.myhome.refresh_once },
+      { label: "Farbframe", ours: ADDON_TETRI.color, ss: null, mh: COMPETITOR.myhome.color },
+    ],
+    ssNote: "SS.ge verkauft Aktualisierung/Farbe nicht einzeln — „—“.",
+    tieNote: "✓ = günstigster Preis der Zeile.",
+  },
 }
 
 export default function PriceCompare({ lang }: { lang: string }) {
-  const t = STR[lang === "en" || lang === "ru" ? lang : "ka"]
+  const t = STR[lang === "en" || lang === "ru" || lang === "de" ? lang : "ka"]
   const vip = dailyRateTetri("vip", "real_estate", 30)
   const vipPlus = dailyRateTetri("vip_plus", "real_estate", 30)
   const superVip = dailyRateTetri("super_vip", "real_estate", 30)

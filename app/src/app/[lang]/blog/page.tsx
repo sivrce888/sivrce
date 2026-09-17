@@ -38,6 +38,11 @@ export async function generateMetadata({
         description:
           'Аналитика и гиды по рынку недвижимости Грузии: посуточно, покупка и аренда в Тбилиси, Батуми и Кутаиси. Инвестиции, ROI, советы покупателям.',
       },
+      de: {
+        title: 'Blog — Immobilien-Guides für Georgien',
+        description:
+          'Marktanalysen und Guides für Immobilien in Georgien: Ferienwohnungen, Kauf und Miete in Tiflis, Batumi und Kutaissi. Investitionen, ROI, Käufertipps.',
+      },
     }),
     openGraph: {
       title: 'ბლოგი — უძრავი ქონების გზამკვლევები',
@@ -98,6 +103,16 @@ export default async function BlogIndex({ params }: { params: Promise<{ lang: st
             minShort: 'мин',
             read: 'Читать',
           }
+        : lang === 'de'
+        ? {
+            locale: 'de-DE',
+            kicker: 'Blog',
+            title: 'Immobilien-Blog',
+            subtitle: 'Analysen, Guides und Tipps für den georgischen Markt — Tiflis, Batumi, Kutaissi.',
+            minRead: 'Min. Lesezeit',
+            minShort: 'Min.',
+            read: 'Lesen',
+          }
         : {
             locale: 'en-US',
             kicker: 'Blog',
@@ -110,7 +125,7 @@ export default async function BlogIndex({ params }: { params: Promise<{ lang: st
   const sorted = await listBlogPosts()
   const featured = sorted[0]
   const rest = sorted.slice(1)
-  const homeLabel = lang === 'ka' ? 'მთავარი' : lang === 'ru' ? 'Главная' : 'Home'
+  const homeLabel = lang === 'ka' ? 'მთავარი' : lang === 'ru' ? 'Главная' : lang === 'de' ? 'Startseite' : 'Home'
   const blogLabel = lang === 'ka' ? 'ბლოგი' : lang === 'ru' ? 'Блог' : 'Blog'
   const breadcrumbLd = {
     '@context': 'https://schema.org',

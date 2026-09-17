@@ -8,7 +8,6 @@ import { isValidLang } from '@/lib/i18n/core'
 import RentBuyCalcClient from '@/components/rent-buy/RentBuyCalcClient'
 import { jsonLd } from '@/lib/utils'
 import { pageMeta } from '@/lib/i18n/server'
-import { dirLoc, type DirLoc } from '@/lib/directory-seo'
 
 export const revalidate = 86400
 
@@ -36,6 +35,11 @@ export async function generateMetadata({
         description:
           'Рассчитайте, что выгоднее в вашем случае — аренда или покупка в ипотеку. Сравнение капитала на любом горизонте: ставка, рост цен, доходность сбережений и рост аренды в одной модели.',
       },
+      de: {
+        title: 'Mieten oder Kaufen — Rechner für Georgien (2026)',
+        description:
+          'Berechnen Sie, was in Ihrem Fall günstiger ist — Miete oder Kauf mit Hypothek. Vermögensvergleich über beliebige Zeiträume: Hypothekenzins, Preissteigerung, Sparrendite und Mietinflation in einem Modell.',
+      },
     }),
     openGraph: {
       title: 'ქირა თუ ყიდვა — კალკულატორი',
@@ -48,7 +52,7 @@ export async function generateMetadata({
   }
 }
 
-const COPY: Record<DirLoc, {
+const COPY: Record<'ka'|'en'|'ru'|'de', {
   kicker: string; title: string; subtitle: string
   assumptionsNote: string
   guideTitle: string; guide: string[]
@@ -131,9 +135,34 @@ const COPY: Record<DirLoc, {
     crumbHome: 'Главная', crumbCalc: 'Аренда или покупка',
     sibling: 'Ипотечный калькулятор — платёж и условия банков →', lang: 'ru',
   },
+  de: {
+    kicker: 'Entscheiden Sie mit Zahlen',
+    title: 'Mieten oder Kaufen? Rechner für Georgien',
+    subtitle: 'Vergleichen Sie Miete und Hypothek in Ihrer Situation — wie viel Vermögen Sie nach einigen Jahren hätten, wenn dasselbe Geld in eine Wohnung oder in Ersparnisse fließt. Das Modell ist transparent: Sie ändern jede Annahme.',
+    assumptionsNote:
+      'Feste Modellannahmen: Mietsteigerung 5 %/Jahr · einmalige Kaufkosten 2,5 % (Erwerbsteuer, Notar, Makler) · Verkaufskosten 2 % · Instandhaltung und Steuern 0,8 %/Jahr vom Preis.',
+    guideTitle: 'Wie der Vergleich funktioniert',
+    guide: [
+      'Ihr Geld arbeitet auf beiden Wegen: Beim Kauf steckt es im Eigenheim-Eigenkapital (Wert minus Restschuld), bei der Miete bleiben Eigenkapital und Kaufkosten als Einlage zu Einlagensätzen investiert. Wer monatlich weniger zahlt, investiert die Differenz — so werden zwei Schicksale desselben Budgets verglichen.',
+      'Georgische Besonderheiten: Privatpersonen erhalten keinen Abzug der Hypothekenzinsen, das Modell berücksichtigt daher keinen. Gel-Einlagen bringen historisch 6–9 % — ein echter Konkurrent für Immobilien: Steigen die Preise langsam, überholen die Ersparnisse die Wohnung.',
+      'Allgemein gilt: Je länger Sie bleiben, desto mehr gewinnt der Kauf — die einmaligen Kaufkosten (Steuer, Notar, Makler) brauchen Jahre zur Amortisation. Auf kurze Sicht (1–3 Jahre) ist Mieten meist günstiger, auf lange Sicht (10+ Jahre) gewinnt meist der Kauf. Das Ergebnis folgt aber immer den Zahlen, die Sie eingeben.',
+    ],
+    faqTitle: 'Häufige Fragen',
+    faqs: [
+      { q: 'Was genau vergleicht dieser Rechner?', a: 'Das Vermögen zum selben zukünftigen Zeitpunkt auf zwei Wegen: Kauf — aktueller Wohnungswert minus Restschuld und Verkaufskosten; Miete — Ersparnisse, in denen das äquivalente Eigenkapital und die monatliche Differenz zu Einlagensätzen anwachsen. Wohnkosten werden auf beiden Seiten gezählt.' },
+      { q: 'Wann gewinnt die Miete in Georgien?', a: 'Wenn der Zeitraum kurz ist (1–3 Jahre), Preise langsam steigen oder stagnieren, Einlagensätze hoch sind und die Miete im Verhältnis zu den monatlichen Eigentümerkosten günstig ist. In solchen Phasen amortisieren sich die einmaligen Kaufkosten nie.' },
+      { q: 'Wann gewinnt der Kauf?', a: 'Wenn Sie jahrelang am selben Ort bleiben, die Preise stetig steigen und der Hypothekenzins vernünftig ist. Ein Teil jeder Rate baut Eigenkapital auf, während die Inflation die Miete stets erhöht — zwei Effekte, die mit der Zeit für den Kauf arbeiten.' },
+      { q: 'Ist das eine Finanzberatung?', a: 'Nein. Der Rechner führt ein deterministisches Modell mit Ihren Annahmen aus und prognostiziert nichts. Für eine echte Entscheidung berücksichtigen Sie auch Einkommensstabilität, Währungsrisiko (bei Gel-Krediten) und konkrete Bankkonditionen.' },
+    ],
+    ctaTitle: 'Entscheiden Sie mit Zahlen',
+    ctaSub: 'Verifizierte Inserate mit KI-Preisschätzung — vergleichen Sie echte Wohnungen zum Kauf und zur Miete.',
+    ctaBuy: 'Wohnungen im Verkauf', ctaRent: 'Zur Miete',
+    crumbHome: 'Startseite', crumbCalc: 'Mieten oder Kaufen',
+    sibling: 'Hypothekenrechner — Monatsrate und Bankkonditionen →', lang: 'de',
+  },
 }
 
-function hubLdFor(loc: DirLoc) {
+function hubLdFor(loc: 'ka'|'en'|'ru'|'de') {
   const c = COPY[loc]
   return {
     '@context': 'https://schema.org',
@@ -180,7 +209,7 @@ export default async function RentVsBuyPage({
 }) {
   const { lang: raw } = await params
   const lang = isValidLang(raw) ? raw : 'ka'
-  const loc = dirLoc(lang)
+  const loc = lang === 'ka' || lang === 'ru' || lang === 'de' ? lang : 'en'
   const c = COPY[loc]
   return (
     <div className="min-h-screen bg-sv-cloud">
@@ -189,7 +218,7 @@ export default async function RentVsBuyPage({
         <PageHero tone="light" kicker={c.kicker} title={c.title} subtitle={c.subtitle} />
         <div className="mx-auto max-w-[1100px] px-5 pb-20 md:px-10">
 
-        <RentBuyCalcClient loc={loc} />
+        <RentBuyCalcClient lang={lang} />
         <p className="mt-3 text-[12px] font-semibold text-sv-ink/60">
           {c.assumptionsNote}
         </p>

@@ -80,21 +80,22 @@ export default function CompareClient() {
   }, [items])
 
   if (!mounted || (ids.length > 0 && loading)) {
-    return <div className="h-64 animate-pulse rounded-card bg-sv-cloud ring-1 ring-sv-ink/5" />
+    return (
+      <div className="overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card" aria-busy="true">
+        <div className="sv-skeleton h-64" />
+      </div>
+    )
   }
 
   if (items.length < 2) {
     return (
-      <div className="rounded-card bg-sv-surface px-6 py-16 text-center shadow-card ring-1 ring-sv-ink/5">
-        <div className="mx-auto grid h-16 w-16 place-items-center rounded-module bg-sv-blue/10">
-          <Columns2 className="h-8 w-8 text-sv-blue" />
+      <div className="sv-empty">
+        <div className="grid h-16 w-16 place-items-center rounded-module bg-sv-blue/10 text-sv-blue">
+          <Columns2 className="h-8 w-8" aria-hidden />
         </div>
-        <h2 className="mt-6 text-2xl font-black tracking-[-0.02em] text-sv-ink">{tt("empty")}</h2>
-        <LocalizedLink
-          href="/search"
-          className="mt-8 inline-flex items-center gap-2 rounded-full bg-sv-orange px-7 py-3.5 text-sm font-bold text-sv-ink shadow-glow-orange"
-        >
-          <Search className="h-4 w-4" />
+        <h2 className="sv-h2 mt-5 text-sv-ink">{tt("empty")}</h2>
+        <LocalizedLink href="/search" className="sv-cta mt-8">
+          <Search className="h-4 w-4" aria-hidden />
           {tt("search")}
         </LocalizedLink>
       </div>

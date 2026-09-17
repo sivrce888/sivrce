@@ -10,10 +10,10 @@ export function EmptyState({
   hint?: string
 }) {
   return (
-    <div className="grid place-items-center rounded-[var(--radius-tile)] border border-dashed border-sv-ink/12 bg-white/60 px-6 py-16 text-center">
+    <div className="sv-empty border-dashed py-16">
       {Icon ? (
-        <div className="mb-4 grid h-12 w-12 place-items-center rounded-full bg-sv-cloud text-sv-ink/35">
-          <Icon className="h-6 w-6" />
+        <div className="mb-4 grid h-12 w-12 place-items-center rounded-full bg-sv-blue/10 text-sv-blue">
+          <Icon className="h-6 w-6" aria-hidden />
         </div>
       ) : null}
       <p className="text-[15px] font-bold text-sv-ink/70">{title}</p>

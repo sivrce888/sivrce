@@ -22,6 +22,8 @@ export default function ValuationTerminal({
 }: ValuationTerminalProps) {
   const [selectedScenario, setSelectedScenario] = useState<'BEAR' | 'BASE' | 'BULL'>('BASE')
   const isKa = lang === 'ka'
+  // Tri-lang chrome (ka/de/en) — matches the de-market overlay ceiling.
+  const T = (ka: string, de: string, en: string) => (isKa ? ka : lang === 'de' ? de : en)
 
   const report = useMemo(() => {
     return calculateValuation10x({
@@ -60,6 +62,14 @@ export default function ValuationTerminal({
         : report.dealVerdict === 'OVERPRICED'
           ? 'მაღალი ფასი (Overpriced)'
           : 'სამართლიანი საბაზრო ფასი'
+    : lang === 'de'
+    ? report.dealVerdict === 'EXCEPTIONAL'
+      ? 'Außergewöhnliche Gelegenheit'
+      : report.dealVerdict === 'GOOD'
+        ? 'Guter Marktwert'
+        : report.dealVerdict === 'OVERPRICED'
+          ? 'Über Marktpreis'
+          : 'Fairer Marktwert'
     : report.dealVerdict === 'EXCEPTIONAL'
       ? 'Exceptional Opportunity'
       : report.dealVerdict === 'GOOD'
@@ -78,13 +88,15 @@ export default function ValuationTerminal({
           <div className="flex items-center gap-2">
             <Calculator className="h-5 w-5 text-sv-accent" aria-hidden />
             <h2 id="valuation-terminal-heading" className="text-base font-bold text-sv-ink">
-              {isKa ? 'ინსტიტუციური შეფასება და 3 სცენარი' : 'Institutional Valuation & Scenarios'}
+              {T('ინსტიტუციური შეფასება და 3 სცენარი', 'Institutionelle Bewertung & Szenarien', 'Institutional Valuation & Scenarios')}
             </h2>
           </div>
           <p className="mt-1 text-xs text-sv-ink-soft">
-            {isKa
-              ? 'Bear / Base / Bull ფულადი ნაკადების, NOI-სა და 5-წლიანი IRR-ის გაანგარიშება'
-              : 'Institutional cash flows, Net Operating Income, Cap Rate & 5-year IRR projection'}
+            {T(
+              'Bear / Base / Bull ფულადი ნაკადების, NOI-სა და 5-წლიანი IRR-ის გაანგარიშება',
+              'Institutionelle Cashflows, Net Operating Income, Cap Rate & 5-Jahres-IRR',
+              'Institutional cash flows, Net Operating Income, Cap Rate & 5-year IRR projection',
+            )}
           </p>
         </div>
 
@@ -104,6 +116,12 @@ export default function ValuationTerminal({
               : s === 'BASE'
                 ? 'საბაზისო (Base)'
                 : 'ოპტიმისტური (Bull)'
+            : lang === 'de'
+            ? s === 'BEAR'
+              ? 'Konservativ (Bear)'
+              : s === 'BASE'
+                ? 'Basis­szenario'
+                : 'Wachstum (Bull)'
             : s === 'BEAR'
               ? 'Conservative (Bear)'
               : s === 'BASE'
@@ -131,49 +149,49 @@ export default function ValuationTerminal({
       <div className="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="rounded-xl border border-sv-ink/[0.05] bg-sv-ink/[0.01] p-3.5">
           <span className="text-[11px] font-medium text-sv-ink-soft uppercase tracking-wider block">
-            {isKa ? '5-წლიანი საპროგნოზო IRR' : '5-Year Forecast IRR'}
+            {T('5-წლიანი საპროგნოზო IRR', '5-Jahres-Prognose-IRR', '5-Year Forecast IRR')}
           </span>
           <span className="mt-1 text-lg font-bold text-sv-accent flex items-baseline gap-0.5">
             {scenario.year5IrrPct}%
           </span>
           <span className="text-[10px] text-sv-ink-soft">
-            {isKa ? 'წლიური შიდა მომგებიანობა' : 'Annualized return'}
+            {T('წლიური შიდა მომგებიანობა', 'Annualisierte Rendite', 'Annualized return')}
           </span>
         </div>
 
         <div className="rounded-xl border border-sv-ink/[0.05] bg-sv-ink/[0.01] p-3.5">
           <span className="text-[11px] font-medium text-sv-ink-soft uppercase tracking-wider block">
-            {isKa ? 'Net Cap Rate (წმინდა)' : 'Net Cap Rate'}
+            {T('Net Cap Rate (წმინდა)', 'Net Cap Rate (netto)', 'Net Cap Rate')}
           </span>
           <span className="mt-1 text-lg font-bold text-sv-ink flex items-baseline gap-0.5">
             {scenario.year1CapRatePct}%
           </span>
           <span className="text-[10px] text-sv-ink-soft">
-            {isKa ? `NOI: $${scenario.year1NoiUSD.toLocaleString()}/წ` : `NOI: $${scenario.year1NoiUSD.toLocaleString()}/yr`}
+            {isKa ? `NOI: $${scenario.year1NoiUSD.toLocaleString()}/წ` : `NOI: $${scenario.year1NoiUSD.toLocaleString()}${lang === 'de' ? '/Jahr' : '/yr'}`}
           </span>
         </div>
 
         <div className="rounded-xl border border-sv-ink/[0.05] bg-sv-ink/[0.01] p-3.5">
           <span className="text-[11px] font-medium text-sv-ink-soft uppercase tracking-wider block">
-            {isKa ? '5 წლის ღირებულება' : '5-Yr Property Value'}
+            {T('5 წლის ღირებულება', 'Immobilienwert nach 5 Jahren', '5-Yr Property Value')}
           </span>
           <span className="mt-1 text-lg font-bold text-sv-ink">
             ${scenario.year5PropertyValueUSD.toLocaleString()}
           </span>
           <span className="text-[10px] text-sv-ink-soft">
-            +{scenario.annualAppreciationPct}% {isKa ? 'ზრდა/წ' : 'growth/yr'}
+            +{scenario.annualAppreciationPct}% {T('ზრდა/წ', 'Steigerung/Jahr', 'growth/yr')}
           </span>
         </div>
 
         <div className="rounded-xl border border-sv-ink/[0.05] bg-sv-ink/[0.01] p-3.5">
           <span className="text-[11px] font-medium text-sv-ink-soft uppercase tracking-wider block">
-            {isKa ? '5-წლ. წმინდა იჯარა' : '5-Yr Net Cash Flow'}
+            {T('5-წლ. წმინდა იჯარა', '5-Jahres-Nettomietzahlung', '5-Yr Net Cash Flow')}
           </span>
           <span className="mt-1 text-lg font-bold text-emerald-600 dark:text-emerald-400">
             ${scenario.year5TotalNetCashFlowUSD.toLocaleString()}
           </span>
           <span className="text-[10px] text-sv-ink-soft">
-            {scenario.vacancyRatePct}% {isKa ? 'ვაკანტურობა' : 'vacancy'}
+            {scenario.vacancyRatePct}% {T('ვაკანტურობა', 'Leerstand', 'vacancy')}
           </span>
         </div>
       </div>
@@ -183,7 +201,7 @@ export default function ValuationTerminal({
         <div className="rounded-xl bg-emerald-500/[0.03] border border-emerald-500/10 p-3.5">
           <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
             <ShieldCheck className="h-4 w-4" />
-            <span>{isKa ? 'რატომ გვირჩევს სივრცე' : 'Why SIVRCE Recommends'}</span>
+            <span>{T('რატომ გვირჩევს სივრცე', 'Warum SIVRCE empfiehlt', 'Why SIVRCE Recommends')}</span>
           </div>
           <ul className="mt-2 space-y-1.5 text-xs text-sv-ink">
             {(isKa ? report.recommendations.whyBuyKa : report.recommendations.whyBuyEn).map((point, i) => (
@@ -198,7 +216,7 @@ export default function ValuationTerminal({
         <div className="rounded-xl bg-amber-500/[0.03] border border-amber-500/10 p-3.5">
           <div className="flex items-center gap-1.5 text-xs font-semibold text-amber-600 dark:text-amber-400">
             <AlertTriangle className="h-4 w-4" />
-            <span>{isKa ? 'რისკ-ფაქტორები და შენიშვნები' : 'Risk Factors & Diligence'}</span>
+            <span>{T('რისკ-ფაქტორები და შენიშვნები', 'Risikofaktoren & Sorgfaltspflicht', 'Risk Factors & Diligence')}</span>
           </div>
           <ul className="mt-2 space-y-1.5 text-xs text-sv-ink">
             {(isKa ? report.recommendations.risksKa : report.recommendations.risksEn).map((risk, i) => (

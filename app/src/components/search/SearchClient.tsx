@@ -8,7 +8,7 @@ import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   X, LayoutGrid, Rows3, Search,
-  ChevronDown, MapPin, RotateCcw, Home, SlidersHorizontal, Layers,
+  ChevronDown, ChevronLeft, ChevronRight, MapPin, RotateCcw, Home, SlidersHorizontal, Layers,
 } from 'lucide-react'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
@@ -59,11 +59,14 @@ function listingPriceIn(l: Listing, cur: 'USD' | 'GEL' | 'EUR'): number {
 /* Map view is heavy (maplibre) — load only when ?view=map is actually used. */
 const SearchMapView = dynamic(() => import('@/components/search/SearchMapView'), {
   ssr: false,
-  loading: () => (
-    <div className="grid h-[min(78dvh,860px)] min-h-[min(56dvh,420px)] place-items-center rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card" role="status" aria-label="იტვირთება">
-      <span className="sv-spinner" aria-hidden />
-    </div>
-  ),
+  loading: function MapLoading() {
+    const { t } = useI18n()
+    return (
+      <div className="grid h-[min(78dvh,860px)] min-h-[min(56dvh,420px)] place-items-center rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card" role="status" aria-label={t('search.loading')}>
+        <span className="sv-spinner" aria-hidden />
+      </div>
+    )
+  },
 })
 
 const SORTS: { value: SortKey; key: DictKey }[] = [
@@ -116,12 +119,17 @@ const splitCsv = (raw: string, allowed: readonly string[]): DictKey[] =>
 
 function SkeletonCard() {
   return (
-    <div className="overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card">
-      <div className="aspect-[4/3] animate-pulse bg-sv-ink/[0.06]" />
-      <div className="space-y-3 p-5">
-        <div className="h-4 w-3/4 animate-pulse rounded-full bg-sv-ink/[0.08]" />
-        <div className="h-3 w-1/2 animate-pulse rounded-full bg-sv-ink/[0.06]" />
-        <div className="h-10 animate-pulse rounded-module bg-sv-ink/[0.05]" />
+    <div className="overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card" aria-hidden>
+      <div className="sv-skeleton aspect-[4/3]" />
+      <div className="space-y-3 p-4">
+        <div className="sv-skeleton h-6 w-2/5 rounded-full" />
+        <div className="sv-skeleton h-4 w-3/4 rounded-full" />
+        <div className="sv-skeleton h-3 w-1/2 rounded-full" />
+        <div className="flex gap-2 pt-2">
+          <div className="sv-skeleton h-3 w-16 rounded-full" />
+          <div className="sv-skeleton h-3 w-12 rounded-full" />
+          <div className="sv-skeleton h-3 w-10 rounded-full" />
+        </div>
       </div>
     </div>
   )
@@ -136,11 +144,11 @@ function CompactCard({ l }: { l: Listing }) {
   return (
     <Link
       href={listingPath(l)}
-      className="group flex w-[264px] shrink-0 items-center gap-3 rounded-module border border-sv-ink/[0.06] bg-sv-surface p-2.5 shadow-card transition-all duration-300 hover:-translate-y-0.5 hover:shadow-card-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
+      className="group flex w-[264px] shrink-0 items-center gap-3 rounded-module border border-sv-ink/[0.06] bg-sv-surface p-2.5 shadow-card transition-colors duration-200 hover:border-sv-blue/30 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
     >
       <span className="relative h-16 w-20 shrink-0 overflow-hidden rounded-control">
         {/* decorative — the title next to it carries the meaning */}
-        <Image src={cardOf(l.img) ?? l.img} alt={l.title} fill sizes="80px" className="object-cover transition-transform duration-500 group-hover:scale-105" {...blurProps(l.img)} />
+        <Image src={cardOf(l.img) ?? l.img} alt={l.title} fill sizes="80px" className="object-cover" {...blurProps(l.img)} />
       </span>
       <span className="min-w-0">
         <span className="block text-[14px] font-extrabold text-sv-ink transition-colors group-hover:text-sv-blue">
@@ -1311,6 +1319,51 @@ export default function SearchClient({
     </div>
   )
 
+  const showRecentChrome = !embed && !showSkeleton && (history.length > 0 || recentItems.length > 0)
+  const recentChrome = showRecentChrome ? (
+    <div className="space-y-6">
+      {history.length > 0 && (
+        <section aria-label={s('recentSearches')}>
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <h2 className="text-[14px] font-extrabold text-sv-ink">{s('recentSearches')}</h2>
+            <button
+              type="button"
+              onClick={() => {
+                clearSearchHistory()
+                setHistory([])
+              }}
+              className="shrink-0 text-[12px] font-bold text-sv-ink/50 transition-colors hover:text-sv-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
+            >
+              {s('clearHistory')}
+            </button>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {history.slice(0, 6).map((h, i) => (
+              <button
+                key={`${h.timestamp}-${i}`}
+                type="button"
+                onClick={() => applyHistory(h.filters)}
+                className="max-w-full truncate rounded-full border border-sv-ink/10 bg-sv-surface px-3 py-1.5 text-[12px] font-extrabold text-sv-ink/70 shadow-card transition hover:border-sv-blue/40 hover:text-sv-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
+              >
+                {h.query ? `${h.label ? `${h.label} · ` : ''}${h.query}` : h.label}
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+      {recentItems.length > 0 && (
+        <section aria-label={s('recentlyViewed')}>
+          <h2 className="mb-2 text-[14px] font-extrabold text-sv-ink">{s('recentlyViewed')}</h2>
+          <HScroll aria-label={s('recentlyViewed')} className="-mx-5 gap-3 px-5 pb-1 md:-mx-10 md:px-10">
+            {recentItems.map((l) => (
+              <CompactCard key={l.id} l={l} />
+            ))}
+          </HScroll>
+        </section>
+      )}
+    </div>
+  ) : null
+
   const Shell = embed ? 'div' : 'main'
 
   return (
@@ -1414,47 +1467,6 @@ export default function SearchClient({
 
       {/* Results */}
       <div className={embed ? 'pt-1' : 'mx-auto max-w-[1440px] px-5 py-5 md:px-10'}>
-        {/* Recently viewed rail — return-visit retention */}
-        {!embed && history.length > 0 && !showSkeleton && (
-          <section aria-label={s('recentSearches')} className="mb-4">
-            <div className="mb-2 flex items-center justify-between gap-3">
-              <h2 className="text-[14px] font-extrabold text-sv-ink">{s('recentSearches')}</h2>
-              <button
-                type="button"
-                onClick={() => {
-                  clearSearchHistory()
-                  setHistory([])
-                }}
-                className="shrink-0 text-[12px] font-bold text-sv-ink/50 transition-colors hover:text-sv-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
-              >
-                {s('clearHistory')}
-              </button>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {history.slice(0, 6).map((h, i) => (
-                <button
-                  key={`${h.timestamp}-${i}`}
-                  type="button"
-                  onClick={() => applyHistory(h.filters)}
-                  className="max-w-full truncate rounded-full border border-sv-ink/10 bg-sv-surface px-3 py-1.5 text-[12px] font-extrabold text-sv-ink/70 shadow-card transition hover:border-sv-blue/40 hover:text-sv-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
-                >
-                  {h.query ? `${h.label ? `${h.label} · ` : ''}${h.query}` : h.label}
-                </button>
-              ))}
-            </div>
-          </section>
-        )}
-        {!embed && recentItems.length > 0 && !showSkeleton && (
-          <section aria-label={s('recentlyViewed')} className="mb-6">
-            <h2 className="mb-2 text-[14px] font-extrabold text-sv-ink">{s('recentlyViewed')}</h2>
-            <HScroll aria-label={s('recentlyViewed')} className="-mx-5 gap-3 px-5 pb-1 md:-mx-10 md:px-10">
-              {recentItems.map((l) => (
-                <CompactCard key={l.id} l={l} />
-              ))}
-            </HScroll>
-          </section>
-        )}
-
         <div className="mb-4 flex flex-wrap items-center gap-2">
           <p className="text-[14px] font-extrabold text-sv-ink" aria-live="polite">
             {showSkeleton ? t('search.loading') : t('search.results', { n: totalResults })}
@@ -1463,9 +1475,9 @@ export default function SearchClient({
             {chips.map((c) => (
               <motion.button
                 key={c.key}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
                 transition={{ duration: 0.25, ease }}
                 onClick={c.clear}
                 aria-label={t('search.removeFilter', { label: c.label })}
@@ -1565,19 +1577,21 @@ export default function SearchClient({
             {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
           </div>
         ) : results.length === 0 ? (
-          <div className="flex flex-col items-center rounded-card border border-sv-ink/[0.06] bg-sv-surface px-6 py-20 text-center shadow-card">
+          <div className="space-y-8">
+            {recentChrome}
+            <div className="sv-empty">
             <span className="grid h-16 w-16 place-items-center rounded-module bg-sv-blue/10">
               <LogoMark size={28} />
             </span>
             <h2 className="mt-5 text-[20px] font-black tracking-[-0.02em] text-sv-ink">
               {t(isExactLookupQuery(q) ? 'search.lookupMiss' : 'search.emptyTitle')}
             </h2>
-            <p className="mt-2 max-w-[380px] text-[15px] font-semibold leading-relaxed text-sv-ink/65">
+            <p className="sv-lead mt-2 max-w-[380px] text-sv-ink/65">
               {t(isExactLookupQuery(q) ? 'search.lookupMissText' : 'search.emptyText')}
             </p>
             <button
               onClick={resetAll}
-              className="mt-6 flex h-11 items-center gap-2 rounded-full bg-sv-blue px-6 text-[14px] font-extrabold text-white transition-all hover:bg-sv-blue-deep"
+              className="sv-cta-blue mt-6"
             >
               <RotateCcw className="h-4 w-4" aria-hidden /> {t('search.resetFilters')}
             </button>
@@ -1585,11 +1599,12 @@ export default function SearchClient({
               <button
                 type="button"
                 onClick={() => patchParams({ deal: 'sale' })}
-                className="mt-3 flex h-11 items-center rounded-full border border-sv-ink/10 bg-sv-surface px-6 text-[14px] font-extrabold text-sv-ink transition-all hover:border-sv-blue/40 hover:text-sv-blue"
+                className="mt-3 flex h-11 items-center rounded-full border border-sv-ink/10 bg-sv-surface px-6 text-[14px] font-extrabold text-sv-ink transition-colors hover:border-sv-blue/40 hover:text-sv-blue"
               >
                 {t('search.sale')}
               </button>
             )}
+            </div>
           </div>
         ) : (
           <div className={view === 'grid' ? 'sv-card-grid' : 'grid grid-cols-1 gap-5'}>
@@ -1621,9 +1636,9 @@ export default function SearchClient({
               type="button"
               onClick={() => goPage(page - 1)}
               disabled={page <= 1 || searchLoading}
-              className="flex h-11 items-center rounded-full border border-sv-ink/10 bg-sv-surface px-5 text-[13px] font-extrabold text-sv-ink shadow-card transition-all hover:border-sv-blue/40 hover:text-sv-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue disabled:opacity-40"
+              className="flex h-11 items-center gap-1.5 rounded-full border border-sv-ink/10 bg-sv-surface px-5 text-[13px] font-extrabold text-sv-ink shadow-card transition-colors hover:border-sv-blue/40 hover:text-sv-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue disabled:opacity-40"
             >
-              ← {t('search.prev')}
+              <ChevronLeft className="h-4 w-4" aria-hidden /> {t('search.prev')}
             </button>
             <span className="text-[13px] font-extrabold text-sv-ink/70" aria-live="polite">
               {page} / {totalPages}
@@ -1632,12 +1647,16 @@ export default function SearchClient({
               type="button"
               onClick={() => goPage(page + 1)}
               disabled={page >= totalPages || searchLoading}
-              className="flex h-11 items-center rounded-full border border-sv-ink/10 bg-sv-surface px-5 text-[13px] font-extrabold text-sv-ink shadow-card transition-all hover:border-sv-blue/40 hover:text-sv-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue disabled:opacity-40"
+              className="flex h-11 items-center gap-1.5 rounded-full border border-sv-ink/10 bg-sv-surface px-5 text-[13px] font-extrabold text-sv-ink shadow-card transition-colors hover:border-sv-blue/40 hover:text-sv-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue disabled:opacity-40"
             >
-              {t('search.next')} →
+              {t('search.next')} <ChevronRight className="h-4 w-4" aria-hidden />
             </button>
           </nav>
         )}
+
+        {results.length > 0 && recentChrome ? (
+          <div className="mt-10">{recentChrome}</div>
+        ) : null}
 
         {/* SEO hint */}
         {!embed && !showSkeleton && results.length > 0 && (

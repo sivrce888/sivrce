@@ -230,6 +230,8 @@ export default function SearchSuggest({
           }`}
         >
           {groups.map((g) => {
+            // Tri-lang group headers (ka/de/en) — matches the de-market overlay ceiling.
+            const T = (ka: string, de: string, en: string) => (lang === 'ka' ? ka : lang === 'de' ? de : en)
             const label =
               g.kind === 'city'
                 ? t('search.city')
@@ -242,11 +244,11 @@ export default function SearchSuggest({
                 : g.kind === 'district'
                 ? t('search.district')
                 : g.kind === 'country'
-                ? (lang === 'ka' ? 'ქვეყანა' : 'Country')
+                ? T('ქვეყანა', 'Land', 'Country')
                 : g.kind === 'poi'
-                ? (lang === 'ka' ? 'ობიექტები' : 'Places')
+                ? T('ობიექტები', 'Orte', 'Places')
                 : g.kind === 'metro'
-                ? (lang === 'ka' ? 'მეტრო' : 'Metro')
+                ? T('მეტრო', 'U-Bahn', 'Metro')
                 : t('add.street')
             return (
               <li key={g.kind} role="presentation">

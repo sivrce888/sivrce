@@ -354,7 +354,7 @@ export function StayBooker({ listingId }: { listingId: string }) {
     <>
       <button
         onClick={onOpen}
-        className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-sv-blue px-5 py-2.5 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-glow-blue-sm"
+        className="sv-cta-blue w-full"
       >
         <CalendarDays className="h-4 w-4" />
         {lt(lang, instant ? "stayInstantCta" : "stayCta")}

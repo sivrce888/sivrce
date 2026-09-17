@@ -29,22 +29,22 @@ export default function Error({
           <span className="grid h-20 w-20 place-items-center rounded-module bg-sv-orange/10">
             <TriangleAlert className="h-9 w-9 text-sv-orange" />
           </span>
-          <h1 className="mt-6 text-[30px] font-black tracking-[-0.02em] text-sv-ink md:text-[38px]">
+          <h1 className="mt-6 sv-h1 text-sv-ink">
             {t('error.title')}
           </h1>
-          <p className="mt-3 max-w-[420px] text-[15px] font-semibold leading-relaxed text-sv-ink/60">
+          <p className="sv-lead mt-3 max-w-[420px] text-sv-ink/60">
             {t('error.text')}
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <button
               onClick={reset}
-              className="flex h-12 items-center gap-2 rounded-full bg-sv-orange px-7 text-[15px] font-black text-sv-ink shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue/40 focus-visible:ring-offset-2 active:scale-[0.98]"
+              className="sv-cta"
             >
               <RotateCcw className="h-4 w-4" /> {t('error.retry')}
             </button>
             <LocalizedLink
               href="/"
-              className="flex h-12 items-center rounded-full border border-sv-ink/10 bg-sv-surface px-7 text-[15px] font-extrabold text-sv-ink transition-all duration-300 hover:-translate-y-0.5 hover:border-sv-blue/30 hover:text-sv-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue/40 focus-visible:ring-offset-2 active:scale-[0.98]"
+              className="flex h-12 items-center rounded-full border border-sv-ink/10 bg-sv-surface px-7 text-[15px] font-extrabold text-sv-ink transition-colors hover:border-sv-blue/30 hover:text-sv-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue/40 focus-visible:ring-offset-2"
             >
               {t('error.home')}
             </LocalizedLink>

@@ -5,12 +5,78 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { FORUM_CATEGORIES } from '@/data/forum'
+import { useI18n } from '@/lib/i18n/context'
 import { cn } from '@/lib/utils'
 
 const MIN_TITLE = 8
 const MIN_BODY = 20
 
+const L = {
+  ka: {
+    signinPrompt: 'თემის გასახსნელად შედი ანგარიშში.',
+    errTitleMin: (n: number) => `სათაური მინ. ${n} სიმბოლო`,
+    errBodyMin: (n: number) => `ტექსტი მინ. ${n} სიმბოლო`,
+    errRateLimited: 'ძალიან ბევრი მოთხოვნა — ცოტა ხანში სცადეთ',
+    errNameRequired: 'სახელი სავალდებულოა',
+    errSend: 'ვერ გაიგზავნა — სცადეთ თავიდან',
+    heading: 'ახალი თემა',
+    subheading: 'კითხვა ან გამოცდილება — უძრავი ქონების თემაზე.',
+    titleLabel: 'სათაური',
+    titlePh: 'მაგ. რა ღირს რემონტი ვაკეში 2026-ში?',
+    catLabel: 'კატეგორია',
+    districtLabel: 'უბანი / ქალაქი',
+    districtPh: 'თბილისი',
+    nameLabel: 'სახელი',
+    bodyLabel: 'ტექსტი',
+    bodyPh: 'დაწერეთ კონტექსტი, ბიუჯეტი, უბანი — რაც სხვებს დაეხმარება პასუხში.',
+    sending: 'იგზავნება…',
+    submit: 'თემის გახსნა',
+  },
+  en: {
+    signinPrompt: 'Sign in to start a thread.',
+    errTitleMin: (n: number) => `Title min. ${n} characters`,
+    errBodyMin: (n: number) => `Text min. ${n} characters`,
+    errRateLimited: 'Too many requests — try again soon',
+    errNameRequired: 'Name is required',
+    errSend: 'Couldn’t send — try again',
+    heading: 'New thread',
+    subheading: 'A question or an experience — about real estate.',
+    titleLabel: 'Title',
+    titlePh: 'e.g. What does a renovation in Vake cost in 2026?',
+    catLabel: 'Category',
+    districtLabel: 'District / City',
+    districtPh: 'Tbilisi',
+    nameLabel: 'Name',
+    bodyLabel: 'Text',
+    bodyPh: 'Add context, budget, district — whatever helps others answer.',
+    sending: 'Sending…',
+    submit: 'Start thread',
+  },
+  de: {
+    signinPrompt: 'Melden Sie sich an, um ein Thema zu starten.',
+    errTitleMin: (n: number) => `Titel min. ${n} Zeichen`,
+    errBodyMin: (n: number) => `Text min. ${n} Zeichen`,
+    errRateLimited: 'Zu viele Anfragen — bitte später erneut versuchen',
+    errNameRequired: 'Name ist erforderlich',
+    errSend: 'Senden fehlgeschlagen — bitte erneut versuchen',
+    heading: 'Neues Thema',
+    subheading: 'Eine Frage oder Erfahrung — rund um Immobilien.',
+    titleLabel: 'Titel',
+    titlePh: 'z. B. Was kostet eine Renovierung in Vake 2026?',
+    catLabel: 'Kategorie',
+    districtLabel: 'Viertel / Stadt',
+    districtPh: 'Tbilisi',
+    nameLabel: 'Name',
+    bodyLabel: 'Text',
+    bodyPh: 'Nennen Sie Kontext, Budget und Viertel — alles, was anderen bei der Antwort hilft.',
+    sending: 'Wird gesendet…',
+    submit: 'Thema starten',
+  },
+} as const
+
 export function NewThreadForm({ className }: { className?: string }) {
+  const { lang, t } = useI18n()
+  const T = L[lang === 'en' ? 'en' : lang === 'de' ? 'de' : 'ka']
   const { data: session, status } = useSession()
   const pathname = usePathname()
   const router = useRouter()
@@ -33,12 +99,12 @@ export function NewThreadForm({ className }: { className?: string }) {
   if (status === 'unauthenticated') {
     return (
       <div className={cn('rounded-tile border border-sv-ink/[0.06] bg-sv-surface p-5 shadow-card', className)}>
-        <p className="text-[14px] font-semibold text-sv-ink/60">თემის გასახსნელად შედი ანგარიშში.</p>
+        <p className="text-[14px] font-semibold text-sv-ink/60">{T.signinPrompt}</p>
         <Link
           href={`/auth/signin?callbackUrl=${encodeURIComponent(pathname)}`}
           className="mt-3 inline-flex min-h-[44px] items-center justify-center rounded-full bg-sv-orange px-5 text-[14px] font-extrabold text-sv-ink shadow-glow-orange"
         >
-          შესვლა
+          {t('nav.login')}
         </Link>
       </div>
     )
@@ -48,11 +114,11 @@ export function NewThreadForm({ className }: { className?: string }) {
     e.preventDefault()
     setError(null)
     if (title.trim().length < MIN_TITLE) {
-      setError(`სათაური მინ. ${MIN_TITLE} სიმბოლო`)
+      setError(T.errTitleMin(MIN_TITLE))
       return
     }
     if (body.trim().length < MIN_BODY) {
-      setError(`ტექსტი მინ. ${MIN_BODY} სიმბოლო`)
+      setError(T.errBodyMin(MIN_BODY))
       return
     }
     setSubmitting(true)
@@ -72,10 +138,10 @@ export function NewThreadForm({ className }: { className?: string }) {
       if (!res.ok) {
         setError(
           data?.error === 'rate_limited'
-            ? 'ძალიან ბევრი მოთხოვნა — ცოტა ხანში სცადეთ'
+            ? T.errRateLimited
             : data?.error === 'author_name_required'
-              ? 'სახელი სავალდებულოა'
-              : 'ვერ გაიგზავნა — სცადეთ თავიდან',
+              ? T.errNameRequired
+              : T.errSend,
         )
         return
       }
@@ -84,9 +150,9 @@ export function NewThreadForm({ className }: { className?: string }) {
         router.refresh()
         return
       }
-      setError('ვერ გაიგზავნა — სცადეთ თავიდან')
+      setError(T.errSend)
     } catch {
-      setError('ვერ გაიგზავნა — სცადეთ თავიდან')
+      setError(T.errSend)
     } finally {
       setSubmitting(false)
     }
@@ -101,19 +167,19 @@ export function NewThreadForm({ className }: { className?: string }) {
       noValidate
       className={cn('rounded-tile border border-sv-ink/[0.06] bg-sv-surface p-5 shadow-card md:p-6', className)}
     >
-      <h2 className="text-[18px] font-black tracking-[-0.01em] text-sv-ink">ახალი თემა</h2>
-      <p className="mt-1 text-[13px] font-semibold text-sv-ink/60">კითხვა ან გამოცდილება — უძრავი ქონების თემაზე.</p>
+      <h2 className="text-[18px] font-black tracking-[-0.01em] text-sv-ink">{T.heading}</h2>
+      <p className="mt-1 text-[13px] font-semibold text-sv-ink/60">{T.subheading}</p>
 
       <div className="mt-4">
         <label htmlFor={`${baseId}-title`} className="text-[13px] font-bold text-sv-ink/70">
-          სათაური
+          {T.titleLabel}
         </label>
         <input
           id={`${baseId}-title`}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           maxLength={200}
-          placeholder="მაგ. რა ღირს რემონტი ვაკეში 2026-ში?"
+          placeholder={T.titlePh}
           className={inputCls}
           required
         />
@@ -122,7 +188,7 @@ export function NewThreadForm({ className }: { className?: string }) {
       <div className="mt-3 grid gap-3 sm:grid-cols-2">
         <div>
           <label htmlFor={`${baseId}-cat`} className="text-[13px] font-bold text-sv-ink/70">
-            კატეგორია
+            {T.catLabel}
           </label>
           <select
             id={`${baseId}-cat`}
@@ -139,14 +205,14 @@ export function NewThreadForm({ className }: { className?: string }) {
         </div>
         <div>
           <label htmlFor={`${baseId}-district`} className="text-[13px] font-bold text-sv-ink/70">
-            უბანი / ქალაქი
+            {T.districtLabel}
           </label>
           <input
             id={`${baseId}-district`}
             value={district}
             onChange={(e) => setDistrict(e.target.value)}
             maxLength={80}
-            placeholder="თბილისი"
+            placeholder={T.districtPh}
             className={inputCls}
           />
         </div>
@@ -154,7 +220,7 @@ export function NewThreadForm({ className }: { className?: string }) {
 
       <div className="mt-3">
         <label htmlFor={`${baseId}-name`} className="text-[13px] font-bold text-sv-ink/70">
-          სახელი
+          {T.nameLabel}
         </label>
         <input
           id={`${baseId}-name`}
@@ -168,7 +234,7 @@ export function NewThreadForm({ className }: { className?: string }) {
 
       <div className="mt-3">
         <label htmlFor={`${baseId}-body`} className="text-[13px] font-bold text-sv-ink/70">
-          ტექსტი
+          {T.bodyLabel}
         </label>
         <textarea
           id={`${baseId}-body`}
@@ -176,7 +242,7 @@ export function NewThreadForm({ className }: { className?: string }) {
           onChange={(e) => setBody(e.target.value)}
           rows={6}
           maxLength={8000}
-          placeholder="დაწერეთ კონტექსტი, ბიუჯეტი, უბანი — რაც სხვებს დაეხმარება პასუხში."
+          placeholder={T.bodyPh}
           className={cn(inputCls, 'h-auto resize-y py-3 leading-relaxed')}
           required
         />
@@ -193,7 +259,7 @@ export function NewThreadForm({ className }: { className?: string }) {
         disabled={submitting}
         className="mt-4 flex min-h-[48px] w-full items-center justify-center rounded-full bg-sv-orange px-6 text-[15px] font-extrabold text-sv-ink shadow-glow-orange transition hover:-translate-y-0.5 disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {submitting ? 'იგზავნება…' : 'თემის გახსნა'}
+        {submitting ? T.sending : T.submit}
       </button>
     </form>
   )

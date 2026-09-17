@@ -97,8 +97,26 @@ const SPONSORED: Record<Lang, string> = {
   de: "Gesponsert",
 }
 
+/** Default CTA when the advertiser didn't set one. */
+const CTA_FALLBACK: Record<Lang, string> = {
+  ka: "ნახვა",
+  en: "See more",
+  ru: "Подробнее",
+  he: "לפרטים",
+  ar: "اعرف المزيد",
+  tr: "Daha fazla",
+  uk: "Детальніше",
+  hy: "Ավելին",
+  az: "Ətraflı",
+  de: "Mehr erfahren",
+}
+
 export function sponsoredLabel(lang: Lang): string {
   return SPONSORED[lang]
+}
+
+export function ctaFallbackLabel(lang: Lang): string {
+  return CTA_FALLBACK[lang]
 }
 
 export function isAdSlot(v: string): v is AdSlotId {

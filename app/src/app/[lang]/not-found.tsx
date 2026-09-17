@@ -19,15 +19,15 @@ export default function NotFound() {
           <span className="grid h-20 w-20 place-items-center rounded-module bg-sv-blue/10">
             <LogoMark size={36} />
           </span>
-          <h1 className="mt-6 text-[30px] font-black tracking-[-0.02em] text-sv-ink md:text-[38px]">
+          <h1 className="mt-6 sv-h1 text-sv-ink">
             {t('detail.notFoundTitle')}
           </h1>
-          <p className="mt-3 max-w-[420px] text-[15px] font-semibold leading-relaxed text-sv-ink/60">
+          <p className="sv-lead mt-3 max-w-[420px] text-sv-ink/60">
             {t('detail.notFoundText')}
           </p>
           <LocalizedLink
             href="/search"
-            className="mt-8 flex h-12 items-center gap-2 rounded-full bg-sv-orange px-7 text-[15px] font-black text-sv-ink shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue/40 focus-visible:ring-offset-2 active:scale-[0.98]"
+            className="sv-cta mt-8"
           >
             <ArrowLeft className="h-4 w-4" /> {t('detail.backToSearch')}
           </LocalizedLink>

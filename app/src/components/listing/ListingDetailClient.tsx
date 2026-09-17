@@ -970,7 +970,7 @@ export default function ListingDetailClient({
                 type="button"
                 onClick={() => setVideoOpen(true)}
                 aria-label={t('detail.playVideo')}
-                className="absolute left-1/2 top-1/2 z-[2] grid h-16 w-16 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-sv-navy/55 text-white shadow-glow-blue-sm backdrop-blur-sm transition-transform duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] hover:scale-110"
+                className="absolute left-1/2 top-1/2 z-[2] grid h-16 w-16 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-sv-navy/55 text-white shadow-glow-blue-sm backdrop-blur-sm transition-colors duration-200 hover:bg-sv-blue"
               >
                 <Play className="ml-0.5 h-7 w-7 fill-white" />
               </button>
@@ -987,6 +987,7 @@ export default function ListingDetailClient({
               priceDrop={l.stickerPriceDrop}
               inStory={l.inStory}
               size="md"
+              max={l.badge ? 1 : 2}
               className={`absolute left-5 z-[1] ${l.badge ? 'top-[4.25rem]' : 'top-5'}`}
             />
             <div className="pointer-events-none absolute inset-x-0 bottom-0 z-[1] px-5 pb-5">
@@ -1033,14 +1034,14 @@ export default function ListingDetailClient({
                     <button
                       onClick={() => navPhoto(-1)}
                       aria-label={t('detail.prevPhoto')}
-                      className="grid h-11 w-11 place-items-center rounded-full bg-white/90 text-sv-ink backdrop-blur transition-all hover:scale-105 hover:bg-sv-surface"
+                      className="grid h-11 w-11 place-items-center rounded-full bg-white/90 text-sv-ink backdrop-blur transition-colors hover:bg-sv-surface"
                     >
                       <ChevronLeft className="h-5 w-5" />
                     </button>
                     <button
                       onClick={() => navPhoto(1)}
                       aria-label={t('detail.nextPhoto')}
-                      className="grid h-11 w-11 place-items-center rounded-full bg-white/90 text-sv-ink backdrop-blur transition-all hover:scale-105 hover:bg-sv-surface"
+                      className="grid h-11 w-11 place-items-center rounded-full bg-white/90 text-sv-ink backdrop-blur transition-colors hover:bg-sv-surface"
                     >
                       <ChevronRight className="h-5 w-5" />
                     </button>
@@ -1135,7 +1136,7 @@ export default function ListingDetailClient({
                     <Copy className="h-3 w-3" aria-hidden />
                   </button>
                 </div>
-                <h1 className="mt-2.5 text-balance text-[26px] font-black leading-tight tracking-[-0.02em] text-sv-ink md:text-[34px]">
+                <h1 className="sv-h1 mt-2.5 text-sv-ink">
                   {title}
                 </h1>
                 {streetHref ? (
@@ -1157,7 +1158,7 @@ export default function ListingDetailClient({
                   onClick={() => toggle(l.id)}
                   aria-label={fav ? t('detail.removeFavorite') : t('detail.addFavorite')}
                   aria-pressed={fav}
-                  className={`group grid h-11 w-11 place-items-center rounded-full border transition-all duration-300 hover:scale-105 ${
+                  className={`group grid h-11 w-11 place-items-center rounded-full border transition-colors ${
                     fav
                       ? 'border-sv-orange/30 bg-sv-orange/10 text-sv-orange'
                       : 'border-sv-ink/10 bg-sv-surface text-sv-ink'
@@ -1173,7 +1174,7 @@ export default function ListingDetailClient({
                   type="button"
                   onClick={() => setShareOpen(true)}
                   aria-label={t('detail.share')}
-                  className="grid h-11 w-11 place-items-center rounded-full border border-sv-ink/10 bg-sv-surface text-sv-ink/60 transition-all duration-300 hover:scale-105 hover:text-sv-blue"
+                  className="grid h-11 w-11 place-items-center rounded-full border border-sv-ink/10 bg-sv-surface text-sv-ink/60 transition-colors hover:text-sv-blue"
                 >
                   <Share2 className="h-5 w-5" />
                 </button>
@@ -1312,6 +1313,7 @@ export default function ListingDetailClient({
               <PriceScale
                 scale={priceScale}
                 priceLabel={`${perM2Label}/${areaSym(lang)}`}
+                lang={lang}
               />
             ) : null}
 
@@ -1940,7 +1942,7 @@ export default function ListingDetailClient({
         {/* ————— Reviews ————— */}
         <Reveal className="mt-16">
           <section id="reviews" aria-label={lt(lang, 'reviewsTitle')}>
-            <h2 className="text-[24px] font-black tracking-[-0.02em] text-sv-ink md:text-[28px]">
+            <h2 className="sv-h2 text-sv-ink">
               {lt(lang, 'reviewsTitle')}
             </h2>
             <p className="mt-1 text-[14px] font-semibold text-sv-ink/60">
@@ -1956,7 +1958,7 @@ export default function ListingDetailClient({
             <section style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 400px' }}>
               <div className="mb-6 flex items-end justify-between">
                 <div>
-                  <h2 className="text-[24px] font-black tracking-[-0.02em] text-sv-ink md:text-[28px]">
+                  <h2 className="sv-h2 text-sv-ink">
                     {t('detail.similar')}
                   </h2>
                   <p className="mt-1 text-[14px] font-semibold text-sv-ink/60">
@@ -1989,7 +1991,7 @@ export default function ListingDetailClient({
         {recent.length > 0 && (
           <Reveal className="mt-16">
             <section aria-label={t('recent.title')} style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 400px' }}>
-              <h2 className="mb-6 text-[24px] font-black tracking-[-0.02em] text-sv-ink md:text-[28px]">
+              <h2 className="sv-h2 mb-6 text-sv-ink">
                 {t('recent.title')}
               </h2>
               <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
@@ -2005,7 +2007,7 @@ export default function ListingDetailClient({
       <Footer />
 
       {/* ————— Mobile conversion bar (call / message / favorite) ————— */}
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-sv-ink/10 bg-sv-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-sv-ink/10 bg-sv-surface/95 pb-[env(safe-area-inset-bottom)] shadow-card backdrop-blur lg:hidden">
         <div className="grid grid-cols-3 gap-2 px-3 py-2.5">
           <RevealPhone
             listingId={l.id}

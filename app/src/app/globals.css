@@ -14,7 +14,8 @@
 @source inline("bg-white/40");
 @source inline("max-w-[7.5rem]");
 @source inline("max-w-[9rem]");
-@source inline("@container");
+@source inline("[@media(hover:hover)]:hover:-translate-y-1.5");
+@source inline("[@media(hover:hover)]:hover:shadow-card-hover");
 
 /* cache-bust 2026-07-21b: homepage rail gutter */
 
@@ -427,6 +428,7 @@
   --sv-type-lead: clamp(0.9375rem, 0.86rem + 0.4vw, 1.25rem);
   --sv-type-h1: clamp(1.75rem, 1.1rem + 2.8vw, 3rem);
   --sv-type-display: clamp(2rem, 1.05rem + 4.4vw, 5rem);
+  --sv-ease: cubic-bezier(0.21, 0.65, 0.2, 1);
 }
 
 /* ponytail: unlayered so it beats utility leading-[1.04] — Georgian glyphs clip under 1.12 */
@@ -493,6 +495,70 @@ html.sv-has-dock body {
     letter-spacing: -0.02em;
     line-height: 1.18;
     text-wrap: balance;
+  }
+  .sv-kicker {
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+  }
+  .sv-lead {
+    font-size: var(--sv-type-lead);
+    font-weight: 500;
+    line-height: 1.45;
+    letter-spacing: -0.012em;
+  }
+  /* Shared conversion pills — 44px floor, orange = action, blue = continue */
+  .sv-cta,
+  .sv-cta-blue {
+    display: inline-flex;
+    min-height: 2.75rem;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 9999px;
+    padding: 0 1.75rem;
+    font-size: 0.9375rem;
+    font-weight: 800;
+    transition: transform 0.3s var(--sv-ease), box-shadow 0.3s var(--sv-ease), background-color 0.2s var(--sv-ease);
+  }
+  .sv-cta {
+    background: var(--sv-orange);
+    color: var(--sv-ink);
+    box-shadow: var(--shadow-glow-orange);
+  }
+  .sv-cta-blue {
+    background: var(--sv-blue);
+    color: #fff;
+    box-shadow: var(--shadow-glow-blue-sm);
+  }
+  .sv-cta-blue:hover {
+    background: var(--sv-blue-deep);
+  }
+  .sv-cta:focus-visible,
+  .sv-cta-blue:focus-visible {
+    outline: 2px solid var(--sv-blue);
+    outline-offset: 2px;
+  }
+  @media (hover: hover) and (pointer: fine) {
+    .sv-cta:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-glow-orange-lg);
+    }
+  }
+  .sv-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border-radius: var(--radius-card);
+    border: 1px solid color-mix(in oklab, var(--sv-ink) 6%, transparent);
+    background: var(--sv-surface);
+    padding: 4.5rem 1.5rem;
+    text-align: center;
+    box-shadow: var(--shadow-card);
+  }
+  .sv-skeleton {
+    @apply animate-pulse bg-sv-ink/[0.06];
   }
   .sv-card-grid {
     display: grid;

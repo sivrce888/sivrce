@@ -14,6 +14,98 @@ import {
 } from "@/app/[lang]/settings/actions"
 import { AuthInput } from "@/components/auth/AuthInput"
 import { DELETE_CONFIRM } from "@/lib/account-profile"
+import { useI18n } from "@/lib/i18n/context"
+
+const L = {
+  ka: {
+    personalTitle: "პირადი მონაცემები",
+    personalDesc: "სახელი და ტელეფონი — ასე დაგიკავშირდებიან.",
+    fullName: "სახელი და გვარი",
+    mobile: "მობილური",
+    emailLine: (email: string) => `ელფოსტა · ${email}`,
+    saving: "ინახება…",
+    save: "შენახვა",
+    pwChange: "პაროლის შეცვლა",
+    pwSet: "პაროლის დაყენება",
+    pwChangeDesc: "მინიმუმ 8 სიმბოლო. ახლანდელი პაროლი სავალდებულოა.",
+    pwSetDesc: "დაამატე პაროლი ელფოსტით შესვლისთვის.",
+    currentPw: "ახლანდელი პაროლი",
+    newPw: "ახალი პაროლი",
+    minChars: "მინ. 8 სიმბოლო",
+    repeatPw: "გაიმეორე პაროლი",
+    session: "სესია",
+    sessionDesc: "გამოხვიდე ამ მოწყობილობიდან. ფავორიტები ამ ბრაუზერში რჩება.",
+    signOut: "გასვლა",
+    myData: "ჩემი მონაცემები",
+    exportDesc:
+      "ჩამოტვირთე ყველაფერი, რაც sivrce-ს შენზე აქვს — პროფილი, განცხადებები, ფავორიტები, ძიებები, ჯავშნები, შეტყობინებები (JSON). პაროლები და სხვა ადამიანების მონაცემები არ შედის.",
+    download: "ჩამოტვირთვა",
+    deleteTitle: "ანგარიშის წაშლა",
+    deleteDesc: "განცხადებები მოიხსნება. ეს მოქმედება შეუქცევადია.",
+    confirmLabel: (word: string) => `ჩაწერე „${word}"`,
+    password: "პაროლი",
+    deleting: "იშლება…",
+  },
+  en: {
+    personalTitle: "Personal details",
+    personalDesc: "Your name and phone — this is how people reach you.",
+    fullName: "Full name",
+    mobile: "Mobile",
+    emailLine: (email: string) => `Email · ${email}`,
+    saving: "Saving…",
+    save: "Save",
+    pwChange: "Change password",
+    pwSet: "Set password",
+    pwChangeDesc: "At least 8 characters. Your current password is required.",
+    pwSetDesc: "Add a password to sign in with email.",
+    currentPw: "Current password",
+    newPw: "New password",
+    minChars: "Min. 8 characters",
+    repeatPw: "Repeat password",
+    session: "Session",
+    sessionDesc: "Sign out of this device. Favorites stay in this browser.",
+    signOut: "Sign out",
+    myData: "My data",
+    exportDesc:
+      "Download everything Sivrce holds about you — profile, listings, favorites, searches, bookings, notifications (JSON). Passwords and other people’s data are not included.",
+    download: "Download",
+    deleteTitle: "Delete account",
+    deleteDesc: "Your listings will be removed. This action cannot be undone.",
+    confirmLabel: (word: string) => `Type "${word}"`,
+    password: "Password",
+    deleting: "Deleting…",
+  },
+  de: {
+    personalTitle: "Persönliche Daten",
+    personalDesc: "Name und Telefonnummer – so werden Sie kontaktiert.",
+    fullName: "Vor- und Nachname",
+    mobile: "Mobilnummer",
+    emailLine: (email: string) => `E-Mail · ${email}`,
+    saving: "Speichern…",
+    save: "Speichern",
+    pwChange: "Passwort ändern",
+    pwSet: "Passwort festlegen",
+    pwChangeDesc: "Mindestens 8 Zeichen. Das aktuelle Passwort ist erforderlich.",
+    pwSetDesc: "Fügen Sie ein Passwort hinzu, um sich per E-Mail anzumelden.",
+    currentPw: "Aktuelles Passwort",
+    newPw: "Neues Passwort",
+    minChars: "Min. 8 Zeichen",
+    repeatPw: "Passwort wiederholen",
+    session: "Sitzung",
+    sessionDesc:
+      "Melden Sie sich auf diesem Gerät ab. Favoriten bleiben in diesem Browser gespeichert.",
+    signOut: "Abmelden",
+    myData: "Meine Daten",
+    exportDesc:
+      "Laden Sie alles herunter, was Sivrce über Sie speichert – Profil, Inserate, Favoriten, Suchanfragen, Buchungen, Benachrichtigungen (JSON). Passwörter und Daten anderer Personen sind nicht enthalten.",
+    download: "Herunterladen",
+    deleteTitle: "Konto löschen",
+    deleteDesc: "Ihre Inserate werden entfernt. Diese Aktion kann nicht rückgängig gemacht werden.",
+    confirmLabel: (word: string) => `„${word}" eingeben`,
+    password: "Passwort",
+    deleting: "Wird gelöscht…",
+  },
+} as const
 
 function Flash({ state }: { state: AccountActionState }) {
   if (!state?.error && !state?.ok) return null
@@ -46,6 +138,9 @@ export function AccountForms({
 }) {
   const router = useRouter()
   const { update } = useSession()
+  const { lang } = useI18n()
+  const loc = lang === "en" ? "en" : lang === "de" ? "de" : "ka"
+  const t = L[loc]
   const [profile, saveProfile, savingProfile] = useActionState<AccountActionState, FormData>(
     updateProfile,
     undefined,
@@ -75,16 +170,14 @@ export function AccountForms({
             <User size={18} aria-hidden />
           </span>
           <div className="min-w-0">
-            <h2 className="text-[15px] font-extrabold text-sv-ink">პირადი მონაცემები</h2>
-            <p className="mt-1 text-[13px] font-medium text-sv-ink/60">
-              სახელი და ტელეფონი — ასე დაგიკავშირდებიან.
-            </p>
+            <h2 className="text-[15px] font-extrabold text-sv-ink">{t.personalTitle}</h2>
+            <p className="mt-1 text-[13px] font-medium text-sv-ink/60">{t.personalDesc}</p>
           </div>
         </div>
 
         <form action={saveProfile} className="mt-5 grid gap-4">
           <AuthInput
-            label="სახელი და გვარი"
+            label={t.fullName}
             name="name"
             autoComplete="name"
             required
@@ -93,7 +186,7 @@ export function AccountForms({
             defaultValue={name}
           />
           <AuthInput
-            label="მობილური"
+            label={t.mobile}
             name="phone"
             type="tel"
             autoComplete="tel"
@@ -103,9 +196,7 @@ export function AccountForms({
             placeholder="+995 555 12 34 56"
           />
           {!isPhoneAccount ? (
-            <p className="text-[12.5px] font-semibold text-sv-ink/60">
-              ელფოსტა · {email}
-            </p>
+            <p className="text-[12.5px] font-semibold text-sv-ink/60">{t.emailLine(email)}</p>
           ) : null}
           <Flash state={profile} />
           <button
@@ -113,7 +204,7 @@ export function AccountForms({
             disabled={savingProfile}
             className="mt-1 inline-flex w-fit rounded-full bg-sv-orange px-6 py-2.5 text-[13px] font-bold text-sv-ink shadow-glow-orange transition hover:opacity-95 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
           >
-            {savingProfile ? "ინახება…" : "შენახვა"}
+            {savingProfile ? t.saving : t.save}
           </button>
         </form>
       </section>
@@ -128,12 +219,10 @@ export function AccountForms({
           </span>
           <div className="min-w-0">
             <h2 className="text-[15px] font-extrabold text-sv-ink">
-              {hasPassword ? "პაროლის შეცვლა" : "პაროლის დაყენება"}
+              {hasPassword ? t.pwChange : t.pwSet}
             </h2>
             <p className="mt-1 text-[13px] font-medium text-sv-ink/60">
-              {hasPassword
-                ? "მინიმუმ 8 სიმბოლო. ახლანდელი პაროლი სავალდებულოა."
-                : "დაამატე პაროლი ელფოსტით შესვლისთვის."}
+              {hasPassword ? t.pwChangeDesc : t.pwSetDesc}
             </p>
           </div>
         </div>
@@ -141,7 +230,7 @@ export function AccountForms({
         <form action={savePw} className="mt-5 grid gap-4">
           {hasPassword ? (
             <AuthInput
-              label="ახლანდელი პაროლი"
+              label={t.currentPw}
               name="current"
               type="password"
               autoComplete="current-password"
@@ -149,16 +238,16 @@ export function AccountForms({
             />
           ) : null}
           <AuthInput
-            label="ახალი პაროლი"
+            label={t.newPw}
             name="password"
             type="password"
             autoComplete="new-password"
             required
             minLength={8}
-            placeholder="მინ. 8 სიმბოლო"
+            placeholder={t.minChars}
           />
           <AuthInput
-            label="გაიმეორე პაროლი"
+            label={t.repeatPw}
             name="confirm"
             type="password"
             autoComplete="new-password"
@@ -171,7 +260,7 @@ export function AccountForms({
             disabled={savingPw}
             className="mt-1 inline-flex w-fit rounded-full bg-sv-blue px-6 py-2.5 text-[13px] font-bold text-white transition hover:bg-sv-blue-deep disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
           >
-            {savingPw ? "ინახება…" : hasPassword ? "პაროლის შეცვლა" : "პაროლის დაყენება"}
+            {savingPw ? t.saving : hasPassword ? t.pwChange : t.pwSet}
           </button>
         </form>
       </section>
@@ -182,16 +271,14 @@ export function AccountForms({
             <LogOut size={18} aria-hidden />
           </span>
           <div className="min-w-0 flex-1">
-            <h2 className="text-[15px] font-extrabold text-sv-ink">სესია</h2>
-            <p className="mt-1 text-[13px] font-medium text-sv-ink/60">
-              გამოხვიდე ამ მოწყობილობიდან. ფავორიტები ამ ბრაუზერში რჩება.
-            </p>
+            <h2 className="text-[15px] font-extrabold text-sv-ink">{t.session}</h2>
+            <p className="mt-1 text-[13px] font-medium text-sv-ink/60">{t.sessionDesc}</p>
             <form action={signOutToHome} className="mt-4">
               <button
                 type="submit"
                 className="rounded-full border border-sv-ink/12 px-5 py-2.5 text-[13px] font-bold text-sv-ink/70 transition hover:border-sv-blue hover:text-sv-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
               >
-                გასვლა
+                {t.signOut}
               </button>
             </form>
           </div>
@@ -204,19 +291,15 @@ export function AccountForms({
             <Download size={18} aria-hidden />
           </span>
           <div className="min-w-0 flex-1">
-            <h2 className="text-[15px] font-extrabold text-sv-ink">ჩემი მონაცემები</h2>
-            <p className="mt-1 text-[13px] font-medium text-sv-ink/60">
-              ჩამოტვირთე ყველაფერი, რაც sivrce-ს შენზე აქვს — პროფილი, განცხადებები,
-              ფავორიტები, ძიებები, ჯავშნები, შეტყობინებები (JSON). პაროლები და სხვა
-              ადამიანების მონაცემები არ შედის.
-            </p>
+            <h2 className="text-[15px] font-extrabold text-sv-ink">{t.myData}</h2>
+            <p className="mt-1 text-[13px] font-medium text-sv-ink/60">{t.exportDesc}</p>
             {/* GDPR Art. 15/20: the export must be one click, not a support ticket. */}
             <a
               href="/api/account/export"
               download
               className="mt-4 inline-block rounded-full border border-sv-ink/12 px-5 py-2.5 text-[13px] font-bold text-sv-ink/70 transition hover:border-sv-blue hover:text-sv-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
             >
-              ჩამოტვირთვა
+              {t.download}
             </a>
           </div>
         </div>
@@ -231,16 +314,14 @@ export function AccountForms({
             <Trash2 size={18} aria-hidden />
           </span>
           <div className="min-w-0">
-            <h2 className="text-[15px] font-extrabold text-sv-ink">ანგარიშის წაშლა</h2>
-            <p className="mt-1 text-[13px] font-medium text-sv-ink/60">
-              განცხადებები მოიხსნება. ეს მოქმედება შეუქცევადია.
-            </p>
+            <h2 className="text-[15px] font-extrabold text-sv-ink">{t.deleteTitle}</h2>
+            <p className="mt-1 text-[13px] font-medium text-sv-ink/60">{t.deleteDesc}</p>
           </div>
         </div>
 
         <form action={remove} className="mt-5 grid gap-4">
           <AuthInput
-            label={`ჩაწერე „${DELETE_CONFIRM}"`}
+            label={t.confirmLabel(DELETE_CONFIRM)}
             name="confirm"
             autoComplete="off"
             required
@@ -248,7 +329,7 @@ export function AccountForms({
           />
           {hasPassword ? (
             <AuthInput
-              label="პაროლი"
+              label={t.password}
               name="password"
               type="password"
               autoComplete="current-password"
@@ -261,7 +342,7 @@ export function AccountForms({
             disabled={removing}
             className="inline-flex w-fit rounded-full border border-sv-orange-deep/30 px-5 py-2.5 text-[13px] font-bold text-sv-orange-deep transition hover:bg-sv-orange-deep/8 disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
           >
-            {removing ? "იშლება…" : "ანგარიშის წაშლა"}
+            {removing ? t.deleting : t.deleteTitle}
           </button>
         </form>
       </section>

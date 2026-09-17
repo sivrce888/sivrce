@@ -75,42 +75,229 @@ export type ManagedListing = {
 type StatusTab = "active" | "pending" | "withdrawn" | "sold" | "expired"
 type DealTab = "all" | "buy" | "rent" | "daily" | "mortgage"
 
-const TABS: { key: StatusTab; label: string }[] = [
-  { key: "active", label: "აქტიური" },
-  { key: "pending", label: "მოლოდინში" },
-  { key: "withdrawn", label: "გამორთული" },
-  { key: "sold", label: "დახურული" },
-  { key: "expired", label: "ვადაგასული" },
-]
+const TABS: StatusTab[] = ["active", "pending", "withdrawn", "sold", "expired"]
 
-const DEAL_TABS: { key: DealTab; label: string }[] = [
-  { key: "all", label: "ყველა" },
-  { key: "buy", label: "იყიდება" },
-  { key: "rent", label: "ქირავდება" },
-  { key: "daily", label: "დღიურად" },
-  { key: "mortgage", label: "იპოთეკა" },
-]
-
-const DEAL_BADGE: Record<string, string> = {
-  buy: "იყიდება",
-  rent: "ქირავდება",
-  daily: "დღიურად",
-  mortgage: "იპოთეკა",
-}
+const DEAL_TABS: DealTab[] = ["all", "buy", "rent", "daily", "mortgage"]
 
 function isRentDeal(dealType: string): boolean {
   return dealType === "rent" || dealType === "daily"
 }
 
 const SORTS = [
-  { key: "updated_desc", label: "განახლება ↓" },
-  { key: "created_desc", label: "დამატება ↓" },
-  { key: "views_desc", label: "ნახვები ↓" },
-  { key: "price_desc", label: "ფასი ↓" },
-  { key: "price_asc", label: "ფასი ↑" },
+  "updated_desc",
+  "created_desc",
+  "views_desc",
+  "price_desc",
+  "price_asc",
 ] as const
 
-type SortKey = (typeof SORTS)[number]["key"]
+type SortKey = (typeof SORTS)[number]
+
+const L = {
+  ka: {
+    title: "ჩემი განცხადებები",
+    add: "დამატება",
+    emptyTitle: "განცხადებები ჯერ არ გაქვს",
+    emptyRent: "დაამატე ქირის განცხადება და ის აქ გამოჩნდება.",
+    emptyFirst: "დაამატე შენი პირველი განცხადება და ის აქ გამოჩნდება.",
+    emptyAction: "განცხადების დამატება",
+    searchPh: "ID, სიტყვა, უბანი…",
+    sortAria: "დალაგება",
+    emptyFiltered: "ამ ფილტრში განცხადება არ არის",
+    error: "შეცდომა",
+    networkError: "ქსელის შეცდომა",
+    refreshCooldown: "განახლება ხელმისაწვდომია 1 საათში",
+    rateLimited: "ძალიან ბევრი მცდელობა — სცადე 10 წუთში",
+    confirmDelete: "წავშალოთ განცხადება? მოქმედება შეუქცევადია.",
+    confirmRented: "მოვნიშნოთ გაქირავებულად? განცხადება აღარ გამოჩნდება ძიებაში.",
+    confirmSold: "მოვნიშნოთ გაყიდულად? განცხადება აღარ გამოჩნდება ძიებაში.",
+    priceOnRequest: "ფასი მოთხოვნით",
+    edit: "რედაქტირება",
+    disable: "გამორთვა",
+    enable: "ჩართვა",
+    delete: "წაშლა",
+    expires: "ვადა",
+    sendToClient: "კლიენტს",
+    rented: "გაქირავებულია",
+    sold: "გაყიდულია",
+    renew30: "გაგრძელება +30 დღე",
+    analytics: "ანალიტიკა",
+    statViews: "ნახვა",
+    statLeads: "ლიდი",
+    statCalls: "ნომერი",
+    statusTab: {
+      active: "აქტიური",
+      pending: "მოლოდინში",
+      withdrawn: "გამორთული",
+      sold: "დახურული",
+      expired: "ვადაგასული",
+    },
+    dealTab: {
+      all: "ყველა",
+      buy: "იყიდება",
+      rent: "ქირავდება",
+      daily: "დღიურად",
+      mortgage: "იპოთეკა",
+    },
+    sort: {
+      updated_desc: "განახლება ↓",
+      created_desc: "დამატება ↓",
+      views_desc: "ნახვები ↓",
+      price_desc: "ფასი ↓",
+      price_asc: "ფასი ↑",
+    },
+    boost: {
+      vip: "VIP",
+      super_vip: "VIP+",
+      diamond: "SUPER VIP",
+      turbo_7: "Turbo",
+      story: "სთორი",
+      sticker_urgent: "სასწრაფოდ",
+      sticker_price_drop: "ფასი↓",
+      color: "ფერი",
+      refresh_once: "განახლება",
+      facebook: "FB",
+    },
+  },
+  en: {
+    title: "My listings",
+    add: "Add",
+    emptyTitle: "You have no listings yet",
+    emptyRent: "Add a rental listing and it will appear here.",
+    emptyFirst: "Add your first listing and it will appear here.",
+    emptyAction: "Add a listing",
+    searchPh: "ID, keyword, area…",
+    sortAria: "Sort",
+    emptyFiltered: "No listings match these filters",
+    error: "Error",
+    networkError: "Network error",
+    refreshCooldown: "Refresh is available once an hour",
+    rateLimited: "Too many attempts — try again in 10 minutes",
+    confirmDelete: "Delete this listing? This action cannot be undone.",
+    confirmRented: "Mark as rented? The listing will no longer appear in search.",
+    confirmSold: "Mark as sold? The listing will no longer appear in search.",
+    priceOnRequest: "Price on request",
+    edit: "Edit",
+    disable: "Disable",
+    enable: "Enable",
+    delete: "Delete",
+    expires: "Expires",
+    sendToClient: "To client",
+    rented: "Rented",
+    sold: "Sold",
+    renew30: "Extend +30 days",
+    analytics: "Analytics",
+    statViews: "Views",
+    statLeads: "Leads",
+    statCalls: "Calls",
+    statusTab: {
+      active: "Active",
+      pending: "Pending",
+      withdrawn: "Disabled",
+      sold: "Closed",
+      expired: "Expired",
+    },
+    dealTab: {
+      all: "All",
+      buy: "For sale",
+      rent: "For rent",
+      daily: "Daily",
+      mortgage: "Mortgage",
+    },
+    sort: {
+      updated_desc: "Updated ↓",
+      created_desc: "Newest ↓",
+      views_desc: "Views ↓",
+      price_desc: "Price ↓",
+      price_asc: "Price ↑",
+    },
+    boost: {
+      vip: "VIP",
+      super_vip: "VIP+",
+      diamond: "SUPER VIP",
+      turbo_7: "Turbo",
+      story: "Story",
+      sticker_urgent: "Urgent",
+      sticker_price_drop: "Price↓",
+      color: "Color",
+      refresh_once: "Refresh",
+      facebook: "FB",
+    },
+  },
+  de: {
+    title: "Meine Inserate",
+    add: "Hinzufügen",
+    emptyTitle: "Noch keine Inserate",
+    emptyRent: "Fügen Sie ein Mietinserat hinzu — es erscheint hier.",
+    emptyFirst: "Fügen Sie Ihr erstes Inserat hinzu — es erscheint hier.",
+    emptyAction: "Inserat hinzufügen",
+    searchPh: "ID, Stichwort, Ort…",
+    sortAria: "Sortieren",
+    emptyFiltered: "Keine Inserate für diese Filter",
+    error: "Fehler",
+    networkError: "Netzwerkfehler",
+    refreshCooldown: "Aktualisierung nur einmal pro Stunde möglich",
+    rateLimited: "Zu viele Versuche — bitte in 10 Minuten erneut versuchen",
+    confirmDelete: "Dieses Inserat löschen? Diese Aktion kann nicht rückgängig gemacht werden.",
+    confirmRented: "Als vermietet markieren? Das Inserat erscheint nicht mehr in der Suche.",
+    confirmSold: "Als verkauft markieren? Das Inserat erscheint nicht mehr in der Suche.",
+    priceOnRequest: "Preis auf Anfrage",
+    edit: "Bearbeiten",
+    disable: "Deaktivieren",
+    enable: "Aktivieren",
+    delete: "Löschen",
+    expires: "Läuft ab",
+    sendToClient: "An Kunden",
+    rented: "Vermietet",
+    sold: "Verkauft",
+    renew30: "Verlängern +30 Tage",
+    analytics: "Analysen",
+    statViews: "Aufrufe",
+    statLeads: "Leads",
+    statCalls: "Anrufe",
+    statusTab: {
+      active: "Aktiv",
+      pending: "Ausstehend",
+      withdrawn: "Deaktiviert",
+      sold: "Geschlossen",
+      expired: "Abgelaufen",
+    },
+    dealTab: {
+      all: "Alle",
+      buy: "Zu verkaufen",
+      rent: "Zur Miete",
+      daily: "Täglich",
+      mortgage: "Hypothek",
+    },
+    sort: {
+      updated_desc: "Aktualisiert ↓",
+      created_desc: "Neueste ↓",
+      views_desc: "Aufrufe ↓",
+      price_desc: "Preis ↓",
+      price_asc: "Preis ↑",
+    },
+    boost: {
+      vip: "VIP",
+      super_vip: "VIP+",
+      diamond: "SUPER VIP",
+      turbo_7: "Turbo",
+      story: "Story",
+      sticker_urgent: "Dringend",
+      sticker_price_drop: "Preis↓",
+      color: "Farbe",
+      refresh_once: "Aktualisieren",
+      facebook: "FB",
+    },
+  },
+} as const
+
+type Loc = keyof typeof L
+type Strings = (typeof L)[Loc]
+
+function stringsFor(lang: string): Strings {
+  const loc: Loc = lang === "en" ? "en" : lang === "de" ? "de" : "ka"
+  return L[loc]
+}
 
 const dateTimeFmt = new Intl.DateTimeFormat("ka-GE", {
   day: "2-digit",
@@ -122,7 +309,6 @@ const dateTimeFmt = new Intl.DateTimeFormat("ka-GE", {
 
 const BOOST_PILLS: Array<{
   key: string
-  label: string
   kind: "tier" | "addon"
   tier?: string
   addon?: CheckoutAddon
@@ -131,7 +317,6 @@ const BOOST_PILLS: Array<{
 }> = [
   {
     key: "vip",
-    label: "VIP",
     kind: "tier",
     tier: "vip",
     icon: Flame,
@@ -139,7 +324,6 @@ const BOOST_PILLS: Array<{
   },
   {
     key: "super_vip",
-    label: "VIP+",
     kind: "tier",
     tier: "super_vip",
     icon: Sparkles,
@@ -147,7 +331,6 @@ const BOOST_PILLS: Array<{
   },
   {
     key: "diamond",
-    label: "SUPER VIP",
     kind: "tier",
     tier: "diamond",
     icon: Crown,
@@ -155,7 +338,6 @@ const BOOST_PILLS: Array<{
   },
   {
     key: "turbo_7",
-    label: "Turbo",
     kind: "addon",
     addon: "turbo_7",
     icon: Rocket,
@@ -163,7 +345,6 @@ const BOOST_PILLS: Array<{
   },
   {
     key: "story",
-    label: "სთორი",
     kind: "addon",
     addon: "story",
     icon: CircleDot,
@@ -171,7 +352,6 @@ const BOOST_PILLS: Array<{
   },
   {
     key: "sticker_urgent",
-    label: "სასწრაფოდ",
     kind: "addon",
     addon: "sticker_urgent",
     icon: Zap,
@@ -179,7 +359,6 @@ const BOOST_PILLS: Array<{
   },
   {
     key: "sticker_price_drop",
-    label: "ფასი↓",
     kind: "addon",
     addon: "sticker_price_drop",
     icon: TrendingDown,
@@ -187,7 +366,6 @@ const BOOST_PILLS: Array<{
   },
   {
     key: "color",
-    label: "ფერი",
     kind: "addon",
     addon: "color",
     icon: Palette,
@@ -195,7 +373,6 @@ const BOOST_PILLS: Array<{
   },
   {
     key: "refresh_once",
-    label: "განახლება",
     kind: "addon",
     addon: "refresh_once",
     icon: RotateCw,
@@ -203,7 +380,6 @@ const BOOST_PILLS: Array<{
   },
   {
     key: "facebook",
-    label: "FB",
     kind: "addon",
     addon: "facebook",
     icon: Share2,
@@ -227,6 +403,7 @@ export default function MyListingsManager({
 }) {
   const router = useRouter()
   const { lang } = useI18n()
+  const str = stringsFor(lang)
   const { format, rate } = useCurrency()
   const [items, setItems] = useState(initial)
   // Reset-on-props: patch()/remove() merge locally for instant feedback, then
@@ -311,7 +488,7 @@ export default function MyListingsManager({
       })
       const data = await res.json()
       if (!res.ok) {
-        setError(data.error ?? "შეცდომა")
+        setError(data.error ?? str.error)
         return false
       }
       setItems((prev) =>
@@ -331,7 +508,7 @@ export default function MyListingsManager({
       startTransition(() => router.refresh())
       return true
     } catch {
-      setError("ქსელის შეცდომა")
+      setError(str.networkError)
       return false
     } finally {
       setBusyId(null)
@@ -339,20 +516,20 @@ export default function MyListingsManager({
   }
 
   async function remove(id: string) {
-    if (!window.confirm("წავშალოთ განცხადება? მოქმედება შეუქცევადია.")) return
+    if (!window.confirm(str.confirmDelete)) return
     setBusyId(id)
     setError(null)
     try {
       const res = await fetch(`/api/listings/${id}`, { method: "DELETE" })
       const data = await res.json()
       if (!res.ok) {
-        setError(data.error ?? "შეცდომა")
+        setError(data.error ?? str.error)
         return
       }
       setItems((prev) => prev.filter((l) => l.id !== id))
       startTransition(() => router.refresh())
     } catch {
-      setError("ქსელის შეცდომა")
+      setError(str.networkError)
     } finally {
       setBusyId(null)
     }
@@ -376,16 +553,16 @@ export default function MyListingsManager({
       if (!res.ok) {
         setError(
           data.error === "refresh_cooldown"
-            ? "განახლება ხელმისაწვდომია 1 საათში"
+            ? str.refreshCooldown
             : data.error === "rate_limited"
-              ? "ძალიან ბევრი მცდელობა — სცადე 10 წუთში"
-              : (data.error ?? "შეცდომა"),
+              ? str.rateLimited
+              : (data.error ?? str.error),
         )
         return
       }
       if (data.order?.redirectUrl) window.location.assign(data.order.redirectUrl)
     } catch {
-      setError("ქსელის შეცდომა")
+      setError(str.networkError)
     } finally {
       setBusyId(null)
     }
@@ -395,7 +572,7 @@ export default function MyListingsManager({
     <div>
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <h2 className="min-w-0 text-[18px] font-extrabold tracking-[-0.02em] text-sv-ink sm:text-[20px]">
-          ჩემი განცხადებები
+          {str.title}
           {items.length > 0 ? (
             <span className="ml-2 text-[13px] font-bold text-sv-ink/60">{items.length}</span>
           ) : null}
@@ -405,20 +582,16 @@ export default function MyListingsManager({
           className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-sv-orange px-5 py-2.5 text-[13px] font-bold text-sv-ink shadow-glow-orange transition hover:opacity-95"
         >
           <Plus size={15} strokeWidth={2.5} />
-          დამატება
+          {str.add}
         </LocalizedLink>
       </div>
 
       {items.length === 0 ? (
         <EmptyState
-          title="განცხადებები ჯერ არ გაქვს"
-          body={
-            focusRent
-              ? "დაამატე ქირის განცხადება და ის აქ გამოჩნდება."
-              : "დაამატე შენი პირველი განცხადება და ის აქ გამოჩნდება."
-          }
+          title={str.emptyTitle}
+          body={focusRent ? str.emptyRent : str.emptyFirst}
           actionHref={addHref}
-          actionLabel="განცხადების დამატება"
+          actionLabel={str.emptyAction}
         />
       ) : (
         <>
@@ -432,19 +605,19 @@ export default function MyListingsManager({
                 type="search"
                 value={q}
                 onChange={(e) => setQ(e.target.value)}
-                placeholder="ID, სიტყვა, უბანი…"
+                placeholder={str.searchPh}
                 className="h-11 w-full rounded-full border-0 bg-sv-cloud pl-10 pr-4 text-[13.5px] font-medium text-sv-ink outline-none ring-1 ring-sv-ink/6 placeholder:text-sv-ink/35 focus:ring-sv-blue/25"
               />
             </label>
             <select
-              aria-label="დალაგება"
+              aria-label={str.sortAria}
               value={sort}
               onChange={(e) => setSort(e.target.value as SortKey)}
               className="h-11 shrink-0 rounded-full border-0 bg-sv-cloud px-4 text-[13px] font-bold text-sv-ink outline-none ring-1 ring-sv-ink/6 focus:ring-sv-blue/25"
             >
-              {SORTS.map((s) => (
-                <option key={s.key} value={s.key}>
-                  {s.label}
+              {SORTS.map((key) => (
+                <option key={key} value={key}>
+                  {str.sort[key]}
                 </option>
               ))}
             </select>

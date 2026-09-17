@@ -8,7 +8,7 @@ export const PROJECT_GALLERIES: Record<string, string[]> = {
   '70-vestry': ['/images/projects/70-vestry-g1.webp'],
   'ain-dubai': ['/images/projects/ain-dubai-g1.webp'],
   'alazani-valley-residence': ['/images/projects/alazani-valley-residence-g1.webp', '/images/projects/alazani-valley-residence-g2.webp'],
-  'aljada': ['/images/projects/aljada-g1.webp'],
+  'aljada': ['/images/projects/aljada-g1.webp', '/images/projects/aljada-g2.webp'],
   'alliance-centropolis': ['/images/projects/alliance-centropolis-g1.webp', '/images/projects/alliance-centropolis-g2.webp'],
   'alliance-highline': ['/images/projects/alliance-highline-g1.webp', '/images/projects/alliance-highline-g2.webp'],
   'alliance-palace': ['/images/projects/alliance-palace-g1.webp', '/images/projects/alliance-palace-g2.webp'],

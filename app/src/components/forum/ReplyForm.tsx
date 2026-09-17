@@ -4,9 +4,64 @@ import { useId, useState, type FormEvent } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
+import { useI18n } from '@/lib/i18n/context'
 import { cn } from '@/lib/utils'
 
 const MIN_BODY = 10
+
+const L = {
+  ka: {
+    signinPrefix: 'პასუხის დასაწერად',
+    signinLink: 'შეხვიდე ანგარიშში',
+    errMin: (n: number) => `მინიმუმ ${n} სიმბოლო`,
+    errRateLimited: 'ძალიან ბევრი მოთხოვნა — ცოტა ხანში სცადეთ',
+    errNestTooDeep: 'მხოლოდ ერთი დონის პასუხია შესაძლებელი',
+    errThreadNotFound: 'თემა ვერ მოიძებნა',
+    errSend: 'ვერ გაიგზავნა — სცადეთ თავიდან',
+    replyToHeading: 'პასუხი კომენტარზე',
+    yourReplyHeading: 'თქვენი პასუხი',
+    nameLabel: 'სახელი',
+    replyLabel: 'პასუხი',
+    replyPh: 'გააზიარეთ გამოცდილება ან რჩევა…',
+    sending: 'იგზავნება…',
+    send: 'გაგზავნა',
+    cancel: 'გაუქმება',
+  },
+  en: {
+    signinPrefix: 'To reply,',
+    signinLink: 'sign in',
+    errMin: (n: number) => `Minimum ${n} characters`,
+    errRateLimited: 'Too many requests — try again soon',
+    errNestTooDeep: 'Only one level of replies is allowed',
+    errThreadNotFound: 'Thread not found',
+    errSend: 'Couldn’t send — try again',
+    replyToHeading: 'Reply to comment',
+    yourReplyHeading: 'Your reply',
+    nameLabel: 'Name',
+    replyLabel: 'Reply',
+    replyPh: 'Share your experience or advice…',
+    sending: 'Sending…',
+    send: 'Send',
+    cancel: 'Cancel',
+  },
+  de: {
+    signinPrefix: 'Zum Antworten',
+    signinLink: 'melden Sie sich an',
+    errMin: (n: number) => `Mindestens ${n} Zeichen`,
+    errRateLimited: 'Zu viele Anfragen — bitte später erneut versuchen',
+    errNestTooDeep: 'Antworten sind nur auf einer Ebene möglich',
+    errThreadNotFound: 'Thema nicht gefunden',
+    errSend: 'Senden fehlgeschlagen — bitte erneut versuchen',
+    replyToHeading: 'Antwort auf den Kommentar',
+    yourReplyHeading: 'Ihre Antwort',
+    nameLabel: 'Name',
+    replyLabel: 'Antwort',
+    replyPh: 'Teilen Sie Ihre Erfahrung oder einen Rat…',
+    sending: 'Wird gesendet…',
+    send: 'Senden',
+    cancel: 'Abbrechen',
+  },
+} as const
 
 export function ReplyForm({
   slug,
@@ -21,6 +76,8 @@ export function ReplyForm({
   className?: string
   compact?: boolean
 }) {
+  const { lang } = useI18n()
+  const T = L[lang === 'en' ? 'en' : lang === 'de' ? 'de' : 'ka']
   const { data: session, status } = useSession()
   const pathname = usePathname()
   const router = useRouter()
@@ -45,12 +102,12 @@ export function ReplyForm({
           className,
         )}
       >
-        პასუხის დასაწერად{' '}
+        {T.signinPrefix}{' '}
         <Link
           href={`/auth/signin?callbackUrl=${encodeURIComponent(pathname)}`}
           className="font-extrabold text-sv-blue hover:underline"
         >
-          შეხვიდე ანგარიშში
+          {T.signinLink}
         </Link>
         .
       </p>
