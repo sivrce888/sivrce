@@ -77,6 +77,24 @@ const [, az, polar] = dayLight.position as [number, number, number]
 assert.ok(az >= -360 && az <= 360, 'azimuth is a bearing')
 assert.ok(polar >= 0 && polar <= 90, 'polar is a zenith angle')
 
+// The day basemap is lit as day at every hour. MapLibre multiplies the light
+// colour into every façade, so a wall-clock sun used to wash the whole light
+// map twilight-blue for evening sessions — the exact bug this locks out.
+const lightAtMidnight = lightFor({ dark: false, ...TBILISI, date: NIGHT })
+assert.deepEqual(lightAtMidnight, dayLight, 'light basemap keeps one daylight key')
+assert.ok((lightAtMidnight.intensity as number) >= 0.5, 'day key stays a key, not a glow')
+const [r, g, b] = (lightAtMidnight.color as string)
+  .slice(1)
+  .match(/../g)!
+  .map((h) => parseInt(h, 16))
+assert.ok(r! >= g! && g! >= b! && r! > 240, 'day key is warm white, never twilight blue')
+// Dark theme is a user choice too: same key at 03:00 and at local noon.
+assert.deepEqual(
+  lightFor({ dark: true, ...TBILISI, date: NOON }),
+  nightLight,
+  'night key is stable across the clock',
+)
+
 console.log(
   `atmosphere: globe ✓ · reduced-motion ✓ · sky day/night ✓ · light map-anchored (noon I=${dayLight.intensity}) ✓`,
 )

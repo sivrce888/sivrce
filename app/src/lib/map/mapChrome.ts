@@ -4,8 +4,10 @@
  */
 
 import type {
+  DataDrivenPropertyValueSpecification,
   FillExtrusionLayerSpecification,
   Map as MlMap,
+  PropertyValueSpecification,
   StyleSpecification,
 } from 'maplibre-gl'
 import {
@@ -26,13 +28,55 @@ const PLANET_PATH = '/planet'
 /** OSM city massing — Liberty ships this; dark/positron/satellite do not. */
 export const OSM_BUILDING_3D_ID = 'building-3d'
 
+/** Zoom the basemap massing starts fading in; below it the flat `building` fill carries. */
+export const BUILDING_3D_MIN_ZOOM = 13
+/** Fully opaque by here — the flat fill hands over without a visible pop. */
+export const BUILDING_3D_FULL_ZOOM = 14.2
+
+/**
+ * Height-graded tone. Apple and Google both let a skyline read from above: a
+ * tall tower catches more sky than a courtyard block, so the tone lifts with
+ * `render_height`. Two stops only — more is noise at map scale.
+ *
+ * ponytail: data-driven colour costs one packed attribute per building vertex
+ * (~4 B), so lite devices take the flat `lo` tone. Upgrade path if that ever
+ * matters on mid devices too: drop the ramp and lean on the key light alone.
+ */
+export function buildingTone(
+  lo: string,
+  hi: string,
+  ramp = true,
+): DataDrivenPropertyValueSpecification<string> {
+  if (!ramp) return lo
+  return [
+    'interpolate',
+    ['linear'],
+    ['to-number', ['coalesce', ['get', 'render_height'], 0]],
+    6,
+    lo,
+    90,
+    hi,
+  ]
+}
+
+/** Width of the fade, so a later start (hybrid) keeps the same ramp, ascending. */
+const BUILDING_FADE_ZOOMS = BUILDING_3D_FULL_ZOOM - BUILDING_3D_MIN_ZOOM
+
+/** Fade the massing in across the handover zooms instead of popping it on. */
+export function buildingFade(
+  peak: number,
+  from = BUILDING_3D_MIN_ZOOM,
+): PropertyValueSpecification<number> {
+  return ['interpolate', ['linear'], ['zoom'], from, 0, from + BUILDING_FADE_ZOOMS, peak]
+}
+
 export function building3dLayer(source: string): FillExtrusionLayerSpecification {
   return {
     id: OSM_BUILDING_3D_ID,
     type: 'fill-extrusion',
     source,
     'source-layer': 'building',
-    minzoom: 13,
+    minzoom: BUILDING_3D_MIN_ZOOM,
     filter: ['!=', ['get', 'hide_3d'], true],
     paint: {
       'fill-extrusion-base': ['coalesce', ['get', 'render_min_height'], 0],
@@ -43,8 +87,9 @@ export function building3dLayer(source: string): FillExtrusionLayerSpecification
         ['get', 'render_height'],
         10,
       ],
-      'fill-extrusion-color': '#DEDEDE',
-      'fill-extrusion-opacity': 0.82,
+      // Theme paints (applyBrandPaints) restate colour + opacity per basemap.
+      'fill-extrusion-color': buildingTone('#E3E1DC', '#F1EFEA'),
+      'fill-extrusion-opacity': buildingFade(0.88),
       'fill-extrusion-vertical-gradient': true,
     },
   }

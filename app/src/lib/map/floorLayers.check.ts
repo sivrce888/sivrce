@@ -5,6 +5,7 @@
 
 import assert from 'node:assert/strict'
 import {
+  BUILDING_PALETTE,
   loadMapBasemap,
   mapStyleUrl,
   muteBasemapExtrusions,
@@ -16,7 +17,19 @@ import {
   STYLE_SATELLITE,
   satelliteStyle,
 } from './floorLayers'
+import {
+  buildingFade,
+  buildingTone,
+  BUILDING_3D_FULL_ZOOM,
+  BUILDING_3D_MIN_ZOOM,
+} from './mapChrome'
 import type { Map as MlMap } from 'maplibre-gl'
+
+/** Relative luminance, good enough to prove a tone ramp lifts rather than flips. */
+function luma(hex: string): number {
+  const n = Number.parseInt(hex.slice(1), 16)
+  return (0.2126 * ((n >> 16) & 255) + 0.7152 * ((n >> 8) & 255) + 0.0722 * (n & 255)) / 255
+}
 
 async function main() {
   assert.equal(mapStyleUrl(false, 'streets'), STYLE_LIGHT)
@@ -101,7 +114,31 @@ async function main() {
     true,
   )
   assert.equal(vis['building-3d'], 'visible')
-  assert.deepEqual(zoomRange, [0, 13])
+  // Flat fill overlaps the extrusion fade — a hard cut at 13 popped the city on.
+  assert.deepEqual(zoomRange, [0, BUILDING_3D_FULL_ZOOM])
+
+  // Massing tone: taller reads lighter in every daylight basemap, and darker
+  // than nothing on night. A flat palette is the bug this ramp replaced.
+  for (const [name, p] of Object.entries(BUILDING_PALETTE)) {
+    assert.notEqual(p.lo, p.hi, `${name} massing needs a height ramp`)
+    assert.ok(p.peak > 0 && p.peak <= 1, `${name} peak opacity in range`)
+    const lift = luma(p.hi) - luma(p.lo)
+    assert.ok(lift > 0.02 && lift < 0.25, `${name} lift is a grade, not a stripe (${lift})`)
+  }
+  // MapLibre rejects a ramp whose stops descend — the hybrid fade starts later
+  // than the default handover zoom, so the end has to move with the start.
+  for (const from of [undefined, 15, 16.5]) {
+    const fade = (from == null
+      ? buildingFade(BUILDING_PALETTE.light.peak)
+      : buildingFade(BUILDING_PALETTE.satellite.peak, from)) as unknown[]
+    assert.equal(fade[0], 'interpolate')
+    const [z0, o0, z1, o1] = fade.slice(3) as number[]
+    assert.equal(z0, from ?? BUILDING_3D_MIN_ZOOM)
+    assert.ok(z1! > z0!, `fade stops ascend (${z0} → ${z1})`)
+    assert.equal(o0, 0)
+    assert.ok(o1! > 0)
+  }
+  assert.equal(buildingTone('#111111', '#222222', false), '#111111', 'lite devices skip the ramp')
 
   console.log('floorLayers.check: ok')
 }

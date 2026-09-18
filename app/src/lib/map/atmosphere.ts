@@ -18,7 +18,7 @@ import type {
 } from 'maplibre-gl'
 import { BRAND } from '@/lib/brand'
 import { sunPosition } from '@/lib/sun'
-import { MIN_ALTITUDE, mixHex, sunLight, sunSky } from '@/lib/map/sun-shadow'
+import { mixHex, sunSky } from '@/lib/map/sun-shadow'
 
 /**
  * Globe below ~z6, mercator above — MapLibre's `globe` shorthand animates the
@@ -87,23 +87,37 @@ export function skyFor({ dark, lat, lng, date = new Date() }: AtmosphereInput): 
 }
 
 /**
- * Extrusion light pinned to the real sun. `anchor: 'map'` is the whole point —
- * a viewport-anchored light spins with the compass and the façade that was lit
- * at noon goes dark when you rotate.
+ * Key light for the basemap massing. `anchor: 'map'` is the whole point — a
+ * viewport-anchored light spins with the compass and the façade that was lit at
+ * noon goes dark when you rotate.
+ *
+ * Fixed daylight, NOT the wall-clock sun: MapLibre multiplies the light colour
+ * into every extrusion, so a real 22:00 sun turned the whole light basemap
+ * twilight-blue (#93a7db at intensity 0.12) and flattened the city for every
+ * evening session. Apple and Google both light the day map as day, all day.
+ * The real sun still owns the sky here (skyFor) and owns the light outright on
+ * the detail map's shadow scrubber, which calls `sunLight` directly.
+ *
+ * Azimuth 215° = afternoon SW key: the northern-hemisphere reading, and stable
+ * across sessions/screenshots. Polar is the zenith angle (0° overhead).
  */
-export function lightFor({ dark, lat, lng, date = new Date() }: AtmosphereInput): LightSpecification {
-  const { altitude, azimuth } = sunPosition(lat, lng, date)
-  const sun = sunLight(altitude, azimuth)
-  if (!dark) return { anchor: 'map', ...sun }
-  // Night: keep the sun's direction (moonlight roughly opposes it anyway at the
-  // scale that matters here) but drop to a cool, low-contrast key so dark-theme
-  // massing separates by edge rather than by glare.
-  return {
-    anchor: 'map',
-    position: sun.position,
-    color: BRAND.colors.blueLight,
-    intensity: altitude < MIN_ALTITUDE ? 0.1 : 0.18,
-  }
+export const DAY_KEY: LightSpecification = {
+  anchor: 'map',
+  position: [1.5, 215, 42],
+  color: '#FFF7EC',
+  intensity: 0.6,
+}
+
+/** Night key: same direction, cool and softer — massing separates by edge. */
+export const NIGHT_KEY: LightSpecification = {
+  anchor: 'map',
+  position: [1.5, 215, 35],
+  color: BRAND.colors.blueLight,
+  intensity: 0.26,
+}
+
+export function lightFor({ dark }: AtmosphereInput): LightSpecification {
+  return dark ? NIGHT_KEY : DAY_KEY
 }
 
 /**

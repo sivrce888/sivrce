@@ -11,9 +11,13 @@ import { BRAND } from '@/lib/brand'
 import { EMPTY_FLOORS } from './floors'
 import {
   building3dLayer,
+  buildingFade,
+  buildingTone,
+  BUILDING_3D_FULL_ZOOM,
   loadCleanStyle,
   OSM_BUILDING_3D_ID,
 } from '@/lib/map/mapChrome'
+import { isLiteDevice } from '@/lib/device-budget'
 import { mapProxyOrigin } from '@/lib/map/map-proxy'
 import { DEFAULT_LANG, isValidLang, type Lang } from '@/lib/i18n/core'
 import { applyMapLanguage } from '@/lib/map/map-language'
@@ -172,6 +176,38 @@ function tryLayout(map: MlMap, layer: string, prop: string, value: unknown) {
   }
 }
 
+/**
+ * Basemap massing paint, one place for all four looks. `lo`/`hi` are the tone
+ * at a low block and at a tower; `peak` is the opacity once the fade-in lands.
+ * Flat 2D `building` fill keeps the same family so the handover is invisible.
+ */
+export const BUILDING_PALETTE = {
+  /** Streets — Google's warm neutral concrete. */
+  light: { lo: '#E3E1DC', hi: '#F1EFEA', flat: '#E7E5E0', edge: '#D3D0C9', peak: 0.9 },
+  /** Minimal — Apple's paper-warm massing, lighter than the land. */
+  clean: { lo: '#E6E2DB', hi: '#F4F1EB', flat: '#EAE7E1', edge: '#D8D4CC', peak: 0.82 },
+  /** Night — one step off the navy ground, never the electric blue slab. */
+  dark: { lo: '#233152', hi: '#3A4C78', flat: '#26355A', edge: '#44598A', peak: 0.94 },
+  /** Hybrid — volume over photography; the imagery must still read through. */
+  satellite: { lo: '#D9D6D0', hi: '#EFEDE8', flat: '#DCD9D3', edge: '#C6C3BD', peak: 0.55 },
+} as const
+
+function paintBuildings(map: MlMap, key: keyof typeof BUILDING_PALETTE) {
+  const p = BUILDING_PALETTE[key]
+  trySet(map, 'building', 'fill-color', p.flat)
+  trySet(map, 'building', 'fill-opacity', key === 'satellite' ? 0.45 : 1)
+  trySet(map, 'building', 'fill-outline-color', p.edge)
+  trySet(map, OSM_BUILDING_3D_ID, 'fill-extrusion-color', buildingTone(p.lo, p.hi, !isLiteDevice()))
+  trySet(
+    map,
+    OSM_BUILDING_3D_ID,
+    'fill-extrusion-opacity',
+    // Hybrid holds the massing back until the photo stops carrying the block.
+    key === 'satellite' ? buildingFade(p.peak, 15) : buildingFade(p.peak),
+  )
+  trySet(map, OSM_BUILDING_3D_ID, 'fill-extrusion-vertical-gradient', true)
+}
+
 /** Hide unknown extrusions. City `building-3d` stays — listings paint on top. */
 export function muteBasemapExtrusions(map: MlMap, keep: ReadonlySet<string>) {
   for (const layer of map.getStyle()?.layers ?? []) {
@@ -210,7 +246,9 @@ export function setBasemapBuildings3d(map: MlMap, on: boolean) {
   }
   if (map.getLayer('building')) {
     try {
-      map.setLayerZoomRange('building', 0, on ? 13 : 24)
+      // Overlap the fade: the flat fill holds the block until the extrusion has
+      // ramped to full opacity, so the city gains volume instead of popping.
+      map.setLayerZoomRange('building', 0, on ? BUILDING_3D_FULL_ZOOM : 24)
     } catch {
       /* style variant may omit zoom range */
     }
@@ -224,13 +262,15 @@ export function setBasemapBuildings3d(map: MlMap, on: boolean) {
  * Refs: Maps road white / highway yellow / water #AADAFF / park #C8E6C9.
  */
 function applyLightPaints(map: MlMap) {
-  // Land — NE on at country zoom so mkhare/terrain read (was 0 → paper white)
-  trySet(map, 'background', 'background-color', '#E6EBE3')
+  // Land — NE on at country zoom so mkhare/terrain read (was 0 → paper white).
+  // City zoom stays bright: Google's land is a light neutral, the green belongs
+  // to parks and woods, not to the whole canvas.
+  trySet(map, 'background', 'background-color', '#EEF0E9')
   trySet(map, 'natural_earth', 'raster-opacity', [
     'interpolate', ['linear'], ['zoom'],
     5, 0.52, 7, 0.4, 9, 0.18, 11, 0,
   ])
-  trySet(map, 'landuse_residential', 'fill-color', '#E4E6EA')
+  trySet(map, 'landuse_residential', 'fill-color', '#EBEAE7')
   trySet(map, 'landuse_residential', 'fill-opacity', 1)
 
   // Water — Google cyan
@@ -247,10 +287,10 @@ function applyLightPaints(map: MlMap) {
   trySet(map, 'park', 'fill-color', '#C8E6C9')
   trySet(map, 'park', 'fill-opacity', 1)
   trySet(map, 'park_outline', 'line-color', '#A5D6A7')
-  trySet(map, 'landcover_grass', 'fill-color', '#B7D9A4')
-  trySet(map, 'landcover_grass', 'fill-opacity', 0.8)
-  trySet(map, 'landcover_wood', 'fill-color', '#8FC484')
-  trySet(map, 'landcover_wood', 'fill-opacity', 0.85)
+  trySet(map, 'landcover_grass', 'fill-color', '#CBE3B8')
+  trySet(map, 'landcover_grass', 'fill-opacity', 0.7)
+  trySet(map, 'landcover_wood', 'fill-color', '#B4D3A0')
+  trySet(map, 'landcover_wood', 'fill-opacity', 0.8)
   trySet(map, 'boundary_3', 'line-color', '#7A8499')
   trySet(map, 'boundary_3', 'line-opacity', 0.95)
   trySet(map, 'boundary_3', 'line-width', [
@@ -263,13 +303,7 @@ function applyLightPaints(map: MlMap) {
   trySet(map, 'landuse_school', 'fill-color', '#FFF3C4')
   trySet(map, 'landuse_pitch', 'fill-color', '#B2DFB0')
 
-  // Buildings — soft Google gray
-  trySet(map, 'building', 'fill-color', '#E8E8E8')
-  trySet(map, 'building', 'fill-opacity', 1)
-  trySet(map, 'building', 'fill-outline-color', '#D0D0D0')
-  trySet(map, OSM_BUILDING_3D_ID, 'fill-extrusion-color', '#DEDEDE')
-  trySet(map, OSM_BUILDING_3D_ID, 'fill-extrusion-opacity', 0.82)
-  trySet(map, OSM_BUILDING_3D_ID, 'fill-extrusion-vertical-gradient', true)
+  paintBuildings(map, 'light')
 
   // Local streets — white + gray casing
   for (const id of [
@@ -418,8 +452,9 @@ function applyDarkPaints(map: MlMap) {
   trySet(map, 'landuse_residential', 'fill-color', BRAND.colors.navySoft)
   trySet(map, 'landuse_residential', 'fill-opacity', 1)
 
-  trySet(map, 'water', 'fill-color', '#1B4F8A')
-  trySet(map, 'waterway', 'line-color', BRAND.colors.blue)
+  // Deep, not electric — the river must sit under the city, not glow over it.
+  trySet(map, 'water', 'fill-color', '#12355F')
+  trySet(map, 'waterway', 'line-color', '#1B4F8A')
   trySet(map, 'water_name', 'text-color', BRAND.colors.blueLight)
   trySet(map, 'water_name', 'text-halo-color', BRAND.colors.navy)
   trySet(map, 'water_name', 'text-halo-width', 1.4)
@@ -430,23 +465,19 @@ function applyDarkPaints(map: MlMap) {
   trySet(map, 'landcover_glacier', 'fill-color', '#2A3A55')
   trySet(map, 'landcover_ice_shelf', 'fill-color', '#243450')
 
-  // OSM city fabric — lighter than land so blocks read
-  trySet(map, 'building', 'fill-color', '#3A5080')
-  trySet(map, 'building', 'fill-opacity', 0.92)
-  trySet(map, 'building', 'fill-outline-color', '#5A6F9A')
-  trySet(map, OSM_BUILDING_3D_ID, 'fill-extrusion-color', '#3A5080')
-  trySet(map, OSM_BUILDING_3D_ID, 'fill-extrusion-opacity', 0.86)
-  trySet(map, OSM_BUILDING_3D_ID, 'fill-extrusion-vertical-gradient', true)
+  // OSM city fabric — one step off the ground so blocks read without flooding
+  // the frame in brand blue (pins own that hue).
+  paintBuildings(map, 'dark')
 
   // Roads — Google-night ramp. Muted blue-gray fabric keeps brand blue for
   // pins; motorway yellow stays the only wayfinding accent (never glow blue).
-  trySet(map, 'highway_path', 'line-color', '#2A3A5C')
-  trySet(map, 'highway_minor', 'line-color', '#3D4E75')
-  trySet(map, 'highway_major_subtle', 'line-color', '#46587F')
+  trySet(map, 'highway_path', 'line-color', '#27304B')
+  trySet(map, 'highway_minor', 'line-color', '#333E5C')
+  trySet(map, 'highway_major_subtle', 'line-color', '#3C4868')
   trySet(map, 'highway_motorway_subtle', 'line-color', '#6B5A28')
   trySet(map, 'highway_major_casing', 'line-color', '#152048')
   trySet(map, 'highway_motorway_casing', 'line-color', '#3D3210')
-  trySet(map, 'highway_major_inner', 'line-color', '#66799E')
+  trySet(map, 'highway_major_inner', 'line-color', '#5B688B')
   trySet(map, 'highway_motorway_inner', 'line-color', '#F9C32C')
 
   for (const id of ['highway_minor', 'highway_path']) {
@@ -496,28 +527,28 @@ function applyDarkPaints(map: MlMap) {
   hideOfmSuburbLabels(map)
 }
 
-/** Positron / clean — calm gray so listing hues pop (Apple Maps “muted”). */
+/**
+ * Minimal — the Apple Maps read: warm paper land, desaturated water, roads as
+ * white ribbons on a barely-there casing. Cool grays made listing hues fight
+ * the basemap; warm neutrals let brand blue/orange sit on top untouched.
+ */
 function applyCleanPaints(map: MlMap) {
-  trySet(map, 'background', 'background-color', '#F2F4F7')
-  trySet(map, 'water', 'fill-color', '#C9D9E8')
-  trySet(map, 'waterway', 'line-color', '#B8C9D9')
-  trySet(map, 'park', 'fill-color', '#D8E8D4')
-  trySet(map, 'park', 'fill-opacity', 0.85)
-  trySet(map, 'building', 'fill-color', '#E4E7EC')
-  trySet(map, 'building', 'fill-opacity', 0.55)
-  trySet(map, 'building', 'fill-outline-color', '#D0D4DC')
-  trySet(map, OSM_BUILDING_3D_ID, 'fill-extrusion-color', '#E4E7EC')
-  trySet(map, OSM_BUILDING_3D_ID, 'fill-extrusion-opacity', 0.8)
-  trySet(map, OSM_BUILDING_3D_ID, 'fill-extrusion-vertical-gradient', true)
+  trySet(map, 'background', 'background-color', '#F3F1EC')
+  trySet(map, 'landuse_residential', 'fill-color', '#EDEAE4')
+  trySet(map, 'water', 'fill-color', '#AFCDE6')
+  trySet(map, 'waterway', 'line-color', '#9FC0DD')
+  trySet(map, 'park', 'fill-color', '#D5E4C8')
+  trySet(map, 'park', 'fill-opacity', 0.9)
+  paintBuildings(map, 'clean')
 
-  trySet(map, 'highway_path', 'line-color', '#D5D8DE')
+  trySet(map, 'highway_path', 'line-color', '#E0DCD4')
   trySet(map, 'highway_minor', 'line-color', '#FFFFFF')
-  trySet(map, 'highway_major_casing', 'line-color', '#C8CCD4')
+  trySet(map, 'highway_major_casing', 'line-color', '#DCD7CE')
   trySet(map, 'highway_major_inner', 'line-color', '#FFFFFF')
-  trySet(map, 'highway_major_subtle', 'line-color', '#E8EAEE')
-  trySet(map, 'highway_motorway_casing', 'line-color', '#D4C4A0')
-  trySet(map, 'highway_motorway_inner', 'line-color', '#F0E6C8')
-  trySet(map, 'highway_motorway_subtle', 'line-color', '#E8DFC4')
+  trySet(map, 'highway_major_subtle', 'line-color', '#EBE7DF')
+  trySet(map, 'highway_motorway_casing', 'line-color', '#D9C9A4')
+  trySet(map, 'highway_motorway_inner', 'line-color', '#F7EFD6')
+  trySet(map, 'highway_motorway_subtle', 'line-color', '#EDE4C9')
 
   for (const id of [
     'highway-name-path',
@@ -529,12 +560,12 @@ function applyCleanPaints(map: MlMap) {
     'label_village',
     'label_other',
   ]) {
-    trySet(map, id, 'text-color', '#5F6368')
+    trySet(map, id, 'text-color', '#66625B')
     trySet(map, id, 'text-halo-color', '#FFFFFF')
     trySet(map, id, 'text-halo-width', 1.4)
   }
   for (const id of ['water_name_point_label', 'water_name_line_label', 'waterway_line_label']) {
-    trySet(map, id, 'text-color', '#6A8AAA')
+    trySet(map, id, 'text-color', '#6E92B4')
     trySet(map, id, 'text-halo-color', '#FFFFFF')
     trySet(map, id, 'text-halo-width', 1.1)
   }
@@ -558,9 +589,7 @@ export function applyBrandPaints(
       trySet(map, id, 'text-halo-color', BRAND.colors.navy)
       trySet(map, id, 'text-halo-width', 2.2)
     }
-    trySet(map, OSM_BUILDING_3D_ID, 'fill-extrusion-color', '#E8E8E8')
-    trySet(map, OSM_BUILDING_3D_ID, 'fill-extrusion-opacity', 0.72)
-    trySet(map, OSM_BUILDING_3D_ID, 'fill-extrusion-vertical-gradient', true)
+    paintBuildings(map, 'satellite')
   } else if (theme === 'dark') {
     applyDarkPaints(map)
   } else if (terrain === 'clean') {
