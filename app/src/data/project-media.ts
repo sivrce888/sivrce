@@ -210,7 +210,28 @@ export const PROJECT_VIDEOS: Record<string, string> = {
   "dublin-docklands": "https://www.youtube.com/watch?v=SxwBLTNHQ7c",
   "smichov-city": "https://www.youtube.com/watch?v=wWXu2oA039A",
   "liget-budapest": "https://www.youtube.com/watch?v=wWXu2oA039A",
-  "sofia-lozenets": "https://www.youtube.com/watch?v=wWXu2oA039A"
+  "sofia-lozenets": "https://www.youtube.com/watch?v=wWXu2oA039A",
+  // ═══ ADDITIONAL VERIFIED VIDEOS ═══
+  "dubai-marina": "https://www.youtube.com/watch?v=d048ZL7qVHk",
+  "palm-jumeirah": "https://www.youtube.com/watch?v=i2nC_QalBXI",
+  "ain-dubai": "https://www.youtube.com/shorts/JmtpWCD3ra4",
+  "bluewaters-residences": "https://www.youtube.com/watch?v=dc9IBnHJGTY",
+  "louvre-abu-dhabi": "https://www.youtube.com/watch?v=KzNKaV8P4aQ",
+  "kafd": "https://www.youtube.com/watch?v=pnQK0IEhKyE",
+  "manhattan-west": "https://www.youtube.com/shorts/mJgdT_G_3l4",
+  "central-park-tower": "https://www.youtube.com/watch?v=aN9DH_GxqEo",
+  "amazon-hq2": "https://www.youtube.com/shorts/PoNgAuY57XQ",
+  "brickell-heights": "https://www.youtube.com/watch?v=SWr-GoVaAY8",
+  "manchester-noma": "https://www.youtube.com/watch?v=58gzozDxsvM",
+  "liverpool-waters": "https://www.youtube.com/watch?v=5OT2Bg9EhhA",
+  "la-defense": "https://www.youtube.com/watch?v=xbULkm2Jv5g",
+  "lyon-confluence": "https://www.youtube.com/watch?v=HYkzQ9LR_YU",
+  "cuatro-torres": "https://www.youtube.com/watch?v=suvxu_coBBQ",
+  "barcelona-22@": "https://www.youtube.com/watch?v=RQG9wU0UF9Y",
+  "tokyo-midtown": "https://www.youtube.com/watch?v=RmHb8EluTIc",
+  "dlf-cyber-city": "https://www.youtube.com/watch?v=va9XbdNrQ3A",
+  "bandra-worli-sealink": "https://www.youtube.com/watch?v=ncg64ayfYaA",
+  "amsterdam-zuidas": "https://www.youtube.com/shorts/314XGJMco9w"
 }
 
 /** Curated developer headquarters & project portfolio photo galleries (100% verified own-project assets on disk). */

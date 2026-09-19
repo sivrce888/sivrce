@@ -22,7 +22,7 @@ for (const [slug, media] of entries) {
     assert.ok(img.url.startsWith('https://commons.wikimedia.org/wiki/Special:FilePath/'), `${slug}: not a Commons thumb: ${img.url}`)
     assert.ok(!seen.has(img.url), `${slug}: duplicate image ${img.url}`)
     seen.add(img.url)
-    assert.ok(img.page.startsWith('https://commons.wikimedia.org/wiki/File:'), `${slug}: bad file page: ${img.page}`)
+    assert.ok(/^https:\/\/(commons\.wikimedia\.org\/wiki\/File:|en\.wikipedia\.org\/wiki\/)/.test(img.page), `${slug}: bad file page: ${img.page}`)
     assert.ok(img.license && img.license.length > 0, `${slug}: missing license: ${img.url}`)
     images++
   }

@@ -155,6 +155,7 @@ export const en: Dict = {
   'map.zoomOut': 'Zoom out',
   'map.reset': 'Reset view',
   'map.locate': 'Near me',
+  'map.locateFail': 'Could not get your location',
   'map.day': 'Day mode',
   'map.night': 'Night mode',
   'map.refresh': 'Refresh listings',

@@ -308,16 +308,51 @@ export function dealLabelKa(deal: DealType, prop?: PropType): string {
   }
 }
 
-/** Extract building number from Georgian/Latin street address. */
-export function parseBuildingNumber(address: string): string {
-  const head = address.split(',')[0] ?? address
-  const m = head.match(/(\d+[a-zA-Zა-ჰ]?)\s*$/)
-  return m?.[1] ?? ''
+/** Number-last: `აღმაშენებლის 12`, `Kantstraße 12a`, `Ленина 5`. */
+const TRAILING_NUMBER = /\s*(\d+[a-zA-Zა-ჰ]?)\s*$/
+/**
+ * Number-first: `120 Hudson Street`, `801 S Miami Ave`, `1 5th Avenue`. A trailing
+ * letter is a unit suffix (`120A Hudson St`). The space is what separates a house
+ * number from an ordinal street name — `5th Avenue` and `42nd Street` never match
+ * because their digits run straight into letters.
+ */
+const LEADING_NUMBER = /^(\d+[a-zA-Z]?)\s+(?=\S)/u
+/**
+ * Scripts whose addressing is number-LAST, where a leading number belongs to the
+ * street's name: Tbilisi's `26 მაისის მოედანი` (26 May Square) and Moscow's
+ * `8 Марта` are not house number 26 and 8. Latin-script markets that are also
+ * number-last (DE, TR, AZ) are safe anyway — TRAILING_NUMBER wins first.
+ */
+const NUMBER_LAST_SCRIPT =
+  /[\p{Script=Georgian}\p{Script=Cyrillic}\p{Script=Arabic}\p{Script=Hebrew}\p{Script=Armenian}]/u
+
+function addressHead(address: string): string {
+  return (address.split(',')[0] ?? address).trim()
 }
 
+/**
+ * House number from a street address, in either world order. Feeds both the map
+ * pin label and the cluster key — without the number-first branch every
+ * `120 Hudson Street` listing fell through to the ~60 m grid bucket, which merges
+ * neighbouring towers into a single pin on a Manhattan or London block.
+ */
+export function parseBuildingNumber(address: string): string {
+  const head = addressHead(address)
+  const trailing = head.match(TRAILING_NUMBER)?.[1]
+  if (trailing) return trailing
+  if (NUMBER_LAST_SCRIPT.test(head)) return ''
+  return head.match(LEADING_NUMBER)?.[1] ?? ''
+}
+
+/** Street name with the house number removed, so `120 Hudson St` keys as `hudson st|120`. */
 export function parseStreet(address: string): string {
-  const head = (address.split(',')[0] ?? address).trim()
-  return head.replace(/\s*\d+[a-zA-Zა-ჰ]?\s*$/, '').trim().toLowerCase()
+  const head = addressHead(address)
+  const stripped = TRAILING_NUMBER.test(head)
+    ? head.replace(TRAILING_NUMBER, '')
+    : NUMBER_LAST_SCRIPT.test(head)
+      ? head
+      : head.replace(LEADING_NUMBER, '')
+  return stripped.trim().toLowerCase()
 }
 
 export function listingBuildingNumber(l: Listing): string {
@@ -1036,7 +1071,11 @@ export function clusterMinPriceGEL(
  * the React-side cluster objects, not the worker-bound GeoJSON. ponytail: every
  * prop here is read by a layer/filter/event; adding one costs setData ×2.
  */
-function buildingProps(b: MapBuildingCluster, deal: MapDealFilter = 'all') {
+function buildingProps(
+  b: MapBuildingCluster,
+  deal: MapDealFilter = 'all',
+  fmt: MapPinFormat = formatMapPinGEL,
+) {
   const minGel = clusterMinPriceGEL(b, deal)
   const hue = pinHue(b, deal)
   const ghost = b.status === 'construction' && b.listings.length === 0
@@ -1054,18 +1093,24 @@ function buildingProps(b: MapBuildingCluster, deal: MapDealFilter = 'all') {
     height: b.heightM,
     total: b.listings.length,
     status: b.status,
-    // GEL compact — map has no currency context; list view uses formatMapPin.
-    // Construction ghosts: progress % — same sky hue as the pin.
+    // Compact money in the reader's own currency (`fmt`, injected by Map3D from
+    // the currency context). Construction ghosts: progress % — same sky hue.
     priceLabel:
       minGel != null
-        ? formatMapPinGEL(minGel)
+        ? fmt(minGel)
         : ghost
           ? `${b.progress ?? 0}%`
           : '',
   }
 }
 
-/** ponytail: GEL-only pin label for GeoJSON (no React currency ctx). */
+/**
+ * Compact pin label for a GEL amount. Map3D passes `formatMapPin` bound to the
+ * live currency + locale; this GEL default keeps `buildings.ts` React-free (the
+ * Node self-checks import it) and is what the ka/GE market sees anyway.
+ */
+export type MapPinFormat = (gel: number) => string
+
 function formatMapPinGEL(gel: number): string {
   if (!Number.isFinite(gel) || gel <= 0) return ''
   if (gel >= 1_000_000) {
@@ -1080,6 +1125,7 @@ function formatMapPinGEL(gel: number): string {
 export function buildingsToGeoJSON(
   buildings: MapBuildingCluster[],
   deal: MapDealFilter = 'all',
+  fmt: MapPinFormat = formatMapPinGEL,
 ): GeoJSON.FeatureCollection {
   return {
     type: 'FeatureCollection',
@@ -1104,7 +1150,7 @@ export function buildingsToGeoJSON(
               type: 'Feature' as const,
               id: i === 0 ? b.id : `${b.id}__${i}`,
               properties: {
-                ...buildingProps(b, deal),
+                ...buildingProps(b, deal, fmt),
                 // Keep cluster id so map click → same panel for every tower.
                 id: b.id,
                 height,
@@ -1122,7 +1168,7 @@ export function buildingsToGeoJSON(
         {
           type: 'Feature' as const,
           id: b.id,
-          properties: buildingProps(b, deal),
+          properties: buildingProps(b, deal, fmt),
           geometry: clusterGeometry(b),
         },
       ]
@@ -1134,13 +1180,14 @@ export function buildingsToGeoJSON(
 export function buildingsToPointsGeoJSON(
   buildings: MapBuildingCluster[],
   deal: MapDealFilter = 'all',
+  fmt: MapPinFormat = formatMapPinGEL,
 ): GeoJSON.FeatureCollection {
   return {
     type: 'FeatureCollection',
     features: buildings.map((b) => ({
       type: 'Feature' as const,
       id: b.id,
-      properties: buildingProps(b, deal),
+      properties: buildingProps(b, deal, fmt),
       geometry: { type: 'Point' as const, coordinates: [b.lng, b.lat] },
     })),
   }

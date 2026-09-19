@@ -154,6 +154,7 @@ export const ka = {
   'map.zoomOut': 'დაპატარავება',
   'map.reset': 'საწყისი ხედი',
   'map.locate': 'ჩემთან ახლოს',
+  'map.locateFail': 'მდებარეობა ვერ დადგინდა',
   'map.day': 'დღის რეჟიმი',
   'map.night': 'ღამის რეჟიმი',
   'map.refresh': 'განცხადებების განახლება',

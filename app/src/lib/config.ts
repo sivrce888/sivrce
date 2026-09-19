@@ -112,9 +112,9 @@ export const CONFIG_REGISTRY: { [K in ConfigKey]: ConfigEntry<ConfigValues[K]> }
   "site.contactPhone": {
     section: "contact",
     label: "Contact phone",
-    hint: "Shown on /contact, display form e.g. +995 32 2 00 00 00.",
+    hint: "Shown on /contact, display form e.g. +995 500 333 111.",
     input: "text",
-    defaultValue: "+995 32 2 00 00 00",
+    defaultValue: "+995 500 333 111",
     parse: textParser(PHONE_RE),
   },
   "price.vip": {

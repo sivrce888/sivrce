@@ -216,7 +216,7 @@ export function AccountForms({
             inputMode="tel"
             required={isPhoneAccount}
             defaultValue={phone}
-            placeholder="+995 555 12 34 56"
+            placeholder="+995 500 333 111"
           />
           {!isPhoneAccount ? (
             <p className="text-[12.5px] font-semibold text-sv-ink/60">{t.emailLine(email)}</p>

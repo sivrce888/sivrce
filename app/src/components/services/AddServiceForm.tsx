@@ -124,7 +124,7 @@ export function AddServiceForm() {
             required
             inputMode="tel"
             autoComplete="tel"
-            placeholder="+995 555 12 34 56"
+            placeholder="+995 500 333 111"
             className={input}
             onChange={(e) => {
               e.currentTarget.value = formatPhone(e.currentTarget.value)

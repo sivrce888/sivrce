@@ -122,12 +122,12 @@ export interface Listing {
 export { USD_GEL, formatUSD, formatGEL, formatPerM2, formatViews, stayCount, stayLine, formatFloor, postedDaysAgo, postedAgoLabel } from '@/lib/listing-format'
 
 const AGENTS: Agent[] = [
-  { name: 'ნინო ბერიძე', phone: maskPhone('+995 555 12 34 56'), agency: 'სივრცე პრემიუმ' },
-  { name: 'გიორგი მამულაშვილი', phone: maskPhone('+995 577 98 76 54'), agency: 'Capital Estate' },
-  { name: 'ანა კვარაცხელია', phone: maskPhone('+995 593 45 67 89'), agency: 'სივრცე პრემიუმ' },
-  { name: 'დავით ჯაფარიძე', phone: maskPhone('+995 568 23 45 67'), agency: 'Tbilisi Homes' },
-  { name: 'მარიამ ლომიძე', phone: maskPhone('+995 551 87 65 43'), agency: 'Adjarinvest' },
-  { name: 'ლუკა გელაშვილი', phone: maskPhone('+995 579 11 22 33'), agency: 'სივრცე პრემიუმ' },
+  { name: 'ნინო ბერიძე', phone: maskPhone('+995 500 333 111'), agency: 'სივრცე პრემიუმ' },
+  { name: 'გიორგი მამულაშვილი', phone: maskPhone('+995 500 333 111'), agency: 'სივრცე Real Estate' },
+  { name: 'ანა კვარაცხელია', phone: maskPhone('+995 500 333 111'), agency: 'სივრცე პრემიუმ' },
+  { name: 'დავით ჯაფარიძე', phone: maskPhone('+995 500 333 111'), agency: 'სივრცე თბილისი' },
+  { name: 'მარიამ ლომიძე', phone: maskPhone('+995 500 333 111'), agency: 'სივრცე ბათუმი' },
+  { name: 'ლუკა გელაშვილი', phone: maskPhone('+995 500 333 111'), agency: 'სივრცე პრემიუმ' },
 ]
 
 const TBILISI = { lat: 41.7151, lng: 44.8271 }

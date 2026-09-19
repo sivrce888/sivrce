@@ -30,10 +30,20 @@ export function DeveloperLogo({
   className = '',
 }: DeveloperLogoProps) {
   // ponytail: webp = real mirrored logo; svg = generated placeholder; initials last.
-  const [src, setSrc] = useState(logoUrl || `/images/developers/${slug}.webp`)
+  const fallback = logoUrl || `/images/developers/${slug}.webp`
+  const [src, setSrc] = useState(fallback)
   const [error, setError] = useState(false)
   const brand = SERVICE_BRAND.developers
   const displayName = typeof name === 'string' ? name : name.en || name.ka || slug
+
+  // Prop-change reset during render (React idiom) — no effect, no cascade.
+  const [lastKey, setLastKey] = useState(`${slug}|${logoUrl ?? ''}`)
+  const key = `${slug}|${logoUrl ?? ''}`
+  if (lastKey !== key) {
+    setLastKey(key)
+    setSrc(fallback)
+    setError(false)
+  }
 
   const sizeClasses = {
     sm: 'h-10 w-10 text-[14px]',
@@ -70,7 +80,11 @@ export function DeveloperLogo({
         sizes={pxSizes}
         className="object-contain p-1.5 transition-transform duration-300 group-hover:scale-105"
         onError={() => {
-          if (!logoUrl && src.endsWith('.webp')) {
+          if (logoUrl && src === logoUrl && logoUrl !== `/images/developers/${slug}.webp`) {
+            setSrc(`/images/developers/${slug}.webp`)
+            return
+          }
+          if (src.endsWith('.webp')) {
             setSrc(`/images/developers/${slug}.svg`)
             return
           }

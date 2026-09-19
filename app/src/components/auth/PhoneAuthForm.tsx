@@ -197,7 +197,7 @@ export function PhoneAuthForm({
               aria-label={s.phoneLabel}
               value={phone.replace(/^\+995\s?/, "")}
               onChange={(e) => setPhone(formatPhone(e.target.value))}
-              placeholder="555 12 34 56"
+              placeholder="500 333 111"
               className="min-w-0 flex-1 bg-transparent py-3.5 pr-4 text-[15px] font-semibold tabular-nums tracking-wide text-sv-ink outline-none placeholder:font-medium placeholder:tracking-normal placeholder:text-sv-ink/35"
             />
           </span>

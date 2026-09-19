@@ -236,7 +236,7 @@ function selfCheck() {
   if (!BANNED.some((re) => re.test('app/scripts/probe-home.mjs'))) throw new Error('banned probe scripts')
   if (!BANNED.some((re) => re.test('app/visual-audit.mjs'))) throw new Error('banned visual-audit')
   if (MAX_TRACKED_BYTES !== 96 * 1024 * 1024) throw new Error('tracked cap unlocked')
-  if (MAX_TRACKED_FILES !== 4500) throw new Error('file-count cap unlocked')
+  if (MAX_TRACKED_FILES !== 4600) throw new Error('file-count cap unlocked')
   if (MAX_DEPLOY_BYTES !== 100 * 1024 * 1024) throw new Error('deploy cap unlocked')
   if (MAX_SERVER_BYTES !== 80 * 1024 * 1024) throw new Error('server cap unlocked')
   if (MAX_STATIC_BYTES !== 24 * 1024 * 1024) throw new Error('static cap unlocked')

@@ -155,6 +155,7 @@ export const ru: Dict = {
   'map.zoomOut': 'Отдалить',
   'map.reset': 'Исходный вид',
   'map.locate': 'Рядом со мной',
+  'map.locateFail': 'Не удалось определить местоположение',
   'map.day': 'Дневной режим',
   'map.night': 'Ночной режим',
   'map.refresh': 'Обновить объявления',

@@ -428,6 +428,12 @@ export const PROJECT_GALLERIES: Record<string, string[]> = {
   
   
 
+  
+
+  
+
+  
+
   // ═══ WORLD PROJECTS — auto-generated ═══
   'alliance-residence-batumi': ['/images/projects/alliance-residence-batumi-g1.webp'],
   'abu-dhabi-al-reem': ['/images/projects/abu-dhabi-al-reem-g1.webp'],

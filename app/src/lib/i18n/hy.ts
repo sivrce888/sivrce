@@ -155,6 +155,7 @@ export const hy: Dict = {
   'map.zoomOut': 'Փոքրացնել',
   'map.reset': 'Սկզբնական տեսք',
   'map.locate': 'Իմ մոտ',
+  'map.locateFail': 'Չհաջողվեց որոշել ձեր դիրքը',
   'map.day': 'Ցերեկային ռեժիմ',
   'map.night': 'Գիշերային ռեժիմ',
   'map.refresh': 'Թարմացնել հայտարարությունները',

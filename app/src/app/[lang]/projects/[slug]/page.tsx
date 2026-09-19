@@ -351,7 +351,9 @@ export default async function ProjectPage({ params }: PageProps) {
           {/* ponytail: manual card/master srcset — global Image.unoptimized ships the 2560px master to phones */}
           { }
           <picture className="contents">
-            <source type="image/avif" media="(max-width: 800px)" srcSet={avifCardOf(project.img)} />
+            {avifCardOf(project.img) ? (
+              <source type="image/avif" media="(max-width: 800px)" srcSet={avifCardOf(project.img)} />
+            ) : null}
           <img
             src={project.img}
             srcSet={cardOf(project.img) ? `${cardOf(project.img)} 800w, ${project.img} 2560w` : undefined}

@@ -155,6 +155,7 @@ export const uk: Dict = {
   'map.zoomOut': 'Віддалити',
   'map.reset': 'Початковий вид',
   'map.locate': 'Поруч зі мною',
+  'map.locateFail': 'Не вдалося визначити місцеположення',
   'map.day': 'Денний режим',
   'map.night': 'Нічний режим',
   'map.refresh': 'Оновити оголошення',

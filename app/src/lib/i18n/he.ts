@@ -155,6 +155,7 @@ export const he: Dict = {
   'map.zoomOut': 'הקטן',
   'map.reset': 'איפוס תצוגה',
   'map.locate': 'לידי',
+  'map.locateFail': 'לא ניתן לאתר את מיקומך',
   'map.day': 'מצב יום',
   'map.night': 'מצב לילה',
   'map.refresh': 'רענון מודעות',

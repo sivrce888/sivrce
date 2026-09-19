@@ -30,6 +30,7 @@ import {
   PRICE_PILL_IDLE,
 } from '@/lib/map/price-pin'
 import { CATEGORY_BRAND, DEAL_BRAND, SERVICE_BRAND, STATUS_BRAND } from '@/lib/category-brand'
+import { formatMapPin, useCurrency } from '@/lib/currency'
 import {
   MAP_CENTER,
   MAP_MIN_ZOOM,
@@ -241,6 +242,42 @@ function pricePillFilter(hideId: string | null): FilterSpecification {
   ]
   if (hideId) base.push(['!=', ['get', 'id'], hideId])
   return ['all', ...base] as FilterSpecification
+}
+
+/** Unclustered-pin filter, optionally minus the floor-stack building. */
+function pinFilter(hideId: string | null): FilterSpecification {
+  return (hideId
+    ? ['all', ['!', ['has', 'point_count']], ['!=', ['get', 'id'], hideId]]
+    : ['!', ['has', 'point_count']]) as FilterSpecification
+}
+
+/**
+ * One writer for “hide the building whose floor stack is open”. Every overlay
+ * that draws a building needs the same exclusion, and a style swap resets all of
+ * them — three copies of this list is how the price pill and the active dot came
+ * back on top of an open floor stack after a theme toggle.
+ */
+function applyHideFilters(map: MlMap, hideId: string | null) {
+  const byId = massingHideFilter(hideId)
+  const pin = pinFilter(hideId)
+  const pill = pricePillFilter(hideId)
+  const specs: [string, FilterSpecification | null][] = [
+    [EXTRUDE_ID, byId],
+    [FILL_ID, byId],
+    [LABEL_ID, byId],
+    [DOT_ID, pin],
+    [DOT_ACTIVE_ID, pin],
+    [PRICE_ID, pill],
+    [PRICE_ACTIVE_ID, pill],
+  ]
+  for (const [layer, filter] of specs) {
+    if (!map.getLayer(layer)) continue
+    try {
+      map.setFilter(layer, filter)
+    } catch {
+      /* layer remount */
+    }
+  }
 }
 
 /** Massing paint — idle. Alpha lives in `color` (MapLibre 5 constant opacity). */
@@ -954,6 +991,7 @@ function Map3DInner({
   cityShell?: CityShell | null
 }) {
   const { t, lang } = useI18n()
+  const { currency, rate, eurRate } = useCurrency()
   const tRef = useRef(t)
   useEffect(() => {
     tRef.current = t
@@ -1150,7 +1188,11 @@ function Map3DInner({
     return () => {
       map.off('zoom', apply)
     }
-  }, [poiOn])
+    // `ready` is load-bearing, not cosmetic: the map is built in an async effect,
+    // so on first render mapRef is still null and this bails. Without the ready
+    // dep the zoom listener never bound until the user touched a POI chip, and
+    // POI_MIN_ZOOM gating was dead for the whole session.
+  }, [poiOn, ready])
 
   // ——— live transit: one debounced bbox fetch per viewport, lite-capped ———
   // ponytail: moveend + 400 ms debounce, in-flight abort, stale pins kept on failure.
@@ -1406,15 +1448,22 @@ function Map3DInner({
     () => filterBuildings(allBuildings, dealFilter, statusFilter, kindFilter),
     [allBuildings, dealFilter, statusFilter, kindFilter],
   )
+  // Pin money in the reader's own currency — the GeoJSON carries a baked string
+  // (no React context inside a MapLibre worker), so the formatter is injected and
+  // the FCs rebuild when the live FX rate lands. Same helper as /search pins.
+  const pinFmt = useCallback(
+    (gel: number) => formatMapPin(gel, currency, rate, eurRate, lang),
+    [currency, rate, eurRate, lang],
+  )
   // ponytail: FCs memoized once — shared by boot + every data push; re-toggling a
   // filter reuses the cached FC instead of rebuilding polygon geometry.
   const polyFc = useMemo(
-    () => buildingsToGeoJSON(visible, dealFilter),
-    [visible, dealFilter],
+    () => buildingsToGeoJSON(visible, dealFilter, pinFmt),
+    [visible, dealFilter, pinFmt],
   )
   const ptsFc = useMemo(
-    () => buildingsToPointsGeoJSON(visible, dealFilter),
-    [visible, dealFilter],
+    () => buildingsToPointsGeoJSON(visible, dealFilter, pinFmt),
+    [visible, dealFilter, pinFmt],
   )
   const matchListings = useMemo(() => {
     let n = 0
@@ -1603,12 +1652,7 @@ function Map3DInner({
       const src = mapRef.current.getSource(SOURCE_ID) as GeoJSONSource | undefined
       src?.setData(applyLiveFixes(polyFc, liveFixes))
       const showFloors = Boolean(selected && buildingShowsFloorStack(selected, floorStacksOn))
-      const hideId = showFloors && selected ? selected.id : null
-      const hide = massingHideFilter(hideId)
-      for (const layer of [EXTRUDE_ID, FILL_ID]) {
-        if (!mapRef.current.getLayer(layer)) continue
-        mapRef.current.setFilter(layer, hide)
-      }
+      applyHideFilters(mapRef.current, showFloors && selected ? selected.id : null)
     }
     const ric = window.requestIdleCallback?.(pushPolygons, { timeout: 400 })
     const tid = ric == null ? window.setTimeout(pushPolygons, 0) : 0
@@ -1629,40 +1673,7 @@ function Map3DInner({
       showFloors && selected ? floorsToGeoJSON(selected, dealFilter) : EMPTY_FLOORS,
     )
     if (!showFloors) popupRef.current?.remove()
-    const hideId = showFloors && selected ? selected.id : null
-    const hide = massingHideFilter(hideId)
-    for (const layer of [EXTRUDE_ID, FILL_ID]) {
-      if (!map.getLayer(layer)) continue
-      map.setFilter(layer, hide)
-    }
-    // Labels stay; only hide label for floor-stack building
-    if (map.getLayer(LABEL_ID)) {
-      map.setFilter(
-        LABEL_ID,
-        (hideId ? ['!=', ['get', 'id'], hideId] : null) as FilterSpecification | null,
-      )
-    }
-    if (map.getLayer(DOT_ID)) {
-      map.setFilter(
-        DOT_ID,
-        (hideId
-          ? ['all', ['!', ['has', 'point_count']], ['!=', ['get', 'id'], hideId]]
-          : ['!', ['has', 'point_count']]) as FilterSpecification,
-      )
-    }
-    if (map.getLayer(DOT_ACTIVE_ID)) {
-      map.setFilter(
-        DOT_ACTIVE_ID,
-        (hideId
-          ? ['all', ['!', ['has', 'point_count']], ['!=', ['get', 'id'], hideId]]
-          : ['!', ['has', 'point_count']]) as FilterSpecification,
-      )
-    }
-    if (map.getLayer(PRICE_ID) || map.getLayer(PRICE_ACTIVE_ID)) {
-      const priceHide = pricePillFilter(hideId)
-      if (map.getLayer(PRICE_ID)) map.setFilter(PRICE_ID, priceHide)
-      if (map.getLayer(PRICE_ACTIVE_ID)) map.setFilter(PRICE_ACTIVE_ID, priceHide)
-    }
+    applyHideFilters(map, showFloors && selected ? selected.id : null)
   }, [selected, dealFilter, ready, floorStacksOn])
 
   // Deep-link ?deal= ?kind= ?status=construction
@@ -1835,7 +1846,10 @@ function Map3DInner({
           TRANSIT_ICON_ID,
           TRANSIT_LABEL_LAYER_ID,
           NBH_LABEL_ID,
-          ICONIC_LAYER_ID,
+          // ICONIC_LAYER_ID is deliberately absent: it has a pointer cursor but no
+          // click handler, so blocking here made the Fernsehturm the one building
+          // on the map that answered a tap with nothing. Let it fall through to
+          // the OSM address/parcel popup below.
         ].filter((id) => map.getLayer(id))
         const hits = map.queryRenderedFeatures(e.point, { layers: liveLayers })
         if (hits.length > 0) return
@@ -2215,23 +2229,10 @@ function Map3DInner({
               ? floorsToGeoJSON(selectedRef.current, dealRef.current)
               : EMPTY_FLOORS,
           )
-          const hideId =
-            showFloors && selectedRef.current ? selectedRef.current.id : null
-          for (const layer of [EXTRUDE_ID, FILL_ID, LABEL_ID]) {
-            if (!map.getLayer(layer)) continue
-            map.setFilter(
-              layer,
-              (hideId ? ['!=', ['get', 'id'], hideId] : null) as FilterSpecification | null,
-            )
-          }
-          if (map.getLayer(DOT_ID)) {
-            map.setFilter(
-              DOT_ID,
-              (hideId
-                ? ['all', ['!', ['has', 'point_count']], ['!=', ['get', 'id'], hideId]]
-                : ['!', ['has', 'point_count']]) as FilterSpecification,
-            )
-          }
+          applyHideFilters(
+            map,
+            showFloors && selectedRef.current ? selectedRef.current.id : null,
+          )
           const dark = darkRef.current
           // District + building labels — Google night readable
           if (map.getLayer(NBH_LABEL_ID)) {
@@ -2554,8 +2555,10 @@ function Map3DInner({
   }, [themeReady])
 
   // IP city: first visit auto-flies; later visits get a chip if the camera is elsewhere.
+  // ?city= is an explicit request (country hub, directory link) — the server already
+  // booted the camera there, so IP has no say and neither does the chip.
   useEffect(() => {
-    if (!ready || deepLinked.current) return
+    if (!ready || deepLinked.current || searchParams.get('city')) return
     let cancelled = false
     ;(async () => {
       try {
@@ -2570,6 +2573,10 @@ function Map3DInner({
           writeSavedPlace({ slug: data.slug, lat: data.lat, lng: data.lng })
           const map = mapRef.current
           if (!map) return
+          // Re-check after the await: the deep-link effect waits for pinsLoaded, so
+          // on a first-ever visit to /map?building=… it lands *after* this fetch and
+          // this fly would otherwise yank the camera off the shared building.
+          if (deepLinked.current || Date.now() < flyLockRef.current) return
           const cam = mapBootCamera(view3dRef.current)
           map.easeTo({
             center: [data.lng, data.lat],
@@ -2649,7 +2656,13 @@ function Map3DInner({
   }
 
   const locateMe = () => {
-    if (!navigator.geolocation || locating) return
+    if (locating) return
+    // No geolocation (insecure context, locked-down browser) or a denied prompt
+    // both used to return silence — the button looked broken. Say what happened.
+    if (!navigator.geolocation) {
+      flashRefreshNote(tRef.current('map.locateFail'))
+      return
+    }
     setLocating(true)
     navigator.geolocation.getCurrentPosition(
       (pos) => {
@@ -2675,7 +2688,10 @@ function Map3DInner({
           d.setAttribute('tabindex', '-1')
         }
       },
-      () => setLocating(false),
+      () => {
+        setLocating(false)
+        flashRefreshNote(tRef.current('map.locateFail'))
+      },
       { enableHighAccuracy: true, timeout: 12_000, maximumAge: 60_000 },
     )
   }
@@ -2755,16 +2771,8 @@ function Map3DInner({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- styleUrlRef guard covers staleness
   }, [isDark, terrain, ready, themeReady])
 
-  const applyViewMode = useCallback((mode3d: boolean) => {
-    const map = mapRef.current
-    if (!map) return
-    const cam = mapBootCamera(mode3d)
-    map.easeTo({
-      pitch: cam.pitch,
-      bearing: cam.bearing,
-      ...(mode3d && map.getZoom() < cam.zoom ? { zoom: cam.zoom } : {}),
-      duration: camMs(550),
-    })
+  /** Layer side of 2D/3D — no camera move, so a manual pitch drag can reuse it. */
+  const paintViewMode = useCallback((map: MlMap, mode3d: boolean) => {
     muteBasemapExtrusions(map, KEEP_EXTRUDE)
     setBasemapBuildings3d(map, mode3d)
     if (map.getLayer(EXTRUDE_ID)) {
@@ -2780,6 +2788,22 @@ function Map3DInner({
     }
   }, [])
 
+  const applyViewMode = useCallback(
+    (mode3d: boolean) => {
+      const map = mapRef.current
+      if (!map) return
+      const cam = mapBootCamera(mode3d)
+      map.easeTo({
+        pitch: cam.pitch,
+        bearing: cam.bearing,
+        ...(mode3d && map.getZoom() < cam.zoom ? { zoom: cam.zoom } : {}),
+        duration: camMs(550),
+      })
+      paintViewMode(map, mode3d)
+    },
+    [paintViewMode],
+  )
+
   const toggleView3d = () => {
     setView3d((v) => {
       const next = !v
@@ -2788,6 +2812,28 @@ function Map3DInner({
       return next
     })
   }
+
+  // Two-finger / right-drag pitch is the other way into 3D (Google and Apple both
+  // treat it as one). Without this the segmented control lied — the map sat
+  // pitched while the toggle read 2D and listing massing stayed hidden.
+  // `originalEvent` is the user-gesture marker; programmatic easeTo has none, so
+  // toggleView3d's own flight can't feed itself back here.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready) return
+    const onPitch = (e: { originalEvent?: unknown }) => {
+      if (!e.originalEvent) return
+      const next = map.getPitch() > 10
+      if (next === view3dRef.current) return
+      view3dRef.current = next
+      setView3d(next)
+      paintViewMode(map, next)
+    }
+    map.on('pitchend', onPitch)
+    return () => {
+      map.off('pitchend', onPitch)
+    }
+  }, [ready, paintViewMode])
 
   const resetView = () => {
     const cam = mapBootCamera(view3dRef.current)
@@ -2928,7 +2974,9 @@ function Map3DInner({
                 <RotateCcw className="h-3.5 w-3.5" strokeWidth={2} />
               </button>
             </div>
-            {visible.length === 0 && ready && (
+            {/* pinsLoaded, not ready: the map paints before listings/footprints
+                land, so gating on `ready` flashed "no results" on every cold load. */}
+            {visible.length === 0 && pinsLoaded && (
               <p className={`px-1 text-[11px] font-bold ${isDark ? 'text-white/55' : 'text-sv-ink/60'}`}>
                 {t('search.emptyTitle')}
               </p>

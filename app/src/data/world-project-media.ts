@@ -94,6 +94,28 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
           }
       ]
   },
+  '30-park-place-nyc': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/New%20York%20City%20(New%20York%2C%20USA)%2C%20Central%20Park%20--%202012%20--%206725.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:New_York_City_(New_York,_USA),_Central_Park_--_2012_--_6725.jpg",
+              "author": "Dietmar Rabich",
+              "license": "CC BY-SA 4.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/New%20York%20City%20(New%20York%2C%20USA)%2C%20Central%20Park%20--%202012%20--%206731.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:New_York_City_(New_York,_USA),_Central_Park_--_2012_--_6731.jpg",
+              "author": "Dietmar Rabich",
+              "license": "CC BY-SA 4.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/New%20York%20City%20(New%20York%2C%20USA)%2C%20Central%20Park%20--%202012%20--%206732.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:New_York_City_(New_York,_USA),_Central_Park_--_2012_--_6732.jpg",
+              "author": "Dietmar Rabich",
+              "license": "CC BY-SA 4.0"
+          }
+      ]
+  },
   '432-park': {
       "images": [
           {
@@ -170,6 +192,28 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
           }
       ]
   },
+  'addis-civic-center': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Addis%20Ababa%20skyline.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Addis_Ababa_skyline.jpg",
+              "author": "Simfan34",
+              "license": "CC BY-SA 3.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Golden%20opportunities%20in%20Ethiopia%20(8757866414).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Golden_opportunities_in_Ethiopia_(8757866414).jpg",
+              "author": "DFID - UK Department for International Development",
+              "license": "CC BY 2.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Wanderer%20(210920691).jpeg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Wanderer_(210920691).jpeg",
+              "author": "Francisco Anzola",
+              "license": "CC BY 3.0"
+          }
+      ]
+  },
   'ain-dubai': {
       "images": [
           {
@@ -214,6 +258,16 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
           }
       ]
   },
+  'aldar-hq': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Al%20Dar%20Hq%20architecutal%20view.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Al_Dar_Hq_architecutal_view.jpg",
+              "author": "Asimuddinustad",
+              "license": "CC BY-SA 4.0"
+          }
+      ]
+  },
   'alexanderplatz-turm': {
       "images": [
           {
@@ -253,6 +307,49 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
               "url": "https://commons.wikimedia.org/wiki/Special:FilePath/%C2%AE%20S.D.%20VILAMOURA%20MARINA%20PLAYA%20-%20panoramio.jpg?width=1280",
               "page": "https://commons.wikimedia.org/wiki/File:%C2%AE_S.D._VILAMOURA_MARINA_PLAYA_-_panoramio.jpg",
               "author": "Concepcion AMAT ORTA…",
+              "license": "CC BY 3.0"
+          }
+      ]
+  },
+  'alliance-residence-batumi': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Residence%20of%20O.F.%20Fransue%2C%20Alliance%2C%20Ohio%20(12660229925).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Residence_of_O.F._Fransue,_Alliance,_Ohio_(12660229925).jpg",
+              "author": "Miami University Libraries - Digital Collections",
+              "license": "No restrictions"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Col.%20Morgan's%20Residence%2C%20Alliance%2C%20Ohio%20(12660023854).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Col._Morgan%27s_Residence,_Alliance,_Ohio_(12660023854).jpg",
+              "author": "Miami University Libraries - Digital Collections",
+              "license": "No restrictions"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Morgan%20Residence%2C%20Alliance%2C%20O.%20-%20DPLA%20-%20e102385bc2a5cb5659859d7f11226399%20(page%201).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Morgan_Residence,_Alliance,_O._-_DPLA_-_e102385bc2a5cb5659859d7f11226399_(page_1).jpg",
+              "license": "Public domain"
+          }
+      ]
+  },
+  'almaty-medeu': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Medeu-%201.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Medeu-_1.jpg",
+              "author": "User:Vmenkov",
+              "license": "CC BY-SA 4.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Medeu%20District%2C%20Almaty%2C%20Kazakhstan%20-%20panoramio%20(9).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Medeu_District,_Almaty,_Kazakhstan_-_panoramio_(9).jpg",
+              "author": "Anton Yefimov",
+              "license": "CC BY 3.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Medeu%20District%2C%20Almaty%2C%20Kazakhstan%20-%20panoramio%20(18).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Medeu_District,_Almaty,_Kazakhstan_-_panoramio_(18).jpg",
+              "author": "Anton Yefimov",
               "license": "CC BY 3.0"
           }
       ]
@@ -411,6 +508,38 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
           }
       ]
   },
+  'astana-exhibition': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/%D0%90%D1%81%D1%82%D0%B0%D0%BD%D0%B0%2C%20EXPO-2017%20%D1%81%D0%B2%D0%B5%D1%80%D1%85%D1%83.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:%D0%90%D1%81%D1%82%D0%B0%D0%BD%D0%B0,_EXPO-2017_%D1%81%D0%B2%D0%B5%D1%80%D1%85%D1%83.jpg",
+              "author": "Nikolai Bulykin",
+              "license": "CC BY-SA 4.0"
+          }
+      ]
+  },
+  'auckland-meadowbank': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Meadowbank%20Railway%20Station%201.JPG?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Meadowbank_Railway_Station_1.JPG",
+              "author": "J Bar",
+              "license": "CC BY 3.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Meadowbank%20Railway%20Station%202.JPG?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Meadowbank_Railway_Station_2.JPG",
+              "author": "J Bar",
+              "license": "CC BY 3.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Eastern%20Suburbs%20Railway%20Line%20Corridor.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Eastern_Suburbs_Railway_Line_Corridor.jpg",
+              "author": "Ingolfson",
+              "license": "Public domain"
+          }
+      ]
+  },
   'axis-towers': {
       "images": [
           {
@@ -482,6 +611,28 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
           {
               "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Azabudai%20Hills%2C%20opening%20day%2054.jpg?width=1280",
               "page": "https://commons.wikimedia.org/wiki/File:Azabudai_Hills,_opening_day_54.jpg",
+              "author": "Syced",
+              "license": "CC0"
+          }
+      ]
+  },
+  'azabudai-hills-residences': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Azabudai%20Hills%202.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Azabudai_Hills_2.jpg",
+              "author": "Syced",
+              "license": "CC0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/October%202024%2C%20construction%20of%20Azabudai%20Hills%20residence%20tower.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:October_2024,_construction_of_Azabudai_Hills_residence_tower.jpg",
+              "author": "Syced",
+              "license": "CC0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/October%202024%2C%20construction%20of%20Azabudai%20Hills%20residence%20tower%204.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:October_2024,_construction_of_Azabudai_Hills_residence_tower_4.jpg",
               "author": "Syced",
               "license": "CC0"
           }
@@ -633,6 +784,44 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
           }
       ]
   },
+  'bangkok-rama-9': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Khlong%20Saen%20Saep%20Express%20Boats%2C%20Pratu%20Nam%20Pier%2C%20Bangkok%2C%20Thailand%20(6906982250).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Khlong_Saen_Saep_Express_Boats,_Pratu_Nam_Pier,_Bangkok,_Thailand_(6906982250).jpg",
+              "author": "David McKelvey from Brisbane, Australia",
+              "license": "CC BY 2.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Chintawannakhadi%20(p%20539).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Chintawannakhadi_(p_539).jpg",
+              "author": "Hem Vejakorn",
+              "license": "Public domain"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Cabo%20De%20Rama%20Fort%20(6846784207).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Cabo_De_Rama_Fort_(6846784207).jpg",
+              "author": "Aleksandr Zykov from Russia",
+              "license": "CC BY-SA 2.0"
+          }
+      ]
+  },
+  'bangkok-sukhumvit': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Bangkok%20traffic%20jam.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Bangkok_traffic_jam.jpg",
+              "author": "User:Ahoerstemeier",
+              "license": "CC BY-SA 3.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Sukhumvit%20Line%20East%20Extension%20Station%20Sign.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Sukhumvit_Line_East_Extension_Station_Sign.jpg",
+              "author": "Matthewmayer",
+              "license": "CC BY-SA 4.0"
+          }
+      ]
+  },
   'barangaroo': {
       "images": [
           {
@@ -693,6 +882,28 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
           }
       ]
   },
+  'barcelona-sagrada-familia': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Central%20business%20district%20of%20Barcelona.JPG?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Central_business_district_of_Barcelona.JPG",
+              "author": "frank müller",
+              "license": "CC BY-SA 2.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Central%20business%20district%20of%20Barcelona%20(2).JPG?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Central_business_district_of_Barcelona_(2).JPG",
+              "author": "frank müller",
+              "license": "CC BY-SA 2.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Barcelona%20collage.JPG?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Barcelona_collage.JPG",
+              "author": "Frank Müller, User:Germanramos , Adrià García, User:Johannes Kern , User:Freepenguin",
+              "license": "CC BY-SA 3.0"
+          }
+      ]
+  },
   'battersea-power-station': {
       "images": [
           {
@@ -736,6 +947,28 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
           }
       ]
   },
+  'bel-towers-brussels': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/BEL%20Brussels%20Nord%20001%202016%20-%20Boulevard%20Roi%20Albert.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:BEL_Brussels_Nord_001_2016_-_Boulevard_Roi_Albert.jpg",
+              "author": "-wuppertaler",
+              "license": "CC BY-SA 4.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/BEL%20Brussels%20Nord%20003%202016%20-%20Boulevard%20Roi%20Albert.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:BEL_Brussels_Nord_003_2016_-_Boulevard_Roi_Albert.jpg",
+              "author": "-wuppertaler",
+              "license": "CC BY-SA 4.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/BEL%20Brussels%2C%20Place%20du%20Nord%20001.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:BEL_Brussels,_Place_du_Nord_001.jpg",
+              "author": "-wuppertaler",
+              "license": "CC BY 4.0"
+          }
+      ]
+  },
   'belgrade-waterfront': {
       "images": [
           {
@@ -755,6 +988,28 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
               "page": "https://commons.wikimedia.org/wiki/File:Belgrade_Waterfront_(%D0%91%D0%B5%D0%BE%D0%B3%D1%80%D0%B0%D0%B4_%D0%BD%D0%B0_%D0%B2%D0%BE%D0%B4%D0%B8).jpg",
               "author": "Petar Milošević",
               "license": "CC BY-SA 4.0"
+          }
+      ]
+  },
+  'berlin-tSX': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Berlin%20-%20Tempelhof%20Airport.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Berlin_-_Tempelhof_Airport.jpg",
+              "author": "Roger Wollstadt",
+              "license": "CC BY-SA 2.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Tempelhof%20Tempelhofer%20Feld%201914.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Tempelhof_Tempelhofer_Feld_1914.jpg",
+              "author": "Unknown author Unknown author",
+              "license": "Public domain"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Berlin%20Tempelhof%20Airport%20Runway%2009L%20-%20Tempelhofer%20Feld%20(15159356029).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Berlin_Tempelhof_Airport_Runway_09L_-_Tempelhofer_Feld_(15159356029).jpg",
+              "author": "Tony Webster from Portland, Oregon, United States",
+              "license": "CC BY 2.0"
           }
       ]
   },
@@ -798,6 +1053,28 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
               "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Easy%20Row%20Fletchers%20Walk.jpg?width=1280",
               "page": "https://commons.wikimedia.org/wiki/File:Easy_Row_Fletchers_Walk.jpg",
               "author": "Bs0u10e01",
+              "license": "CC BY-SA 4.0"
+          }
+      ]
+  },
+  'bluewaters-residences': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/360%20deg%20bluewater%20island.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:360_deg_bluewater_island.jpg",
+              "author": "Gopikrishnan9691",
+              "license": "CC BY-SA 4.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/The%20Ain%20Dubai.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:The_Ain_Dubai.jpg",
+              "author": "Roxy3115",
+              "license": "CC BY-SA 4.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Ain%20Dubai.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Ain_Dubai.jpg",
+              "author": "Priti.saksena",
               "license": "CC BY-SA 4.0"
           }
       ]
@@ -972,6 +1249,28 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
           }
       ]
   },
+  'bucharest-floreasca': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Bucharest%20collage%2002.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Bucharest_collage_02.jpg",
+              "author": "User:Jmabel User:Pudelek User:Stratoreaper fusion-of-horizons at Flickr User:Bogdan-caraman User:Mark Ahsmann User:Alexandru Ene Utilizator:",
+              "license": "CC BY-SA 3.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Bucharest%20Business%20District%20(cropped).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Bucharest_Business_District_(cropped).jpg",
+              "author": "Madalin Pentelie",
+              "license": "CC0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Bucharest%20Business%20District.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Bucharest_Business_District.jpg",
+              "author": "Madalin Pentelie",
+              "license": "CC0"
+          }
+      ]
+  },
   'budapest-metro-city': {
       "images": [
           {
@@ -1016,6 +1315,16 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
           }
       ]
   },
+  'bulgari-residences-jumeirah-bay': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Sunset%20view%20from%20bulgari%20resort%20dubai.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Sunset_view_from_bulgari_resort_dubai.jpg",
+              "author": "Ahsan Younas",
+              "license": "CC BY-SA 4.0"
+          }
+      ]
+  },
   'burj-khalifa': {
       "images": [
           {
@@ -1035,6 +1344,28 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
               "page": "https://commons.wikimedia.org/wiki/File:Lightning-BurjKhalifa.jpg",
               "author": "Riazmusthafa",
               "license": "CC BY-SA 4.0"
+          }
+      ]
+  },
+  'bursa-mudanya': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Mutareke%20binas%C4%B1-Mudanya-Bursa%20-%20panoramio.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Mutareke_binas%C4%B1-Mudanya-Bursa_-_panoramio.jpg",
+              "author": "HALUK COMERTEL",
+              "license": "CC BY 3.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Restore%20edilmi%C5%9F%20Mudanya%20evleri-Bursa%20-%20panoramio.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Restore_edilmi%C5%9F_Mudanya_evleri-Bursa_-_panoramio.jpg",
+              "author": "HALUK COMERTEL",
+              "license": "CC BY 3.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Y%C4%B1ld%C4%B1ztepe-Mudanya-Bursa%20-%20panoramio.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Y%C4%B1ld%C4%B1ztepe-Mudanya-Bursa_-_panoramio.jpg",
+              "author": "HALUK COMERTEL",
+              "license": "CC BY 3.0"
           }
       ]
   },
@@ -1077,6 +1408,28 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
               "page": "https://commons.wikimedia.org/wiki/File:Canc%C3%BAn_Hotel_Zone,_Mexico.jpg",
               "author": "CivArmy",
               "license": "CC BY-SA 4.0"
+          }
+      ]
+  },
+  'canninghill-piers': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Disused%20pier%20-%20geograph.org.uk%20-%20179099.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Disused_pier_-_geograph.org.uk_-_179099.jpg",
+              "author": "Alan Stewart",
+              "license": "CC BY-SA 2.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Lamont's%20Pier%20and%20Dumbarton%20Rock%20-%20geograph.org.uk%20-%201166984.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Lamont%27s_Pier_and_Dumbarton_Rock_-_geograph.org.uk_-_1166984.jpg",
+              "author": "Thomas Nugent",
+              "license": "CC BY-SA 2.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Old%20Gate%20Piers%20To%20East%20Of%20Gloster%20Hill%20Farmhouse.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Old_Gate_Piers_To_East_Of_Gloster_Hill_Farmhouse.jpg",
+              "author": "Simon Cobb",
+              "license": "CC0"
           }
       ]
   },
@@ -1168,6 +1521,50 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
           }
       ]
   },
+  'casablanca-anfa': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/White%20House%20lawn.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:White_House_lawn.jpg",
+              "author": "Daniel Schwen",
+              "license": "CC BY-SA 3.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Latrobe%20White%20House%20cropa2.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Latrobe_White_House_cropa2.jpg",
+              "author": "Benjamin Henry Latrobe",
+              "license": "Public domain"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Casablanca%20-%20Morocco%20008.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Casablanca_-_Morocco_008.jpg",
+              "author": "Karimobo",
+              "license": "Public domain"
+          }
+      ]
+  },
+  'casablanca-marina': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Casablanca%20-%20Morocco%20008.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Casablanca_-_Morocco_008.jpg",
+              "author": "Karimobo",
+              "license": "Public domain"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Grande%20marina%20casablanca%20en%20construction%20image%202.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Grande_marina_casablanca_en_construction_image_2.jpg",
+              "author": "Farid mernissi",
+              "license": "CC BY-SA 4.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Grande%20marina%20casablanca%20en%20construction%20image%201.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Grande_marina_casablanca_en_construction_image_1.jpg",
+              "author": "Farid mernissi",
+              "license": "CC BY-SA 4.0"
+          }
+      ]
+  },
   'casablanca-porte': {
       "images": [
           {
@@ -1212,6 +1609,22 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
           }
       ]
   },
+  'central-park-boulevard-port-city': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Grand%20Central%20Pkwy%20td%20(2022-01-14)%20019%20-%20LIRR%20Port%20Washington%20Line.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Grand_Central_Pkwy_td_(2022-01-14)_019_-_LIRR_Port_Washington_Line.jpg",
+              "author": "Tdorante10",
+              "license": "CC BY-SA 4.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Grand%20Central%20Pkwy%20td%20(2022-01-14)%20020%20-%20Olmsted%20Center.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Grand_Central_Pkwy_td_(2022-01-14)_020_-_Olmsted_Center.jpg",
+              "author": "Tdorante10",
+              "license": "CC BY-SA 4.0"
+          }
+      ]
+  },
   'central-park-tower': {
       "images": [
           {
@@ -1253,6 +1666,38 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
               "page": "https://commons.wikimedia.org/wiki/File:Central_Park_Tower_September_2024_008.jpg",
               "author": "Kidfly182",
               "license": "CC BY 4.0"
+          }
+      ]
+  },
+  'chengdu-tianfu': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Entrance%20of%20Huanglongxi%20Ancient%20Town%2C%20Tianfu%20New%20Area%20of%20Chengdu%2C%20Sichuan%2C%20China.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Entrance_of_Huanglongxi_Ancient_Town,_Tianfu_New_Area_of_Chengdu,_Sichuan,_China.jpg",
+              "author": "Huangdan2060",
+              "license": "CC0"
+          }
+      ]
+  },
+  'chicago-lakeshore-east-2': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Chicago%20as%20seen%20from%20a%20commercial%20flight%2007.JPG?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Chicago_as_seen_from_a_commercial_flight_07.JPG",
+              "author": "User:Piotrus",
+              "license": "CC BY-SA 3.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/20080602%20Lurie%20Garden%20north%20shoulder%20hedge%20armature.JPG?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:20080602_Lurie_Garden_north_shoulder_hedge_armature.JPG",
+              "author": "TonyTheTiger ( t / c / bio / WP:CHICAGO / WP:LOTM )",
+              "license": "CC BY-SA 3.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Noch%20mehr%20Wolkenkratzer%20(326299068).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Noch_mehr_Wolkenkratzer_(326299068).jpg",
+              "author": "Claus-Peter Fröhlich from Berlin, Germany",
+              "license": "CC BY-SA 2.0"
           }
       ]
   },
@@ -1437,6 +1882,28 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
               "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Las%20cuatro%20torres%20de%20Madrid%2004.jpg?width=1280",
               "page": "https://commons.wikimedia.org/wiki/File:Las_cuatro_torres_de_Madrid_04.jpg",
               "author": "Emilio J. Rodríguez Posada",
+              "license": "CC BY-SA 4.0"
+          }
+      ]
+  },
+  'curitiba-batel': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Sede%20da%20Copel%20Curitiba%20Paran%C3%A1%20Brasil%2031%2001%202015%20(3).JPG?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Sede_da_Copel_Curitiba_Paran%C3%A1_Brasil_31_01_2015_(3).JPG",
+              "author": "DAR7 e Eloy Olindo Setti",
+              "license": "CC BY-SA 4.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Primeira%20Igreja%20Batista%20Curitiba%202011%20Nokia%20N8%20-%20panoramio.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Primeira_Igreja_Batista_Curitiba_2011_Nokia_N8_-_panoramio.jpg",
+              "author": "Marcelino Souza",
+              "license": "CC BY 3.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Cineplex%20Novo%20Batel%20-%201.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Cineplex_Novo_Batel_-_1.jpg",
+              "author": "Ajmcbarreto",
               "license": "CC BY-SA 4.0"
           }
       ]
@@ -1703,6 +2170,28 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
           }
       ]
   },
+  'durban-point': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Spinnaker%20Tower.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Spinnaker_Tower.jpg",
+              "author": "David Blaikie from Hampshire, UK",
+              "license": "CC BY 2.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Spinnaker%20Tower%20and%20harbour.JPG?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Spinnaker_Tower_and_harbour.JPG",
+              "author": "Ballista at en.wikipedia",
+              "license": "CC BY-SA 3.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/First%20floor%20of%20the%20Spinnaker%20Tower.JPG?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:First_floor_of_the_Spinnaker_Tower.JPG",
+              "author": "Facial expression",
+              "license": "CC BY-SA 3.0"
+          }
+      ]
+  },
   'eko-atlantic': {
       "images": [
           {
@@ -1791,6 +2280,16 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
           }
       ]
   },
+  'ellington-beach-house': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/The%20city%20and%20county%20of%20Los%20Angeles%20in%20southern%20California%20(1903)%20(14763680975).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:The_city_and_county_of_Los_Angeles_in_southern_California_(1903)_(14763680975).jpg",
+              "author": "Internet Archive Book Images",
+              "license": "No restrictions"
+          }
+      ]
+  },
   'ellinikon': {
       "images": [
           {
@@ -1875,6 +2374,28 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
               "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Tour%20TotalEnergies%20Berlin%20Norseite%2001.jpg?width=1280",
               "page": "https://commons.wikimedia.org/wiki/File:Tour_TotalEnergies_Berlin_Norseite_01.jpg",
               "author": "Mukeber",
+              "license": "CC0"
+          }
+      ]
+  },
+  'faria-lima': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Avenida%20Brigadeiro%20Faria%20Lima%201995.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Avenida_Brigadeiro_Faria_Lima_1995.jpg",
+              "author": "Alexandre Giesbrecht",
+              "license": "CC BY 3.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Condom%C3%ADnio%20Faria%20Lima%20Building%20in%20Feria%20Lima%20Avenue.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Condom%C3%ADnio_Faria_Lima_Building_in_Feria_Lima_Avenue.jpg",
+              "author": "Wilfredor",
+              "license": "CC0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Avenida%20Faria%20Lima%2C%20S%C3%A3o%20Paulo%20(03).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Avenida_Faria_Lima,_S%C3%A3o_Paulo_(03).jpg",
+              "author": "Wilfredor",
               "license": "CC0"
           }
       ]
@@ -2007,6 +2528,50 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
               "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Istanbul%20Museum%20of%20Painting%20and%20Sculpture%201.jpg?width=1280",
               "page": "https://commons.wikimedia.org/wiki/File:Istanbul_Museum_of_Painting_and_Sculpture_1.jpg",
               "author": "Antoloji",
+              "license": "CC BY-SA 4.0"
+          }
+      ]
+  },
+  'gangnam-peak': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Korea-Seoul-Gangnam-01.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Korea-Seoul-Gangnam-01.jpg",
+              "author": "by Pachinee Buathong",
+              "license": "CC BY-SA 2.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/The%20event%20stage%20at%20Gangnam%20Square%20in%20Gangnam-gu%2C%20Seoul%20on%20the%20afternoon%20of%20June%2020%2C%202021%20(1).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:The_event_stage_at_Gangnam_Square_in_Gangnam-gu,_Seoul_on_the_afternoon_of_June_20,_2021_(1).jpg",
+              "author": "고려",
+              "license": "CC BY 4.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/The%20event%20stage%20at%20Gangnam%20Square%20in%20Gangnam-gu%2C%20Seoul%20on%20the%20afternoon%20of%20June%2020%2C%202021%20(2).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:The_event_stage_at_Gangnam_Square_in_Gangnam-gu,_Seoul_on_the_afternoon_of_June_20,_2021_(2).jpg",
+              "author": "고려",
+              "license": "CC BY 4.0"
+          }
+      ]
+  },
+  'gdansk-motlawa': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Gdansk%202023%2004.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Gdansk_2023_04.jpg",
+              "author": "Scotch Mist",
+              "license": "CC BY-SA 4.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/02024%200122%20Motlawa%20River%20Embankment.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:02024_0122_Motlawa_River_Embankment.jpg",
+              "author": "Silar",
+              "license": "CC BY-SA 4.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/02024%200040%20Motlawa%20River%20Embankment.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:02024_0040_Motlawa_River_Embankment.jpg",
+              "author": "Silar",
               "license": "CC BY-SA 4.0"
           }
       ]
@@ -2294,6 +2859,16 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
           }
       ]
   },
+  'hanoi-metro-center': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Chu%20Ngoc%20Anh%2C%20Chairman%20of%20the%20Hanoi%20People's%20Committee%2C%20with%20the%20microphone%2C%20Frans%20Timmermans%2C%20next%20to%20him%2C%20and%20at%20Hanoi%20Metro%20Line%203%20in%20Hanoi%2C%20Vietnam.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Chu_Ngoc_Anh,_Chairman_of_the_Hanoi_People%27s_Committee,_with_the_microphone,_Frans_Timmermans,_next_to_him,_and_at_Hanoi_Metro_Line_3_in_Hanoi,_Vietnam.jpg",
+              "author": "Photographer: Linh Pham",
+              "license": "CC BY 4.0"
+          }
+      ]
+  },
   'hanoi-west-lake': {
       "images": [
           {
@@ -2307,6 +2882,50 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
               "page": "https://commons.wikimedia.org/wiki/File:Hoa_dao_Nhat_Tan.JPG",
               "author": "Viethavvh at vi.wikipedia",
               "license": "Public domain"
+          }
+      ]
+  },
+  'hcmc-thao-dien': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/NewOne%20-%20Yellow%20VinFast%20VF%203%20at%20Green%20Future%20Show%20001.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:NewOne_-_Yellow_VinFast_VF_3_at_Green_Future_Show_001.jpg",
+              "author": "Newone",
+              "license": "CC BY-SA 4.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/NewOne%20-%20Yellow%20VinFast%20VF%203%20at%20Green%20Future%20Show%20005.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:NewOne_-_Yellow_VinFast_VF_3_at_Green_Future_Show_005.jpg",
+              "author": "Newone",
+              "license": "CC BY-SA 4.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/NewOne%20-%20Yellow%20VinFast%20VF%203%20at%20Green%20Future%20Show%20007.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:NewOne_-_Yellow_VinFast_VF_3_at_Green_Future_Show_007.jpg",
+              "author": "Newone",
+              "license": "CC BY-SA 4.0"
+          }
+      ]
+  },
+  'high-top-icc-west': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/International%20Commerce%20Centre%20200911.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:International_Commerce_Centre_200911.jpg",
+              "author": "Baycrest",
+              "license": "CC BY-SA 2.5"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/International%20Commerce%20Centre%20201006.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:International_Commerce_Centre_201006.jpg",
+              "author": "WiNG",
+              "license": "CC BY-SA 3.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/International%20Commerce%20Centre%20on%20Victoria%20Harbour.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:International_Commerce_Centre_on_Victoria_Harbour.jpg",
+              "author": "Wilfredor",
+              "license": "CC0"
           }
       ]
   },
@@ -2386,6 +3005,38 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
           }
       ]
   },
+  'istanbul-metro': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Metro%20Istanbul%20Network%20Development%202012.png?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Metro_Istanbul_Network_Development_2012.png",
+              "author": "R1410",
+              "license": "CC BY-SA 3.0"
+          }
+      ]
+  },
+  'jaber-al-ahmad-residential-city': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Jabir%20al-Ahmad%20al-Jabir%20Al%20Sabah%201998.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Jabir_al-Ahmad_al-Jabir_Al_Sabah_1998.jpg",
+              "author": "Helene C. Stikkel",
+              "license": "Public domain"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Jabir%20al-Ahmad%20al-Jabir%20Al%20Sabah%201998%20(cropped).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Jabir_al-Ahmad_al-Jabir_Al_Sabah_1998_(cropped).jpg",
+              "author": "Helene C. Stikkel",
+              "license": "Public domain"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/United%20States%20Secretary%20of%20Defense%20Lloyd%20Austin%20greets%20Salem%20Abdullah%20Al-Jaber%20Al-Sabah%20(left)%20and%20Ahmed%20Al-Fahad%20Al-Ahmed%20Al-Sabah%20in%20Kuwait%20City%20on%20December%2017%2C%202023.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:United_States_Secretary_of_Defense_Lloyd_Austin_greets_Salem_Abdullah_Al-Jaber_Al-Sabah_(left)_and_Ahmed_Al-Fahad_Al-Ahmed_Al-Sabah_in_Kuwait_City_on_December_17,_2023.jpg",
+              "author": "U.S. Secretary of Defense",
+              "license": "CC BY 2.0"
+          }
+      ]
+  },
   'jakarta-mega-kuningan': {
       "images": [
           {
@@ -2427,6 +3078,28 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
               "page": "https://commons.wikimedia.org/wiki/File:J%C3%A4tk%C3%A4saari_-_N1013_-_hkm.HKMS000005-km0030dj.jpg",
               "author": "Eric Sundström",
               "license": "CC BY 4.0"
+          }
+      ]
+  },
+  'jeddah-bab': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Bab%20makkah.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Bab_makkah.jpg",
+              "author": "Yousefmadari at Malayalam Wikipedia",
+              "license": "Public domain"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Bab%20Makkah%2C%20Old%20Jeddah%202.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Bab_Makkah,_Old_Jeddah_2.jpg",
+              "author": "Tahir mq",
+              "license": "CC BY-SA 4.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Bab%20Jadid%2C%20Jeddah%203.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Bab_Jadid,_Jeddah_3.jpg",
+              "author": "Tahir mq",
+              "license": "CC BY-SA 4.0"
           }
       ]
   },
@@ -2496,6 +3169,16 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
           }
       ]
   },
+  'kampala-marina': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Kampala%20sky.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Kampala_sky.jpg",
+              "author": "Marina Gutiérrez Cordero",
+              "license": "CC BY-SA 4.0"
+          }
+      ]
+  },
   'kanyon-levent': {
       "images": [
           {
@@ -2515,6 +3198,70 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
               "page": "https://commons.wikimedia.org/wiki/File:Roca_de_la_Ley,_Parque_Nacional_de_%C3%9Eingvellir,_Su%C3%B0urland,_Islandia,_2014-08-16,_DD_022.JPG",
               "author": "Diego Delso",
               "license": "CC BY-SA 4.0"
+          }
+      ]
+  },
+  'katowice-spodek': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Katowice%20-%20Spodek%20by%20night.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Katowice_-_Spodek_by_night.jpg",
+              "author": "Lestat (Jan Mehlich)",
+              "license": "CC BY-SA 3.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Katowice%20-%20Ma%C5%82a%20hala%20Spodka%2001.JPG?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Katowice_-_Ma%C5%82a_hala_Spodka_01.JPG",
+              "author": "Lestat (Jan Mehlich)",
+              "license": "CC BY-SA 3.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/At%20Katowice%202024%20426.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:At_Katowice_2024_426.jpg",
+              "author": "Photograph by Mike Peel ( www.mikepeel.net ).",
+              "license": "CC BY-SA 4.0"
+          }
+      ]
+  },
+  'kigali-city-center': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Kigali%2C%20Rwanda%202.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Kigali,_Rwanda_2.jpg",
+              "license": "Public domain"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Flowers%20with%20City%20in%20Distance%20-%20From%20Genocide%20Memorial%20Center%20-%20Kigali%20-%20Rwanda.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Flowers_with_City_in_Distance_-_From_Genocide_Memorial_Center_-_Kigali_-_Rwanda.jpg",
+              "author": "Adam Jones, Ph.D.",
+              "license": "CC BY-SA 3.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/The%20heavy%20rain%20is%20coming%20-%20Kigali.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:The_heavy_rain_is_coming_-_Kigali.jpg",
+              "author": "Ivan Mucyo",
+              "license": "CC BY-SA 4.0"
+          }
+      ]
+  },
+  'king-david-residences': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Historical%20weapons%20at%20Georgian%20museum%2C%20Tbilisi.%20c.%201913.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Historical_weapons_at_Georgian_museum,_Tbilisi._c._1913.jpg",
+              "author": "Unknown author Unknown author",
+              "license": "Public domain"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Tbilisi%20Circus.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Tbilisi_Circus.jpg",
+              "author": "Ekkatterrinna",
+              "license": "CC BY-SA 4.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Bodleian%20Libraries%2C%20Life%20of%20David%2C%20King%20of%20Israel.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Bodleian_Libraries,_Life_of_David,_King_of_Israel.jpg",
+              "license": "Public domain"
           }
       ]
   },
@@ -2562,6 +3309,28 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
           }
       ]
   },
+  'koeln-medienpark': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/2017-11-03%20MP%20Medienparks%20NRW-4224.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:2017-11-03_MP_Medienparks_NRW-4224.jpg",
+              "author": "Olaf Kosinsky",
+              "license": "CC BY-SA 3.0 de"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/2017-11-03%20MP%20Medienparks%20NRW-4225.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:2017-11-03_MP_Medienparks_NRW-4225.jpg",
+              "author": "Olaf Kosinsky",
+              "license": "CC BY-SA 3.0 de"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/2017-11-03%20MP%20Medienparks%20NRW-4226.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:2017-11-03_MP_Medienparks_NRW-4226.jpg",
+              "author": "Olaf Kosinsky",
+              "license": "CC BY-SA 3.0 de"
+          }
+      ]
+  },
   'konza-technopolis': {
       "images": [
           {
@@ -2569,6 +3338,59 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
               "page": "https://commons.wikimedia.org/wiki/File:Nivi_Sharma.jpg",
               "author": "UN Trade and Development (UNCTAD)",
               "license": "CC BY-SA 2.0"
+          }
+      ]
+  },
+  'kota-tua-revival': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Jakarta%20Indonesia%20Hawkers-in-Kota-Jakarta-01.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Jakarta_Indonesia_Hawkers-in-Kota-Jakarta-01.jpg",
+              "author": "CEphoto, Uwe Aranas",
+              "license": "CC BY-SA 3.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Jakarta%20Indonesia%20Abandoned-motor-rickshaws-in-Kota-Jakarta-01.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Jakarta_Indonesia_Abandoned-motor-rickshaws-in-Kota-Jakarta-01.jpg",
+              "author": "CEphoto, Uwe Aranas",
+              "license": "CC BY-SA 3.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Jakarta%20Indonesia%20People-in-Kota-Jakarta-01.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Jakarta_Indonesia_People-in-Kota-Jakarta-01.jpg",
+              "author": "CEphoto, Uwe Aranas",
+              "license": "CC BY-SA 3.0"
+          }
+      ]
+  },
+  'kowloon-east': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Hong%20Kong%20from%20Space.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Hong_Kong_from_Space.jpg",
+              "license": "Public domain"
+          }
+      ]
+  },
+  'krakow-nowa-huta': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Nowa%20Huta%20-%20Plac%20Centralny%20z%20lotu%20ptaka.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Nowa_Huta_-_Plac_Centralny_z_lotu_ptaka.jpg",
+              "author": "Piotr Tomaszewski-Guillon / dronographyapplied.com",
+              "license": "CC BY-SA 4.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Edwarda%20Rydza-%C5%9Amig%C5%82ego%20Street%2C%20view%20to%20W%2C%20Nowa%20Huta%2C%20Krak%C3%B3w%2C%20Poland.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Edwarda_Rydza-%C5%9Amig%C5%82ego_Street,_view_to_W,_Nowa_Huta,_Krak%C3%B3w,_Poland.jpg",
+              "author": "Igor123121",
+              "license": "CC BY-SA 4.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Nowa%20Huta%20Lake%2C%20walking%20path%2C%20Bulwarowa%20street%2C%20Nowa%20Huta%2C%20Krak%C3%B3w%2C%20Poland.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Nowa_Huta_Lake,_walking_path,_Bulwarowa_street,_Nowa_Huta,_Krak%C3%B3w,_Poland.jpg",
+              "author": "Igor123121",
+              "license": "CC BY-SA 4.0"
           }
       ]
   },
@@ -2591,6 +3413,50 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
               "page": "https://commons.wikimedia.org/wiki/File:ThyssenKrupp_Quartier_Essen_05.jpg",
               "author": "Arnoldius",
               "license": "CC BY-SA 3.0"
+          }
+      ]
+  },
+  'kuala-lumpur-trx-2': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Apple%20The%20Exchange%20TRX%2C%20Exterior%20Night%20View.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Apple_The_Exchange_TRX,_Exterior_Night_View.jpg",
+              "author": "LegendaryLim",
+              "license": "CC0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Apple%20Store%2C%20Kuala%20Lumpur%20at%20night%20(240721)%2001.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Apple_Store,_Kuala_Lumpur_at_night_(240721)_01.jpg",
+              "author": "*angys*",
+              "license": "CC BY-SA 4.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/TRX%20at%20night%20(240721).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:TRX_at_night_(240721).jpg",
+              "author": "*angys*",
+              "license": "CC BY-SA 4.0"
+          }
+      ]
+  },
+  'l-archipel-paris-la-defense': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/L'%20Archipel%2C%20la%20Grece%2C%20la%20Mor%C3%A9e%20et%20partie%20de%20la%20Natolie%20-%20btv1b53214055r%20(1%20of%202).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:L%27_Archipel,_la_Grece,_la_Mor%C3%A9e_et_partie_de_la_Natolie_-_btv1b53214055r_(1_of_2).jpg",
+              "author": "Le Rouge, Georges-Louis (1712-179.). Auteur du texte",
+              "license": "Public domain"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/L'%20Archipel%2C%20la%20Grece%2C%20la%20Mor%C3%A9e%20et%20partie%20de%20la%20Natolie%20-%20btv1b53214055r%20(2%20of%202).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:L%27_Archipel,_la_Grece,_la_Mor%C3%A9e_et_partie_de_la_Natolie_-_btv1b53214055r_(2_of_2).jpg",
+              "author": "Le Rouge, Georges-Louis (1712-179.). Auteur du texte",
+              "license": "Public domain"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Les%20Jardins%20de%20l-Archipel%20-%2003.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Les_Jardins_de_l-Archipel_-_03.jpg",
+              "author": "Jeangagnon",
+              "license": "CC BY-SA 4.0"
           }
       ]
   },
@@ -2634,6 +3500,28 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
               "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Los%20Angeles%20(California%2C%20USA)%2C%20South%20Olive%20Street%20--%202012%20--%208.jpg?width=1280",
               "page": "https://commons.wikimedia.org/wiki/File:Los_Angeles_(California,_USA),_South_Olive_Street_--_2012_--_8.jpg",
               "author": "Dietmar Rabich",
+              "license": "CC BY-SA 4.0"
+          }
+      ]
+  },
+  'lagos-riverside': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Atican.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Atican.jpg",
+              "author": "Burjharry",
+              "license": "CC BY-SA 4.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/OGUN%20RIVER%20ABEOKUTA%20OGUN%20STATE.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:OGUN_RIVER_ABEOKUTA_OGUN_STATE.jpg",
+              "author": "Smilesnmore Digital Photography",
+              "license": "CC BY-SA 4.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Third%20Mainland%20Bridge%2C%20Seaside.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Third_Mainland_Bridge,_Seaside.jpg",
+              "author": "Comradeayobami",
               "license": "CC BY-SA 4.0"
           }
       ]
@@ -2682,6 +3570,28 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
           }
       ]
   },
+  'larnaca-marina-redevelopment': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Afternoon%20picture%20of%20Larnaca%20Marina%20-%20panoramio.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Afternoon_picture_of_Larnaca_Marina_-_panoramio.jpg",
+              "author": "Georgy Papantoniou",
+              "license": "CC BY 3.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/New%20church%20of%20Agia%20Marina%20(Pyrga%2C%20Larnaca).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:New_church_of_Agia_Marina_(Pyrga,_Larnaca).jpg",
+              "author": "Chris06",
+              "license": "CC BY-SA 4.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/A%40a.%20Larnaca%20%22marina%22%20-%20panoramio.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:A@a._Larnaca_%22marina%22_-_panoramio.jpg",
+              "author": "An. Antoniou",
+              "license": "CC BY-SA 3.0"
+          }
+      ]
+  },
   'leipzig-city-tunnel': {
       "images": [
           {
@@ -2704,6 +3614,28 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
           }
       ]
   },
+  'leopoldquartier': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Leopold%20Museum%20(Vienna).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Leopold_Museum_(Vienna).jpg",
+              "author": "Manfreeed",
+              "license": "CC BY-SA 3.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Museumsquartier%20Wien%2C%20Vorweihnachtsstimmung%202014%20HDR%20-%205575.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Museumsquartier_Wien,_Vorweihnachtsstimmung_2014_HDR_-_5575.jpg",
+              "author": "Hubertl",
+              "license": "CC BY-SA 4.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Leopold%20Museum%2C%20Vienna%2C%20September%202018%20(01).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Leopold_Museum,_Vienna,_September_2018_(01).jpg",
+              "author": "Ardfern",
+              "license": "CC BY-SA 4.0"
+          }
+      ]
+  },
   'liget-budapest': {
       "images": [
           {
@@ -2723,6 +3655,50 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
               "page": "https://commons.wikimedia.org/wiki/File:Europaw%C3%A4ldchen,_Lettland_und_Ungarn_2021,_2022_Budapest.jpg",
               "author": "Globetrotter19",
               "license": "CC BY-SA 3.0"
+          }
+      ]
+  },
+  'lima-miraflores-2': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Municipalidad%20miraflores.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Municipalidad_miraflores.jpg",
+              "author": "Martin Garcia from Lima, Peru",
+              "license": "CC BY 2.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Peru%20-%20Lima%20184%20-%20Huaca%20Pucllana%20(6926675266).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Peru_-_Lima_184_-_Huaca_Pucllana_(6926675266).jpg",
+              "author": "McKay Savage from London, UK",
+              "license": "CC BY 2.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Peru%20-%20Lima%20011%20-%20Iglesia%20Virgen%20de%20Fatima%20church%20(6999153615).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Peru_-_Lima_011_-_Iglesia_Virgen_de_Fatima_church_(6999153615).jpg",
+              "author": "McKay Savage from London, UK",
+              "license": "CC BY 2.0"
+          }
+      ]
+  },
+  'lisbon-beato': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/2022%20-%20Night%20Summit%20%40%20Hub%20Criativo%20do%20Beato%20EN6%207794%20(52471079439).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:2022_-_Night_Summit_@_Hub_Criativo_do_Beato_EN6_7794_(52471079439).jpg",
+              "author": "Web Summit",
+              "license": "CC BY 2.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/2022%20-%20Night%20Summit%20%40%20Hub%20Criativo%20do%20Beato%20PO2%203861%20(52471760586).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:2022_-_Night_Summit_@_Hub_Criativo_do_Beato_PO2_3861_(52471760586).jpg",
+              "author": "Web Summit",
+              "license": "CC BY 2.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/2022%20-%20Night%20Summit%20%40%20Hub%20Criativo%20do%20Beato%20PO1%204139%20(52471263212).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:2022_-_Night_Summit_@_Hub_Criativo_do_Beato_PO1_4139_(52471263212).jpg",
+              "author": "Web Summit",
+              "license": "CC BY 2.0"
           }
       ]
   },
@@ -2767,6 +3743,28 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
               "page": "https://commons.wikimedia.org/wiki/File:World_One_6.jpg",
               "author": "Smokingsingh",
               "license": "CC BY-SA 3.0"
+          }
+      ]
+  },
+  'london-canary-wharf-2': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Lynn%20Chadwick%201984%20Cabot%20Square%2001.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Lynn_Chadwick_1984_Cabot_Square_01.jpg",
+              "author": "Felix O",
+              "license": "CC BY-SA 2.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Lynn%20Chadwick%20Cabot%20Square%2002.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Lynn_Chadwick_Cabot_Square_02.jpg",
+              "author": "Felix O",
+              "license": "CC BY-SA 2.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Moonrise%20over%20Canary%20Wharf%20(40750100971).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Moonrise_over_Canary_Wharf_(40750100971).jpg",
+              "author": "Winniepix",
+              "license": "CC BY 2.0"
           }
       ]
   },
@@ -2858,6 +3856,44 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
           }
       ]
   },
+  'lyon-part-dieu': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Vue%20des%20rails%20Gare%20de%20Lyon-Part-Dieu%20(juin%202023).JPG?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Vue_des_rails_Gare_de_Lyon-Part-Dieu_(juin_2023).JPG",
+              "author": "Benoît Prieur",
+              "license": "CC0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Transformation%20du%20pont%20La%20Feuill%C3%A9e%20(projet%20par%20Rogatien%20Le%20Nail).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Transformation_du_pont_La_Feuill%C3%A9e_(projet_par_Rogatien_Le_Nail).jpg",
+              "author": "Rogatien Le Nail",
+              "license": "Public domain"
+          }
+      ]
+  },
+  'm2-highlight': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Highlight%20Towers%20Muenchen%20A9-1.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Highlight_Towers_Muenchen_A9-1.jpg",
+              "author": "Rufus46",
+              "license": "CC BY-SA 3.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Beast%20at%20Lotte%20Giants%202010%20Special%20Concert%20100321.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Beast_at_Lotte_Giants_2010_Special_Concert_100321.jpg",
+              "author": "Nicky456",
+              "license": "CC BY-SA 3.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/BEAST%20performing%20at%20Lotte%20Giant%202010%20Special%20Concert.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:BEAST_performing_at_Lotte_Giant_2010_Special_Concert.jpg",
+              "author": "Nicky456 ( talk )",
+              "license": "CC BY-SA 3.0"
+          }
+      ]
+  },
   'madrid-nuevo-norte': {
       "images": [
           {
@@ -2877,6 +3913,28 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
               "page": "https://commons.wikimedia.org/wiki/File:%E2%80%98Madrid_Nuevo_Norte%E2%80%99,_un_proyecto_de_consenso_03.jpg",
               "author": "Diario de Madrid",
               "license": "CC BY 4.0"
+          }
+      ]
+  },
+  'malaga-huelin': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/M%C3%A1laga%20San%20Andr%C3%A9s.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:M%C3%A1laga_San_Andr%C3%A9s.jpg",
+              "author": "Tyk",
+              "license": "CC BY-SA 3.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Pennsylvania%20Congressional%20District%207.png?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Pennsylvania_Congressional_District_7.png",
+              "author": "From judicial opinion of the Pennsylvania Supreme court",
+              "license": "Public domain"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/District%207%2C%20Karaj.png?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:District_7,_Karaj.png",
+              "author": "Parsa 2au",
+              "license": "CC BY-SA 4.0"
           }
       ]
   },
@@ -2937,6 +3995,28 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
               "page": "https://commons.wikimedia.org/wiki/File:YUhu41aE9m.jpg",
               "author": "句",
               "license": "CC BY-SA 4.0"
+          }
+      ]
+  },
+  'manila-bay-reclamation': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/The%20hero%20of%20Manila%3B%20Dewey%20on%20the%20Mississippi%20and%20the%20Pacific%20(1899)%20(14576197137).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:The_hero_of_Manila;_Dewey_on_the_Mississippi_and_the_Pacific_(1899)_(14576197137).jpg",
+              "author": "Internet Archive Book Images",
+              "license": "No restrictions"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/05883jfNew%20World%20Manila%20Bay%20Hotel%20Hotel%20Buildings%20Malate%20Manilafvf%2013.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:05883jfNew_World_Manila_Bay_Hotel_Hotel_Buildings_Malate_Manilafvf_13.jpg",
+              "author": "Judgefloro",
+              "license": "Public domain"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/05898jfNew%20World%20Manila%20Bay%20Hotel%20Hotel%20Buildings%20Malate%20Manilafvf%2002.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:05898jfNew_World_Manila_Bay_Hotel_Hotel_Buildings_Malate_Manilafvf_02.jpg",
+              "author": "Judgefloro",
+              "license": "Public domain"
           }
       ]
   },
@@ -3038,6 +4118,50 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
           }
       ]
   },
+  'melbourne-ardeer': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/2007-09-ARD-stn.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:2007-09-ARD-stn.jpg",
+              "author": "User:Somebody in the WWW",
+              "license": "CC BY-SA 3.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Ardeer%20Park%20-%20wildlife%20area.JPG?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Ardeer_Park_-_wildlife_area.JPG",
+              "author": "Rosser1954",
+              "license": "CC BY-SA 3.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Ardeer%20Quarry%2C%20Stevenston.JPG?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Ardeer_Quarry,_Stevenston.JPG",
+              "author": "Rosser1954",
+              "license": "CC BY-SA 3.0"
+          }
+      ]
+  },
+  'mercedes-benz-places-dubai': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/AL%20Tayer%20Motors%20UAE%20-%202014%20Gamilati%20Endurance%20Race%20(13057867264).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:AL_Tayer_Motors_UAE_-_2014_Gamilati_Endurance_Race_(13057867264).jpg",
+              "author": "Land Rover MENA",
+              "license": "CC BY 2.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/1987%20Mercedes-Benz%20190E%202.6%20Our%20Community%20Place%20farm%20New%20Market%20VT%20March%202010.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:1987_Mercedes-Benz_190E_2.6_Our_Community_Place_farm_New_Market_VT_March_2010.jpg",
+              "author": "Artaxerxes",
+              "license": "CC BY-SA 3.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Mercedes-Benz%20Museum%20at%20night.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Mercedes-Benz_Museum_at_night.jpg",
+              "author": "pjt56",
+              "license": "CC BY 3.0"
+          }
+      ]
+  },
   'merdeka-118': {
       "images": [
           {
@@ -3082,6 +4206,28 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
           }
       ]
   },
+  'mexico-city-santa-fe-2': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/A%20view%20of%20Santa%20Fe.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:A_view_of_Santa_Fe.jpg",
+              "author": "Fernando montes17",
+              "license": "CC BY-SA 4.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Santa%20Fe%20Mexico%20City%20Wikivoyage%20banner.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Santa_Fe_Mexico_City_Wikivoyage_banner.jpg",
+              "author": "Serge Saint from Mexico City, México",
+              "license": "CC BY 2.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Route%2066%2C%20Santa%20Fe%2C%20New%20Mexico.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Route_66,_Santa_Fe,_New_Mexico.jpg",
+              "author": "Ken Lund",
+              "license": "CC BY-SA 2.0"
+          }
+      ]
+  },
   'meydan-one': {
       "images": [
           {
@@ -3123,6 +4269,28 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
               "page": "https://commons.wikimedia.org/wiki/File:Lucid_Showroom_Miami_Worldcenter_29_June_2023_-_2.jpg",
               "author": "Phillip Pessar",
               "license": "CC BY 2.0"
+          }
+      ]
+  },
+  'milan-porta-nuova-2': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Milan%2C%20vieille%20porte%20(i.e.%20Porta%20Nuova%2C%20cerchia%20dei%20Navigli)%20-%20btv1b530942345.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Milan,_vieille_porte_(i.e._Porta_Nuova,_cerchia_dei_Navigli)_-_btv1b530942345.jpg",
+              "author": "Agence Rol. Agence photographique (commanditaire)",
+              "license": "Public domain"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/1666.%20Palermo.%20Monreale%20dalla%20Porta%20nuova%20-%20btv1b53264214z%20(1%20of%202).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:1666._Palermo._Monreale_dalla_Porta_nuova_-_btv1b53264214z_(1_of_2).jpg",
+              "author": "Rive, Robert (1817-1868). Photographe Rive, Julius (1823-1888). Photographe Rive (firme). Photographe",
+              "license": "Public domain"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/1666.%20Palermo.%20Monreale%20dalla%20Porta%20nuova%20-%20btv1b53264214z%20(2%20of%202).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:1666._Palermo._Monreale_dalla_Porta_nuova_-_btv1b53264214z_(2_of_2).jpg",
+              "author": "Rive, Robert (1817-1868). Photographe Rive, Julius (1823-1888). Photographe Rive (firme). Photographe",
+              "license": "Public domain"
           }
       ]
   },
@@ -3192,6 +4360,28 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
           }
       ]
   },
+  'mumbai-nmc': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Taj%20Mahal%20in%20March%202004.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Taj_Mahal_in_March_2004.jpg",
+              "author": "Dhirad , picture edited by J. A. Knudsen",
+              "license": "CC BY-SA 3.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Lalitha%20mahal%20mysore%20ml%20wiki.JPG?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Lalitha_mahal_mysore_ml_wiki.JPG",
+              "author": "Ezhuttukari",
+              "license": "CC BY-SA 3.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/El%20Taj%20Mahal-Agra%20India0023.JPG?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:El_Taj_Mahal-Agra_India0023.JPG",
+              "author": "Diego Delso",
+              "license": "CC BY-SA 4.0"
+          }
+      ]
+  },
   'munich-oberwiesenfeld': {
       "images": [
           {
@@ -3233,6 +4423,28 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
               "page": "https://commons.wikimedia.org/wiki/File:Parque_Ol%C3%ADmpico,_M%C3%BAnich,_Alemania_2012-04-28,_DD_01.JPG",
               "author": "Diego Delso",
               "license": "CC BY-SA 3.0"
+          }
+      ]
+  },
+  'nairobi-green': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Harold%20Hill%20Estate%2C%20Romford%20-%20geograph.org.uk%20-%201011881.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Harold_Hill_Estate,_Romford_-_geograph.org.uk_-_1011881.jpg",
+              "author": "David Kemp",
+              "license": "CC BY-SA 2.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/StateLibQld%202%2044423%20From%20Eagle%20Street%2C%20Alderley%2C%20overlooking%20Green%20Hill%20Estate%20in%201922.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:StateLibQld_2_44423_From_Eagle_Street,_Alderley,_overlooking_Green_Hill_Estate_in_1922.jpg",
+              "author": "Contributor(s): The Queenslander",
+              "license": "Public domain"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/GreenHill1.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:GreenHill1.jpg",
+              "author": "Willthacheerleader18",
+              "license": "CC BY-SA 4.0"
           }
       ]
   },
@@ -3299,6 +4511,72 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
               "page": "https://commons.wikimedia.org/wiki/File:Nanjing_Zifeng_Tower_%E7%B4%AB%E5%B3%B0%E5%A4%A7%E5%8E%A6.jpg",
               "author": "_大面",
               "license": "CC BY 2.5"
+          }
+      ]
+  },
+  'naples-centrale': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Stazione%20Centrale%20Napoli%20-%20panoramio.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Stazione_Centrale_Napoli_-_panoramio.jpg",
+              "author": "Francesco Boggia",
+              "license": "CC BY 3.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Napoli%20Centrale%20railway%20station%20in%202018.07.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Napoli_Centrale_railway_station_in_2018.07.jpg",
+              "author": "CAPTAIN RAJU",
+              "license": "CC BY-SA 4.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Napoli%20Centrale%20railway%20station%20in%202018.10.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Napoli_Centrale_railway_station_in_2018.10.jpg",
+              "author": "CAPTAIN RAJU",
+              "license": "CC BY-SA 4.0"
+          }
+      ]
+  },
+  'nassau-paradise': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/BHA%20Nassau%2C%20Paradise%20Island%2C%20Cabbage%20Beach%20001.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:BHA_Nassau,_Paradise_Island,_Cabbage_Beach_001.jpg",
+              "author": "Der-wuppertaler",
+              "license": "CC BY-SA 3.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/BHA%20Nassau%2C%20Paradise%20Island%2C%20Cove%20Beach%20001.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:BHA_Nassau,_Paradise_Island,_Cove_Beach_001.jpg",
+              "author": "Der-wuppertaler",
+              "license": "CC BY-SA 3.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/BHA%20Nassau%2C%20Paradise%20Island%2C%20Cabbage%20Beach%20002.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:BHA_Nassau,_Paradise_Island,_Cabbage_Beach_002.jpg",
+              "author": "Der-wuppertaler",
+              "license": "CC BY-SA 3.0"
+          }
+      ]
+  },
+  'national-landing-amazon-hq2': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/President%20of%20the%20Comit%C3%A9%20du%20D%C3%A9barquement%20(%22Landing%20Committee%22)%20and%20his%20family%20lay%20a%20wreath%20at%20the%20Tomb%20of%20the%20Unknown%20Soldier%20in%20Arlington%20National%20Cemetery%20(27860821584).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:President_of_the_Comit%C3%A9_du_D%C3%A9barquement_(%22Landing_Committee%22)_and_his_family_lay_a_wreath_at_the_Tomb_of_the_Unknown_Soldier_in_Arlington_National_Cemetery_(27860821584).jpg",
+              "author": "Arlington National Cemetery",
+              "license": "Public domain"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/President%20of%20the%20Comit%C3%A9%20du%20D%C3%A9barquement%20(%22Landing%20Committee%22)%20and%20his%20family%20lay%20a%20wreath%20at%20the%20Tomb%20of%20the%20Unknown%20Soldier%20in%20Arlington%20National%20Cemetery%20(28398764951).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:President_of_the_Comit%C3%A9_du_D%C3%A9barquement_(%22Landing_Committee%22)_and_his_family_lay_a_wreath_at_the_Tomb_of_the_Unknown_Soldier_in_Arlington_National_Cemetery_(28398764951).jpg",
+              "author": "Arlington National Cemetery",
+              "license": "Public domain"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/President%20of%20the%20Comit%C3%A9%20du%20D%C3%A9barquement%20(%22Landing%20Committee%22)%20and%20his%20family%20lay%20a%20wreath%20at%20the%20Tomb%20of%20the%20Unknown%20Soldier%20in%20Arlington%20National%20Cemetery%20(28477261985).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:President_of_the_Comit%C3%A9_du_D%C3%A9barquement_(%22Landing_Committee%22)_and_his_family_lay_a_wreath_at_the_Tomb_of_the_Unknown_Soldier_in_Arlington_National_Cemetery_(28477261985).jpg",
+              "author": "Arlington National Cemetery",
+              "license": "Public domain"
           }
       ]
   },
@@ -3400,6 +4678,22 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
           }
       ]
   },
+  'new-capital-iconic-tower': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Central%20business%20district%2C%20New%20Administrative%20Capital.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Central_business_district,_New_Administrative_Capital.jpg",
+              "author": "Abdelrhman 1990",
+              "license": "CC BY-SA 4.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Central%20business%20district%203%2C%20New%20Administrative%20Capital.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Central_business_district_3,_New_Administrative_Capital.jpg",
+              "author": "Abdelrhman 1990",
+              "license": "CC BY-SA 4.0"
+          }
+      ]
+  },
   'new-clark-city': {
       "images": [
           {
@@ -3419,6 +4713,38 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
               "page": "https://commons.wikimedia.org/wiki/File:BBB_Stadium.jpg",
               "author": "Department of Budget and Management",
               "license": "Public domain"
+          }
+      ]
+  },
+  'nice-promenade': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Promenade%20des%20Anglais%2C%20Nizza%20(C%C3%B4te%20d'Azur%2C%20Frankreich).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Promenade_des_Anglais,_Nizza_(C%C3%B4te_d%27Azur,_Frankreich).jpg",
+              "author": "Fabiusl",
+              "license": "CC BY-SA 4.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Sunset%20on%20Nice%20beach%20with%20lifeguard%20tower%202026.JPG?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Sunset_on_Nice_beach_with_lifeguard_tower_2026.JPG",
+              "author": "Mike is Michi",
+              "license": "CC BY-SA 4.0"
+          }
+      ]
+  },
+  'nordhavn-copenhagen': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Orientkaj%20Metro%20Station%2001.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Orientkaj_Metro_Station_01.jpg",
+              "author": "Jasparbang",
+              "license": "CC BY-SA 4.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Nordhavn%20Metro%20Station%2001.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Nordhavn_Metro_Station_01.jpg",
+              "author": "Jasparbang",
+              "license": "CC BY-SA 4.0"
           }
       ]
   },
@@ -3517,6 +4843,38 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
               "page": "https://commons.wikimedia.org/wiki/File:%D0%90%D1%81%D1%82%D0%B0%D0%BD%D0%B0,_%D0%B2%D0%BE%D0%BA%D0%B7%D0%B0%D0%BB_%D0%9D%D1%83%D1%80%D0%BB%D1%8B_%D0%96%D0%BE%D0%BB,_%D1%81%D1%84%D0%B5%D1%80%D0%BE%D0%BF%D0%B0%D0%BD%D0%BE%D1%80%D0%B0%D0%BC%D0%B0_(cropped).jpg",
               "author": "Nikolai Bulykin",
               "license": "CC BY-SA 4.0"
+          }
+      ]
+  },
+  'nusantara': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Natural%20gas%20pipelines%20and%20LNG%20terminals.webp?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Natural_gas_pipelines_and_LNG_terminals.webp",
+              "author": "Wikideas1",
+              "license": "CC0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Nusantara%2C%20Indonesia%20-%20President%20visiting%20the%20new%20capital.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Nusantara,_Indonesia_-_President_visiting_the_new_capital.jpg",
+              "author": "BPMI President's Secretariat/Muchlis Jr",
+              "license": "Public domain"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Indonesian%20President%20Joko%20Widodo%20Leads%20Kendi%20Nusantara%20Ritual%20at%20New%20Capital%E2%80%99s%20Ground%20Zero%20(14032022152732).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Indonesian_President_Joko_Widodo_Leads_Kendi_Nusantara_Ritual_at_New_Capital%E2%80%99s_Ground_Zero_(14032022152732).jpg",
+              "author": "Government of Indonesia",
+              "license": "Public domain"
+          }
+      ]
+  },
+  'nyc-hudson-yards-2': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/New%20York%20City%20High%20Line%20-%20Urban%20Forestry%20-%2020150915-OSEC-LSC-0164%20(21571493686).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:New_York_City_High_Line_-_Urban_Forestry_-_20150915-OSEC-LSC-0164_(21571493686).jpg",
+              "author": "U.S. Department of Agriculture",
+              "license": "Public domain"
           }
       ]
   },
@@ -3627,6 +4985,28 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
               "page": "https://commons.wikimedia.org/wiki/File:NYC_-_Bank_of_America_Tower_-_panoramio.jpg",
               "author": "giggel",
               "license": "CC BY 3.0"
+          }
+      ]
+  },
+  'one-canal-road-lahore': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Shalimar%20Gardens%20(Lahore).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Shalimar_Gardens_(Lahore).jpg",
+              "author": "Shahzaib Damn Cruze",
+              "license": "CC BY-SA 4.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Shalimar%20Gardens%20(Lahore)%201.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Shalimar_Gardens_(Lahore)_1.jpg",
+              "author": "Shahzaib Damn Cruze",
+              "license": "CC BY-SA 4.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/One-time%20Lancaster%20Canal%2C%20Preston%20-%20geograph.org.uk%20-%20948412.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:One-time_Lancaster_Canal,_Preston_-_geograph.org.uk_-_948412.jpg",
+              "author": "A-M-Jervis",
+              "license": "CC BY-SA 2.0"
           }
       ]
   },
@@ -3806,6 +5186,88 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
           }
       ]
   },
+  'orbi-palace': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Batumi2025magnolia-building-view-from-the-beach--closer-to-alliance-centropolis--with-orbi-hotels.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Batumi2025magnolia-building-view-from-the-beach--closer-to-alliance-centropolis--with-orbi-hotels.jpg",
+              "author": "Vitaly Zdanevich",
+              "license": "CC BY 4.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Nonsuch%20Palace%20by%20Joris%20Hoefnagel.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Nonsuch_Palace_by_Joris_Hoefnagel.jpg",
+              "author": "Joris Hoefnagel",
+              "license": "Public domain"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Orbis%20pictus%2089263%20palais%20tau.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Orbis_pictus_89263_palais_tau.jpg",
+              "author": "G.Garitan",
+              "license": "CC BY-SA 4.0"
+          }
+      ]
+  },
+  'osaka-2025-expo': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/JAXA%20astronaut%20Takuya%20Onishi%20speaks%20on%20a%20ham%20radio%20with%20Japanese%20students%20(iss073e0423823).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:JAXA_astronaut_Takuya_Onishi_speaks_on_a_ham_radio_with_Japanese_students_(iss073e0423823).jpg",
+              "author": "NASA Johnson Space Center",
+              "license": "Public domain"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/2025%E5%B9%B4%E5%A4%A7%E9%98%AA%E3%83%BB%E9%96%A2%E8%A5%BF%E4%B8%87%E5%8D%9A%E4%BC%9A%E5%A0%B4%E3%81%AE%E9%A2%A8%E6%99%AF%EF%BC%882025%E5%B9%B4%E6%92%AE%E5%BD%B1%EF%BC%89.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:2025%E5%B9%B4%E5%A4%A7%E9%98%AA%E3%83%BB%E9%96%A2%E8%A5%BF%E4%B8%87%E5%8D%9A%E4%BC%9A%E5%A0%B4%E3%81%AE%E9%A2%A8%E6%99%AF%EF%BC%882025%E5%B9%B4%E6%92%AE%E5%BD%B1%EF%BC%89.jpg",
+              "author": "NitaMTE1",
+              "license": "CC BY-SA 4.0"
+          }
+      ]
+  },
+  'osaka-umeda': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Osaka%20skyline%20at%20night%20from%20Umeda%20Sky%20Building.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Osaka_skyline_at_night_from_Umeda_Sky_Building.jpg",
+              "author": "Kaiza96",
+              "license": "CC BY-SA 3.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Osaka%20Umeda%20Sky%20Building%20Panoramablick%2005.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Osaka_Umeda_Sky_Building_Panoramablick_05.jpg",
+              "author": "Zairon",
+              "license": "CC BY-SA 4.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Skyline%20view%20of%20Osaka.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Skyline_view_of_Osaka.jpg",
+              "author": "Ian G Shingler",
+              "license": "CC BY-SA 4.0"
+          }
+      ]
+  },
+  'otto-quartier-esslingen': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Kl%C3%B6ckner-Humboldt-Deutz%20-%20Otto-Langen-Quartier-2968.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Kl%C3%B6ckner-Humboldt-Deutz_-_Otto-Langen-Quartier-2968.jpg",
+              "author": "Raimond Spekking",
+              "license": "CC BY-SA 4.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Kl%C3%B6ckner-Humboldt-Deutz%20-%20Otto-Langen-Quartier-2972.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Kl%C3%B6ckner-Humboldt-Deutz_-_Otto-Langen-Quartier-2972.jpg",
+              "author": "Raimond Spekking",
+              "license": "CC BY-SA 4.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Kl%C3%B6ckner-Humboldt-Deutz%20-%20Otto-Langen-Quartier-2974.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Kl%C3%B6ckner-Humboldt-Deutz_-_Otto-Langen-Quartier-2974.jpg",
+              "author": "Raimond Spekking",
+              "license": "CC BY-SA 4.0"
+          }
+      ]
+  },
   'palais-royale': {
       "images": [
           {
@@ -3916,6 +5378,28 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
           }
       ]
   },
+  'paupys-vilnius': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Paupys%20(Raseini%C5%B3%20r.).JPG?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Paupys_(Raseini%C5%B3_r.).JPG",
+              "author": "Vilensija",
+              "license": "CC BY-SA 3.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Paupys%20(Raseiniai).JPG?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Paupys_(Raseiniai).JPG",
+              "author": "Vilensija",
+              "license": "CC BY-SA 3.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Paupys%20(Raseiniai)%2C%20mokykla.JPG?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Paupys_(Raseiniai),_mokykla.JPG",
+              "author": "Vilensija",
+              "license": "CC BY-SA 3.0"
+          }
+      ]
+  },
   'paya-lebar-quarter': {
       "images": [
           {
@@ -3957,6 +5441,28 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
               "page": "https://commons.wikimedia.org/wiki/File:Souq_Al_Medina_at_Medina_Centrale_in_The_Pearl_Qatar.jpg",
               "author": "km2bp @ Mapillary.com",
               "license": "CC BY-SA 4.0"
+          }
+      ]
+  },
+  'penang-south-islands': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Barat%20Daya%20Islands%20de.png?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Barat_Daya_Islands_de.png",
+              "author": "Lencer",
+              "license": "CC BY-SA 3.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Barat%20Daya%20Islands%20en.png?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Barat_Daya_Islands_en.png",
+              "author": "Lencer",
+              "license": "CC BY-SA 3.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Artist's%20concept%20of%20PSR%20B1257%2B12%20system.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Artist%27s_concept_of_PSR_B1257%2B12_system.jpg",
+              "author": "NASA/JPL-Caltech",
+              "license": "Public domain"
           }
       ]
   },
@@ -4174,6 +5680,28 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
           }
       ]
   },
+  'raday-revival': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/R%C3%A1day%20utca%2C%20Budapest%2002.JPG?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:R%C3%A1day_utca,_Budapest_02.JPG",
+              "author": "Antissimo",
+              "license": "CC BY-SA 3.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/R%C3%A1day%20utca%2C%20Budapest%2003.JPG?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:R%C3%A1day_utca,_Budapest_03.JPG",
+              "author": "Antissimo",
+              "license": "CC BY-SA 3.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Mellinger-house.%20Listed%20ID%208085.%20-%2014%2C%20R%C3%A1day%20St.%2C%20Erkel%20Ferenc%20St%2C%20Budapest%20District%20IX.JPG?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Mellinger-house._Listed_ID_8085._-_14,_R%C3%A1day_St.,_Erkel_Ferenc_St,_Budapest_District_IX.JPG",
+              "author": "Globetrotter19",
+              "license": "CC BY-SA 3.0"
+          }
+      ]
+  },
   'regjeringskvartalet': {
       "images": [
           {
@@ -4193,6 +5721,28 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
               "page": "https://commons.wikimedia.org/wiki/File:Regjeringskvartalet_Einar_Gerhardsens_plass_Grubbegata_G-blokk_H-blokk_Oslo_Norway_(2007.04.27).jpg",
               "author": "Geir Hval (www.MacWhale.eu)",
               "license": "CC BY-SA 4.0"
+          }
+      ]
+  },
+  'rio-botafogo': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Rio-panorama-Botafogo-Sugarloaf.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Rio-panorama-Botafogo-Sugarloaf.jpg",
+              "author": "Acediscovery",
+              "license": "CC BY 4.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Botafogo%20Beach%20and%20skyline%20at%20dusk%2C%20Rio%20de%20Janeiro%2C%20Brazil.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Botafogo_Beach_and_skyline_at_dusk,_Rio_de_Janeiro,_Brazil.jpg",
+              "author": "Wilfredor",
+              "license": "CC0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Bell%20206L-4%20LongRanger%20IV%20over%20Botafogo%20Bay%2C%20Rio%20de%20Janeiro.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Bell_206L-4_LongRanger_IV_over_Botafogo_Bay,_Rio_de_Janeiro.jpg",
+              "author": "Wilfredor",
+              "license": "CC0"
           }
       ]
   },
@@ -4218,6 +5768,28 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
           }
       ]
   },
+  'rio-vila-olimpica': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Vila%20Ol%C3%ADmpica%20Rio%202016.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Vila_Ol%C3%ADmpica_Rio_2016.jpg",
+              "author": "Miriam Jeske/Brasil2016.gov.br",
+              "license": "CC BY 3.0 br"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Vila%20Ol%C3%ADmpica%2002.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Vila_Ol%C3%ADmpica_02.jpg",
+              "author": "Fernando Frazão/Agência Brasil",
+              "license": "CC BY 3.0 br"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Vila%20Ol%C3%ADmpica%2006.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Vila_Ol%C3%ADmpica_06.jpg",
+              "author": "Fernando Frazão/Agência Brasil",
+              "license": "CC BY 3.0 br"
+          }
+      ]
+  },
   'riyadh-kafa': {
       "images": [
           {
@@ -4237,6 +5809,50 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
               "page": "https://commons.wikimedia.org/wiki/File:KSP_Landscape.jpg",
               "author": "King Salman Park",
               "license": "CC BY-SA 2.0"
+          }
+      ]
+  },
+  'roma-eur': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Palazzo%20dei%20Congressi%20a%20EUR%20Roma.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Palazzo_dei_Congressi_a_EUR_Roma.jpg",
+              "author": "Alberti1492",
+              "license": "CC BY-SA 4.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Palazzo%20dei%20Congressi.04.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Palazzo_dei_Congressi.04.jpg",
+              "author": "CAPTAIN RAJU",
+              "license": "CC BY-SA 4.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Palazzo%20dei%20Congressi%20EUR%20Rome%20-%20door.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Palazzo_dei_Congressi_EUR_Rome_-_door.jpg",
+              "author": "Husky",
+              "license": "CC BY 4.0"
+          }
+      ]
+  },
+  'rome-testaccio': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Mattatoio%20Testaccio%20(Rome)%2001.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Mattatoio_Testaccio_(Rome)_01.jpg",
+              "author": "Nicholas Gemini",
+              "license": "CC BY-SA 4.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Mattatoio%20Testaccio%20(Rome)%2010.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Mattatoio_Testaccio_(Rome)_10.jpg",
+              "author": "Nicholas Gemini",
+              "license": "CC BY-SA 4.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Mattatoio%20Testaccio%20(Rome)%2023.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Mattatoio_Testaccio_(Rome)_23.jpg",
+              "author": "Nicholas Gemini",
+              "license": "CC BY-SA 4.0"
           }
       ]
   },
@@ -4281,6 +5897,22 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
               "page": "https://commons.wikimedia.org/wiki/File:Rotterdam_-_Markthal_(7).jpg",
               "author": "Fred Romero from Paris, France",
               "license": "CC BY 2.0"
+          }
+      ]
+  },
+  'saadiyat-lagoons-abu-dhabi': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/ISS062-E-45345%20-%20View%20of%20Earth.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:ISS062-E-45345_-_View_of_Earth.jpg",
+              "author": "Earth Science and Remote Sensing Unit, NASA Johnson Space Center",
+              "license": "Public domain"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/ISS062-E-45345%20-%20View%20of%20United%20Arab%20Emirates%20-%20Abu%20Dhabi%20-%20Zayed%20Port%20-%20Al%20Saadiyat%20Island%20-%20Al%20Jubail%20Island%20-%20Bilghaylam%20Island%20-%20Al%20Mihsinah%20Lagoon%20(cropped).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:ISS062-E-45345_-_View_of_United_Arab_Emirates_-_Abu_Dhabi_-_Zayed_Port_-_Al_Saadiyat_Island_-_Al_Jubail_Island_-_Bilghaylam_Island_-_Al_Mihsinah_Lagoon_(cropped).jpg",
+              "author": "Earth Science and Remote Sensing Unit, NASA Johnson Space Center",
+              "license": "Public domain"
           }
       ]
   },
@@ -4476,6 +6108,28 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
           }
       ]
   },
+  'sf-transbay': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Transbay%20Transit%20Center%2C%20on%20the%20day%20after%20the%20opening-7216.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Transbay_Transit_Center,_on_the_day_after_the_opening-7216.jpg",
+              "author": "Frank Schulenburg",
+              "license": "CC BY-SA 4.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Transbay%20Transit%20Center%2C%20on%20the%20day%20after%20the%20opening-7272.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Transbay_Transit_Center,_on_the_day_after_the_opening-7272.jpg",
+              "author": "Frank Schulenburg",
+              "license": "CC BY-SA 4.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Salesforce%20Park%20and%20bus%20bridge%2C%20seen%20from%20Salesforce%20Tower.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Salesforce_Park_and_bus_bridge,_seen_from_Salesforce_Tower.jpg",
+              "author": "Fullmetal2887",
+              "license": "CC BY-SA 4.0"
+          }
+      ]
+  },
   'shanghai-tower': {
       "images": [
           {
@@ -4520,6 +6174,82 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
           }
       ]
   },
+  'shenzhen-bay': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Hong%20Kong-Shenzhen%20Western%20Corridor%20201203.JPG?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Hong_Kong-Shenzhen_Western_Corridor_201203.JPG",
+              "author": "Tksteven",
+              "license": "CC BY 3.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Shenzhen%20Bay%20Bridge%20night.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Shenzhen_Bay_Bridge_night.jpg",
+              "author": "Alex Bishton",
+              "license": "CC BY-SA 3.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Shenzhen%20Bay%20Bridge%202012.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Shenzhen_Bay_Bridge_2012.jpg",
+              "author": "leo.wan from Hong Kong",
+              "license": "CC BY 2.0"
+          }
+      ]
+  },
+  'shibuya-upper-west': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Fuji%20TV%20seen%20from%20Rainbow%20Bridge's%20upper%20road.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Fuji_TV_seen_from_Rainbow_Bridge%27s_upper_road.jpg",
+              "author": "Syced",
+              "license": "CC0"
+          }
+      ]
+  },
+  'shinagawa-gateway': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Takanawa%20Gateway%20Station%20200316a1.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Takanawa_Gateway_Station_200316a1.jpg",
+              "author": "江戸村のとくぞう",
+              "license": "CC BY-SA 4.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Entrance%20of%20Takanawa%20Gateway%20Station%20(20230802210341).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Entrance_of_Takanawa_Gateway_Station_(20230802210341).jpg",
+              "author": "N509FZ",
+              "license": "CC BY-SA 4.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Takanawa%20Gateway%20Station%202019-06%20(cropped)%20-%20Takanawa-Shinagawa%20Skyscrapers.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Takanawa_Gateway_Station_2019-06_(cropped)_-_Takanawa-Shinagawa_Skyscrapers.jpg",
+              "author": "Mr.Asylum",
+              "license": "CC BY-SA 4.0"
+          }
+      ]
+  },
+  'shisizhang-station-tod': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/%E8%88%88%E5%BB%BA%E4%B8%AD%E7%9A%84%E6%8D%B7%E9%81%8B%E7%92%B0%E7%8B%80%E7%B7%9A%E6%A9%8B%E5%A2%A9%E8%88%87%E5%8D%81%E5%9B%9B%E5%BC%B5%E7%AB%99%EF%BC%8C%E6%96%B0%E5%BA%97%E6%BA%AA%E5%B7%A6%E5%B2%B8%E6%B2%B3%E6%BF%B1%E8%87%AA%E8%A1%8C%E8%BB%8A%E9%81%93%E3%80%82%20-%20panoramio.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:%E8%88%88%E5%BB%BA%E4%B8%AD%E7%9A%84%E6%8D%B7%E9%81%8B%E7%92%B0%E7%8B%80%E7%B7%9A%E6%A9%8B%E5%A2%A9%E8%88%87%E5%8D%81%E5%9B%9B%E5%BC%B5%E7%AB%99%EF%BC%8C%E6%96%B0%E5%BA%97%E6%BA%AA%E5%B7%A6%E5%B2%B8%E6%B2%B3%E6%BF%B1%E8%87%AA%E8%A1%8C%E8%BB%8A%E9%81%93%E3%80%82_-_panoramio.jpg",
+              "author": "C.L. Kao (eddie5150)",
+              "license": "CC BY-SA 3.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/%E5%8D%81%E5%9B%9B%E5%BC%B5%E7%AB%99%E7%9A%84%E6%96%AF%E9%A6%A8%E7%A5%A0%E8%87%A8%E6%99%82%E5%B1%8B.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:%E5%8D%81%E5%9B%9B%E5%BC%B5%E7%AB%99%E7%9A%84%E6%96%AF%E9%A6%A8%E7%A5%A0%E8%87%A8%E6%99%82%E5%B1%8B.jpg",
+              "author": "Outlookxp",
+              "license": "CC BY-SA 4.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/01.31%20%E7%B8%BD%E7%B5%B1%E5%87%BA%E5%B8%AD%E3%80%8C%E6%96%B0%E5%8C%97%E7%92%B0%E7%8B%80%E7%B7%9A%E9%80%9A%E8%BB%8A%E5%85%B8%E7%A6%AE%E3%80%8D%20-%20Flickr%20id%2049467182177.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:01.31_%E7%B8%BD%E7%B5%B1%E5%87%BA%E5%B8%AD%E3%80%8C%E6%96%B0%E5%8C%97%E7%92%B0%E7%8B%80%E7%B7%9A%E9%80%9A%E8%BB%8A%E5%85%B8%E7%A6%AE%E3%80%8D_-_Flickr_id_49467182177.jpg",
+              "author": "總統府",
+              "license": "CC BY 2.0"
+          }
+      ]
+  },
   'slachthuissite-antwerp': {
       "images": [
           {
@@ -4548,6 +6278,28 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
               "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Praha%2C%20Sm%C3%ADchov%2C%20je%C5%99%C3%A1by%20staveni%C5%A1t%C4%9B%20City%20Sm%C3%ADchov.jpg?width=1280",
               "page": "https://commons.wikimedia.org/wiki/File:Praha,_Sm%C3%ADchov,_je%C5%99%C3%A1by_staveni%C5%A1t%C4%9B_City_Sm%C3%ADchov.jpg",
               "author": "I would appreciate being notified if you use my work outside Wikimedia. More of my work can be found in my personal gallery .",
+              "license": "CC BY-SA 4.0"
+          }
+      ]
+  },
+  'sofia-lozenets': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Sofia-Lozenetz.png?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Sofia-Lozenetz.png",
+              "author": "No machine-readable author provided. Nk assumed (based on copyright claims).",
+              "license": "Public domain"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/%D0%91%D1%83%D0%BB.%20%D0%9D%D0%B8%D0%BA%D0%BE%D0%BB%D0%B0%20%D0%92%D0%B0%D0%BF%D1%86%D0%B0%D1%80%D0%BE%D0%B2%20-%20panoramio.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:%D0%91%D1%83%D0%BB._%D0%9D%D0%B8%D0%BA%D0%BE%D0%BB%D0%B0_%D0%92%D0%B0%D0%BF%D1%86%D0%B0%D1%80%D0%BE%D0%B2_-_panoramio.jpg",
+              "author": "stoimenov_2000",
+              "license": "CC BY-SA 3.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Pastor%20roseus%20Sofia.Bulgaria%2016.05.2019.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Pastor_roseus_Sofia.Bulgaria_16.05.2019.jpg",
+              "author": "Simeon.toptchiyski",
               "license": "CC BY-SA 4.0"
           }
       ]
@@ -4596,6 +6348,28 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
           }
       ]
   },
+  'stuttgart-rosenstein': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Stuttgart%20Rosensteinpark%20einsamer%20Baum%20111112%20robertdevideo.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Stuttgart_Rosensteinpark_einsamer_Baum_111112_robertdevideo.jpg",
+              "author": "robertdevideo",
+              "license": "CC BY 3.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Rosensteinpark%20-%20Stuttgart%2C%20Germany%20-%20DSC01644.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Rosensteinpark_-_Stuttgart,_Germany_-_DSC01644.jpg",
+              "author": "Daderot",
+              "license": "CC0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Rosensteinpark%20-%20Stuttgart%2C%20Germany%20-%20DSC01669.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Rosensteinpark_-_Stuttgart,_Germany_-_DSC01669.jpg",
+              "author": "Daderot",
+              "license": "CC0"
+          }
+      ]
+  },
   'sugar-wharf': {
       "images": [
           {
@@ -4618,6 +6392,28 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
           }
       ]
   },
+  'sugar-wharf-toronto': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/This%20big%20LCBO%20warehouse%20is%20going%20to%20be%20the%20centre%20of%20an%2011%20acre%20knot%20of%20condos%2C%202017%2007%2006%20(35015460513)%20(cropped).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:This_big_LCBO_warehouse_is_going_to_be_the_centre_of_an_11_acre_knot_of_condos,_2017_07_06_(35015460513)_(cropped).jpg",
+              "author": "booledozer",
+              "license": "CC0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/This%20large%20LCBO%20property%20is%20about%20to%20be%20turned%20into%20highrise%20condos%2C%202017%2004%2019%20-b%20(33313812724).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:This_large_LCBO_property_is_about_to_be_turned_into_highrise_condos,_2017_04_19_-b_(33313812724).jpg",
+              "author": "booledozer",
+              "license": "CC BY-SA 2.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/This%20large%20LCBO%20property%20is%20about%20to%20be%20turned%20into%20highrise%20condos%2C%202017%2004%2019%20-a%20(34025767321).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:This_large_LCBO_property_is_about_to_be_turned_into_highrise_condos,_2017_04_19_-a_(34025767321).jpg",
+              "author": "booledozer",
+              "license": "CC BY-SA 2.0"
+          }
+      ]
+  },
   'sydney-metro-west': {
       "images": [
           {
@@ -4637,6 +6433,28 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
               "page": "https://commons.wikimedia.org/wiki/File:Burwood_North_Station_Community_Open_Day_9_March_2025.jpg",
               "author": "GarbageKarate",
               "license": "CC0"
+          }
+      ]
+  },
+  'taksim-1453': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Istanbul%20062007%206975.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Istanbul_062007_6975.jpg",
+              "author": "Dosseman",
+              "license": "CC BY-SA 4.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Istanbul%20062007%206980.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Istanbul_062007_6980.jpg",
+              "author": "Dosseman",
+              "license": "CC BY-SA 4.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Istanbul%20062007%206973.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Istanbul_062007_6973.jpg",
+              "author": "Dosseman",
+              "license": "CC BY-SA 4.0"
           }
       ]
   },
@@ -4732,6 +6550,28 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
           }
       ]
   },
+  'the-h-firstier-banpo': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/CMOC%20Treasures%20of%20Ancient%20China%20exhibit%20-%20painted%20basin%20(1).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:CMOC_Treasures_of_Ancient_China_exhibit_-_painted_basin_(1).jpg",
+              "author": "Editor at Large",
+              "license": "CC BY-SA 2.5"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/CMOC%20Treasures%20of%20Ancient%20China%20exhibit%20-%20painted%20basin%20(2).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:CMOC_Treasures_of_Ancient_China_exhibit_-_painted_basin_(2).jpg",
+              "author": "Editor at Large",
+              "license": "CC BY-SA 2.5"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Banpo%20bowl.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Banpo_bowl.jpg",
+              "author": "Rosemania",
+              "license": "CC BY 2.0"
+          }
+      ]
+  },
   'the-hague-scheveningen': {
       "images": [
           {
@@ -4795,6 +6635,16 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
               "page": "https://commons.wikimedia.org/wiki/File:London,_Sicht_auf_Borough_of_Southwark_--_2016_--_4687.jpg",
               "author": "Dietmar Rabich",
               "license": "CC BY-SA 4.0"
+          }
+      ]
+  },
+  'the-silk-district-london': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/REELING%20SILK%201.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:REELING_SILK_1.jpg",
+              "author": "John Thomson",
+              "license": "Public domain"
           }
       ]
   },
@@ -4990,6 +6840,28 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
           }
       ]
   },
+  'tour-montparnasse': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Remote%20view%20of%20the%20Tour%20Montparnasse%20%26%20Eiffel%20Tower%20in%202005.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Remote_view_of_the_Tour_Montparnasse_%26_Eiffel_Tower_in_2005.jpg",
+              "author": "User:Thbz",
+              "license": "CC BY-SA 3.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Champ%20de%20Mars%20from%20the%20Eiffel%20Tower%20-%20July%202006%20edit.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Champ_de_Mars_from_the_Eiffel_Tower_-_July_2006_edit.jpg",
+              "author": "Diliff , edited by Fir0002",
+              "license": "CC BY 2.5"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Paris%20Night.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Paris_Night.jpg",
+              "author": "Benh LIEU SONG",
+              "license": "CC BY-SA 4.0"
+          }
+      ]
+  },
   'tour-triangle-paris': {
       "images": [
           {
@@ -5053,6 +6925,28 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
               "page": "https://commons.wikimedia.org/wiki/File:The_Exchange_TRX_Shopping_Mall_(23.12.02).jpg",
               "author": "LegendaryLim",
               "license": "CC0"
+          }
+      ]
+  },
+  'turin-lingotto': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Lingotto%2C%20Fiera%20del%20Libro%2C%20Oval%20Lingotto.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Lingotto,_Fiera_del_Libro,_Oval_Lingotto.jpg",
+              "author": "Luca Galli",
+              "license": "CC BY 2.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Lh%C3%A9liport%20du%20Lingotto%20(Turin)%20(2860291485).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Lh%C3%A9liport_du_Lingotto_(Turin)_(2860291485).jpg",
+              "author": "Jean-Pierre Dalbéra from Paris, France",
+              "license": "CC BY 2.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Lh%C3%A9liport%20du%20Lingotto%20(Turin)%20(2861119828).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Lh%C3%A9liport_du_Lingotto_(Turin)_(2861119828).jpg",
+              "author": "Jean-Pierre Dalbéra from Paris, France",
+              "license": "CC BY 2.0"
           }
       ]
   },
@@ -5242,6 +7136,16 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
           }
       ]
   },
+  'village-im-dritten': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/BlauerOfenGodinH1a.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:BlauerOfenGodinH1a.jpg",
+              "author": "Helge Klaus Rieder",
+              "license": "CC0"
+          }
+      ]
+  },
   'vista-tower-chicago': {
       "images": [
           {
@@ -5327,6 +7231,28 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
               "page": "https://commons.wikimedia.org/wiki/File:PKP_IC_-_EU_44_(Husarz)_(7).JPG",
               "author": "Mateusz Włodarczyk",
               "license": "CC BY-SA 4.0"
+          }
+      ]
+  },
+  'warsaw-praga': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Warsaw%20Praga%20market.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Warsaw_Praga_market.jpg",
+              "author": "Tiia Monto",
+              "license": "CC BY-SA 3.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Rainbow%20building%20in%20Praga%20district%2C%20Warsaw%20(8121494897).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Rainbow_building_in_Praga_district,_Warsaw_(8121494897).jpg",
+              "author": "Guillaume Speurt from Vilnius, Lithuania",
+              "license": "CC BY-SA 2.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Praga%20District%20Warsaw%20Poland%20Color%20Street%20Photography%20(110530947).jpeg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Praga_District_Warsaw_Poland_Color_Street_Photography_(110530947).jpeg",
+              "author": "Giuseppe Milo",
+              "license": "CC BY 3.0"
           }
       ]
   },
@@ -5481,6 +7407,28 @@ export const WORLD_PROJECT_MEDIA: Record<string, WorldProjectMedia> = {
               "page": "https://commons.wikimedia.org/wiki/File:Wuhan_Greenland_Center_main_tower_site.JPG",
               "author": "mt",
               "license": "CC BY-SA 3.0"
+          }
+      ]
+  },
+  'yongsan-masterplan': {
+      "images": [
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Seoul-Yongsan.gu-01.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Seoul-Yongsan.gu-01.jpg",
+              "author": "m-louis (a flickr user)",
+              "license": "CC BY-SA 2.0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Yongsan-gu%2C%20Seoul%2C%20South%20Korea%20(Unsplash).jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Yongsan-gu,_Seoul,_South_Korea_(Unsplash).jpg",
+              "author": "Janis Rozenfelds janisrozenfelds",
+              "license": "CC0"
+          },
+          {
+              "url": "https://commons.wikimedia.org/wiki/Special:FilePath/Itaewon%20Underpass%2C%20Yongsan-gu%20Office.jpg?width=1280",
+              "page": "https://commons.wikimedia.org/wiki/File:Itaewon_Underpass,_Yongsan-gu_Office.jpg",
+              "author": "Nguyen QuocTrung",
+              "license": "CC BY-SA 4.0"
           }
       ]
   }

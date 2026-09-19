@@ -155,6 +155,7 @@ export const tr: Dict = {
   'map.zoomOut': 'Uzaklaştır',
   'map.reset': 'Görünümü sıfırla',
   'map.locate': 'Yakınımda',
+  'map.locateFail': 'Konumunuz alınamadı',
   'map.day': 'Gündüz modu',
   'map.night': 'Gece modu',
   'map.refresh': 'İlanları yenile',

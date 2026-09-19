@@ -157,6 +157,7 @@ export const de: Dict = {
   'map.zoomOut': 'Verkleinern',
   'map.reset': 'Ansicht zurücksetzen',
   'map.locate': 'In meiner Nähe',
+  'map.locateFail': 'Standort konnte nicht ermittelt werden',
   'map.day': 'Tagmodus',
   'map.night': 'Nachtmodus',
   'map.refresh': 'Inserate aktualisieren',

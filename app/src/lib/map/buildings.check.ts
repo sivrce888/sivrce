@@ -131,6 +131,24 @@ async function main() {
   assert.equal(parseStreet('ჭავჭავაძის 47, ვაკე'), 'ჭავჭავაძის')
   assert.equal(listingBuildingNumber(fixtures[2]!), '12')
 
+  // Both world address orders reach the same cluster key. Number-first used to
+  // parse as "no number", dropping the listing into the ~60 m grid bucket where
+  // neighbouring towers merge into one pin.
+  assert.equal(parseBuildingNumber('Kantstraße 12a, Charlottenburg, Berlin'), '12a')
+  assert.equal(parseStreet('Kantstraße 12a, Charlottenburg, Berlin'), 'kantstraße')
+  assert.equal(parseBuildingNumber('120 Hudson Street, Tribeca, New York'), '120')
+  assert.equal(parseStreet('120 Hudson Street, Tribeca, New York'), 'hudson street')
+  assert.equal(parseBuildingNumber('801 S Miami Ave, Brickell, Miami'), '801')
+  assert.equal(parseBuildingNumber('120A Hudson St, New York'), '120A')
+  // Ordinal street names are names, not numbers — the digits carry no space.
+  assert.equal(parseBuildingNumber('5th Avenue, Manhattan'), '')
+  assert.equal(parseBuildingNumber('1 5th Avenue, Manhattan'), '1')
+  assert.equal(parseStreet('1 5th Avenue, Manhattan'), '5th avenue')
+  // Number-last scripts: a leading number is part of the street's name.
+  assert.equal(parseBuildingNumber('26 მაისის მოედანი, თბილისი'), '')
+  assert.equal(parseStreet('26 მაისის მოედანი, თბილისი'), '26 მაისის მოედანი')
+  assert.equal(parseBuildingNumber('8 Марта, Москва'), '')
+
   const buildings = clusterListingsToBuildings(fixtures)
   const tower = buildings.find((b) => b.slug === 'chavchavadze-47')
   assert.ok(tower)
@@ -557,11 +575,24 @@ async function main() {
     const { lat, lng } = l.coords
     assert.ok(Number.isFinite(lat) && Number.isFinite(lng), `${l.id}: coords not finite`)
     assert.ok(Math.abs(lat) <= 90 && Math.abs(lng) <= 180, `${l.id}: coords out of range`)
-    assert.ok(
-      lat >= GEORGIA.latMin && lat <= GEORGIA.latMax && lng >= GEORGIA.lngMin && lng <= GEORGIA.lngMax,
-      `${l.id}: coords outside Georgia`,
-    )
-    assert.ok(l.buildingSlug && l.buildingSlug.trim().length > 0, `${l.id}: missing buildingSlug`)
+    // (0,0) is the Gulf of Guinea — the signature of an unset/failed geocode, and
+    // the one coordinate that must never reach a pin. Guard it in every country.
+    assert.ok(Math.abs(lat) > 1e-6 || Math.abs(lng) > 1e-6, `${l.id}: null-island coords`)
+    // The Georgia box belongs to Georgian listings only. Sivrce is one worldwide
+    // platform (AE/US/DE inventory lives in the same LISTINGS source of truth), so
+    // a global gate here would either fail forever or have to be deleted outright.
+    if ((l.country ?? 'GE').toUpperCase() === 'GE') {
+      assert.ok(
+        lat >= GEORGIA.latMin && lat <= GEORGIA.latMax && lng >= GEORGIA.lngMin && lng <= GEORGIA.lngMax,
+        `${l.id}: GE listing outside Georgia`,
+      )
+    }
+    // buildingSlug is the Georgian catalog join (landmark cluster + /buildings page).
+    // World inventory has no catalog row yet and clusters by street+number instead,
+    // which the "dropped by clustering" gate below covers for every country.
+    if ((l.country ?? 'GE').toUpperCase() === 'GE') {
+      assert.ok(l.buildingSlug && l.buildingSlug.trim().length > 0, `${l.id}: missing buildingSlug`)
+    }
   }
 
   // Lands/settlement pins have no street number by nature — count only addressable kinds.
@@ -635,7 +666,23 @@ async function main() {
     BUILDINGS.filter((b) => b.city === 'თბილისი').length >= 100,
     'Tbilisi catalog too thin — projects should expand BUILDINGS',
   )
-  assert.ok(BUILDINGS.every((b) => b.img.startsWith('/images/')), 'catalog img must be local')
+  // Georgian catalog rows ship local art; the ~370 world rows reference Wikimedia
+  // Commons, which next.config's CSP img-src already allowlists. What must hold for
+  // every row is a usable, secure reference — never '', a bare relative path, or http.
+  // Keep in sync with next.config.ts → securityHeaders img-src.
+  const CSP_IMG_HOSTS = [
+    'cdn.sivrce.ge',
+    'images.sivrce.ge',
+    'commons.wikimedia.org',
+    'upload.wikimedia.org',
+  ]
+  for (const b of BUILDINGS) {
+    const local = b.img.startsWith('/images/')
+    const remote =
+      b.img.startsWith('https://') &&
+      CSP_IMG_HOSTS.includes(new URL(b.img).hostname)
+    assert.ok(local || remote, `${b.slug}: img must be /images/… or a CSP-allowed https host (${b.img})`)
+  }
   assert.ok(BUILDINGS.every((b) => b.description.ka.length > 20), 'catalog needs ka description')
 
   const gradaPark = BUILDINGS.find((b) => b.slug === 'grada-park')

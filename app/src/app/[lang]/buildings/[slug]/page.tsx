@@ -453,7 +453,9 @@ export default async function BuildingPage({ params }: PageProps) {
           {/* ponytail: manual card/master srcset — global Image.unoptimized ships the 2560px master to phones */}
           { }
           <picture className="contents">
-            <source type="image/avif" media="(max-width: 800px)" srcSet={avifCardOf(building.img)} />
+            {avifCardOf(building.img) ? (
+              <source type="image/avif" media="(max-width: 800px)" srcSet={avifCardOf(building.img)} />
+            ) : null}
           <img
             src={building.img}
             srcSet={cardOf(building.img) ? `${cardOf(building.img)} 800w, ${building.img} 2560w` : undefined}

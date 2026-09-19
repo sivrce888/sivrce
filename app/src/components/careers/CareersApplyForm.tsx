@@ -16,7 +16,7 @@ const CITY_L10N: Record<string, { en: string; de: string }> = {
 
 const L = {
   ka: {
-    errPhone: 'ნომერი არასწორია. მაგ.: +995 555 12 34 56',
+    errPhone: 'ნომერი არასწორია. მაგ.: +995 500 333 111',
     errChooseCv: 'აირჩიე CV (PDF, DOC ან DOCX).',
     errCvMax: 'CV — მაქს. 5 მბ.',
     errWait: 'ცოტა დაიცადე და თავიდან სცადე.',
@@ -41,7 +41,7 @@ const L = {
     send: 'გაგზავნა',
   },
   en: {
-    errPhone: 'Invalid number. Example: +995 555 12 34 56',
+    errPhone: 'Invalid number. Example: +995 500 333 111',
     errChooseCv: 'Choose a CV (PDF, DOC or DOCX).',
     errCvMax: 'CV — max. 5 MB.',
     errWait: 'Please wait a moment and try again.',
@@ -66,7 +66,7 @@ const L = {
     send: 'Send',
   },
   de: {
-    errPhone: 'Ungültige Nummer. Beispiel: +995 555 12 34 56',
+    errPhone: 'Ungültige Nummer. Beispiel: +995 500 333 111',
     errChooseCv: 'Wählen Sie einen Lebenslauf (PDF, DOC oder DOCX).',
     errCvMax: 'Lebenslauf — max. 5 MB.',
     errWait: 'Bitte warten Sie einen Moment und versuchen Sie es erneut.',

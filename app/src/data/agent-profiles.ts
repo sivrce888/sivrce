@@ -26,7 +26,7 @@ export const AGENT_PROFILES: AgentProfile[] = [
   {
     slug: 'giorgi-mamulashvili',
     name: { ka: 'გიორგი მამულაშვილი', en: 'Giorgi Mamulashvili', ru: 'Гиоргий Мамулашвили' },
-    agency: 'Capital Estate',
+    agency: 'სივრცე Real Estate',
     city: 'თბილისი',
     yearsActive: 12,
     dealsClosed: 380,
@@ -58,7 +58,7 @@ export const AGENT_PROFILES: AgentProfile[] = [
   {
     slug: 'davit-japaridze',
     name: { ka: 'დავით ჯაფარიძე', en: 'Davit Japaridze', ru: 'Давид Джапаридзе' },
-    agency: 'Tbilisi Homes',
+    agency: 'სივრცე თბილისი',
     city: 'თბილისი',
     yearsActive: 10,
     dealsClosed: 290,
@@ -74,7 +74,7 @@ export const AGENT_PROFILES: AgentProfile[] = [
   {
     slug: 'mariam-lomidze',
     name: { ka: 'მარიამ ლომიძე', en: 'Mariam Lomidze', ru: 'Мариам Ломидзе' },
-    agency: 'Adjarinvest',
+    agency: 'სივრცე ბათუმი',
     city: 'ბათუმი',
     yearsActive: 8,
     dealsClosed: 210,

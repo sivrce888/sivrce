@@ -155,6 +155,7 @@ export const ar: Dict = {
   'map.zoomOut': 'تصغير',
   'map.reset': 'إعادة العرض',
   'map.locate': 'قربي',
+  'map.locateFail': 'تعذّر تحديد موقعك',
   'map.day': 'وضع النهار',
   'map.night': 'وضع الليل',
   'map.refresh': 'تحديث الإعلانات',

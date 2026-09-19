@@ -253,7 +253,9 @@ export default async function DeveloperPage({ params }: PageProps) {
             {/* ponytail: manual card/master srcset — global Image.unoptimized ships the 2560px master to phones */}
             { }
             <picture className="contents">
-              <source type="image/avif" media="(max-width: 800px)" srcSet={avifCardOf(flagship.img)} />
+              {avifCardOf(flagship.img) ? (
+                <source type="image/avif" media="(max-width: 800px)" srcSet={avifCardOf(flagship.img)} />
+              ) : null}
             <img
               src={flagship.img}
               srcSet={cardOf(flagship.img) ? `${cardOf(flagship.img)} 800w, ${flagship.img} 2560w` : undefined}
