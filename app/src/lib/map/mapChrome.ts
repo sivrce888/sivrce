@@ -16,6 +16,7 @@ import {
   MAP_JSON_CACHE_VER,
   toMapProxyUrl,
 } from '@/lib/map/map-proxy'
+import { withNature } from '@/lib/map/nature'
 
 /** Brand label (shown with legal credit when ⓘ is opened). */
 export const MAP_CREDIT_PLAIN = 'Sivrce Maps'
@@ -274,7 +275,7 @@ export async function loadCleanStyle(styleUrl: string): Promise<StyleSpecificati
       return layer
     })
 
-  const out = withBuilding3d({ ...style, sources: nextSources, layers })
+  const out = withNature(withBuilding3d({ ...style, sources: nextSources, layers }))
   styleCache.set(styleUrl, out)
   return structuredClone(out)
 }

@@ -6,7 +6,11 @@
  * Dark = navy brand lifts (readable, not flat black).
  */
 
-import type { Map as MlMap, StyleSpecification } from 'maplibre-gl'
+import type {
+  Map as MlMap,
+  PropertyValueSpecification,
+  StyleSpecification,
+} from 'maplibre-gl'
 import { BRAND } from '@/lib/brand'
 import { EMPTY_FLOORS } from './floors'
 import {
@@ -22,6 +26,7 @@ import { mapProxyOrigin } from '@/lib/map/map-proxy'
 import { DEFAULT_LANG, isValidLang, type Lang } from '@/lib/i18n/core'
 import { applyMapLanguage } from '@/lib/map/map-language'
 import { ICONIC_LAYER_ID, setIconicLandmarks3d } from '@/lib/map/iconic-landmarks'
+import { paintNature, type NatureKey } from '@/lib/map/nature'
 
 // Defaults are first-party proxy paths — browser never sees openfreemap.org.
 export const STYLE_LIGHT =
@@ -257,6 +262,62 @@ export function setBasemapBuildings3d(map: MlMap, on: boolean) {
 }
 
 /**
+ * Admin ink per look. Sivrce is a worldwide product — the country tier has to
+ * read at globe zoom instead of inheriting whatever the basemap shipped, and
+ * Liberty/Positron name their tiers `label_country_*` while Dark uses
+ * `place_country_*`. Both families are written; the absent one no-ops.
+ */
+const WORLD_INK = {
+  light: { country: '#37414F', state: '#6B7486', halo: '#FFFFFF', line: '#5A6480', sub: '#7A8499' },
+  clean: { country: '#514C45', state: '#857F74', halo: '#FFFFFF', line: '#BDB6AA', sub: '#D0C9BD' },
+  dark: { country: '#E9EDFF', state: '#AFBDE0', halo: BRAND.colors.navy, line: '#4A5A80', sub: '#3A4A70' },
+} as const
+
+type WorldKey = keyof typeof WORLD_INK
+
+/** Country borders solid, sub-national softer — the standard reference read. */
+function paintBoundaries(map: MlMap, key: WorldKey) {
+  const ink = WORLD_INK[key]
+  const width: PropertyValueSpecification<number> = [
+    'interpolate', ['linear'], ['zoom'],
+    2, 0.6, 5, 1, 9, 1.7, 13, 2.4,
+  ]
+  for (const id of ['boundary_2', 'boundary_country_z0-4', 'boundary_country_z5-']) {
+    trySet(map, id, 'line-color', ink.line)
+    trySet(map, id, 'line-opacity', 1)
+    trySet(map, id, 'line-width', width)
+  }
+  for (const id of ['boundary_3', 'boundary_state']) {
+    trySet(map, id, 'line-color', ink.sub)
+    trySet(map, id, 'line-opacity', 0.9)
+    trySet(map, id, 'line-width', [
+      'interpolate', ['linear'], ['zoom'],
+      4, 0.4, 8, 1, 11, 1.6,
+    ])
+  }
+  // Disputed borders stay dashed and unasserted — we do not take a position.
+  trySet(map, 'boundary_disputed', 'line-color', ink.sub)
+  trySet(map, 'boundary_disputed', 'line-opacity', 0.7)
+}
+
+function paintWorldLabels(map: MlMap, key: WorldKey) {
+  const ink = WORLD_INK[key]
+  for (const id of ['label_country_1', 'label_country_2', 'label_country_3',
+    'place_country_major', 'place_country_minor', 'place_country_other']) {
+    trySet(map, id, 'text-color', ink.country)
+    trySet(map, id, 'text-halo-color', ink.halo)
+    trySet(map, id, 'text-halo-width', 1.8)
+    trySet(map, id, 'text-opacity', 1)
+  }
+  for (const id of ['label_state', 'place_state']) {
+    trySet(map, id, 'text-color', ink.state)
+    trySet(map, id, 'text-halo-color', ink.halo)
+    trySet(map, id, 'text-halo-width', 1.5)
+    trySet(map, id, 'text-opacity', 0.95)
+  }
+}
+
+/**
  * Google Maps light palette — the look people already trust.
  * Hex here is intentional third-party basemap mimic (BRAND.md exception).
  * Refs: Maps road white / highway yellow / water #AADAFF / park #C8E6C9.
@@ -273,36 +334,15 @@ function applyLightPaints(map: MlMap) {
   trySet(map, 'landuse_residential', 'fill-color', '#EBEAE7')
   trySet(map, 'landuse_residential', 'fill-opacity', 1)
 
-  // Water — Google cyan
-  trySet(map, 'water', 'fill-color', '#AADAFF')
-  trySet(map, 'waterway_river', 'line-color', '#AADAFF')
-  trySet(map, 'waterway_other', 'line-color', '#B8E0FF')
-  for (const id of ['water_name', 'water_name_point_label', 'water_name_line_label']) {
+  // Land, water, rivers and trees all live in nature.ts — one vocabulary across
+  // the four looks, so this function only owns roads, labels and buildings.
+  for (const id of ['water_name_point_label', 'water_name_line_label', 'waterway_line_label']) {
     trySet(map, id, 'text-color', '#4A86C8')
     trySet(map, id, 'text-halo-color', '#FFFFFF')
     trySet(map, id, 'text-halo-width', 1.2)
   }
 
-  // Parks / green
-  trySet(map, 'park', 'fill-color', '#C8E6C9')
-  trySet(map, 'park', 'fill-opacity', 1)
-  trySet(map, 'park_outline', 'line-color', '#A5D6A7')
-  trySet(map, 'landcover_grass', 'fill-color', '#CBE3B8')
-  trySet(map, 'landcover_grass', 'fill-opacity', 0.7)
-  trySet(map, 'landcover_wood', 'fill-color', '#B4D3A0')
-  trySet(map, 'landcover_wood', 'fill-opacity', 0.8)
-  trySet(map, 'boundary_3', 'line-color', '#7A8499')
-  trySet(map, 'boundary_3', 'line-opacity', 0.95)
-  trySet(map, 'boundary_3', 'line-width', [
-    'interpolate', ['linear'], ['zoom'],
-    6, 0.7, 8, 1.1, 11, 1.8,
-  ])
-  trySet(map, 'boundary_2', 'line-color', '#5A6480')
-  trySet(map, 'landuse_cemetery', 'fill-color', '#C5DFB5')
-  trySet(map, 'landuse_hospital', 'fill-color', '#F8D7DA')
-  trySet(map, 'landuse_school', 'fill-color', '#FFF3C4')
-  trySet(map, 'landuse_pitch', 'fill-color', '#B2DFB0')
-
+  paintBoundaries(map, 'light')
   paintBuildings(map, 'light')
 
   // Local streets — white + gray casing
@@ -410,36 +450,23 @@ function applyLightPaints(map: MlMap) {
     trySet(map, id, 'text-halo-color', '#FFFFFF')
     trySet(map, id, 'text-halo-width', 1.6)
   }
-  for (const id of [
-    'label_city',
-    'label_city_capital',
-    'label_town',
-    'label_village',
-    'label_other',
-    'place_city',
-    'place_city_large',
-    'place_town',
-    'place_village',
-    'place_suburb',
-    'place_neighbourhood',
-    'place_hamlet',
-    'place_other',
-  ]) {
+  // Liberty names its place tiers `label_*`; the `place_*` family is the dark
+  // style's. Writing both here was a no-op half the time — keep the real ids.
+  for (const id of ['label_city', 'label_city_capital', 'label_town', 'label_village']) {
     trySet(map, id, 'text-color', '#202124')
     trySet(map, id, 'text-halo-color', '#FFFFFF')
     trySet(map, id, 'text-halo-width', 2)
     trySet(map, id, 'text-opacity', 1)
   }
-  for (const id of ['place_suburb', 'place_neighbourhood', 'label_other', 'place_other']) {
-    trySet(map, id, 'text-color', '#5F6368')
-    tryLayout(map, id, 'text-size', [
-      'interpolate', ['linear'], ['zoom'],
-      10, 11, 13, 13, 15, 15,
-    ])
-  }
+  trySet(map, 'label_other', 'text-color', '#5F6368')
+  tryLayout(map, 'label_other', 'text-size', [
+    'interpolate', ['linear'], ['zoom'],
+    10, 11, 13, 13, 15, 15,
+  ])
+  paintWorldLabels(map, 'light')
 
   // Quiet POIs — Google keeps them soft so the map stays calm
-  for (const id of ['poi_r20', 'poi_r7', 'poi_r1', 'poi']) {
+  for (const id of ['poi_r20', 'poi_r7', 'poi_r1', 'poi_transit']) {
     trySet(map, id, 'text-opacity', 0.55)
     trySet(map, id, 'icon-opacity', 0.6)
   }
@@ -452,18 +479,10 @@ function applyDarkPaints(map: MlMap) {
   trySet(map, 'landuse_residential', 'fill-color', BRAND.colors.navySoft)
   trySet(map, 'landuse_residential', 'fill-opacity', 1)
 
-  // Deep, not electric — the river must sit under the city, not glow over it.
-  trySet(map, 'water', 'fill-color', '#12355F')
-  trySet(map, 'waterway', 'line-color', '#1B4F8A')
+  // Water, rivers, parks, forests and trees: nature.ts (shared across looks).
   trySet(map, 'water_name', 'text-color', BRAND.colors.blueLight)
   trySet(map, 'water_name', 'text-halo-color', BRAND.colors.navy)
   trySet(map, 'water_name', 'text-halo-width', 1.4)
-
-  trySet(map, 'landuse_park', 'fill-color', '#143D28')
-  trySet(map, 'landuse_park', 'fill-opacity', 0.95)
-  trySet(map, 'landcover_wood', 'fill-color', '#0F3220')
-  trySet(map, 'landcover_glacier', 'fill-color', '#2A3A55')
-  trySet(map, 'landcover_ice_shelf', 'fill-color', '#243450')
 
   // OSM city fabric — one step off the ground so blocks read without flooding
   // the frame in brand blue (pins own that hue).
@@ -504,10 +523,6 @@ function applyDarkPaints(map: MlMap) {
     'place_town',
     'place_city',
     'place_city_large',
-    'place_state',
-    'place_country_other',
-    'place_country_minor',
-    'place_country_major',
   ]) {
     trySet(map, id, 'text-color', '#E9EDFF')
     trySet(map, id, 'text-halo-color', BRAND.colors.navy)
@@ -521,9 +536,8 @@ function applyDarkPaints(map: MlMap) {
     ])
   }
 
-  trySet(map, 'boundary_state', 'line-color', '#3A4A70')
-  trySet(map, 'boundary_country_z0-4', 'line-color', '#4A5A80')
-  trySet(map, 'boundary_country_z5-', 'line-color', '#4A5A80')
+  paintBoundaries(map, 'dark')
+  paintWorldLabels(map, 'dark')
   hideOfmSuburbLabels(map)
 }
 
@@ -535,10 +549,10 @@ function applyDarkPaints(map: MlMap) {
 function applyCleanPaints(map: MlMap) {
   trySet(map, 'background', 'background-color', '#F3F1EC')
   trySet(map, 'landuse_residential', 'fill-color', '#EDEAE4')
-  trySet(map, 'water', 'fill-color', '#AFCDE6')
-  trySet(map, 'waterway', 'line-color', '#9FC0DD')
-  trySet(map, 'park', 'fill-color', '#D5E4C8')
-  trySet(map, 'park', 'fill-opacity', 0.9)
+  trySet(map, 'landuse_residential', 'fill-opacity', 1)
+  // Positron ships three landcover classes and no parks, pitches or wetland.
+  // nature.ts injects the rest from the same tiles and colours all of it.
+  paintBoundaries(map, 'clean')
   paintBuildings(map, 'clean')
 
   trySet(map, 'highway_path', 'line-color', '#E0DCD4')
@@ -569,6 +583,7 @@ function applyCleanPaints(map: MlMap) {
     trySet(map, id, 'text-halo-color', '#FFFFFF')
     trySet(map, id, 'text-halo-width', 1.1)
   }
+  paintWorldLabels(map, 'clean')
   hideOfmSuburbLabels(map)
 }
 
@@ -583,6 +598,9 @@ export function applyBrandPaints(
   theme: MapTheme = 'dark',
   terrain: MapTerrain = 'streets',
 ) {
+  const nature: NatureKey =
+    terrain === 'satellite' ? 'satellite' : theme === 'dark' ? 'dark' : terrain === 'clean' ? 'clean' : 'light'
+
   if (terrain === 'satellite') {
     for (const id of HYBRID_NAME_IDS) {
       trySet(map, id, 'text-color', BRAND.colors.paper)
@@ -597,6 +615,7 @@ export function applyBrandPaints(
   } else {
     applyLightPaints(map)
   }
+  paintNature(map, nature, isLiteDevice())
   try {
     applyMapLanguage(map, langFromDom())
   } catch {
