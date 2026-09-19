@@ -27,7 +27,7 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { lang: raw } = await params
   const lang: Lang = isValidLang(raw) ? raw : 'ka'
-  const c = DEVELOPERS_HUB[dirLoc(lang)]
+  const c = DEVELOPERS_HUB[lang === 'ka' || lang === 'ru' || lang === 'de' ? lang : 'en']
   return {
     title: c.title,
     description: c.description,
@@ -53,7 +53,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function DevelopersPage({ params }: PageProps) {
   const { lang: raw } = await params
   if (!isValidLang(raw)) notFound()
-  const c = DEVELOPERS_HUB[dirLoc(raw)]
+  const c = DEVELOPERS_HUB[raw === 'ka' || raw === 'ru' || raw === 'de' ? raw : 'en']
+  // Same chrome copy as the agents hub — was hard-coded Georgian on every locale.
+  const ui =
+    raw === 'ka'
+      ? { kicker: 'დირექტორია', cta: 'გახდი დეველოპერი სივრცეზე' }
+      : raw === 'ru'
+        ? { kicker: 'Каталог', cta: 'Стать застройщиком на Sivrce' }
+        : raw === 'de'
+          ? { kicker: 'Verzeichnis', cta: 'Bauträger werden auf Sivrce' }
+          : { kicker: 'Directory', cta: 'Become a developer on Sivrce' }
 
   const { cards, total } = await rankedDevelopers(1)
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE))
@@ -94,12 +103,12 @@ export default async function DevelopersPage({ params }: PageProps) {
     <div className="min-h-screen bg-sv-cloud">
       <Navbar />
       <main id="main">
-        <PageHero tone="light" kicker="დირექტორია" title={c.h1} subtitle={c.sub}>
+        <PageHero tone="light" kicker={ui.kicker} title={c.h1} subtitle={c.sub}>
           <LocalizedLink
             href={roleSignupHref("developer")}
             className="mt-8 inline-flex items-center gap-2 rounded-full bg-sv-orange px-6 py-3 text-[14px] font-extrabold text-sv-ink shadow-glow-orange transition hover:-translate-y-0.5 hover:shadow-glow-orange-lg"
           >
-            გახდი დეველოპერი სივრცეზე
+            {ui.cta}
             <ArrowRight className="h-4 w-4" />
           </LocalizedLink>
         </PageHero>

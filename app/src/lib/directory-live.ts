@@ -219,9 +219,10 @@ export function applyProjectRow(
   const body = (r.body || '').trim()
   const baseBody = (base.description.ka || '').trim()
   // Never downgrade to seed stock art; prefer owned CDN, then any non-placeholder.
-  const nextImg = !isPlaceholderImg(r.image)
-    ? r.image
-    : base.img
+  // isRenderableImg guard: synced bucket URLs are img-src-CSP-blocked (broken render).
+  const nextImg =
+    isRenderableImg(r.image) && !isPlaceholderImg(r.image) ? r.image : base.img
+  const rowGallery = (r.gallery ?? []).filter(isRenderableImg)
   return freshenFinish({
     ...base,
     name: r.name || base.name,
@@ -235,7 +236,7 @@ export function applyProjectRow(
       (r.pricePerSqmFrom > 0 ? `$${r.pricePerSqmFrom.toLocaleString('en-US')}` : ''),
     flats: r.units || base.flats,
     img: nextImg,
-    ...(r.gallery?.length ? { gallery: r.gallery } : {}),
+    ...(rowGallery.length ? { gallery: rowGallery } : {}),
     ...(r.passportUrl ? { passportUrl: r.passportUrl } : {}),
     // Longer curated SEO copy beats thin DB body.
     ...(body.length > baseBody.length
@@ -255,12 +256,14 @@ export function rowToProject(
   const body = (r.body || '').trim()
   const district = canonicalizeDistrict(r.district, r.city)
   const fallback = `${r.name} — ${r.city}. პროექტი და მისამართი სივრცეზე.`
+  const rowGallery = (r.gallery ?? []).filter(isRenderableImg)
   return freshenFinish({
     slug: r.slug,
     name: r.name,
     developerSlug: nameToSlug.get(norm(r.developer)) ?? '',
-    img: r.image || '/images/np1.webp',
-    ...(r.gallery?.length ? { gallery: r.gallery } : {}),
+    // ponytail: placeholder over CSP-blocked remote art — a broken render is worse than stock.
+    img: isRenderableImg(r.image) ? r.image : '/images/np1.webp',
+    ...(rowGallery.length ? { gallery: rowGallery } : {}),
     ...(r.passportUrl ? { passportUrl: r.passportUrl } : {}),
     location: (r.address || '').trim() || r.district,
     city: r.city,

@@ -12,7 +12,7 @@ import { roleSignupHref } from '@/lib/auth-roles'
 import { jsonLd } from '@/lib/utils'
 import {pageAlternates, OG_LOCALE  } from '@/lib/i18n/server'
 import { isValidLang, type Lang } from '@/lib/i18n/core'
-import { DEVELOPERS_HUB, dirLoc, MICRO } from '@/lib/directory-seo'
+import { DEVELOPERS_HUB, dirLoc, MICRO, type DirLoc } from '@/lib/directory-seo'
 import { PER_PAGE, Pager } from '../../../projects/ProjectsGrid'
 import { rankedDevelopers } from '../../ranked'
 
@@ -32,7 +32,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { lang: raw, pg: rawPg } = await params
   const lang: Lang = isValidLang(raw) ? raw : 'ka'
   const pg = parsePg(rawPg)
-  const c = DEVELOPERS_HUB[dirLoc(lang)]
+  const c = DEVELOPERS_HUB[lang === 'ka' || lang === 'ru' || lang === 'de' ? lang : 'en']
   const path = `/developers/page/${pg}`
   const title = pg ? `${c.title} — ${MICRO[dirLoc(lang)].page(pg)}` : c.title
   return {
@@ -56,8 +56,17 @@ export default async function DevelopersPageN({ params }: PageProps) {
   if (!isValidLang(raw)) notFound()
   const pg = parsePg(rawPg)
   if (!pg) notFound()
-  const loc = dirLoc(raw)
+  const loc: DirLoc | 'de' = raw === 'ka' || raw === 'ru' || raw === 'de' ? raw : 'en'
   const c = DEVELOPERS_HUB[loc]
+  // Same chrome copy as the developers hub — was hard-coded Georgian on every locale.
+  const ui =
+    raw === 'ka'
+      ? { kicker: 'დირექტორია', cta: 'გახდი დეველოპერი სივრცეზე' }
+      : raw === 'ru'
+        ? { kicker: 'Каталог', cta: 'Стать застройщиком на Sivrce' }
+        : raw === 'de'
+          ? { kicker: 'Verzeichnis', cta: 'Bauträger werden auf Sivrce' }
+          : { kicker: 'Directory', cta: 'Become a developer on Sivrce' }
 
   const { cards, total } = await rankedDevelopers(pg)
   const totalPages = Math.max(1, Math.ceil(total / PER_PAGE))
@@ -82,12 +91,12 @@ export default async function DevelopersPageN({ params }: PageProps) {
     <div className="min-h-screen bg-sv-cloud">
       <Navbar />
       <main id="main">
-        <PageHero tone="light" kicker="დირექტორია" title={c.h1} subtitle={c.sub}>
+        <PageHero tone="light" kicker={ui.kicker} title={c.h1} subtitle={c.sub}>
           <LocalizedLink
             href={roleSignupHref("developer")}
             className="mt-8 inline-flex items-center gap-2 rounded-full bg-sv-orange px-6 py-3 text-[14px] font-extrabold text-sv-ink shadow-glow-orange transition hover:-translate-y-0.5 hover:shadow-glow-orange-lg"
           >
-            გახდი დეველოპერი სივრცეზე
+            {ui.cta}
             <ArrowRight className="h-4 w-4" />
           </LocalizedLink>
         </PageHero>

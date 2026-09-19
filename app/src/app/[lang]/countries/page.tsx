@@ -77,6 +77,30 @@ const COPY = {
     neighborhoods: 'premium districts',
     countries: 'countries',
   },
+  de: {
+    title: 'Alle Länder — Immobilien an einem Ort | sivrce',
+    description:
+      'SIVRCE Global OS: 250 Länder, jede Metropolregion, Bauträger, Projekte und Metrostationen — verifizierte Daten an einem Ort.',
+    kicker: 'SIVRCE Global OS',
+    h1: 'Jedes Land, ein OS',
+    lede: 'Jedes Land: Metropolen, Bauträger, Projekte, Renderings und ÖPNV — aus lebenden verifizierten Daten.',
+    deep: 'Offene Märkte',
+    deepSub: 'Vollständige Briefings: Städte, Kauf/Miete, Kaufkosten und verifizierte Inserate.',
+    georgia: 'Georgien — der Heimatmarkt',
+    georgiaSub: 'Live-Inserate, 3D-Karte, Katasterkarte und Tagesaufenthalte — die gesamte Plattform, hier gespiegelt.',
+    pinned: 'Auf der Karte & in der Suche',
+    pinnedSub: 'Zugesagte Metro-Pins — vollständige Briefings erscheinen, sobald Inventar eintrifft.',
+    discovery: 'Ebenfalls durchsuchbar',
+    discoverySub: 'Alle übrigen Länder — live Karte & Suche auf Abruf, ohne erfundene Pins.',
+    cities: 'Städte',
+    developers: 'Bauträger',
+    projects: 'Projekte',
+    metros: 'Metropolen',
+    metroSystems: 'Metrosysteme',
+    renders: 'Renderings',
+    neighborhoods: 'Premium-Viertel',
+    countries: 'Länder',
+  },
 } as const
 
 type Copy = (typeof COPY)[keyof typeof COPY]
@@ -88,7 +112,7 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { lang: raw } = await params
   if (!isValidLang(raw)) return {}
-  const t: Copy = raw === 'ka' ? COPY.ka : COPY.en
+  const t: Copy = raw === 'ka' ? COPY.ka : raw === 'de' ? COPY.de : COPY.en
   const url = `${COM_ORIGIN}/countries`
   return {
     title: t.title,
@@ -109,7 +133,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function CountriesPage({ params }: PageProps) {
   const { lang: raw } = await params
   if (!isValidLang(raw)) notFound()
-  const t: Copy = raw === 'ka' ? COPY.ka : COPY.en
+  const t: Copy = raw === 'ka' ? COPY.ka : raw === 'de' ? COPY.de : COPY.en
   const stats = globalOsStats()
   const coverage = new Map(globalCoverage().rows.map((r) => [r.cc, r]))
   const countries = globalCountries()
@@ -153,7 +177,7 @@ export default async function CountriesPage({ params }: PageProps) {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: raw === 'ka' ? 'მთავარი' : 'Home', item: `${COM_ORIGIN}` },
+      { '@type': 'ListItem', position: 1, name: raw === 'ka' ? 'მთავარი' : raw === 'de' ? 'Startseite' : 'Home', item: `${COM_ORIGIN}` },
       { '@type': 'ListItem', position: 2, name: t.h1, item: `${COM_ORIGIN}/countries` },
     ],
   }
@@ -171,7 +195,7 @@ export default async function CountriesPage({ params }: PageProps) {
             <p className="mt-3 max-w-2xl text-[15px] font-semibold text-sv-ink/65 md:text-[16px]">
               {t.lede}
             </p>
-            <dl className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
+            <dl className="mt-8 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-7">
               {facts.map((f) => (
                 <div
                   key={f.label}

@@ -47,7 +47,8 @@ export async function getMarketOverview(usdGel: number): Promise<MarketOverview>
       const rows = await safeQuery(
         async () =>
           db.listing.findMany({
-            where: { status: "active", deletedAt: null },
+            // Georgia-branded market page: global listings would skew the board.
+            where: { status: "active", deletedAt: null, country: "GE" },
             select: {
               district: true,
               pricePerSqm: true,
