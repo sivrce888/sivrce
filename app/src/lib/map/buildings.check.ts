@@ -552,6 +552,20 @@ async function main() {
   assert.equal(mapFiltersToSearchHref('all', 'construction'), '/search?bstat=add.status.construction')
   assert.equal(mapFiltersToSearchHref('sale', 'house'), '/search?deal=sale&type=house')
 
+  // Pin money follows the reader, not the seed country. The label is baked into
+  // GeoJSON (a MapLibre worker has no React context), so Map3D injects a formatter
+  // bound to the live currency — without it every /map pin worldwide read in ₾.
+  {
+    const priced = buildings.filter((b) => b.listings.length > 0)
+    assert.ok(priced.length > 0, 'fixture has no priced cluster')
+    const labelOf = (fmt?: (gel: number) => string) =>
+      String(buildingsToPointsGeoJSON(priced, 'all', fmt).features[0]!.properties?.priceLabel)
+    const gel = labelOf()
+    assert.ok(gel.includes('₾'), `default pin label stays GEL, got ${gel}`)
+    const usd = labelOf((g) => `$${Math.round(g / 2.7)}`)
+    assert.ok(usd.startsWith('$') && !usd.includes('₾'), `injected formatter owns the label, got ${usd}`)
+  }
+
   const rentPts = buildingsToPointsGeoJSON(buildings, 'rent')
   const rentTower = rentPts.features.find((f) => f.properties?.slug === 'chavchavadze-47')
   assert.equal(rentTower?.properties?.hue, DEAL_BRAND.rent)

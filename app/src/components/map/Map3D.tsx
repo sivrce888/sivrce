@@ -96,6 +96,8 @@ import {
   isPoiCategory,
   parsePoiPrefs,
   poiFilterSpec,
+  poiLayerFilters,
+  poiSortKeySpec,
   serializePoiPrefs,
   type PoiCategory,
 } from '@/lib/map/poi-constants'
@@ -323,6 +325,8 @@ const RAION_LINE_ID = 'sivrce-raions-line'
 
 const POI_SOURCE_ID = 'sivrce-pois'
 const POI_ICON_ID = 'sivrce-pois-icon'
+/** Metro only, topmost, collision-exempt — see poiLayerFilters. */
+const POI_METRO_ID = 'sivrce-pois-metro'
 const POI_LABEL_LAYER_ID = 'sivrce-pois-label'
 // ponytail: 1.1 MB POI JSON loads after first paint — source starts empty,
 // fills when the chunk arrives (same sprites, zero layout shift on the map).
@@ -332,6 +336,42 @@ const TRANSIT_SOURCE_ID = 'sivrce-transit'
 const TRANSIT_ICON_ID = 'sivrce-transit-icon'
 const TRANSIT_LABEL_LAYER_ID = 'sivrce-transit-label'
 const TRANSIT_EMPTY: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [] }
+
+/**
+ * Shared amenity-badge layout — static OSM POIs and live transit are the same
+ * sprite set, so they must also compete for the same space.
+ *
+ * Collision is ON. It used to be off on both layers (`icon-allow-overlap` +
+ * `icon-ignore-placement`), which forces every feature to draw: a Tbilisi
+ * corridor came back with ~250 bus stops and the city disappeared under a wall
+ * of identical badges. With placement enabled MapLibre thins the set as you zoom
+ * out, and `symbol-sort-key` decides who survives — metro and rail before a bus
+ * stop, never the other way round.
+ */
+const POI_ICON_LAYOUT = {
+  // sv-poi-{category} — see loadPoiImages
+  'icon-image': ['concat', 'sv-poi-', ['get', 'category']] as ExpressionSpecification,
+  'icon-size': [
+    'interpolate', ['linear'], ['zoom'],
+    11, 0.55, 14, 0.72, 16, 0.9,
+  ] as ExpressionSpecification,
+  'symbol-sort-key': poiSortKeySpec(),
+  'icon-allow-overlap': false,
+  'icon-ignore-placement': false,
+  // Breathing room so two survivors never read as one smudged badge.
+  'icon-padding': 3,
+} as const
+
+/**
+ * Metro's own layer. A metro entrance is the single strongest amenity signal on a
+ * property map — Apple and Google both draw it at every zoom — so it is exempt
+ * from the thinning above and sits on top of every other badge.
+ */
+const POI_METRO_LAYOUT = {
+  ...POI_ICON_LAYOUT,
+  'icon-allow-overlap': true,
+  'icon-ignore-placement': true,
+} as const
 
 /**
  * Committed boot-city pins (metro + landmarks from the RSC shell) ride the
@@ -389,6 +429,9 @@ async function ensureLayers(
     clusterMaxZoom: CLUSTER_MAX_ZOOM,
   },
   shell: CityShell | null = null,
+  /** Last transit FC in hand — a style swap drops the source, and refetching it
+   *  costs an Overpass round-trip the user did not ask for. */
+  transit: GeoJSON.FeatureCollection | null = null,
 ) {
   if (map.getSource(SOURCE_ID)) return
 
@@ -788,17 +831,8 @@ async function ensureLayers(
     type: 'symbol',
     source: POI_SOURCE_ID,
     minzoom: 11,
-    filter: poiFilterSpec(POI_DEFAULT_ON),
-    layout: {
-      // sv-poi-{category} — see loadPoiImages
-      'icon-image': ['concat', 'sv-poi-', ['get', 'category']] as ExpressionSpecification,
-      'icon-size': [
-        'interpolate', ['linear'], ['zoom'],
-        11, 0.55, 14, 0.72, 16, 0.9,
-      ] as ExpressionSpecification,
-      'icon-allow-overlap': true,
-      'icon-ignore-placement': true,
-    },
+    filter: poiLayerFilters(POI_DEFAULT_ON).rest,
+    layout: POI_ICON_LAYOUT,
   })
   map.addLayer({
     id: POI_LABEL_LAYER_ID,
@@ -828,7 +862,7 @@ async function ensureLayers(
   // debounced bbox fetch fills the rest (see transit effect).
   map.addSource(TRANSIT_SOURCE_ID, {
     type: 'geojson',
-    data: cityShellFeatureCollection(shell),
+    data: transit ?? cityShellFeatureCollection(shell),
     attribution: '© OpenStreetMap contributors (ODbL)',
   })
   map.addLayer({
@@ -837,15 +871,7 @@ async function ensureLayers(
     source: TRANSIT_SOURCE_ID,
     minzoom: TRANSIT_MIN_ZOOM,
     filter: poiFilterSpec([]),
-    layout: {
-      'icon-image': ['concat', 'sv-poi-', ['get', 'category']] as ExpressionSpecification,
-      'icon-size': [
-        'interpolate', ['linear'], ['zoom'],
-        11, 0.55, 14, 0.72, 16, 0.9,
-      ] as ExpressionSpecification,
-      'icon-allow-overlap': true,
-      'icon-ignore-placement': true,
-    },
+    layout: POI_ICON_LAYOUT,
   })
   map.addLayer({
     id: TRANSIT_LABEL_LAYER_ID,
@@ -869,6 +895,36 @@ async function ensureLayers(
       'text-halo-width': 1.4,
     },
   })
+
+  // Added last so it is the topmost symbol layer — see POI_METRO_LAYOUT.
+  map.addLayer({
+    id: POI_METRO_ID,
+    type: 'symbol',
+    source: POI_SOURCE_ID,
+    minzoom: POI_MIN_ZOOM.metro,
+    filter: poiLayerFilters(POI_DEFAULT_ON).metro,
+    layout: POI_METRO_LAYOUT,
+  })
+}
+
+/** Single writer for the amenity filters — five layers, one zoom-aware source of truth. */
+function applyPoiFilters(map: MlMap, enabled: readonly PoiCategory[], zoom: number) {
+  const f = poiLayerFilters(enabled, zoom)
+  const specs: [string, FilterSpecification][] = [
+    [POI_ICON_ID, f.rest],
+    [TRANSIT_ICON_ID, f.rest],
+    [POI_METRO_ID, f.metro],
+    [POI_LABEL_LAYER_ID, f.labels],
+    [TRANSIT_LABEL_LAYER_ID, f.labels],
+  ]
+  for (const [layer, filter] of specs) {
+    if (!map.getLayer(layer)) continue
+    try {
+      map.setFilter(layer, filter)
+    } catch {
+      /* style mid-remount */
+    }
+  }
 }
 
 function applyPoiLabelTheme(map: MlMap, dark: boolean) {
@@ -1016,6 +1072,8 @@ function Map3DInner({
   const cityShellRef = useRef(cityShell)
   const shellFcRef = useRef(cityShellFeatureCollection(cityShell))
   const shellStopsRef = useRef<TransitStop[]>(cityShell ? cityShellPinStops(cityShell) : [])
+  /** Whatever the transit layer is showing right now — replayed after a style swap. */
+  const transitFcRef = useRef<GeoJSON.FeatureCollection>(cityShellFeatureCollection(cityShell))
   useEffect(() => {
     cityShellRef.current = cityShell
     shellFcRef.current = cityShellFeatureCollection(cityShell)
@@ -1173,15 +1231,10 @@ function Map3DInner({
     let lastKey = ''
     const apply = () => {
       const z = map.getZoom()
-      const visible = poiOn.filter((c) => z + 1e-6 >= POI_MIN_ZOOM[c])
-      const key = visible.join(',')
+      const key = poiOn.filter((c) => z + 1e-6 >= POI_MIN_ZOOM[c]).join(',')
       if (key === lastKey) return
       lastKey = key
-      const filter = poiFilterSpec(visible)
-      map.setFilter(POI_ICON_ID, filter)
-      if (map.getLayer(POI_LABEL_LAYER_ID)) map.setFilter(POI_LABEL_LAYER_ID, filter)
-      if (map.getLayer(TRANSIT_ICON_ID)) map.setFilter(TRANSIT_ICON_ID, filter)
-      if (map.getLayer(TRANSIT_LABEL_LAYER_ID)) map.setFilter(TRANSIT_LABEL_LAYER_ID, filter)
+      applyPoiFilters(map, poiOn, z)
     }
     apply()
     map.on('zoom', apply)
@@ -1202,6 +1255,11 @@ function Map3DInner({
     if (!map || !ready) return
     let abort: AbortController | null = null
     let timer: ReturnType<typeof setTimeout> | null = null
+    /** Single writer, so the ref always mirrors what the layer is drawing. */
+    const push = (src: GeoJSONSource, fc: GeoJSON.FeatureCollection) => {
+      transitFcRef.current = fc
+      src.setData(fc)
+    }
     const run = () => {
       const src = map.getSource(TRANSIT_SOURCE_ID) as GeoJSONSource | undefined
       if (!src) return
@@ -1210,7 +1268,7 @@ function Map3DInner({
       const lite = isLiteDevice()
       if (map.getZoom() < (lite ? TRANSIT_LITE_MIN_ZOOM : TRANSIT_MIN_ZOOM) || cats.length === 0) {
         try {
-          src.setData(shellFcRef.current)
+          push(src, shellFcRef.current)
         } catch {
           /* style mid-remount */
         }
@@ -1233,7 +1291,7 @@ function Map3DInner({
             )
             const live = transitToGeoJSON(stops)
             const shell = shellFcRef.current
-            src.setData({
+            push(src, {
               type: 'FeatureCollection',
               features: [...shell.features, ...live.features],
             })
@@ -1842,6 +1900,7 @@ function Map3DInner({
           ...BUILDING_HIT_LAYERS,
           CLUSTER_ID,
           POI_ICON_ID,
+          POI_METRO_ID,
           POI_LABEL_LAYER_ID,
           TRANSIT_ICON_ID,
           TRANSIT_LABEL_LAYER_ID,
@@ -2193,6 +2252,9 @@ function Map3DInner({
             { poly: polyFcRef.current, pts: ptsFcRef.current },
             zooms,
             cityShellRef.current,
+            // Replay the pins already fetched — a theme or terrain switch used to
+            // blank every live transit stop until the user happened to pan.
+            transitFcRef.current,
           )
           try {
             bindBerlinGeoTiles(map, {
@@ -2213,11 +2275,7 @@ function Map3DInner({
           }
           // Style remount resets paint — restore selection focus if a panel is open.
           applyFocusPaint(map, selectedRef.current?.id ?? null)
-          const poiFilter = poiFilterSpec(poiOnRef.current, map.getZoom())
-          if (map.getLayer(POI_ICON_ID)) map.setFilter(POI_ICON_ID, poiFilter)
-          if (map.getLayer(POI_LABEL_LAYER_ID)) map.setFilter(POI_LABEL_LAYER_ID, poiFilter)
-          if (map.getLayer(TRANSIT_ICON_ID)) map.setFilter(TRANSIT_ICON_ID, poiFilter)
-          if (map.getLayer(TRANSIT_LABEL_LAYER_ID)) map.setFilter(TRANSIT_LABEL_LAYER_ID, poiFilter)
+          applyPoiFilters(map, poiOnRef.current, map.getZoom())
           applyPoiLabelTheme(map, darkRef.current)
           tightenAttribution(map)
           const showFloors = Boolean(
@@ -2514,11 +2572,14 @@ function Map3DInner({
       map.on('mouseenter', NBH_LABEL_ID, onNeighborhoodEnter)
       map.on('mouseleave', NBH_LABEL_ID, onNeighborhoodLeave)
       map.on('click', POI_ICON_ID, onPoiClick)
+      map.on('click', POI_METRO_ID, onPoiClick)
       map.on('click', POI_LABEL_LAYER_ID, onPoiClick)
       map.on('click', TRANSIT_ICON_ID, onPoiClick)
       map.on('click', TRANSIT_LABEL_LAYER_ID, onPoiClick)
       map.on('mouseenter', POI_ICON_ID, onPoiEnter)
       map.on('mouseleave', POI_ICON_ID, onPoiLeave)
+      map.on('mouseenter', POI_METRO_ID, onPoiEnter)
+      map.on('mouseleave', POI_METRO_ID, onPoiLeave)
       map.on('mouseenter', TRANSIT_ICON_ID, onPoiEnter)
       map.on('mouseleave', TRANSIT_ICON_ID, onPoiLeave)
       map.on('rotate', () => {
@@ -2974,15 +3035,22 @@ function Map3DInner({
                 <RotateCcw className="h-3.5 w-3.5" strokeWidth={2} />
               </button>
             </div>
+            {/* Both notices sit on the live canvas, so they carry the same plate as
+                the rest of the chrome — bare text over a satellite tile or a lit
+                façade is unreadable at any contrast ratio. */}
             {/* pinsLoaded, not ready: the map paints before listings/footprints
                 land, so gating on `ready` flashed "no results" on every cold load. */}
             {visible.length === 0 && pinsLoaded && (
-              <p className={`px-1 text-[11px] font-bold ${isDark ? 'text-white/55' : 'text-sv-ink/60'}`}>
+              <p className={`w-fit rounded-full border px-3 py-1.5 text-[11px] font-bold ${chip} ${isDark ? 'text-white/70' : 'text-sv-ink/70'}`}>
                 {t('search.emptyTitle')}
               </p>
             )}
             {refreshNote && (
-              <p className={`px-1 text-[11px] font-bold ${isDark ? 'text-sv-blue-light' : 'text-sv-blue'}`}>
+              <p
+                role="status"
+                aria-live="polite"
+                className={`w-fit rounded-full border px-3 py-1.5 text-[11px] font-bold ${chip} ${isDark ? 'text-sv-blue-light' : 'text-sv-blue'}`}
+              >
                 {refreshNote}
               </p>
             )}

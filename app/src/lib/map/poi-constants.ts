@@ -3,7 +3,7 @@
  * Split from lib/map/pois (1.1 MB JSON) so map UI + cards use filters, colors
  * and prefs without shipping the POI corpus (device-budget lock).
  */
-import type { FilterSpecification } from 'maplibre-gl'
+import type { ExpressionSpecification, FilterSpecification } from 'maplibre-gl'
 import { CATEGORY_BRAND } from '@/lib/category-brand'
 
 export const POI_CATEGORIES = [
@@ -77,6 +77,39 @@ export const POI_COLORS: Record<PoiCategory, string> = {
   landmark: CATEGORY_BRAND.apartments.hue,
 }
 
+/**
+ * Placement priority when two badges collide — MapLibre draws the LOWER key first
+ * and it wins the spot. Ordered by what actually moves a property decision: rapid
+ * transit, then the civic anchors, then everyday errands. Bus is last because a
+ * city has thousands of stops and they are the least differentiating pin on the
+ * map; without this, a dense corridor buries the metro station under bus badges.
+ */
+export const POI_SORT_KEY: Record<PoiCategory, number> = {
+  metro: 0,
+  rail: 1,
+  tram: 2,
+  landmark: 3,
+  hospital: 4,
+  university: 4,
+  school: 5,
+  park: 5,
+  pharmacy: 6,
+  shop: 6,
+  gym: 6,
+  bus: 7,
+}
+
+/** `symbol-sort-key` expression — no per-feature bytes, unlike a baked property. */
+export function poiSortKeySpec(): ExpressionSpecification {
+  // ponytail: variadic `match` can't be expressed in the spec's fixed-arity tuple.
+  return [
+    'match',
+    ['get', 'category'],
+    ...POI_CATEGORIES.flatMap((c) => [c, POI_SORT_KEY[c]]),
+    9,
+  ] as unknown as ExpressionSpecification
+}
+
 const CAT_SET = new Set<string>(POI_CATEGORIES)
 
 export function isPoiCategory(v: string): v is PoiCategory {
@@ -110,4 +143,25 @@ export function poiFilterSpec(
     return ['==', ['get', 'category'], '__none__']
   }
   return ['in', ['get', 'category'], ['literal', [...visible]]]
+}
+
+/**
+ * Filters for the three amenity icon layers.
+ *
+ * `symbol-sort-key` only orders symbols WITHIN one layer. Static OSM POIs and
+ * live transit are two sources, so they are two layers, and MapLibre resolves a
+ * cross-layer collision by layer order alone — which silently hid every metro
+ * station behind the bus stops drawn above it. Metro therefore gets its own
+ * always-on layer on top; `rest` covers everything that is allowed to yield.
+ */
+export function poiLayerFilters(
+  enabled: readonly PoiCategory[],
+  zoom = 22,
+): { rest: FilterSpecification; metro: FilterSpecification; labels: FilterSpecification } {
+  const visible = enabled.filter((c) => zoom + 1e-6 >= POI_MIN_ZOOM[c])
+  return {
+    rest: poiFilterSpec(visible.filter((c) => c !== 'metro')),
+    metro: poiFilterSpec(visible.filter((c) => c === 'metro')),
+    labels: poiFilterSpec(visible),
+  }
 }
