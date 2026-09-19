@@ -40,6 +40,46 @@ export function blogBody(p: Pick<BlogPost, 'slug' | 'body'>, lang: string): stri
   return BLOG_BODIES_EN[p.slug] ?? p.body
 }
 
+/** Editorial tags are authored in ka — display label per locale (de falls back to en). */
+const TAG_LABELS: Record<string, { en: string; ru: string }> = {
+  'დღიური ქირა': { en: 'Daily rent', ru: 'Посуточно' },
+  'თბილისი': { en: 'Tbilisi', ru: 'Тбилиси' },
+  'ინვესტიცია': { en: 'Investment', ru: 'Инвестиции' },
+  'ქირავდება': { en: 'For rent', ru: 'Аренда' },
+  'ბინა': { en: 'Apartment', ru: 'Квартира' },
+  'იყიდება': { en: 'For sale', ru: 'Продажа' },
+  'ბათუმი': { en: 'Batumi', ru: 'Батуми' },
+  'უძრავი ქონება': { en: 'Real estate', ru: 'Недвижимость' },
+  'უცხოელები': { en: 'Expats', ru: 'Иностранцам' },
+  'ვაკე': { en: 'Vake', ru: 'Ваке' },
+  'საბურთალო': { en: 'Saburtalo', ru: 'Сабуртало' },
+  'იურიდიული': { en: 'Legal', ru: 'Юридическое' },
+  'ფასები': { en: 'Prices', ru: 'Цены' },
+  'იპოთეკა': { en: 'Mortgage', ru: 'Ипотека' },
+  'ბანკი': { en: 'Bank', ru: 'Банк' },
+  'ფინანსები': { en: 'Finance', ru: 'Финансы' },
+  'გირავდება': { en: 'Pledged', ru: 'Залог' },
+  'იჯარა': { en: 'Lease', ru: 'Долгосрочная аренда' },
+  'მიწის ნაკვეთი': { en: 'Land plot', ru: 'Участок' },
+  'ახალი პროექტები': { en: 'New developments', ru: 'Новостройки' },
+  'მშენებარე': { en: 'Under construction', ru: 'Строящиеся' },
+  'კომერციული': { en: 'Commercial', ru: 'Коммерческая' },
+  'სახლი': { en: 'House', ru: 'Дом' },
+  'აგარაკი': { en: 'Cottage', ru: 'Дача' },
+  'ბინის ყიდვა': { en: 'Buying an apartment', ru: 'Покупка квартиры' },
+  'რეესტრი': { en: 'Registry', ru: 'Реестр' },
+  'რემონტი': { en: 'Renovation', ru: 'Ремонт' },
+  'ქუთაისი': { en: 'Kutaisi', ru: 'Кутаиси' },
+  'კარკასი': { en: 'Frame condition', ru: 'Каркас' },
+  'სტუდიო': { en: 'Studio', ru: 'Студия' },
+}
+
+/** Locale-preferring tag: ka → raw tag, others → label map (fallback raw). */
+export function blogTags(tags: string[], lang: string): string[] {
+  if (lang === 'ka') return tags
+  return tags.map((t) => TAG_LABELS[t]?.[lang === 'ru' ? 'ru' : 'en'] ?? t)
+}
+
 export const BLOG_POSTS: BlogPost[] = [
   {
     slug: 'binebi-dghiurad-tbilisi',

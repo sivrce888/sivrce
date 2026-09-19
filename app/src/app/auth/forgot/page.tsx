@@ -23,6 +23,7 @@ export default async function ForgotPage() {
 
   return (
     <AuthShell
+      legal={s}
       title={s.forgotTitle}
       subtitle={s.forgotSub}
       footer={

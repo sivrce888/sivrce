@@ -8,11 +8,14 @@ export function AuthShell({
   subtitle,
   children,
   footer,
+  legal,
 }: {
   title: string
   subtitle: string
   children: ReactNode
   footer?: ReactNode
+  // Localized terms line; ka fallback keeps the unprefixed default canonical.
+  legal?: { agreePrefix: string; terms: string; and: string; privacy: string }
 }) {
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-sv-navy px-5 py-14 sm:px-6">
@@ -49,16 +52,16 @@ export function AuthShell({
         {footer ? <div className="mt-5 text-center">{footer}</div> : null}
 
         <p className="mt-7 text-center text-[11.5px] font-medium leading-relaxed text-white/35">
-          გაგრძელებით ეთანხმები{" "}
+          {legal?.agreePrefix ?? "გაგრძელებით ეთანხმები"}{" "}
           <LocalizedLink href="/terms" className="underline decoration-white/25 underline-offset-2 hover:text-white/65">
-            პირობებს
+            {legal?.terms ?? "პირობებს"}
           </LocalizedLink>{" "}
-          და{" "}
+          {legal?.and ?? "და"}{" "}
           <LocalizedLink
             href="/privacy"
             className="underline decoration-white/25 underline-offset-2 hover:text-white/65"
           >
-            კონფიდენციალურობას
+            {legal?.privacy ?? "კონფიდენციალურობას"}
           </LocalizedLink>
           .
         </p>

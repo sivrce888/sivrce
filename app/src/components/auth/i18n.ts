@@ -18,6 +18,10 @@ export interface AuthStrings {
   or: string
   home: string
   tryAgain: string
+  agreePrefix: string
+  terms: string
+  and: string
+  privacy: string
   // signin
   signinMetaTitle: string
   signinMetaDesc: string
@@ -108,6 +112,10 @@ export interface AuthStrings {
 
 const STRINGS: Record<Lang, AuthStrings> = {
   ka: {
+    agreePrefix: 'გაგრძელებით ეთანხმები',
+    terms: 'პირობებს',
+    and: 'და',
+    privacy: 'კონფიდენციალურობას',
     loading: 'იტვირთება…',
     sending: 'იგზავნება…',
     or: 'ან',
@@ -193,6 +201,10 @@ const STRINGS: Record<Lang, AuthStrings> = {
     onboardSkip: 'გამოტოვე — მყიდველად დარჩები',
   },
   en: {
+    agreePrefix: 'By continuing you agree to our',
+    terms: 'Terms',
+    and: 'and',
+    privacy: 'Privacy Policy',
     loading: 'Loading…',
     sending: 'Sending…',
     or: 'or',
@@ -278,6 +290,10 @@ const STRINGS: Record<Lang, AuthStrings> = {
     onboardSkip: 'Skip — stay a buyer',
   },
   ru: {
+    agreePrefix: 'Продолжая, вы соглашаетесь с',
+    terms: 'условиями',
+    and: 'и',
+    privacy: 'политикой конфиденциальности',
     loading: 'Загрузка…',
     sending: 'Отправка…',
     or: 'или',
@@ -363,6 +379,10 @@ const STRINGS: Record<Lang, AuthStrings> = {
     onboardSkip: 'Пропустить — остаться покупателем',
   },
   tr: {
+    agreePrefix: 'Devam ederek kabul edersiniz:',
+    terms: 'Şartlar',
+    and: 've',
+    privacy: 'Gizlilik Politikası',
     loading: 'Yükleniyor…',
     sending: 'Gönderiliyor…',
     or: 'veya',
@@ -448,6 +468,10 @@ const STRINGS: Record<Lang, AuthStrings> = {
     onboardSkip: 'Atla — alıcı olarak kal',
   },
   ar: {
+    agreePrefix: 'بالمتابعة أنت توافق على',
+    terms: 'الشروط',
+    and: 'و',
+    privacy: 'سياسة الخصوصية',
     loading: 'جارٍ التحميل…',
     sending: 'جارٍ الإرسال…',
     or: 'أو',
@@ -533,6 +557,10 @@ const STRINGS: Record<Lang, AuthStrings> = {
     onboardSkip: 'تخطَّ — ابقَ مشتريًا',
   },
   he: {
+    agreePrefix: 'בהמשך אתה מסכים ל',
+    terms: 'תנאים',
+    and: 'וגם',
+    privacy: 'מדיניות פרטיות',
     loading: 'טוען…',
     sending: 'שולח…',
     or: 'או',
@@ -618,6 +646,10 @@ const STRINGS: Record<Lang, AuthStrings> = {
     onboardSkip: 'דלגו — תישארו קונים',
   },
   hy: {
+    agreePrefix: 'Շարունակելով՝ դուք համաձայնվում եք',
+    terms: 'պայմաններին',
+    and: 'և',
+    privacy: 'գաղտնիության քաղաքականությանը',
     loading: 'Բեռնվում է…',
     sending: 'Ուղարկվում է…',
     or: 'կամ',
@@ -703,6 +735,10 @@ const STRINGS: Record<Lang, AuthStrings> = {
     onboardSkip: 'Բաց թողիր — կմնաս գնորդ',
   },
   az: {
+    agreePrefix: 'Davam etməklə qəbul edirsiniz:',
+    terms: 'Şərtlər',
+    and: 'və',
+    privacy: 'Məxfilik Siyasəti',
     loading: 'Yüklənir…',
     sending: 'Göndərilir…',
     or: 'və ya',
@@ -788,6 +824,10 @@ const STRINGS: Record<Lang, AuthStrings> = {
     onboardSkip: 'Ötür — alıcı qal',
   },
   de: {
+    agreePrefix: 'Mit dem Fortfahren akzeptieren Sie die',
+    terms: 'AGB',
+    and: 'und',
+    privacy: 'Datenschutzerklärung',
     loading: 'Lädt…',
     sending: 'Wird gesendet…',
     or: 'oder',
@@ -873,6 +913,10 @@ const STRINGS: Record<Lang, AuthStrings> = {
     onboardSkip: 'Überspringen — als Käufer bleiben',
   },
   uk: {
+    agreePrefix: 'Продовжуючи, ви погоджуєтеся з',
+    terms: 'умовами',
+    and: 'та',
+    privacy: 'політикою конфіденційності',
     loading: 'Завантаження…',
     sending: 'Надсилання…',
     or: 'або',

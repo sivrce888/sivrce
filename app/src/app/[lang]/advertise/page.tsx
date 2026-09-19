@@ -353,7 +353,7 @@ export default async function AdvertisePage({ params }: { params: Promise<{ lang
 
         <section className="mx-auto max-w-6xl px-6 pb-6 pt-10">
           <Reveal>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {c.audiences.map((a) => (
                 <LocalizedLink
                   key={a.title}

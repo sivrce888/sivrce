@@ -54,6 +54,7 @@ export default async function SignInPage({
 
   return (
     <AuthShell
+      legal={s}
       title={s.signinTitle}
       subtitle={s.signinSub}
       footer={

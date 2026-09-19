@@ -30,7 +30,7 @@ const L: Record<DirLoc | 'tr' | 'ar' | 'de' | 'he' | 'hy' | 'az' | 'uk', {
   ready: string; construction: string; cityAria: string; districtAria: string
   ubaniAria: string; statusAria: string; nBuildings: (n: number) => string
   none: string; forSale: string; rent: string; daily: string; pledge: string
-  listings: (n: number) => string; floorsAbbr: string; unitsAbbr: string; more: string
+  listings: (n: number) => string; floorsAbbr: string; unitsAbbr: string; more: string; less: string
 }> = {
   ka: {
     search: 'ძებნა სახელით, უბნით, მისამართით ან დეველოპერით',
@@ -41,6 +41,7 @@ const L: Record<DirLoc | 'tr' | 'ar' | 'de' | 'he' | 'hy' | 'az' | 'uk', {
     none: '{t.none}',
     forSale: 'იყიდება', rent: 'ქირა', daily: 'დღიურად', pledge: 'გირავნობა',
     listings: (n) => `${n} განცხადება`, floorsAbbr: 'სართ.', unitsAbbr: 'ბინა', more: 'მეტის ჩვენება',
+    less: 'ნაკლების ჩვენება',
   },
   en: {
     search: 'Search by name, neighborhood, address or developer',
@@ -51,6 +52,7 @@ const L: Record<DirLoc | 'tr' | 'ar' | 'de' | 'he' | 'hy' | 'az' | 'uk', {
     none: 'Nothing found — change a filter or the search term',
     forSale: 'for sale', rent: 'rent', daily: 'daily', pledge: 'pledge',
     listings: (n) => `${n} listings`, floorsAbbr: 'fl.', unitsAbbr: 'units', more: 'Show more',
+    less: 'Show less',
   },
   ru: {
     search: 'Поиск по названию, кварталу, адресу или застройщику',
@@ -61,6 +63,7 @@ const L: Record<DirLoc | 'tr' | 'ar' | 'de' | 'he' | 'hy' | 'az' | 'uk', {
     none: 'Ничего не найдено — измените фильтр или запрос',
     forSale: 'продажа', rent: 'аренда', daily: 'посуточно', pledge: 'залог',
     listings: (n) => `${n} объявлений`, floorsAbbr: 'эт.', unitsAbbr: 'кв.', more: 'Показать ещё',
+    less: 'Показать меньше',
   },
   tr: {
     search: 'İsim, mahalle, adres veya müteahhit ile arayın',
@@ -71,6 +74,7 @@ const L: Record<DirLoc | 'tr' | 'ar' | 'de' | 'he' | 'hy' | 'az' | 'uk', {
     none: 'Sonuç bulunamadı — filtreyi veya arama terimini değiştirin',
     forSale: 'satılık', rent: 'kiralık', daily: 'günlük', pledge: 'ipotekli',
     listings: (n) => `${n} ilan`, floorsAbbr: 'kat.', unitsAbbr: 'daire', more: 'Daha fazla göster',
+    less: 'Daha az göster',
   },
   ar: {
     search: 'ابحث بالاسم أو الحي أو العنوان أو المطوّر',
@@ -81,6 +85,7 @@ const L: Record<DirLoc | 'tr' | 'ar' | 'de' | 'he' | 'hy' | 'az' | 'uk', {
     none: 'لا توجد نتائج — غيّر عامل التصفية أو كلمة البحث',
     forSale: 'للبيع', rent: 'إيجار', daily: 'يومي', pledge: 'مرهون',
     listings: (n) => `${n} إعلان`, floorsAbbr: 'طوابق', unitsAbbr: 'وحدات', more: 'عرض المزيد',
+    less: 'عرض أقل',
   },
   de: {
     search: 'Nach Name, Viertel, Adresse oder Bauträger suchen',
@@ -91,6 +96,7 @@ const L: Record<DirLoc | 'tr' | 'ar' | 'de' | 'he' | 'hy' | 'az' | 'uk', {
     none: 'Nichts gefunden — Filter oder Suchbegriff ändern',
     forSale: 'Kauf', rent: 'Miete', daily: 'täglich', pledge: 'Pfand',
     listings: (n) => `${n} Inserate`, floorsAbbr: 'Et.', unitsAbbr: 'WE', more: 'Mehr anzeigen',
+    less: 'Weniger anzeigen',
   },
   he: {
     search: 'חיפוש לפי שם, שכונה, כתובת או יזם',
@@ -101,6 +107,7 @@ const L: Record<DirLoc | 'tr' | 'ar' | 'de' | 'he' | 'hy' | 'az' | 'uk', {
     none: 'לא נמצאו תוצאות — שנו מסנן או טקסט חיפוש',
     forSale: 'למכירה', rent: 'להשכרה', daily: 'יומי', pledge: 'ממושכן',
     listings: (n) => `${n} מודעות`, floorsAbbr: 'קומות', unitsAbbr: 'דירות', more: 'הצג עוד',
+    less: 'הצג פחות',
   },
   hy: {
     search: 'Որոնում անվամբ, թաղամասով, հասցեով կամ դեվելոպերով',
@@ -111,6 +118,7 @@ const L: Record<DirLoc | 'tr' | 'ar' | 'de' | 'he' | 'hy' | 'az' | 'uk', {
     none: 'Ոչինչ չի գտնվել — փոխեք ֆիլտրը կամ հարցումը',
     forSale: 'վաճառք', rent: 'վարձակալություն', daily: 'օրեկան', pledge: 'գրավ',
     listings: (n) => `${n} հայտարարություն`, floorsAbbr: 'հարկ.', unitsAbbr: 'բն.', more: 'Ցուցադրել ավելին',
+    less: 'Ցուցադրել պակաս',
   },
   az: {
     search: 'Ad, məhəllə, ünvan və ya tikinti şirkəti ilə axtarış',
@@ -121,6 +129,7 @@ const L: Record<DirLoc | 'tr' | 'ar' | 'de' | 'he' | 'hy' | 'az' | 'uk', {
     none: 'Heç nə tapılmadı — filtri və ya sorğunu dəyişdirin',
     forSale: 'satılıq', rent: 'kirayə', daily: 'günlük', pledge: 'girova',
     listings: (n) => `${n} elan`, floorsAbbr: 'mərt.', unitsAbbr: 'mənzil', more: 'Daha çox göstər',
+    less: 'Daha az göstər',
   },
   uk: {
     search: 'Пошук за назвою, кварталом, адресою або забудовником',
@@ -131,6 +140,7 @@ const L: Record<DirLoc | 'tr' | 'ar' | 'de' | 'he' | 'hy' | 'az' | 'uk', {
     none: 'Нічого не знайдено — змініть фільтр або запит',
     forSale: 'продаж', rent: 'оренда', daily: 'подобово', pledge: 'застава',
     listings: (n) => `${n} оголошень`, floorsAbbr: 'пов.', unitsAbbr: 'кв.', more: 'Показати ще',
+    less: 'Показати менше',
   },
 }
 
@@ -150,11 +160,21 @@ export function BuildingsCatalog({ buildings, countsBySlug, developerNames, loc 
   const [ubani, setUbani] = useState<string>('all')
   const [status, setStatus] = useState<'all' | 'ready' | 'construction'>('all')
   const [limit, setLimit] = useState(PAGE)
+  // World-scale catalog: chips show the top cities, the long tail stays one toggle away.
+  const [showAllCities, setShowAllCities] = useState(false)
+  const CITY_CHIP_CAP = 12
 
-  const cities = useMemo(() => {
-    const set = new Set(buildings.map((b) => b.city))
-    return ['all' as const, ...[...set].sort()]
+  const cityCounts = useMemo(() => {
+    const counts = new Map<string, number>()
+    for (const b of buildings) counts.set(b.city, (counts.get(b.city) ?? 0) + 1)
+    return [...counts.entries()].sort(
+      ([a, na], [b, nb]) => nb - na || a.localeCompare(b, 'ka'),
+    )
   }, [buildings])
+  const cities = useMemo(() => {
+    const top = cityCounts.map(([c]) => c)
+    return showAllCities ? top : top.slice(0, CITY_CHIP_CAP)
+  }, [cityCounts, showAllCities])
 
   const districts = useMemo(() => {
     const list = buildings.filter((b) => city === 'all' || b.city === city)
@@ -213,7 +233,25 @@ export function BuildingsCatalog({ buildings, countsBySlug, developerNames, loc 
           />
         </label>
 
-        <div className="flex flex-wrap gap-2" role="tablist" aria-label={t.cityAria}>
+        <div className="flex flex-wrap items-center gap-2" role="tablist" aria-label={t.cityAria}>
+          <button
+            key="all"
+            type="button"
+            role="tab"
+            aria-selected={city === 'all'}
+            onClick={() => {
+              setCity('all')
+              setDistrict('all')
+              setUbani('all')
+            }}
+            className={`rounded-full px-4 py-2 text-[13px] font-extrabold transition ${
+              city === 'all'
+                ? 'bg-sv-navy text-white'
+                : 'bg-sv-cloud text-sv-ink/60 hover:bg-sv-ink/[0.06]'
+            }`}
+          >
+            {t.allCity}
+          </button>
           {cities.map((c) => (
             <button
               key={c}
@@ -234,6 +272,16 @@ export function BuildingsCatalog({ buildings, countsBySlug, developerNames, loc 
               {c === 'all' ? t.allCity : cityName(c, loc)}
             </button>
           ))}
+          {cityCounts.length > CITY_CHIP_CAP && (
+            <button
+              type="button"
+              onClick={() => setShowAllCities((v) => !v)}
+              aria-expanded={showAllCities}
+              className="rounded-full bg-sv-blue/10 px-4 py-2 text-[13px] font-extrabold text-sv-blue-deep transition hover:bg-sv-blue/20"
+            >
+              {showAllCities ? t.less : `${t.more} (${cityCounts.length})`}
+            </button>
+          )}
         </div>
 
         <div className="flex flex-wrap gap-2" role="tablist" aria-label={t.districtAria}>

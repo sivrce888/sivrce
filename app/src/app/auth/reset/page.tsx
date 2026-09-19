@@ -29,6 +29,7 @@ export default async function ResetPage({
 
   return (
     <AuthShell
+      legal={s}
       title={s.resetTitle}
       subtitle={ok ? s.resetSubOk : s.resetSubBad}
       footer={

@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation'
 import { ChevronRight, Clock, ArrowLeft, ArrowRight } from 'lucide-react'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
-import { BLOG_POSTS, relatedPosts, blogTitle, blogExcerpt, blogBody } from '@/data/blog'
+import { BLOG_POSTS, relatedPosts, blogTitle, blogExcerpt, blogBody, blogTags } from '@/data/blog'
 import { getBlogPost } from '@/lib/blog-live'
 import { jsonLd, ogImage } from '@/lib/utils'
 import { requestOrigin } from '@/lib/request-market'
@@ -143,7 +143,7 @@ export default async function BlogPostPage({ params }: PageProps) {
         <article>
           <header className="mb-8">
             <div className="mb-4 flex flex-wrap gap-2">
-              {post.tags.map((tag) => (
+              {blogTags(post.tags, lang).map((tag) => (
                 <span key={tag} className="rounded-full bg-sv-blue/10 px-3 py-1 text-[11px] font-black uppercase tracking-wide text-sv-blue-deep">
                   {tag}
                 </span>
@@ -166,7 +166,9 @@ export default async function BlogPostPage({ params }: PageProps) {
               phones off the 2560px master; static covers have no twins, src only. */}
           { }
           <picture className="contents">
-            <source type="image/avif" media="(max-width: 800px)" srcSet={avifCardOf(post.cover)} />
+            {avifCardOf(post.cover) ? (
+              <source type="image/avif" media="(max-width: 800px)" srcSet={avifCardOf(post.cover)} />
+            ) : null}
           <img
             src={post.cover}
             srcSet={cardOf(post.cover) ? `${cardOf(post.cover)} 800w, ${post.cover} 2560w` : undefined}

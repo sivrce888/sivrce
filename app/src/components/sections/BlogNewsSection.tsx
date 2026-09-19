@@ -4,7 +4,7 @@ import LocalizedLink from '@/components/LocalizedLink'
 import { BookOpen, ArrowRight, Calendar, Clock } from 'lucide-react'
 import { Reveal } from '@/components/Reveal'
 import type { BlogPost } from '@/data/blog'
-import { blogTitle, blogExcerpt } from '@/data/blog'
+import { blogTitle, blogExcerpt, blogTags } from '@/data/blog'
 import { useI18n } from '@/lib/i18n/context'
 
 /** Deterministic date — month names come from the home.blog.months block
@@ -58,7 +58,7 @@ export default function BlogNewsSection({ articles }: { articles: BlogPost[] }) 
                     />
                     <div className="absolute left-3 top-3">
                       <span className="rounded-full bg-sv-blue px-3 py-1 text-[11px] font-black text-white">
-                        {art.tags[0]}
+                        {blogTags(art.tags, lang)[0]}
                       </span>
                     </div>
                   </div>

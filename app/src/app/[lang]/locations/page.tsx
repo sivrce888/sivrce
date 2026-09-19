@@ -5,6 +5,7 @@ import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import { GEO_MUNICIPALITIES, GEO_REGIONS } from '@/data/georgia-locations'
 import { villagesOf } from '@/data/georgia-villages'
+import { cityName } from '@/lib/directory-seo-lite'
 import { jsonLd } from '@/lib/utils'
 import { isValidLang, translateRaw, type Lang } from '@/lib/i18n/core'
 import { kaOnlyAlternates, OG_LOCALE } from '@/lib/i18n/server'
@@ -13,6 +14,22 @@ const BASE = 'https://sivrce.ge'
 const PATH = '/locations'
 
 export const revalidate = 86400
+
+/** Catalog keys are ka — EN/RU labels for the 12 official regions (de → en). */
+const REGION_LABELS: Record<string, { en: string; ru: string }> = {
+  'თბილისი': { en: 'Tbilisi', ru: 'Тбилиси' },
+  'აჭარა': { en: 'Adjara', ru: 'Аджария' },
+  'გურია': { en: 'Guria', ru: 'Гурия' },
+  'იმერეთი': { en: 'Imereti', ru: 'Имеретия' },
+  'კახეთი': { en: 'Kakheti', ru: 'Кахетия' },
+  'მცხეთა-მთიანეთი': { en: 'Mtskheta-Mtianeti', ru: 'Мцхета-Мтианети' },
+  'რაჭა-ლეჩხუმი და ქვემო სვანეთი': { en: 'Racha-Lechkhumi and Kvemo Svaneti', ru: 'Рача-Лечхуми и Квемо Сванети' },
+  'სამეგრელო-ზემო სვანეთი': { en: 'Samegrelo-Zemo Svaneti', ru: 'Самегрело-Верхняя Сванетия' },
+  'სამცხე-ჯავახეთი': { en: 'Samtskhe-Javakheti', ru: 'Самцхе-Джавахети' },
+  'ქვემო ქართლი': { en: 'Kvemo Kartli', ru: 'Квемо Картли' },
+  'შიდა ქართლი': { en: 'Shida Kartli', ru: 'Шида Картли' },
+  'აფხაზეთი': { en: 'Abkhazia', ru: 'Абхазия' },
+}
 
 const CITY_COUNT = new Set(Object.values(GEO_REGIONS).flatMap((r) => r.cities)).size
 const VILLAGES_TOTAL = Object.keys(GEO_REGIONS).reduce(
@@ -223,6 +240,8 @@ export default async function LocationsIndexPage({ params }: PageProps) {
   const cl = cLang(isValidLang(rawLang) ? rawLang : 'ka')
   const c = C[cl]
   const regions = Object.keys(GEO_REGIONS)
+  const regionLabel = (r: string) => (cl === 'ka' ? r : REGION_LABELS[r]?.[cl === 'de' ? 'en' : cl] ?? r)
+  const cityLabel = (city: string) => (cl === 'ka' ? city : cityName(city, cl === 'de' ? 'de' : cl))
   return (
     <div className="min-h-screen bg-sv-cloud">
       <Navbar />
@@ -280,7 +299,7 @@ export default async function LocationsIndexPage({ params }: PageProps) {
                   href={`#${REGION_ANCHOR[r]}`}
                   className="inline-flex items-center rounded-full bg-sv-surface px-3 py-1.5 text-[12px] font-extrabold text-sv-ink/70 shadow-card transition-colors hover:text-sv-blue"
                 >
-                  {r}
+                  {regionLabel(r)}
                 </a>
               </li>
             ))}
@@ -297,7 +316,7 @@ export default async function LocationsIndexPage({ params }: PageProps) {
                 className="scroll-mt-32 rounded-tile border border-sv-ink/[0.06] bg-sv-surface p-5 shadow-card md:p-7"
               >
                 <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
-                  <h2 className="text-[22px] font-black tracking-tight text-sv-ink md:text-[26px]">{region}</h2>
+                  <h2 className="text-[22px] font-black tracking-tight text-sv-ink md:text-[26px]">{regionLabel(region)}</h2>
                   <p className="text-[12px] font-bold text-sv-ink/50">
                     {[
                       translateRaw(c.sumCities, { n: cities.length }),
@@ -316,7 +335,7 @@ export default async function LocationsIndexPage({ params }: PageProps) {
                           className="inline-flex items-center gap-1.5 rounded-full bg-sv-blue/[0.07] px-3 py-1.5 text-[13px] font-extrabold text-sv-blue-deep transition-colors hover:bg-sv-blue hover:text-white"
                         >
                           <MapPin className="h-3.5 w-3.5" aria-hidden />
-                          {city}
+                          {cityLabel(city)}
                         </Link>
                       </li>
                     ))}

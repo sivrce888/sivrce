@@ -11,7 +11,8 @@ import { getReviewAggregate } from '@/lib/reviews/aggregate'
 import { altName } from '@/lib/bilingual'
 import { cityCenter } from '@/lib/map/geocode'
 import MapEmbed from '@/components/MapEmbed'
-import { getListingsByOwner } from '@/lib/listings-db'
+import { getListingsByOwner, getAgentListingCountsByKaName } from '@/lib/listings-db'
+import { AGENT_PROFILES } from '@/data/agent-profiles'
 import { jsonLd } from '@/lib/utils'
 import {kaOnlyAlternates,  } from '@/lib/i18n/server'
 import { db } from '@/lib/db'
@@ -98,19 +99,36 @@ export default async function AgencyPage({ params }: PageProps) {
   const ownerIds = [
     ...new Set([agency.ownerId, ...team.map((t) => t.ownerId)].filter((x): x is string => !!x)),
   ]
-  const [aggregate, listings] = await Promise.all([
+  const [aggregate, listings, agentCounts] = await Promise.all([
     getReviewAggregate('agency', agency.slug),
     getListingsByOwner(ownerIds).catch(() => []),
+    getAgentListingCountsByKaName(),
   ])
-  // Live per-agent review scores for the visible slice (same pattern as /agents).
-  const teamCards = await Promise.all(
-    team.map(async (t) => ({ ...t, aggregate: await getReviewAggregate('agent', t.slug) })),
+  // Curated agents (same roster the /agents strip counts) fill the team rail
+  // until the agency's agents claim DB profiles — DB rows win on slug overlap.
+  const dbSlugs = new Set(team.map((t) => t.slug))
+  const curatedTeam = AGENT_PROFILES.filter(
+    (a) => a.agency === agency.name && !dbSlugs.has(a.slug),
   )
+  const teamCards = (
+    await Promise.all([
+      ...team.map(async (t) => ({ ...t, aggregate: await getReviewAggregate('agent', t.slug) })),
+      ...curatedTeam.map(async (a) => ({
+        slug: a.slug,
+        name: a.name.ka,
+        verified: a.verified,
+        listingsCount: agentCounts[a.name.ka] ?? 0,
+        aggregate: await getReviewAggregate('agent', a.slug),
+      })),
+    ])
+  ).sort((x, y) => y.listingsCount - x.listingsCount)
   const mapPin = cityCenter(agency.city)
 
   const stats: { key: EntitiesKey; value: string | number }[] = [
     { key: 'teamSize', value: Math.max(agency.teamSize, team.length) },
-    { key: 'activeListings', value: listings.length },
+    // Same basis as the directory card — owner-linked listings alone read as 0
+    // for agencies whose agents haven't claimed profiles yet.
+    { key: 'activeListings', value: Math.max(agency.activeListings, listings.length) },
   ]
   if (agency.responseRatePct > 0)
     stats.push({ key: 'responseRate', value: `${Math.round(agency.responseRatePct)}%` })
@@ -192,7 +210,7 @@ export default async function AgencyPage({ params }: PageProps) {
           <p className="mt-3 text-[12px] font-semibold text-sv-ink/60">{agency.city}</p>
         </section>
 
-        {team.length > 0 && (
+        {teamCards.length > 0 && (
           <section className="mx-auto max-w-[1440px] px-5 pb-12 md:px-10">
             <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
               {H.team}

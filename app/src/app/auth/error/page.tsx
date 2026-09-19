@@ -14,6 +14,7 @@ export default async function AuthErrorPage() {
   const s = getAuthStrings(authLang((await cookies()).get("sv-lang")?.value))
   return (
     <AuthShell
+      legal={s}
       title={s.errPageTitle}
       subtitle={s.errPageSub}
       footer={

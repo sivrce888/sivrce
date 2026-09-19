@@ -57,6 +57,7 @@ export default async function OnboardingPage({
 
   return (
     <AuthShell
+      legal={s}
       title={confirmTitle}
       subtitle={confirmIntent ? s.onboardSubConfirm : s.onboardSub}
       footer={

@@ -35,6 +35,7 @@ export default async function SignUpPage({
 
   return (
     <AuthShell
+      legal={s}
       title={s.signupTitle}
       subtitle={s.signupSub}
       footer={

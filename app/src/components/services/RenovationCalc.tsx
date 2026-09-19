@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
+import { cityName } from '@/lib/directory-seo-lite'
 import {
   formatGel,
   pickLocText,
@@ -110,7 +111,7 @@ export function RenovationCalc() {
             >
               {SERVICE_CITIES.map((c) => (
                 <option key={c} value={c}>
-                  {c}
+                  {cityName(c, lang === 'ru' ? 'ru' : lang === 'de' ? 'de' : 'en')}
                 </option>
               ))}
             </select>
