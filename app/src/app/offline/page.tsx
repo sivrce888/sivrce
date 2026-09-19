@@ -15,6 +15,7 @@ export default function OfflinePage() {
         <meta name="robots" content="noindex" />
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
         <meta name="theme-color" content="#050B26" />
+        <style>{`a:focus-visible{outline:2px solid #8FB4FF;outline-offset:3px;border-radius:999px}`}</style>
       </head>
       <body
         style={{
@@ -26,51 +27,49 @@ export default function OfflinePage() {
           color: "#FFFFFF",
           fontFamily: "system-ui, sans-serif",
           textAlign: "center",
-          padding: 24,
+          padding:
+            "max(24px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(24px, env(safe-area-inset-left))",
         }}
       >
         <div>
-          <svg
-            viewBox="0 0 48 48"
-            fill="none"
-            width="64"
-            height="64"
-            style={{ margin: "0 auto 20px", display: "block" }}
-            aria-hidden
-          >
-            <circle cx="24" cy="24" r="22" stroke="#2A5FEF" strokeWidth="2" />
-            <path
-              d="M16 28l8-16 8 16"
-              stroke="#FF6A2D"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-          <h1 style={{ fontSize: 24, fontWeight: 900, letterSpacing: "-0.02em" }}>
+          {/* eslint-disable-next-line @next/next/no-img-element -- self-contained offline page: the optimizer is unreachable exactly when this shows */}
+          <img
+            src="/logo/mark-144.png"
+            alt="სივრცე · Sivrce"
+            width={83}
+            height={88}
+            style={{
+              margin: "0 auto 28px",
+              display: "block",
+              filter: "drop-shadow(0 16px 32px rgba(46,107,255,.35))",
+            }}
+          />
+          <h1 style={{ fontSize: 26, fontWeight: 900, letterSpacing: "-0.02em", margin: 0 }}>
             ინტერნეტ კავშირი გაწყვეტილია
           </h1>
           <h2
-            style={{ fontSize: 16, fontWeight: 700, color: "rgba(255,255,255,0.65)", marginTop: 6 }}
+            style={{ fontSize: 15, fontWeight: 600, color: "rgba(255,255,255,0.6)", marginTop: 8, letterSpacing: "0.01em" }}
             lang="en"
           >
             You&rsquo;re offline
           </h2>
-          <p style={{ marginTop: 14, color: "rgba(255,255,255,0.5)", fontWeight: 500 }}>
+          <p style={{ marginTop: 16, marginBottom: 0, color: "rgba(255,255,255,0.5)", fontWeight: 500, fontSize: 15 }}>
             შეამოწმე კავშირი და სცადე ხელახლა.
           </p>
           <a
             href="/"
             style={{
               display: "inline-block",
-              marginTop: 22,
-              padding: "12px 28px",
+              marginTop: 26,
+              padding: "13px 30px",
               borderRadius: 999,
               background: "#FF6A2D",
               color: "#0A1030",
               fontWeight: 800,
               fontSize: 15,
+              letterSpacing: "0.01em",
               textDecoration: "none",
+              boxShadow: "0 12px 32px -8px rgba(255,106,45,.8)",
             }}
           >
             ხელახლა ცდა · Retry

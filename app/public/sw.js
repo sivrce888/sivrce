@@ -3,13 +3,14 @@
    pages with navigation preload, offline page as the last resort. */
 const CACHE = 'sivrce-v2'
 const OFFLINE = '/offline'
+const MARK = '/logo/mark-144.png' /* offline page renders the brand mark from cache */
 const CACHEABLE = /^\/(images|icons|logo)\//
 
 self.addEventListener('install', (e) => {
   e.waitUntil(
     caches
       .open(CACHE)
-      .then((c) => c.add(OFFLINE))
+      .then((c) => Promise.all([c.add(OFFLINE), c.add(MARK)]))
       // Best-effort: a flaky first visit must not fail the install.
       .catch(() => {}),
   )
