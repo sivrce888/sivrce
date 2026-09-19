@@ -47,7 +47,7 @@ export default function DePropTechOS({ citySlug = 'berlin', de = true }: DePropT
   const [areaSqm, setAreaSqm] = useState(70)
   const [coldRentEur, setColdRentEur] = useState(1_350)
   const [downPaymentPct, setDownPaymentPct] = useState(20)
-  const [interestPct, setInterestPct] = useState(3.6)
+  const [interestPct, setInterestPct] = useState(4.1)
   const [repaymentPct, setRepaymentPct] = useState(2.0)
   const [energyClass, setEnergyClass] = useState<DeEnergyClass>('C')
   const [heatingType, setHeatingType] = useState<DeHeatingType>('gaszentral')
@@ -103,22 +103,22 @@ export default function DePropTechOS({ citySlug = 'berlin', de = true }: DePropT
     EXCELLENT_BUY: {
       labelDe: 'Hervorragende Kapitalanlage',
       labelEn: 'Prime Investment',
-      bg: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+      bg: 'bg-sv-blue/10 text-sv-blue-deep dark:text-sv-blue-light border-sv-blue/20',
     },
     FAIR_VALUE: {
       labelDe: 'Fairer Marktwert',
       labelEn: 'Fair Market Value',
-      bg: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20',
+      bg: 'bg-sv-cloud text-sv-ink border-sv-ink/[0.08]',
     },
     HOLD_ANALYZE: {
       labelDe: 'Prüfbedarf / Halten',
       labelEn: 'Further Due Diligence',
-      bg: 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20',
+      bg: 'bg-sv-orange/10 text-sv-orange border-sv-orange/20',
     },
     HIGH_RISK_OVERPRICED: {
       labelDe: 'Erhöhtes Risiko / Überteuert',
       labelEn: 'Elevated Risk / Overpriced',
-      bg: 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20',
+      bg: 'bg-sv-orange-deep/10 text-sv-orange-deep border-sv-orange-deep/20',
     },
   }[report.dealVerdict]
 
@@ -167,7 +167,7 @@ export default function DePropTechOS({ citySlug = 'berlin', de = true }: DePropT
         </Reveal>
 
         {/* Tab Navigation */}
-        <div className="mb-8 flex flex-wrap gap-2 border-b border-sv-ink/[0.08] pb-4">
+        <div className="mb-8 flex flex-wrap gap-2 border-b border-sv-ink/[0.08] pb-4" role="tablist" aria-label={de ? 'PropTech Module' : 'PropTech modules'}>
           {TABS.map((tab) => {
             const Icon = tab.icon
             const active = activeTab === tab.id
@@ -175,6 +175,10 @@ export default function DePropTechOS({ citySlug = 'berlin', de = true }: DePropT
               <button
                 key={tab.id}
                 type="button"
+                role="tab"
+                id={`de-os-tab-${tab.id}`}
+                aria-selected={active}
+                aria-controls={`de-os-panel-${tab.id}`}
                 onClick={() => setActiveTab(tab.id)}
                 className={`inline-flex items-center gap-2 rounded-control px-4 py-2.5 text-[13px] font-black transition-all ${
                   active
@@ -182,7 +186,7 @@ export default function DePropTechOS({ citySlug = 'berlin', de = true }: DePropT
                     : 'bg-sv-surface text-sv-ink/70 hover:bg-sv-cloud hover:text-sv-ink border border-sv-ink/[0.06]'
                 }`}
               >
-                <Icon className="h-4 w-4" />
+                <Icon className="h-4 w-4" aria-hidden />
                 {de ? tab.labelDe : tab.labelEn}
               </button>
             )
@@ -202,8 +206,9 @@ export default function DePropTechOS({ citySlug = 'berlin', de = true }: DePropT
               <div className="mt-5 space-y-4 text-[13px] font-bold">
                 {/* City */}
                 <div>
-                  <label className="text-sv-ink/70">{de ? 'Standort / Stadt' : 'Location / City'}</label>
+                  <label htmlFor="de-os-city" className="text-sv-ink/70">{de ? 'Standort / Stadt' : 'Location / City'}</label>
                   <select
+                    id="de-os-city"
                     value={selectedCity}
                     onChange={(e) => setSelectedCity(e.target.value)}
                     className="mt-1 w-full rounded-control border border-sv-ink/[0.12] bg-sv-surface px-3 py-2 text-[13px] font-bold text-sv-ink"
@@ -360,7 +365,7 @@ export default function DePropTechOS({ citySlug = 'berlin', de = true }: DePropT
           </div>
 
           {/* Results Display (Right 8 cols) */}
-          <div className="lg:col-span-8">
+          <div className="lg:col-span-8" role="tabpanel" id={`de-os-panel-${activeTab}`} aria-labelledby={`de-os-tab-${activeTab}`}>
             {activeTab === 'underwriting' && (
               <div className="space-y-6">
                 {/* Core KPIs Banner */}
@@ -393,7 +398,7 @@ export default function DePropTechOS({ citySlug = 'berlin', de = true }: DePropT
                     <div className="text-[11px] font-black uppercase tracking-wider text-sv-ink/50">
                       {de ? 'Eigenkapitalrendite' : 'Cash-on-Cash'}
                     </div>
-                    <div className={`mt-1 text-[24px] font-black ${report.cashOnCashReturnPct >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600'}`}>
+                    <div className={`mt-1 text-[24px] font-black ${report.cashOnCashReturnPct >= 0 ? 'text-sv-blue dark:text-sv-success' : 'text-sv-orange-deep'}`}>
                       {report.cashOnCashReturnPct}%
                     </div>
                     <div className="text-[11px] font-semibold text-sv-ink/60">
@@ -405,7 +410,7 @@ export default function DePropTechOS({ citySlug = 'berlin', de = true }: DePropT
                     <div className="text-[11px] font-black uppercase tracking-wider text-sv-ink/50">
                       {de ? 'Schuldendienst (DSCR)' : 'DSCR Buffer'}
                     </div>
-                    <div className={`mt-1 text-[24px] font-black ${report.dscr >= 1.15 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600'}`}>
+                    <div className={`mt-1 text-[24px] font-black ${report.dscr >= 1.15 ? 'text-sv-blue dark:text-sv-success' : 'text-sv-orange'}`}>
                       {report.dscr}x
                     </div>
                     <div className="text-[11px] font-semibold text-sv-ink/60">
@@ -447,19 +452,19 @@ export default function DePropTechOS({ citySlug = 'berlin', de = true }: DePropT
                     <dl className="space-y-2 text-[13px] font-bold">
                       <div className="flex justify-between text-sv-ink/70">
                         <dt>{de ? 'Kaltmiete (Monat)' : 'Monthly Cold Rent'}</dt>
-                        <dd className="text-emerald-600 dark:text-emerald-400">+{fmtEur(coldRentEur)}/Mt.</dd>
+                        <dd className="text-sv-blue dark:text-sv-success">+{fmtEur(coldRentEur)}/Mt.</dd>
                       </div>
                       <div className="flex justify-between text-sv-ink/70">
                         <dt>{de ? 'Bankrate (Zins + Tilgung)' : 'Mortgage Payment (Annuity)'}</dt>
-                        <dd className="text-rose-600">-{fmtEur(report.monthlyMortgageRateEur)}/Mt.</dd>
+                        <dd className="text-sv-orange-deep">-{fmtEur(report.monthlyMortgageRateEur)}/Mt.</dd>
                       </div>
                       <div className="flex justify-between text-sv-ink/70">
                         <dt>{de ? 'Nicht umlegbare Kosten + Rücklage' : 'Non-recoverable OPEX + Reserve'}</dt>
-                        <dd className="text-rose-600">-{fmtEur((report.annualGrossColdRentEur - report.annualNetOperatingIncomeEur) / 12)}/Mt.</dd>
+                        <dd className="text-sv-orange-deep">-{fmtEur((report.annualGrossColdRentEur - report.annualNetOperatingIncomeEur) / 12)}/Mt.</dd>
                       </div>
                       <div className="flex justify-between border-t border-sv-ink/[0.08] pt-2 text-sv-ink">
                         <dt>{de ? 'Cashflow vor Steuern' : 'Cash Flow Pre-Tax'}</dt>
-                        <dd className={report.year1CashFlowPreTaxEur >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600'}>
+                        <dd className={report.year1CashFlowPreTaxEur >= 0 ? 'text-sv-blue dark:text-sv-success' : 'text-sv-orange-deep'}>
                           {fmtEur(report.year1CashFlowPreTaxEur / 12)}/Mt. ({fmtEur(report.year1CashFlowPreTaxEur)}/J.)
                         </dd>
                       </div>
@@ -475,30 +480,30 @@ export default function DePropTechOS({ citySlug = 'berlin', de = true }: DePropT
 
                 {/* Honest Deal Drivers vs Failure Modes */}
                 <div className="grid gap-6 md:grid-cols-2">
-                  <div className="rounded-card border border-emerald-500/20 bg-emerald-500/[0.03] p-5 shadow-card">
-                    <h5 className="flex items-center gap-2 text-[14px] font-black text-emerald-700 dark:text-emerald-400">
+                  <div className="rounded-card border border-sv-blue/20 bg-sv-blue/[0.03] p-5 shadow-card">
+                    <h5 className="flex items-center gap-2 text-[14px] font-black text-sv-blue-deep dark:text-sv-blue-light">
                       <CheckCircle2 className="h-4 w-4" />
                       {de ? 'Warum dieser Deal? (Vorteile)' : 'Why this deal? (Upsides)'}
                     </h5>
                     <ul className="mt-3 space-y-2 text-[12px] font-bold text-sv-ink/80">
                       {(de ? report.whyThisDealDe : report.whyThisDealEn).map((item, idx) => (
                         <li key={idx} className="flex items-start gap-2">
-                          <span className="text-emerald-600">•</span>
+                          <span className="text-sv-blue">•</span>
                           <span>{item}</span>
                         </li>
                       ))}
                     </ul>
                   </div>
 
-                  <div className="rounded-card border border-rose-500/20 bg-rose-500/[0.03] p-5 shadow-card">
-                    <h5 className="flex items-center gap-2 text-[14px] font-black text-rose-700 dark:text-rose-400">
+                  <div className="rounded-card border border-sv-orange-deep/20 bg-sv-orange-deep/[0.03] p-5 shadow-card">
+                    <h5 className="flex items-center gap-2 text-[14px] font-black text-sv-orange-deep">
                       <AlertTriangle className="h-4 w-4" />
                       {de ? 'Woran dieser Deal scheitern könnte (Risiken)' : 'What could make this deal fail? (Risks)'}
                     </h5>
                     <ul className="mt-3 space-y-2 text-[12px] font-bold text-sv-ink/80">
                       {(de ? report.whatCouldMakeItFailDe : report.whatCouldMakeItFailEn).map((item, idx) => (
                         <li key={idx} className="flex items-start gap-2">
-                          <span className="text-rose-600">•</span>
+                          <span className="text-sv-orange-deep">•</span>
                           <span>{item}</span>
                         </li>
                       ))}
@@ -581,7 +586,7 @@ export default function DePropTechOS({ citySlug = 'berlin', de = true }: DePropT
                     </div>
                     <div className="text-right">
                       <div className="text-[11px] font-bold text-sv-ink/50">{de ? 'CO2-Kostenaufteilung' : 'CO2 Cost Splitting'}</div>
-                      <div className="text-[16px] font-black text-rose-600">{report.energy.co2LandlordSharePct}% {de ? 'Vermieteranteil' : 'Landlord Share'}</div>
+                      <div className="text-[16px] font-black text-sv-orange-deep">{report.energy.co2LandlordSharePct}% {de ? 'Vermieteranteil' : 'Landlord Share'}</div>
                     </div>
                   </div>
 
@@ -596,10 +601,10 @@ export default function DePropTechOS({ citySlug = 'berlin', de = true }: DePropT
                       <div className="text-[11px] font-semibold text-sv-ink/60">{de ? 'Heizungstausch & Dämmung' : 'Heating & insulation'}</div>
                     </div>
 
-                    <div className="rounded-module border border-emerald-500/20 bg-emerald-500/[0.03] p-4">
-                      <div className="text-[11px] font-bold text-emerald-700 dark:text-emerald-400">{de ? 'KfW 261 / BEG 458 Förderung' : 'KfW / BEG Subsidy'}</div>
-                      <div className="mt-1 text-[20px] font-black text-emerald-600 dark:text-emerald-400">-{fmtEur(report.energy.kfwSubsidyEligibleEur)}</div>
-                      <div className="text-[11px] font-semibold text-emerald-700/70">{de ? 'Bis zu 55 % Zuschuss' : 'Up to 55% grant'}</div>
+                    <div className="rounded-module border border-sv-blue/20 bg-sv-blue/[0.03] p-4">
+                      <div className="text-[11px] font-bold text-sv-blue-deep dark:text-sv-blue-light">{de ? 'KfW 261 / BEG 458 Förderung' : 'KfW / BEG Subsidy'}</div>
+                      <div className="mt-1 text-[20px] font-black text-sv-blue dark:text-sv-success">-{fmtEur(report.energy.kfwSubsidyEligibleEur)}</div>
+                      <div className="text-[11px] font-semibold text-sv-ink/55">{de ? 'Bis zu 55 % Zuschuss' : 'Up to 55% grant'}</div>
                     </div>
 
                     <div className="rounded-module border border-sv-ink/[0.07] bg-sv-surface p-4">
@@ -622,7 +627,7 @@ export default function DePropTechOS({ citySlug = 'berlin', de = true }: DePropT
                       <FileCheck className="h-5 w-5 text-sv-blue" />
                       {de ? 'Notarielle Ankaufsprüfung & §656c BGB Status' : 'Notary Due Diligence & Statutory Parity'}
                     </h4>
-                    <span className="rounded bg-emerald-500/10 px-2.5 py-1 text-[11px] font-black text-emerald-600 dark:text-emerald-400">
+                    <span className="rounded bg-sv-blue/10 px-2.5 py-1 text-[11px] font-black text-sv-blue dark:text-sv-success">
                       {commissionCheck.compliant ? (de ? '§656c BGB Konform' : 'Statutory Parity OK') : 'Non-compliant'}
                     </span>
                   </div>
@@ -647,7 +652,7 @@ export default function DePropTechOS({ citySlug = 'berlin', de = true }: DePropT
                     <ul className="mt-3 space-y-2.5">
                       {STATUTORY_NOTARY_CHECKLIST.map((item) => (
                         <li key={item.id} className="flex items-start gap-2.5 rounded-control border border-sv-ink/[0.06] bg-sv-surface p-3 text-[12px]">
-                          <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                          <CheckCircle2 className="h-4 w-4 shrink-0 text-sv-blue dark:text-sv-success" />
                           <div>
                             <div className="font-extrabold text-sv-ink">{de ? item.titleDe : item.titleEn}</div>
                             <div className="text-sv-ink/60">{de ? item.descriptionDe : item.descriptionEn}</div>
@@ -700,7 +705,7 @@ export default function DePropTechOS({ citySlug = 'berlin', de = true }: DePropT
                           </div>
                           <div className="flex justify-between text-sv-ink">
                             <dt>{de ? 'Kumulierter Cashflow' : 'Cumulative Cash Flow'}</dt>
-                            <dd className={sc.year10CumulativeCashFlowEur >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600'}>
+                            <dd className={sc.year10CumulativeCashFlowEur >= 0 ? 'text-sv-blue dark:text-sv-success' : 'text-sv-orange-deep'}>
                               {fmtEur(sc.year10CumulativeCashFlowEur)}
                             </dd>
                           </div>
@@ -746,7 +751,7 @@ export default function DePropTechOS({ citySlug = 'berlin', de = true }: DePropT
 
                     <div className="flex items-center justify-between rounded-control border border-sv-ink/[0.06] bg-sv-cloud p-3">
                       <span className="text-sv-ink/60">{de ? 'EU AI Act Risikoeinstufung' : 'EU AI Act Risk Classification'}</span>
-                      <span className="inline-flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400">
+                      <span className="inline-flex items-center gap-1.5 text-sv-blue dark:text-sv-success">
                         <CheckCircle2 className="h-3.5 w-3.5" />
                         {report.provenance.euAiActGovernance.riskTier} · Vollständig auditierbar
                       </span>

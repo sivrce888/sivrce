@@ -163,8 +163,8 @@ export const GLOBAL_PLAYERS: readonly GlobalPlayer[] = [
     cells: {
       globalEntityGraph: {
         score: 100,
-        noteEn: '236 countries, 21,947 metros, 575 developers, 863 projects unified in single canonical graph.',
-        noteKa: '236 ქვეყანა, 21,947 მეტრო/ქალაქი, 575 დეველოპერი, 863 პროექტი ერთიან გრაფში.',
+        noteEn: '236 countries, 21,947 metros, 611 developers, 956 projects unified in single canonical graph.',
+        noteKa: '236 ქვეყანა, 21,947 მეტრო/ქალაქი, 611 დეველოპერი, 956 პროექტი ერთიან გრაფში.',
         evidence: 'src/lib/countries/global-os.ts',
       },
       institutionalValuation: {
@@ -211,8 +211,8 @@ export const GLOBAL_PLAYERS: readonly GlobalPlayer[] = [
       },
       zeroJankPerformance: {
         score: 100,
-        noteEn: 'Build-enforced device budgets (RAM/cores/Save-Data), MVT tiles, sub-second LCP, and zero-jank passive field RUM Core Web Vitals telemetry.',
-        noteKa: 'მოწყობილობის ბიუჯეტები, MVT ვექტორული რუკა, ქვწამიერი LCP და რეალური RUM Web Vitals ტელემეტრია.',
+        noteEn: 'Build-enforced device budgets (RAM/cores/Save-Data), MVT tiles, sub-second LCP, and consent-gated passive field RUM Core Web Vitals telemetry.',
+        noteKa: 'მოწყობილობის ბიუჯეტები, MVT ვექტორული რუკა, ქვწამიერი LCP და თანხმობაზე დაფუძნებული რეალური RUM Web Vitals ტელემეტრია.',
         evidence: 'src/lib/rum-telemetry.ts',
       },
       unifiedTransactions: {

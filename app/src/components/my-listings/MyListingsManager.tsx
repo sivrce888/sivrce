@@ -299,13 +299,20 @@ function stringsFor(lang: string): Strings {
   return L[loc]
 }
 
-const dateTimeFmt = new Intl.DateTimeFormat("ka-GE", {
-  day: "2-digit",
-  month: "short",
-  year: "2-digit",
-  hour: "2-digit",
-  minute: "2-digit",
-})
+const DT_FMT = {
+  ka: new Intl.DateTimeFormat("ka-GE", {
+    day: "2-digit", month: "short", year: "2-digit", hour: "2-digit", minute: "2-digit",
+  }),
+  en: new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit", month: "short", year: "2-digit", hour: "2-digit", minute: "2-digit",
+  }),
+  de: new Intl.DateTimeFormat("de-DE", {
+    day: "2-digit", month: "short", year: "2-digit", hour: "2-digit", minute: "2-digit",
+  }),
+}
+function dateTimeFmt(lang: string) {
+  return DT_FMT[lang === "en" ? "en" : lang === "de" ? "de" : "ka"]
+}
 
 const BOOST_PILLS: Array<{
   key: string
@@ -684,6 +691,7 @@ export default function MyListingsManager({
                   busy={busyId === l.id}
                   analyticsOpen={analyticsId === l.id}
                   str={str}
+                  lang={lang}
                   formatPrice={(n) => format(priceAsGel(n, l.currency, rate))}
                   onToggleAnalytics={() =>
                     setAnalyticsId((id) => (id === l.id ? null : l.id))
@@ -732,6 +740,7 @@ function ListingManageCard({
   busy,
   analyticsOpen,
   str,
+  lang,
   formatPrice,
   onToggleAnalytics,
   onEdit,
@@ -745,6 +754,7 @@ function ListingManageCard({
   busy: boolean
   analyticsOpen: boolean
   str: Strings
+  lang: string
   formatPrice: (n: number) => string
   onToggleAnalytics: () => void
   onEdit: () => void
@@ -822,9 +832,9 @@ function ListingManageCard({
 
           <div className="mt-auto">
             <div className="mb-1.5 flex items-center justify-between gap-2 text-[11px] font-semibold text-sv-ink/60">
-              <span>{dateTimeFmt.format(new Date(l.createdAt))}</span>
+              <span>{dateTimeFmt(lang).format(new Date(l.createdAt))}</span>
               <span>
-                {str.expires} {dateTimeFmt.format(expires)}
+                {str.expires} {dateTimeFmt(lang).format(expires)}
               </span>
             </div>
             <div className="h-1.5 overflow-hidden rounded-full bg-sv-ink/[0.06]">

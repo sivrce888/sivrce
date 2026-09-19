@@ -21,7 +21,6 @@ import { jsonLd } from "@/lib/utils";
 import { CONTACT_PHONE } from "@/lib/inquiries/phone";
 import { LITE_BOOT } from "@/lib/device-budget";
 import { GoogleTags } from "@/components/GoogleTags";
-import { RumBeacon } from "@/components/RumBeacon";
 import ConsentBanner from "@/components/consent/ConsentBanner";
 import { NativeShell } from "@/components/native/NativeShell";
 import { InstallPrompt } from "@/components/pwa/InstallPrompt";
@@ -348,7 +347,6 @@ export default async function LangLayout({ children, params }: LangLayoutProps) 
         {/* No GTM <noscript> iframe: without JS there is no way to collect
             consent, so firing the tag would be an unlawful pre-consent load. */}
         <GoogleTags />
-        <RumBeacon />
         <a
           href="#main"
           className="sr-only bg-sv-blue text-white focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-control focus:px-4 focus:py-2"

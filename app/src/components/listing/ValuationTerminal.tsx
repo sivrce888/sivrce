@@ -187,7 +187,7 @@ export default function ValuationTerminal({
           <span className="text-[11px] font-medium text-sv-ink-soft uppercase tracking-wider block">
             {T('5-წლ. წმინდა იჯარა', '5-Jahres-Nettomietzahlung', '5-Yr Net Cash Flow')}
           </span>
-          <span className="mt-1 text-lg font-bold text-emerald-600 dark:text-emerald-400">
+          <span className="mt-1 text-lg font-bold text-emerald-700 dark:text-emerald-400">
             ${scenario.year5TotalNetCashFlowUSD.toLocaleString()}
           </span>
           <span className="text-[10px] text-sv-ink-soft">
@@ -199,12 +199,17 @@ export default function ValuationTerminal({
       {/* Why Sivrce Recommends & Risk Factors */}
       <div className="mt-5 grid sm:grid-cols-2 gap-3 pt-3 border-t border-sv-ink/[0.04]">
         <div className="rounded-xl bg-emerald-500/[0.03] border border-emerald-500/10 p-3.5">
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
             <ShieldCheck className="h-4 w-4" />
             <span>{T('რატომ გვირჩევს სივრცე', 'Warum SIVRCE empfiehlt', 'Why SIVRCE Recommends')}</span>
           </div>
           <ul className="mt-2 space-y-1.5 text-xs text-sv-ink">
-            {(isKa ? report.recommendations.whyBuyKa : report.recommendations.whyBuyEn).map((point, i) => (
+            {(isKa
+              ? report.recommendations.whyBuyKa
+              : lang === 'de'
+              ? report.recommendations.whyBuyDe
+              : report.recommendations.whyBuyEn
+            ).map((point, i) => (
               <li key={i} className="flex items-start gap-1.5">
                 <span className="text-emerald-500 font-bold">•</span>
                 <span>{point}</span>
@@ -214,12 +219,17 @@ export default function ValuationTerminal({
         </div>
 
         <div className="rounded-xl bg-amber-500/[0.03] border border-amber-500/10 p-3.5">
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-amber-600 dark:text-amber-400">
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-amber-700 dark:text-amber-400">
             <AlertTriangle className="h-4 w-4" />
             <span>{T('რისკ-ფაქტორები და შენიშვნები', 'Risikofaktoren & Sorgfaltspflicht', 'Risk Factors & Diligence')}</span>
           </div>
           <ul className="mt-2 space-y-1.5 text-xs text-sv-ink">
-            {(isKa ? report.recommendations.risksKa : report.recommendations.risksEn).map((risk, i) => (
+            {(isKa
+              ? report.recommendations.risksKa
+              : lang === 'de'
+              ? report.recommendations.risksDe
+              : report.recommendations.risksEn
+            ).map((risk, i) => (
               <li key={i} className="flex items-start gap-1.5">
                 <span className="text-amber-500 font-bold">•</span>
                 <span>{risk}</span>

@@ -48,6 +48,23 @@ export const NEW_DEVELOPERS_UAE: Developer[] = [
     website: 'https://www.deyaar.ae',
   },
   {
+    slug: 'sobha-realty',
+    name: { ka: 'Sobha Realty', en: 'Sobha Realty', ru: 'Sobha Realty' },
+    city: 'დუბაი',
+    yearsActive: 49,
+    projectsDone: 150,
+    unitsDelivered: 60000,
+    description: {
+      ka: 'Sobha Realty — დუბაის წამყვანი ლუქსუს დეველოპერი (1976, PNC Menon): 11 მასტერპლანი UAE-ში, 2024-ში AED 23 მილიარდი გაყიდვები, 6 819 ბინა ჩაბარებული 2026-ში. პროექტები: Sobha Hartland, Sobha One, Sobha SeaHaven, Sobha Hartland II, Creek Vistas, Waves, Crest Grande, Sobha Reserve, Sobha Orbis.',
+      en: 'Sobha Realty is Dubai\'s leading luxury developer (1976, PNC Menon): 11 masterplans in the UAE, AED 23bn sales in 2024, 6,819 units delivered in 2026. Projects: Sobha Hartland, Sobha One, Sobha SeaHaven, Sobha Hartland II, Creek Vistas, Waves, Crest Grande, Sobha Reserve, Sobha Orbis.',
+      ru: 'Sobha Realty — ведущий люкс-девелопер Дубая (1976, PNC Menon): 11 мастер-планов в ОАЭ, продажи AED 23 млрд в 2024, сдано 6 819 квартир в 2026. Проекты: Sobha Hartland, Sobha One, Sobha SeaHaven, Sobha Hartland II, Creek Vistas, Waves, Crest Grande, Sobha Reserve, Sobha Orbis.',
+    },
+    verified: false,
+    phone: '',
+    logoUrl: '/images/developers/sobha-realty.webp',
+    website: 'https://sobharealty.com',
+  },
+  {
     slug: 'tiger-properties',
     name: { ka: 'Tiger Properties', en: 'Tiger Properties', ru: 'Tiger Properties' },
     city: 'დუბაი',
@@ -317,6 +334,23 @@ export const NEW_DEVELOPERS_UAE: Developer[] = [
     phone: '',
     logoUrl: '/images/developers/samana-developers.webp',
     website: 'https://samanadevelopers.com',
+  },
+  {
+    slug: 'aldar-properties',
+    name: { ka: 'Aldar Properties', en: 'Aldar Properties', ru: 'Aldar Properties' },
+    city: 'აბუ-დაბი',
+    yearsActive: 20,
+    projectsDone: 50,
+    unitsDelivered: 30000,
+    description: {
+      ka: 'Aldar Properties — აბუ-დაბის უდიდესი დეველოპერი (ADX-ზე ლისტირებული): Yas Island, Saadiyat Island, Al Raha Beach, Hudayriat Island — 30 000-ზე მეტი ჩაბარებული ერთეული.',
+      en: 'Aldar Properties is Abu Dhabi\'s largest developer (ADX-listed): Yas Island, Saadiyat Island, Al Raha Beach, Hudayriat Island — 30,000+ delivered units.',
+      ru: 'Aldar Properties — крупнейший девелопер Абу-Даби (листинг ADX): Yas Island, Saadiyat Island, Al Raha Beach, Hudayriat Island — 30 000+ сданных единиц.',
+    },
+    verified: false,
+    phone: '',
+    logoUrl: '/images/developers/aldar-properties.webp',
+    website: 'https://www.aldar.com',
   },
 ]
 

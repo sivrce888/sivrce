@@ -36,7 +36,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const name = pickLocText(c.name, lang)
   const seo = pickLocText(c.seo, lang)
   return {
-    title: `${name} — ${lang === 'ru' ? 'сервисы недвижимости' : lang === 'ka' ? 'უძრავი ქონების სერვისები' : 'real-estate services'}`,
+    title: `${name} — ${lang === 'ru' ? 'сервисы недвижимости' : lang === 'ka' ? 'უძრავი ქონების სერვისები' : lang === 'de' ? 'Immobilien-Services' : 'real-estate services'}`,
     description: seo,
     alternates: pageAlternates(`/services/${category}`, lang),
     openGraph: {
@@ -68,7 +68,7 @@ export default async function ServiceCategoryPage({ params }: PageProps) {
     })),
   }
 
-  const homeLabel = lang === 'ka' ? 'მთავარი' : lang === 'ru' ? 'Главная' : 'Home'
+  const homeLabel = lang === 'ka' ? 'მთავარი' : lang === 'ru' ? 'Главная' : lang === 'de' ? 'Startseite' : 'Home'
   const hubLabel = lang === 'ka' ? 'სერვისები' : lang === 'ru' ? 'Сервисы' : 'Services'
   const catName = pickLocText(cat.name, lang)
   const breadcrumbLd = {
@@ -95,7 +95,7 @@ export default async function ServiceCategoryPage({ params }: PageProps) {
             href="/add-service"
             className="mt-8 inline-flex items-center gap-2 rounded-full bg-sv-orange px-6 py-3 text-[14px] font-extrabold text-sv-ink shadow-glow-orange transition hover:-translate-y-0.5"
           >
-            {lang === 'ru' ? 'Добавить компанию' : lang === 'ka' ? 'დაამატე კომპანია' : 'Add your company'}
+            {lang === 'ru' ? 'Добавить компанию' : lang === 'ka' ? 'დაამატე კომპანია' : lang === 'de' ? 'Firma hinzufügen' : 'Add your company'}
           </LocalizedLink>
         </PageHero>
         <AdSlot slot="services" lang={lang} />
@@ -103,7 +103,7 @@ export default async function ServiceCategoryPage({ params }: PageProps) {
         {category === 'renovation' && (
           <section className="mx-auto max-w-[1100px] px-5 pb-12 md:px-10">
             <h2 className="mb-5 text-[22px] font-black tracking-[-0.02em] text-sv-ink">
-              {lang === 'ru' ? 'Бюджет ремонта' : lang === 'ka' ? 'რემონტის ბიუჯეტი' : 'Renovation budget'}
+              {lang === 'ru' ? 'Бюджет ремонта' : lang === 'ka' ? 'რემონტის ბიუჯეტი' : lang === 'de' ? 'Renovierungsbudget' : 'Renovation budget'}
             </h2>
             <RenovationCalc />
           </section>
@@ -116,9 +116,11 @@ export default async function ServiceCategoryPage({ params }: PageProps) {
                 ? 'В этой категории пока нет компаний. '
                 : lang === 'ka'
                   ? 'ამ კატეგორიაში კომპანია ჯერ არ არის. '
-                  : 'No companies in this category yet. '}
+                  : lang === 'de'
+                    ? 'In dieser Kategorie gibt es noch keine Firmen. '
+                    : 'No companies in this category yet. '}
               <LocalizedLink href="/add-service" className="font-extrabold text-sv-blue">
-                {lang === 'ru' ? 'Добавить первую' : lang === 'ka' ? 'დაამატე პირველი' : 'Add the first'}
+                {lang === 'ru' ? 'Добавить первую' : lang === 'ka' ? 'დაამატე პირველი' : lang === 'de' ? 'Erste hinzufügen' : 'Add the first'}
               </LocalizedLink>
               .
             </p>

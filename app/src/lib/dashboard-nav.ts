@@ -55,8 +55,8 @@ export function settingsNavFor(role: UserRole, lang: string): DashboardNavItem[]
   }
 }
 
-export function settingsTitleFor(role: UserRole, persona?: Persona): string {
-  return panelTitle(persona ?? role)
+export function settingsTitleFor(role: UserRole, persona?: Persona, lang = "ka"): string {
+  return panelTitle(persona ?? role, lang)
 }
 
 export { dashboardPathFor }

@@ -46,7 +46,7 @@ export default function ConsentBanner() {
           </button>
           <Link
             href={localizedHref(lang === 'de' ? '/legal/datenschutz' : '/privacy', lang)}
-            className="shrink-0 rounded-sm px-1 text-[12px] font-semibold text-sv-ink/50 underline-offset-2 transition-colors hover:text-sv-blue hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue dark:text-white/50 dark:hover:text-sv-blue-light"
+            className="shrink-0 rounded-sm px-1 text-[12px] font-semibold text-sv-ink/60 underline-offset-2 transition-colors hover:text-sv-blue hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue dark:text-white/50 dark:hover:text-sv-blue-light"
           >
             {t('more')}
           </Link>

@@ -4,13 +4,27 @@
     {
       "name": "sivrce-dev",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["--prefix", "app", "run", "dev"],
-      "port": 3000
+      "runtimeArgs": [
+        "--prefix",
+        "app",
+        "run",
+        "dev"
+      ],
+      "port": 3000,
+      "autoPort": true
     },
     {
       "name": "sivrce-prod",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["--prefix", "app", "run", "start", "--", "-p", "3100"],
+      "runtimeArgs": [
+        "--prefix",
+        "app",
+        "run",
+        "start",
+        "--",
+        "-p",
+        "3100"
+      ],
       "port": 3100
     }
   ]

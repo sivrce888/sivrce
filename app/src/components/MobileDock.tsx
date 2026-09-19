@@ -47,9 +47,11 @@ export default function MobileDock() {
     <nav
       data-sv-dock
       aria-label={t('nav.main')}
-      className="fixed inset-x-0 bottom-0 z-[45] border-t border-sv-ink/[0.08] bg-sv-surface/92 pb-[env(safe-area-inset-bottom,0px)] shadow-card backdrop-blur-xl lg:hidden dark:border-white/10"
+      className="fixed inset-x-0 bottom-0 z-[45] px-3 pb-[calc(env(safe-area-inset-bottom,0px)+0.5rem)] lg:hidden"
     >
-      <ul className="mx-auto grid h-14 max-w-[520px] grid-cols-5 px-1">
+      {/* Floating capsule, not an edge-to-edge bar — content keeps flowing
+          under it (BRAND.md §5 glass + concentric pill). */}
+      <ul className="glass-light mx-auto grid h-14 max-w-[520px] grid-cols-5 rounded-full px-1 shadow-card">
         {items.map((item) => (
           <li key={item.href} className="min-w-0">
             <LocalizedLink

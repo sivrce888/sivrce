@@ -9,8 +9,9 @@ import EmptyState from "@/components/dashboard/EmptyState"
 import StatCard from "@/components/dashboard/StatCard"
 import { db } from "@/lib/db"
 import { requireRole, safeQuery } from "@/lib/guards"
+import { inquiryStatusLabel } from "@/components/agent-dashboard/format"
+import { isValidLang } from "@/lib/i18n/core"
 import {
-  INQUIRY_STATUS_KA,
   INQUIRY_STATUSES,
   inquiryWhere,
   listingOwnerWhere,
@@ -19,15 +20,75 @@ import type { ListingStatus } from "@/generated/prisma/client"
 
 export const dynamic = "force-dynamic"
 
-export const metadata: Metadata = {
-  title: "სააგენტოს ანალიტიკა",
-  robots: { index: false },
+const L = {
+  ka: {
+    metaTitle: "სააგენტოს ანალიტიკა",
+    title: "სააგენტოს პანელი",
+    subtitle: "ანალიტიკა",
+    views: "ნახვები",
+    teamPortfolio: "გუნდის პორტფოლიო",
+    leads: "ლიდები",
+    inquiries: "მოთხოვნები",
+    conversion: "კონვერსია",
+    leadPerView: "ლიდი / ნახვა",
+    tours: "ვიზიტები",
+    leadsByStatus: "ლიდები სტატუსით",
+    noDataTitle: "ჯერ არ არის საკმარისი მონაცემები",
+    noDataBody: "როცა მყიდველები დაგიკავშირდებიან, აქ გამოჩნდება განაწილება.",
+    listingsByStatus: "განცხადებები სტატუსით",
+  },
+  en: {
+    metaTitle: "Agency analytics",
+    title: "Agency dashboard",
+    subtitle: "Analytics",
+    views: "Views",
+    teamPortfolio: "team portfolio",
+    leads: "Leads",
+    inquiries: "inquiries",
+    conversion: "Conversion",
+    leadPerView: "lead / view",
+    tours: "Tours",
+    leadsByStatus: "Leads by status",
+    noDataTitle: "Not enough data yet",
+    noDataBody: "Once buyers start contacting you, the breakdown will appear here.",
+    listingsByStatus: "Listings by status",
+  },
+  de: {
+    metaTitle: "Agentur-Analyse",
+    title: "Agentur-Dashboard",
+    subtitle: "Analyse",
+    views: "Aufrufe",
+    teamPortfolio: "Team-Portfolio",
+    leads: "Leads",
+    inquiries: "Anfragen",
+    conversion: "Konversion",
+    leadPerView: "Lead / Aufruf",
+    tours: "Besichtigungen",
+    leadsByStatus: "Leads nach Status",
+    noDataTitle: "Noch nicht genügend Daten",
+    noDataBody: "Sobald Käufer mit dir Kontakt aufnehmen, erscheint hier die Verteilung.",
+    listingsByStatus: "Inserate nach Status",
+  },
+} as const
+type Loc = keyof typeof L
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>
+}): Promise<Metadata> {
+  const { lang: raw } = await params
+  const loc: Loc = raw === "en" ? "en" : raw === "de" ? "de" : "ka"
+  return { title: L[loc].metaTitle, robots: { index: false } }
 }
 
 const LISTING_STATUS_ORDER: ListingStatus[] = ["active", "pending", "sold", "expired", "withdrawn"]
 
 export default async function AgencyAnalyticsPage({ params }: { params: Promise<{ lang: string }> }) {
-  const { lang } = await params
+  const { lang: raw } = await params
+  const lang = isValidLang(raw) ? raw : "ka"
+  const loc = lang === "en" ? "en" : lang === "de" ? "de" : "ka"
+  const T = L[loc]
   const user = await requireRole("agency", "/agency")
   const { ownerIds } = await getAgencyContext(user)
 
@@ -76,38 +137,35 @@ export default async function AgencyAnalyticsPage({ params }: { params: Promise<
   return (
     <DashboardShell
       nav={AGENCY_NAV(lang)}
-      title="სააგენტოს პანელი"
-      subtitle="ანალიტიკა"
+      title={T.title}
+      subtitle={T.subtitle}
       userLabel={user.name ?? user.email}
     >
       <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
-        <StatCard label="ნახვები" value={totalViews} hint="გუნდის პორტფოლიო" icon={<Eye size={18} />} />
-        <StatCard label="ლიდები" value={totalLeads} hint="მოთხოვნები" icon={<MessagesSquare size={18} />} />
+        <StatCard label={T.views} value={totalViews} hint={T.teamPortfolio} icon={<Eye size={18} />} />
+        <StatCard label={T.leads} value={totalLeads} hint={T.inquiries} icon={<MessagesSquare size={18} />} />
         <StatCard
-          label="კონვერსია"
+          label={T.conversion}
           value={`${conversion}%`}
-          hint="ლიდი / ნახვა"
+          hint={T.leadPerView}
           icon={<TrendingUp size={18} />}
         />
-        <StatCard label="ვიზიტები" value={upcomingTours} icon={<CalendarCheck size={18} />} />
+        <StatCard label={T.tours} value={upcomingTours} icon={<CalendarCheck size={18} />} />
       </div>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <section className="rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card">
-          <h2 className="text-[15px] font-extrabold text-sv-ink">ლიდები სტატუსით</h2>
+          <h2 className="text-[15px] font-extrabold text-sv-ink">{T.leadsByStatus}</h2>
           {totalLeads === 0 ? (
             <div className="mt-4">
-              <EmptyState
-                title="ჯერ არ არის საკმარისი მონაცემები"
-                body="როცა მყიდველები დაგიკავშირდებიან, აქ გამოჩნდება განაწილება."
-              />
+              <EmptyState title={T.noDataTitle} body={T.noDataBody} />
             </div>
           ) : (
             <div className="mt-4 flex flex-col gap-2.5">
               {INQUIRY_STATUSES.map((status) => (
                 <BarRow
                   key={status}
-                  label={INQUIRY_STATUS_KA[status]}
+                  label={inquiryStatusLabel(lang)[status]}
                   count={leadCounts.get(status) ?? 0}
                   max={maxLeads}
                 />
@@ -117,7 +175,7 @@ export default async function AgencyAnalyticsPage({ params }: { params: Promise<
         </section>
 
         <section className="rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card">
-          <h2 className="text-[15px] font-extrabold text-sv-ink">განცხადებები სტატუსით</h2>
+          <h2 className="text-[15px] font-extrabold text-sv-ink">{T.listingsByStatus}</h2>
           <div className="mt-4 flex flex-col gap-2.5">
             {LISTING_STATUS_ORDER.map((status) => (
               <BarRow

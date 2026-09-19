@@ -225,8 +225,7 @@ export default function CategoryBar({
             <button
               key={item.id}
               type="button"
-              role="tab"
-              aria-selected={active}
+              aria-pressed={active}
               onClick={() => onSelect(item)}
               className={`group flex shrink-0 items-center gap-2 rounded-full px-3.5 py-2 text-[13px] font-extrabold transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-primary ${
                 active

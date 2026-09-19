@@ -31,6 +31,10 @@ export async function initPostHog(): Promise<void> {
     api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST ?? 'https://eu.i.posthog.com',
     // Cost lock: manual $pageview only; Sentry owns errors; no replay/flags/autocapture.
     autocapture: false,
+    // Web vitals come from rum-telemetry's own observers (free, plus deviceTier).
+    // Leaving this on made posthog-js download web-vitals-with-attribution.js and
+    // collect LCP/CLS a second time.
+    capture_performance: false,
     capture_pageview: false,
     capture_pageleave: false,
     capture_exceptions: false,

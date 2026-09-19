@@ -4,8 +4,8 @@
  * AI Advisor — scam-radar shield + instant Q&A + TCO/ROI panel.
  * Pure functions from ai-copilot / scam-radar / 10x-engine — zero network,
  * zero deps. Lazy chunk (dynamic import) keeps it off the critical path.
- * Copy lives in listing/i18n.ts (all 10 locales, lt()); lib-generated
- * answers/flags (ai-copilot, scam-radar) stay ka/en until de volume grows.
+ * Copy lives in listing/i18n.ts (all 10 locales, lt()); lib answers/flags
+ * (ai-copilot, scam-radar) are ka/en/de — other locales fall back to English.
  */
 
 import { useState } from 'react'
@@ -95,11 +95,20 @@ export default function AiAdvisor({ ctx, isSale }: { ctx: PropertyCopilotContext
         <div className="mt-3 rounded-module bg-red-500/[0.06] p-4 ring-1 ring-inset ring-red-500/15">
           <div className="text-[12px] font-black text-red-600 dark:text-red-400">{lt(lang, 'aiFlags')}</div>
           <ul className="mt-1.5 list-disc space-y-1 pl-4 text-[12px] font-bold text-sv-ink/70">
-            {fraud.flags.map((f) => <li key={f.code}>{ka ? f.titleKa : f.titleEn}</li>)}
+            {fraud.flags.map((f) => (
+              <li key={f.code}>{lang === 'ka' ? f.titleKa : lang === 'de' ? f.titleDe : f.titleEn}</li>
+            ))}
           </ul>
           <div className="mt-3 text-[12px] font-black text-sv-ink">{lt(lang, 'aiTips')}</div>
           <ul className="mt-1.5 list-disc space-y-1 pl-4 text-[12px] font-bold text-sv-ink/70">
-            {(ka ? fraud.safetyTipsKa : fraud.safetyTipsEn).map((tip) => <li key={tip}>{tip}</li>)}
+            {(lang === 'ka'
+              ? fraud.safetyTipsKa
+              : lang === 'de'
+              ? fraud.safetyTipsDe
+              : fraud.safetyTipsEn
+            ).map((tip) => (
+              <li key={tip}>{tip}</li>
+            ))}
           </ul>
         </div>
       )}
@@ -116,7 +125,7 @@ export default function AiAdvisor({ ctx, isSale }: { ctx: PropertyCopilotContext
               onClick={() => setActive(i)}
               className={`rounded-full px-4 py-2 text-[13px] font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue ${
                 i === active
-                  ? 'bg-sv-violet text-white'
+                  ? 'bg-sv-navy text-white'
                   : 'text-sv-ink/70 ring-1 ring-sv-ink/10 hover:text-sv-ink hover:ring-sv-violet/40'
               }`}
             >
@@ -130,14 +139,14 @@ export default function AiAdvisor({ ctx, isSale }: { ctx: PropertyCopilotContext
         >
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-[15px] font-black tracking-[-0.01em] text-sv-ink">
-              {ka ? answer.headlineKa : answer.headlineEn}
+              {ka ? answer.headlineKa : lang === 'de' ? answer.headlineDe : answer.headlineEn}
             </span>
             <span className="rounded-full bg-sv-ink/[0.06] px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-sv-ink/60">
               {lt(lang, FACT_KEY[answer.factState] ?? 'factFact')}
             </span>
           </div>
           <p className="mt-2 text-[13px] font-semibold leading-relaxed text-sv-ink/70">
-            {ka ? answer.bodyKa : answer.bodyEn}
+            {ka ? answer.bodyKa : lang === 'de' ? answer.bodyDe : answer.bodyEn}
           </p>
           <div className="mt-2 text-[11px] font-bold text-sv-ink/50">
             {lt(lang, 'aiConfidence', { n: answer.confidenceScore })}
@@ -157,7 +166,7 @@ export default function AiAdvisor({ ctx, isSale }: { ctx: PropertyCopilotContext
               [lt(lang, 'aiCap'), `${roi.capRatePct}%`],
             ] as const).map(([label, value]) => (
               <div key={label} className="rounded-module bg-sv-cloud p-3.5">
-                <dt className="text-[10px] font-black uppercase tracking-wider text-sv-ink/50">{label}</dt>
+                <dt className="text-[10px] font-black uppercase tracking-wider text-sv-ink/60">{label}</dt>
                 <dd className="mt-1 text-[17px] font-black tracking-tight text-sv-ink">{value}</dd>
               </div>
             ))}

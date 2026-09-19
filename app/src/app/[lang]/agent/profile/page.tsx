@@ -12,16 +12,100 @@ import UserAvatar from "@/components/UserAvatar"
 import { agentNav } from "@/components/agent-dashboard/nav"
 import { db } from "@/lib/db"
 import { requireRole, safeQuery } from "@/lib/guards"
+import { isValidLang } from "@/lib/i18n/core"
 
 export const dynamic = "force-dynamic"
 
-export const metadata: Metadata = {
-  title: "პროფილი — აგენტის პანელი",
-  robots: { index: false },
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>
+}): Promise<Metadata> {
+  const { lang: raw } = await params
+  const c = L[raw === "en" ? "en" : raw === "de" ? "de" : "ka"]
+  return { title: `${c.shellSubtitle} — ${c.shellTitle}`, robots: { index: false } }
 }
 
+const L = {
+  ka: {
+    shellTitle: "აგენტის პანელი",
+    shellSubtitle: "პროფილი",
+    title: "ჩემი პროფილი",
+    publicPage: "საჯარო გვერდი",
+    statListings: "განცხადებები",
+    statRating: "რეიტინგი",
+    statReviews: "შეფასებები",
+    emptyTitle: "აგენტის პროფილი ჯერ არ გაქვს",
+    emptyBody: "შეავსე სახელი და სააგენტო — საჯარო გვერდი /agents-ზე ავტომატურად შეიქმნება.",
+    editTitle: "პროფილის რედაქტირება",
+    createTitle: "პროფილის შექმნა",
+    verified: "ვერიფიცირებული",
+    name: "სახელი და გვარი",
+    agency: "სააგენტო",
+    agencyPh: "მაგ. Remax Georgia",
+    avatarText: "ავატარის ტექსტი",
+    languages: "ენები",
+    languagesPh: "ქართული, ინგლისური, რუსული",
+    specialties: "სპეციალიზაცია",
+    specialtiesPh: "ბინები, კომერციული, ახალი პროექტები",
+    save: "შენახვა",
+    reviewsWord: "შეფასება",
+  },
+  en: {
+    shellTitle: "Agent panel",
+    shellSubtitle: "Profile",
+    title: "My profile",
+    publicPage: "Public page",
+    statListings: "Listings",
+    statRating: "Rating",
+    statReviews: "Reviews",
+    emptyTitle: "You don't have an agent profile yet",
+    emptyBody: "Fill in your name and agency — your public page on /agents will be created automatically.",
+    editTitle: "Edit profile",
+    createTitle: "Create profile",
+    verified: "Verified",
+    name: "Full name",
+    agency: "Agency",
+    agencyPh: "e.g. Remax Georgia",
+    avatarText: "Avatar text",
+    languages: "Languages",
+    languagesPh: "Georgian, English, Russian",
+    specialties: "Specialties",
+    specialtiesPh: "Apartments, commercial, new developments",
+    save: "Save",
+    reviewsWord: "reviews",
+  },
+  de: {
+    shellTitle: "Makler-Bereich",
+    shellSubtitle: "Profil",
+    title: "Mein Profil",
+    publicPage: "Öffentliche Seite",
+    statListings: "Inserate",
+    statRating: "Bewertung",
+    statReviews: "Bewertungen",
+    emptyTitle: "Sie haben noch kein Maklerprofil",
+    emptyBody:
+      "Tragen Sie Name und Agentur ein — Ihre öffentliche Seite unter /agents wird automatisch erstellt.",
+    editTitle: "Profil bearbeiten",
+    createTitle: "Profil erstellen",
+    verified: "Verifiziert",
+    name: "Vor- und Nachname",
+    agency: "Agentur",
+    agencyPh: "z. B. Remax Georgia",
+    avatarText: "Avatar-Text",
+    languages: "Sprachen",
+    languagesPh: "Georgisch, Englisch, Russisch",
+    specialties: "Spezialgebiete",
+    specialtiesPh: "Wohnungen, Gewerbe, Neubauprojekte",
+    save: "Speichern",
+    reviewsWord: "Bewertungen",
+  },
+} as const
+
 export default async function AgentProfilePage({ params }: { params: Promise<{ lang: string }> }) {
-  const { lang } = await params
+  const { lang: raw } = await params
+  const lang = isValidLang(raw) ? raw : "ka"
+  const c = L[lang === "en" ? "en" : lang === "de" ? "de" : "ka"]
   const user = await requireRole("agent", "/agent")
 
   const profile = await safeQuery(
@@ -32,18 +116,18 @@ export default async function AgentProfilePage({ params }: { params: Promise<{ l
   return (
     <DashboardShell
       nav={agentNav(lang)}
-      title="აგენტის პანელი"
-      subtitle="პროფილი"
+      title={c.shellTitle}
+      subtitle={c.shellSubtitle}
       userLabel={user.name ?? user.email}
     >
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-        <h1 className="text-[22px] font-black tracking-tight text-sv-ink">ჩემი პროფილი</h1>
+        <h1 className="text-[22px] font-black tracking-tight text-sv-ink">{c.title}</h1>
         {profile ? (
           <Link
             href={`/agents/${profile.slug}`}
             className="inline-flex items-center gap-1.5 rounded-full border border-sv-ink/12 px-4 py-2 text-[12.5px] font-bold text-sv-ink/70 transition hover:border-sv-blue hover:text-sv-blue"
           >
-            საჯარო გვერდი
+            {c.publicPage}
             <ExternalLink size={13} aria-hidden />
           </Link>
         ) : null}
@@ -51,34 +135,31 @@ export default async function AgentProfilePage({ params }: { params: Promise<{ l
 
       {profile ? (
         <div className="mb-6 grid gap-4 sm:grid-cols-3">
-          <StatCard label="განცხადებები" value={profile.listingsCount} />
-          <StatCard label="რეიტინგი" value={profile.rating ? profile.rating.toFixed(1) : "—"} />
-          <StatCard label="შეფასებები" value={profile.reviewsCount} />
+          <StatCard label={c.statListings} value={profile.listingsCount} />
+          <StatCard label={c.statRating} value={profile.rating ? profile.rating.toFixed(1) : "—"} />
+          <StatCard label={c.statReviews} value={profile.reviewsCount} />
         </div>
       ) : (
         <div className="mb-6">
-          <EmptyState
-            title="აგენტის პროფილი ჯერ არ გაქვს"
-            body="შეავსე სახელი და სააგენტო — საჯარო გვერდი /agents-ზე ავტომატურად შეიქმნება."
-          />
+          <EmptyState title={c.emptyTitle} body={c.emptyBody} />
         </div>
       )}
 
       <section className="rounded-card border border-sv-ink/6 bg-sv-surface p-6 shadow-card">
         <h2 className="text-[15px] font-extrabold text-sv-ink">
-          {profile ? "პროფილის რედაქტირება" : "პროფილის შექმნა"}
+          {profile ? c.editTitle : c.createTitle}
         </h2>
         {profile ? (
           <p className="mt-1 flex items-center gap-1.5 text-[12.5px] font-medium text-sv-ink/60">
             <BadgeCheck size={13} className="text-sv-blue" aria-hidden />
             {profile.agency}
-            {profile.verified ? " · ვერიფიცირებული" : ""}
+            {profile.verified ? ` · ${c.verified}` : ""}
           </p>
         ) : null}
 
         <form action={saveAgentProfile} className="mt-5 grid gap-4">
           <label className="grid gap-1.5">
-            <span className="text-[12px] font-bold text-sv-ink/60">სახელი და გვარი</span>
+            <span className="text-[12px] font-bold text-sv-ink/60">{c.name}</span>
             <input
               name="name"
               required
@@ -88,18 +169,18 @@ export default async function AgentProfilePage({ params }: { params: Promise<{ l
             />
           </label>
           <label className="grid gap-1.5">
-            <span className="text-[12px] font-bold text-sv-ink/60">სააგენტო</span>
+            <span className="text-[12px] font-bold text-sv-ink/60">{c.agency}</span>
             <input
               name="agency"
               required
               maxLength={160}
               defaultValue={profile?.agency ?? ""}
-              placeholder="მაგ. Remax Georgia"
+              placeholder={c.agencyPh}
               className="h-11 rounded-control border border-sv-ink/12 bg-sv-cloud/40 px-4 text-[14px] font-semibold text-sv-ink outline-none focus:border-sv-blue focus:ring-2 focus:ring-sv-blue/20"
             />
           </label>
           <label className="grid gap-1.5">
-            <span className="text-[12px] font-bold text-sv-ink/60">ავატარის ტექსტი</span>
+            <span className="text-[12px] font-bold text-sv-ink/60">{c.avatarText}</span>
             <input
               name="avatarText"
               maxLength={24}
@@ -109,20 +190,20 @@ export default async function AgentProfilePage({ params }: { params: Promise<{ l
             />
           </label>
           <label className="grid gap-1.5">
-            <span className="text-[12px] font-bold text-sv-ink/60">ენები</span>
+            <span className="text-[12px] font-bold text-sv-ink/60">{c.languages}</span>
             <input
               name="languages"
               defaultValue={profile?.languages.join(", ") ?? ""}
-              placeholder="ქართული, ინგლისური, რუსული"
+              placeholder={c.languagesPh}
               className="h-11 rounded-control border border-sv-ink/12 bg-sv-cloud/40 px-4 text-[14px] font-semibold text-sv-ink outline-none focus:border-sv-blue focus:ring-2 focus:ring-sv-blue/20"
             />
           </label>
           <label className="grid gap-1.5">
-            <span className="text-[12px] font-bold text-sv-ink/60">სპეციალიზაცია</span>
+            <span className="text-[12px] font-bold text-sv-ink/60">{c.specialties}</span>
             <input
               name="specialties"
               defaultValue={profile?.specialties.join(", ") ?? ""}
-              placeholder="ბინები, კომერციული, ახალი პროექტები"
+              placeholder={c.specialtiesPh}
               className="h-11 rounded-control border border-sv-ink/12 bg-sv-cloud/40 px-4 text-[14px] font-semibold text-sv-ink outline-none focus:border-sv-blue focus:ring-2 focus:ring-sv-blue/20"
             />
           </label>
@@ -130,7 +211,7 @@ export default async function AgentProfilePage({ params }: { params: Promise<{ l
             type="submit"
             className="mt-1 inline-flex w-fit rounded-full bg-sv-orange px-6 py-2.5 text-[13px] font-bold text-sv-ink shadow-glow-orange transition hover:opacity-95"
           >
-            შენახვა
+            {c.save}
           </button>
         </form>
       </section>
@@ -147,14 +228,14 @@ export default async function AgentProfilePage({ params }: { params: Promise<{ l
               <p className="flex items-center gap-1.5 text-[18px] font-black text-sv-ink">
                 {profile.name}
                 {profile.verified ? (
-                  <BadgeCheck size={18} className="text-sv-blue" aria-label="ვერიფიცირებული" />
+                  <BadgeCheck size={18} className="text-sv-blue" aria-label={c.verified} />
                 ) : null}
               </p>
               <p className="text-[13px] font-semibold text-sv-ink/60">{profile.agency}</p>
               {profile.rating > 0 ? (
                 <p className="mt-1 inline-flex items-center gap-1 text-[12.5px] font-bold text-sv-ink/70">
                   <Star size={13} className="fill-sv-orange text-sv-orange" />
-                  {profile.rating.toFixed(1)} · {profile.reviewsCount} შეფასება
+                  {profile.rating.toFixed(1)} · {profile.reviewsCount} {c.reviewsWord}
                 </p>
               ) : null}
             </div>

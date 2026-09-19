@@ -194,6 +194,13 @@ export default async function ProjectPage({ params }: PageProps) {
   const heroAbs = absImg(project.img, com)
   const galleryAbs = (project.gallery ?? []).map((g) => absImg(g, com))
   const images = [heroAbs, ...galleryAbs.filter((u) => u !== heroAbs)]
+  // ponytail: credits keyed by raw gallery value; absolutize once for the JSON-LD lookup.
+  const creditByAbs = new Map(
+    (project.gallery ?? []).flatMap((g) => {
+      const c = project.galleryCredits?.[g]
+      return c ? [[absImg(g, com), c] as const] : []
+    }),
+  )
   const lowPrice = priceNumber(project.priceFromM2)
   const currency = priceCurrency(project.priceFromM2)
   const hasGeo = isValidCoords(project.coords.lat, project.coords.lng)
@@ -228,6 +235,8 @@ export default async function ProjectPage({ params }: PageProps) {
       '@type': 'ImageObject',
       url,
       caption: i === 0 ? project.name : `${project.name} — ${c.renderAlt(i)}`,
+      ...(creditByAbs.get(url)?.author ? { author: creditByAbs.get(url)!.author } : {}),
+      ...(creditByAbs.get(url) ? { license: creditByAbs.get(url)!.page } : {}),
     })),
     // ponytail: numberOfAvailableAccommodationUnits = "currently for sale" — only
     // true for projects under construction. Sold-out/completed buildings would
@@ -550,6 +559,7 @@ export default async function ProjectPage({ params }: PageProps) {
           developerName={dev ? pickLoc(dev.name, loc) : undefined}
           heroImage={project.img}
           gallery={project.gallery}
+          galleryCredits={project.galleryCredits}
           passportUrl={project.passportUrl}
           videoUrl={project.videoUrl}
           virtualTourUrl={project.virtualTourUrl}

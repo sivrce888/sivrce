@@ -14,7 +14,7 @@ Enforced by `scripts/check-repo-weight.mjs` (pre-commit, pre-push `--ci`, `prebu
 
 | Cap | Lock | Now |
 | --- | --- | --- |
-| Git tree | **96 MiB** / **4500** files (file cap raised 2026-09-14: byte cap is the cost guard; ~1900 catalog images are legitimate) | ~59 MiB / ~3300 |
+| Git tree | **96 MiB** / **4600** files (raised 2026-09-14 3500→4500 and 2026-09-19 4500→4600: byte cap is the cost guard; catalog images are legitimate) | ~59 MiB / ~3300 |
 | Vercel deploy (`.next/server`+`static`, no maps/cache) | **100 MiB** | ~87 MiB after map strip |
 | `.next/server` (no maps) | **80 MiB** | ~71 MiB |
 | `.next/static` | **24 MiB** | ~16 MiB |

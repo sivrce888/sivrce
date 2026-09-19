@@ -18,12 +18,42 @@ export const metadata: Metadata = {
   robots: { index: false },
 }
 
+const L = {
+  ka: {
+    subtitle: "ლიდები",
+    all: "ყველა ლიდი",
+    emptyTitle: "ლიდები ჯერ არ გაქვს",
+    emptyRent: "ახალი მოთხოვნები აქ გამოჩნდება, როცა დამქირავებელი დაინტერესდება შენი განცხადებით.",
+    emptySale: "ახალი მოთხოვნები აქ გამოჩნდება, როცა მყიდველი დაინტერესდება შენი განცხადებით.",
+    addAction: "განცხადების დამატება",
+  },
+  en: {
+    subtitle: "Leads",
+    all: "All leads",
+    emptyTitle: "You have no leads yet",
+    emptyRent: "New requests will appear here when a renter is interested in your listing.",
+    emptySale: "New requests will appear here when a buyer is interested in your listing.",
+    addAction: "Add a listing",
+  },
+  de: {
+    subtitle: "Anfragen",
+    all: "Alle Anfragen",
+    emptyTitle: "Noch keine Anfragen",
+    emptyRent:
+      "Neue Anfragen erscheinen hier, sobald sich ein Mieter für Ihr Inserat interessiert.",
+    emptySale:
+      "Neue Anfragen erscheinen hier, sobald sich ein Käufer für Ihr Inserat interessiert.",
+    addAction: "Inserat hinzufügen",
+  },
+} as const
+
 export default async function SellerLeadsPage({ params }: { params: Promise<{ lang: string }> }) {
   const { lang: raw } = await params
   const lang = isValidLang(raw) ? raw : "ka"
+  const c = L[lang === "en" ? "en" : lang === "de" ? "de" : "ka"]
   const user = await requireRole("seller", "/seller")
   const persona = await readPersona(user.role)
-  const seeker = isRentFocus(persona) ? "დამქირავებელი" : "მყიდველი"
+  const rent = isRentFocus(persona)
 
   // ponytail: sellers share Inquiry model (no seller CRM); ceiling = CrmLead when seller CRM ships
   const listingRows = await safeQuery(
@@ -50,23 +80,23 @@ export default async function SellerLeadsPage({ params }: { params: Promise<{ la
   return (
     <DashboardShell
       nav={sellerNav(lang)}
-      title={panelTitle(persona)}
-      subtitle="ლიდები"
+      title={panelTitle(persona, lang)}
+      subtitle={c.subtitle}
       userLabel={user.name ?? user.email}
     >
       <h2 className="mb-6 text-[18px] font-extrabold tracking-tight text-sv-ink">
-        ყველა ლიდი ({leads.length})
+        {c.all} ({leads.length})
       </h2>
 
       {leads.length === 0 ? (
         <EmptyState
-          title="ლიდები ჯერ არ გაქვს"
-          body={`ახალი მოთხოვნები აქ გამოჩნდება, როცა ${seeker} დაინტერესდება შენი განცხადებით.`}
+          title={c.emptyTitle}
+          body={rent ? c.emptyRent : c.emptySale}
           actionHref="/add-listing"
-          actionLabel="განცხადების დამატება"
+          actionLabel={c.addAction}
         />
       ) : (
-        <LeadInbox leads={leads} titles={titles} />
+        <LeadInbox leads={leads} titles={titles} lang={lang} />
       )}
     </DashboardShell>
   )

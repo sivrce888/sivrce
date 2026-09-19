@@ -9,16 +9,44 @@ import { db } from "@/lib/db"
 import { requireRole, safeQuery } from "@/lib/guards"
 import { phoneRevealsOf } from "@/lib/inquiries/phone"
 import { effectiveTierKey } from "@/lib/promo-pricing"
+import { isValidLang } from "@/lib/i18n/core"
 
 export const dynamic = "force-dynamic"
 
-export const metadata: Metadata = {
-  title: "ჩემი განცხადებები",
-  robots: { index: false },
+const L = {
+  ka: {
+    metaTitle: "ჩემი განცხადებები",
+    title: "დეველოპერის პანელი",
+    subtitle: "განცხადებები",
+  },
+  en: {
+    metaTitle: "My listings",
+    title: "Developer dashboard",
+    subtitle: "Listings",
+  },
+  de: {
+    metaTitle: "Meine Inserate",
+    title: "Developer-Dashboard",
+    subtitle: "Inserate",
+  },
+} as const
+type Loc = keyof typeof L
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>
+}): Promise<Metadata> {
+  const { lang: raw } = await params
+  const loc: Loc = raw === "en" ? "en" : raw === "de" ? "de" : "ka"
+  return { title: L[loc].metaTitle, robots: { index: false } }
 }
 
 export default async function DeveloperListingsPage({ params }: { params: Promise<{ lang: string }> }) {
-  const { lang } = await params
+  const { lang: raw } = await params
+  const lang = isValidLang(raw) ? raw : "ka"
+  const loc = lang === "en" ? "en" : lang === "de" ? "de" : "ka"
+  const T = L[loc]
   const user = await requireRole("developer", "/developer")
 
   const listings = await safeQuery(
@@ -68,8 +96,8 @@ export default async function DeveloperListingsPage({ params }: { params: Promis
   return (
     <DashboardShell
       nav={developerNav(lang)}
-      title="დეველოპერის პანელი"
-      subtitle="განცხადებები"
+      title={T.title}
+      subtitle={T.subtitle}
       userLabel={user.name ?? user.email}
     >
       <MyListingsManager

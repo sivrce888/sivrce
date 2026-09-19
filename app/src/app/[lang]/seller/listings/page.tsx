@@ -20,9 +20,16 @@ export const metadata: Metadata = {
   robots: { index: false },
 }
 
+const L = {
+  ka: { subtitle: "განცხადებები" },
+  en: { subtitle: "Listings" },
+  de: { subtitle: "Inserate" },
+} as const
+
 export default async function SellerListingsPage({ params }: { params: Promise<{ lang: string }> }) {
   const { lang: raw } = await params
   const lang = isValidLang(raw) ? raw : "ka"
+  const c = L[lang === "en" ? "en" : lang === "de" ? "de" : "ka"]
   const user = await requireRole("seller", "/seller")
   const persona = await readPersona(user.role)
 
@@ -73,8 +80,8 @@ export default async function SellerListingsPage({ params }: { params: Promise<{
   return (
     <DashboardShell
       nav={sellerNav(lang)}
-      title={panelTitle(persona)}
-      subtitle="განცხადებები"
+      title={panelTitle(persona, lang)}
+      subtitle={c.subtitle}
       userLabel={user.name ?? user.email}
     >
       <MyListingsManager

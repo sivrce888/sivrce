@@ -52,8 +52,10 @@ export interface ValuationReport {
   recommendations: {
     whyBuyEn: string[]
     whyBuyKa: string[]
+    whyBuyDe: string[]
     risksEn: string[]
     risksKa: string[]
+    risksDe: string[]
   }
 }
 
@@ -155,37 +157,46 @@ export function calculateValuation10x(input: ValuationInput): ValuationReport {
   // Why buy & risks
   const whyBuyEn: string[] = []
   const whyBuyKa: string[] = []
+  const whyBuyDe: string[] = []
   const risksEn: string[] = []
   const risksKa: string[] = []
+  const risksDe: string[] = []
 
   if (grossYield >= 8.5) {
     whyBuyEn.push(`High gross rental yield of ${grossYield.toFixed(1)}% exceeds market average`)
     whyBuyKa.push(`მაღალი საიჯარო მომგებიანობა (${grossYield.toFixed(1)}%) აღემატება ბაზრის საშუალოს`)
+    whyBuyDe.push(`Hohe Bruttomietrendite von ${grossYield.toFixed(1)}% über dem Marktdurchschnitt`)
   }
   if (verdict === 'EXCEPTIONAL' || verdict === 'GOOD') {
     whyBuyEn.push(`Priced below estimated fair market value (~$${estimatedFairValue.toLocaleString()})`)
     whyBuyKa.push(`ფასი დაბალია სამართლიან საბაზრო ღირებულებაზე (~$${estimatedFairValue.toLocaleString()})`)
+    whyBuyDe.push(`Preis unter dem geschätzten fairen Marktwert (~$${estimatedFairValue.toLocaleString()})`)
   }
   if (base.year5IrrPct >= 12) {
     whyBuyEn.push(`Strong 5-year forecast IRR of ${base.year5IrrPct}% in base case`)
     whyBuyKa.push(`ძლიერი 5-წლიანი საპროგნოზო IRR (${base.year5IrrPct}%) საბაზისო სცენარში`)
+    whyBuyDe.push(`Starke 5-Jahres-Prognose-IRR von ${base.year5IrrPct}% im Basisszenario`)
   }
   if (whyBuyEn.length === 0) {
     whyBuyEn.push('Stable cash-flow profile for long-term capital preservation')
     whyBuyKa.push('სტაბილური ფულადი ნაკადები კაპიტალის გრძელვადიანი შენარჩუნებისთვის')
+    whyBuyDe.push('Stabiles Cashflow-Profil für langfristigen Kapitalerhalt')
   }
 
   if (base.year1CapRatePct < 4.5) {
     risksEn.push('Low initial net cap rate; returns depend primarily on capital appreciation')
     risksKa.push('დაბალი საწყისი Net Cap Rate; შემოსავალი ძირითადად დამოკიდებულია ფასის ზრდაზე')
+    risksDe.push('Niedrige anfängliche Net-Cap-Rate; die Rendite hängt primär von der Wertsteigerung ab')
   }
   if (closingCosts > price * 0.06) {
     risksEn.push('High jurisdiction acquisition taxes require longer holding period to amortize')
     risksKa.push('მაღალი შეძენის გადასახადები მოითხოვს გრძელვადიან ფლობას ხარჯების ამოსაღებად')
+    risksDe.push('Hohe Erwerbssteuern in dieser Rechtsordnung erfordern eine längere Haltedauer bis zur Amortisation')
   }
   if (risksEn.length === 0) {
     risksEn.push('Market liquidity risk during broader macroeconomic downturns')
     risksKa.push('ბაზრის ლიკვიდურობის რისკი მაკროეკონომიკური შემცირების პერიოდში')
+    risksDe.push('Liquiditätsrisiko des Marktes in breiten konjunkturellen Abschwungphasen')
   }
 
   return {
@@ -198,6 +209,6 @@ export function calculateValuation10x(input: ValuationInput): ValuationReport {
     netCapRatePct: base.year1CapRatePct,
     estimatedClosingCostsUSD: closingCosts,
     scenarios: { bear, base, bull },
-    recommendations: { whyBuyEn, whyBuyKa, risksEn, risksKa },
+    recommendations: { whyBuyEn, whyBuyKa, whyBuyDe, risksEn, risksKa, risksDe },
   }
 }

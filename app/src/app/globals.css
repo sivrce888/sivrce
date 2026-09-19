@@ -317,14 +317,20 @@
    0.92 + blur keeps a hint of frost while guaranteeing text separation over
    the animated dark hero. */
 .dark .glass-light {
-  background: rgba(8, 13, 38, 0.92);
+  background:
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0) 45%),
+    rgba(8, 13, 38, 0.92);
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   border: 1px solid rgba(255, 255, 255, 0.1);
+  border-top-color: rgba(255, 255, 255, 0.22);
 }
 .dark .glass-hero {
-  background: rgba(255, 255, 255, 0.08);
+  background:
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0) 45%),
+    rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.14);
+  border-top-color: rgba(255, 255, 255, 0.3);
 }
 .dark ::selection {
   background: rgba(46, 107, 255, 0.35);
@@ -357,6 +363,15 @@
 .dark .dark\:text-white\/40,
 .dark .dark\:text-white\/45 {
   color: color-mix(in srgb, #ffffff 50%, transparent);
+}
+/* Light AA floor, same contract: ink/50 on white lands at 3.55:1 — every
+   small-text usage fails AA. Renders the 50% tier at 60% (4.9:1 on white).
+   Text utilities only, unlayered, mirrors the dark floor above. */
+.text-sv-ink\/50 {
+  color: color-mix(in oklab, var(--color-sv-ink) 60%, transparent);
+}
+.text-white\/50 {
+  color: color-mix(in srgb, #ffffff 60%, transparent);
 }
 
 @layer base {
@@ -464,7 +479,8 @@ p, li, label, dd {
   }
 }
 html.sv-has-dock {
-  --sv-dock: calc(3.5rem + env(safe-area-inset-bottom, 0px));
+  /* capsule height + the 0.5rem float gap under it */
+  --sv-dock: calc(4rem + env(safe-area-inset-bottom, 0px));
 }
 html.sv-has-dock body {
   padding-bottom: var(--sv-dock);
@@ -575,24 +591,38 @@ html.sv-has-dock body {
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 9.5rem), 1fr));
     gap: clamp(1.25rem, 1rem + 1vw, 2rem);
   }
+  /* Liquid Glass tiers (BRAND.md §5) — translucent base + specular top edge.
+     ponytail: the specular ships as a background gradient, never box-shadow —
+     every one of these tiers is composed with a Tailwind `shadow-*` utility,
+     and Tailwind v4 owns `box-shadow` on those elements. Edge lighting rides
+     on border-*-color, which nothing else sets. Free in lite mode (no blur,
+     no extra compositing layer). */
   .glass {
-    background: rgba(255, 255, 255, 0.08);
+    background:
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0) 45%),
+      rgba(255, 255, 255, 0.08);
     backdrop-filter: blur(20px) saturate(160%);
     -webkit-backdrop-filter: blur(20px) saturate(160%);
     border: 1px solid rgba(255, 255, 255, 0.14);
+    border-top-color: rgba(255, 255, 255, 0.3);
   }
   /* Hero chrome — milk glass on day sky, smoked frost on night */
   .glass-hero {
-    background: rgba(255, 255, 255, 0.82);
+    background:
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0) 48%),
+      rgba(255, 255, 255, 0.82);
     backdrop-filter: blur(24px) saturate(180%);
     -webkit-backdrop-filter: blur(24px) saturate(180%);
     border: 1px solid rgba(255, 255, 255, 0.92);
+    border-bottom-color: rgba(10, 16, 48, 0.07);
   }
   .glass-light {
     background: rgba(255, 255, 255, 0.92);
     backdrop-filter: blur(20px) saturate(180%);
     -webkit-backdrop-filter: blur(20px) saturate(180%);
     border: 1px solid rgba(255, 255, 255, 0.6);
+    border-top-color: rgba(255, 255, 255, 0.95);
+    border-bottom-color: rgba(10, 16, 48, 0.06);
   }
   .scrollbar-hide {
     -ms-overflow-style: none !important;

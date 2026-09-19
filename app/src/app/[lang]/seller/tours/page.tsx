@@ -8,6 +8,7 @@ import { db } from "@/lib/db"
 import { requireRole, safeQuery } from "@/lib/guards"
 import { panelTitle } from "@/lib/workspace"
 import { readPersona } from "@/lib/workspace-cookie"
+import { isValidLang } from "@/lib/i18n/core"
 
 export const dynamic = "force-dynamic"
 
@@ -16,8 +17,34 @@ export const metadata: Metadata = {
   robots: { index: false },
 }
 
+const L = {
+  ka: {
+    title: "ვიზიტები",
+    upcoming: "მომავალი",
+    past: "გასული",
+    emptyTitle: "დაგეგმილი ვიზიტები არ არის",
+    emptyBody: "როცა მყიდველი შენი განცხადების ნახვას დაჯავშნავს, ვიზიტი აქ გამოჩნდება.",
+  },
+  en: {
+    title: "Tours",
+    upcoming: "Upcoming",
+    past: "Past",
+    emptyTitle: "No tours scheduled",
+    emptyBody: "When a buyer books a viewing of your listing, the tour will appear here.",
+  },
+  de: {
+    title: "Besichtigungen",
+    upcoming: "Anstehend",
+    past: "Vergangene",
+    emptyTitle: "Keine Besichtigungen geplant",
+    emptyBody: "Sobald ein Käufer eine Besichtigung Ihres Inserats bucht, erscheint sie hier.",
+  },
+} as const
+
 export default async function SellerToursPage({ params }: { params: Promise<{ lang: string }> }) {
-  const { lang } = await params
+  const { lang: raw } = await params
+  const lang = isValidLang(raw) ? raw : "ka"
+  const c = L[lang === "en" ? "en" : lang === "de" ? "de" : "ka"]
   const user = await requireRole("seller", "/seller")
   const persona = await readPersona(user.role)
 
@@ -59,22 +86,19 @@ export default async function SellerToursPage({ params }: { params: Promise<{ la
   return (
     <DashboardShell
       nav={sellerNav(lang)}
-      title={panelTitle(persona)}
-      subtitle="ვიზიტები"
+      title={panelTitle(persona, lang)}
+      subtitle={c.title}
       userLabel={user.name ?? user.email}
     >
-      <h1 className="mb-5 text-xl font-black tracking-tight text-sv-ink">ვიზიტები</h1>
+      <h1 className="mb-5 text-xl font-black tracking-tight text-sv-ink">{c.title}</h1>
 
       <div className="space-y-8">
         <section>
           <h2 className="mb-3 text-[14px] font-extrabold uppercase tracking-wide text-sv-ink/60">
-            მომავალი ({upcoming.length})
+            {c.upcoming} ({upcoming.length})
           </h2>
           {upcoming.length === 0 ? (
-            <EmptyState
-              title="დაგეგმილი ვიზიტები არ არის"
-              body="როცა მყიდველი შენი განცხადების ნახვას დაჯავშნავს, ვიზიტი აქ გამოჩნდება."
-            />
+            <EmptyState title={c.emptyTitle} body={c.emptyBody} />
           ) : (
             <ul className="space-y-3">
               {upcoming.map((tour) => (
@@ -87,7 +111,7 @@ export default async function SellerToursPage({ params }: { params: Promise<{ la
         {past.length > 0 ? (
           <section>
             <h2 className="mb-3 text-[14px] font-extrabold uppercase tracking-wide text-sv-ink/60">
-              გასული ({past.length})
+              {c.past} ({past.length})
             </h2>
             <ul className="space-y-3">
               {past.map((tour) => (

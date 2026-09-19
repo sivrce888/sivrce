@@ -249,6 +249,79 @@ const COPY: Record<string, Copy> = {
       ],
     },
   },
+  de: {
+    metaTitle: 'Inserat aufgeben',
+    metaDescription: `Kostenlose Inserate für Eigentümer, Agenturen und Bauträger. VIP ab ${formatGel(100)} pro Tag.`,
+    hero: {
+      kicker: 'Werbung',
+      title: 'Inserat aufgeben',
+      subtitle: 'Kostenlos starten — oder mit VIP verstärken. Eigentümer, Vermieter, Makler, Agentur, Bauträger oder Servicefirma — ein Konto.',
+    },
+    audiences: [
+      { icon: Home, title: 'Verkäufer', text: 'Kostenloses Inserat · 3 Minuten · Leads im Dashboard', href: '/add-listing' },
+      { icon: KeyRound, title: 'Vermieter', text: 'Monatsmiete — dasselbe Konto, dasselbe VIP', href: '/add-listing' },
+      { icon: CalendarClock, title: 'Tagesvermieter', text: 'Sammlungen, Kalender, kontaktloser Check-in', href: '/add-listing' },
+      { icon: BadgeCheck, title: 'Makler', text: 'Profil auf /agents · Leads · günstiges VIP', href: roleSignupHref('agent') },
+      { icon: Building2, title: 'Agentur', text: 'Team, Analysen und Inserate in einem Dashboard', href: roleSignupHref('agency') },
+      { icon: Briefcase, title: 'Bauträger', text: 'Projekte, Inventar, 3D-Karte pro Gebäude', href: roleSignupHref('developer') },
+      { icon: Wrench, title: 'Servicefirma', text: 'Renovierung, Recht, Fotografie — Services und Inserate mit einem Konto', href: '/add-service' },
+    ],
+    pro: {
+      badge: 'Agentur · Makler · Bauträger',
+      title: 'Ein Profi-Konto in 3 Schritten',
+      text: 'Hierhin führen „Makler / Bauträger“ im Footer. Die Rolle wählen Sie nach der Registrierung — keine separate Bewerbung nötig.',
+      cta: 'Registrieren',
+      ctaListing: 'Inserat hinzufügen',
+      steps: [
+        { n: '1', t: 'Registrieren', d: 'Telefon oder Google — 30 Sekunden' },
+        { n: '2', t: 'Rolle wählen', d: 'Makler / Agentur / Bauträger — ein Bildschirm' },
+        { n: '3', t: 'Veröffentlichen', d: 'Kostenlos oder VIP+ · Leads im Dashboard' },
+      ],
+    },
+    addons: {
+      kicker: 'Zusatzleistungen',
+      title: 'Boosts nach der Veröffentlichung',
+      text: 'Über VIP hinaus — Story, Dringend, Farbe, Turbo. Direkt aus Ihrem Inserat kaufbar.',
+      items: [
+        { icon: Zap, title: 'Turbo', text: 'SUPER VIP + Farbe + Dringend-Aufkleber', price: formatGel(ADDON_TETRI.turbo_7) + ' / 7 T.' },
+        { icon: CircleDot, title: 'Story', text: 'Story auf der Startseite · 24 Std.', price: formatGel(ADDON_TETRI.story) },
+        { icon: Zap, title: 'Dringend', text: 'Orangefarbener Aufkleber · 24 Std.', price: formatGel(ADDON_TETRI.sticker_urgent) },
+        { icon: TrendingUp, title: 'Preis gesenkt', text: 'Ein Signal für Käufer · 7 T.', price: formatGel(ADDON_TETRI.sticker_price_drop) },
+        { icon: Palette, title: 'Farbe', text: 'Blauer Rahmen in der Suche · 7 T.', price: formatGel(ADDON_TETRI.color) },
+        { icon: RefreshCw, title: 'Aktualisieren', text: 'Wieder an den Anfang der Liste', price: formatGel(ADDON_TETRI.refresh_once) },
+      ],
+    },
+    brand: {
+      kicker: 'Markenwerbung',
+      title: 'Banner auf ganz Sivrce',
+      text: 'Bauträger, Banken, Versicherer, Agenturen — eine Kampagne mit Zielgruppen- (Käufer / Verkäufer / Makler) und Sprach-Targeting. Jeden Werbeplatz steuert das Admin-Team zentral.',
+      cta: 'Kontaktieren Sie uns für Banner',
+      packs: [
+        { title: 'Startseite', text: 'Billboard unter dem Hero — Bauträger, Banken, Marken' },
+        { title: 'Suche', text: 'Native-Karte in den Ergebnissen + oberer Streifen' },
+        { title: 'Inseratsseite', text: 'Sidebar unter der Maklerkarte' },
+        { title: 'Verzeichnisse', text: 'Makler, Bauträger, Projekte, Stadtviertel' },
+        { title: 'Hypothek', text: 'Auf dem Rechner — ein Bankprodukt' },
+        { title: 'Blog', text: 'Redaktionelles Publikum, hohe Kaufabsicht' },
+      ],
+    },
+    stats: [
+      { icon: Eye, value: 'VIP+', label: 'Karussell + Priorität vor VIP in der Liste' },
+      { icon: TrendingUp, value: '2.50₾', label: 'VIP+ pro Tag · Wohnimmobilien' },
+      { icon: Star, value: formatGel(MONTHLY_RE_TETRI.vip), label: 'VIP 30 Tage · Wohnimmobilien' },
+    ],
+    faq: {
+      heading: 'Fragen zum Inserieren',
+      items: [
+        { q: 'Warum ist sivrce so günstig?', a: 'VIP+ ab 2,50 ₾/Tag, VIP für Wohnimmobilien 1 ₾/Tag, SUPER VIP — Top-Position. Das Einstellen ist für alle kostenlos.' },
+        { q: 'Welches Paket soll ich wählen?', a: 'Für die meisten reicht VIP+: Karussell + Priorität vor VIP. SUPER VIP — wenn Sie ganz oben stehen und im Haupt-Slider erscheinen wollen.' },
+        { q: 'Wie funktioniert die Zahlung?', a: 'Online per Karte oder aus dem Guthaben. Der Status aktiviert sich sofort nach der Zahlung für die gewählten Tage.' },
+        { q: 'Was passiert nach Ablauf der Frist?', a: 'Das Inserat wird nicht gelöscht — es kehrt in den kostenlosen Modus zurück und bleibt bis zum Ablauf sichtbar.' },
+        { q: 'Ich bin Agentur oder Bauträger — wo fange ich an?', a: 'Registrieren → Rolle wählen → Profil vervollständigen. Sie erscheinen im Verzeichnis /agents oder /developers.' },
+        { q: 'Ich führe eine Servicefirma — Renovierung, Recht, Fotografie. Wo kann ich mich eintragen?', a: 'Fügen Sie Ihre Firma unter /add-service hinzu. Ein Immobilien-Inserat unter /add-listing mit demselben Konto — beide erscheinen in Ihrem Profil.' },
+      ],
+    },
+  },
 }
 
 // ponytail: grid/compare cover ka/en/ru; remaining langs (tr/az/hy/uk/he/ar) fall back to ka like the page copy.

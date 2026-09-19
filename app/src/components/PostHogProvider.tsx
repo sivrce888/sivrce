@@ -47,6 +47,17 @@ export default function PostHogProvider({ children }: { children: ReactNode }) {
   const initialized = useRef(false)
   const [armed, setArmed] = useState(false)
   const consent = useConsent()
+  const { capture } = usePostHog()
+
+  // Field Core Web Vitals ride the consent-gated transport — no own beacon
+  // route (one Vercel invocation per pageview) and nothing before opt-in.
+  // The observers use buffered:true, so arming here still sees the real load.
+  useEffect(() => {
+    if (!armed) return
+    void import('@/lib/rum-telemetry').then(({ initRumTelemetry }) => {
+      initRumTelemetry((metric) => capture('web_vital', { ...metric }))
+    })
+  }, [armed, capture])
 
   useEffect(() => {
     // Consent gate (TDDDG §25): posthog-js is never imported, and no

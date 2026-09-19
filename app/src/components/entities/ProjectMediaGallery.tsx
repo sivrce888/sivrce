@@ -25,6 +25,9 @@ export interface ProjectMediaItem {
   category?: 'all' | 'architecture' | 'construction' | 'floorplans' | 'video' | 'virtualTour'
   videoUrl?: string
   virtualTourUrl?: string
+  /** CC credit for hotlinked Commons photos: "Author · License". */
+  credit?: string
+  creditUrl?: string
 }
 
 interface ProjectMediaGalleryProps {
@@ -32,6 +35,8 @@ interface ProjectMediaGalleryProps {
   developerName?: string
   heroImage: string
   gallery?: string[]
+  /** Attribution per gallery URL (Wikimedia Commons) — rendered under the lightbox. */
+  galleryCredits?: Record<string, { author?: string; license: string; page: string }>
   passportUrl?: string
   videoUrl?: string
   virtualTourUrl?: string
@@ -43,6 +48,7 @@ export function ProjectMediaGallery({
   developerName,
   heroImage,
   gallery = [],
+  galleryCredits,
   passportUrl,
   videoUrl,
   virtualTourUrl,
@@ -156,6 +162,7 @@ export function ProjectMediaGallery({
         const isTimeline = src.includes('-timeline')
         const isLage = src.includes('-lage')
         const isConstruction = isMassing || isTimeline || isLage
+        const credit = galleryCredits?.[src]
 
         items.push({
           type: isConstruction ? 'render' : 'photo',
@@ -168,6 +175,12 @@ export function ProjectMediaGallery({
                 ? `${projectName} — Location & Infrastructure Context`
                 : `${projectName} — Gallery View ${i + 1}`,
           category: isConstruction ? 'construction' : 'architecture',
+          ...(credit
+            ? {
+                credit: [credit.author, credit.license].filter(Boolean).join(' · '),
+                creditUrl: credit.page,
+              }
+            : {}),
         })
       }
     }
@@ -183,8 +196,7 @@ export function ProjectMediaGallery({
     }
 
     return items
-  }, [heroImage, gallery, passportUrl, projectName])
-
+  }, [heroImage, gallery, galleryCredits, passportUrl, projectName])
   const [activeTab, setActiveTab] = useState<'all' | 'architecture' | 'construction' | 'floorplans' | 'video' | 'virtualTour'>('all')
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null)
   const [isPlayingVideo, setIsPlayingVideo] = useState(false)
@@ -580,6 +592,21 @@ export function ProjectMediaGallery({
               </>
             )}
           </div>
+
+          {/* CC credit for hotlinked Commons photos (language-neutral: author · license). */}
+          {mediaItems[lightboxIdx]!.creditUrl && (
+            <p className="px-6 pb-1 text-center text-[12px] font-semibold text-white/60">
+              {mediaItems[lightboxIdx]!.credit}{' · '}
+              <a
+                href={mediaItems[lightboxIdx]!.creditUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline underline-offset-2 hover:text-white"
+              >
+                Wikimedia Commons
+              </a>
+            </p>
+          )}
 
           {/* Bottom Thumbnails Strip */}
           <div className="flex items-center justify-center gap-2 overflow-x-auto px-6 py-4">

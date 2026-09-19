@@ -9,9 +9,9 @@ import { FaqSection } from '@/components/seo/FaqSection'
 import { projectsLive } from '@/lib/directory-live'
 import { altName } from '@/lib/bilingual'
 import { jsonLd } from '@/lib/utils'
-import {pageAlternates, OG_LOCALE  } from '@/lib/i18n/server'
 import { isValidLang, type Lang } from '@/lib/i18n/core'
-import { PROJECTS_HUB, dirLoc, faqPageLd } from '@/lib/directory-seo'
+import { pageAlternates, OG_LOCALE } from '@/lib/i18n/server'
+import { PROJECTS_HUB, faqPageLd } from '@/lib/directory-seo'
 import { toCard } from './to-card'
 import { PER_PAGE, Pager } from './ProjectsGrid'
 import { ProjectsExplorer } from './ProjectsExplorer'
@@ -25,7 +25,7 @@ interface PageProps {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { lang: raw } = await params
   const lang: Lang = isValidLang(raw) ? raw : 'ka'
-  const c = PROJECTS_HUB[dirLoc(lang)]
+  const c = PROJECTS_HUB[lang === 'ka' || lang === 'ru' || lang === 'de' ? lang : 'en']
   return {
     title: c.title,
     description: c.description,
@@ -51,8 +51,10 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function ProjectsPage({ params }: PageProps) {
   const { lang: raw } = await params
   if (!isValidLang(raw)) notFound()
-  const loc = dirLoc(raw)
-  const c = PROJECTS_HUB[loc]
+  // Hub copy corpus is ka/en/ru (de falls back to English); grid/filter chrome
+  // (ProjectsExplorer/ProjectsGrid, MICRO_DE) carries real German for 'de'.
+  const c = PROJECTS_HUB[raw === 'ka' || raw === 'ru' || raw === 'de' ? raw : 'en']
+  const loc = raw === 'ka' || raw === 'ru' || raw === 'de' ? raw : 'en'
 
   const projects = await projectsLive()
   const totalPages = Math.max(1, Math.ceil(projects.length / PER_PAGE))
@@ -90,7 +92,7 @@ export default async function ProjectsPage({ params }: PageProps) {
       {
         '@type': 'ListItem',
         position: 1,
-        name: loc === 'ka' ? 'მთავარი' : loc === 'ru' ? 'Главная' : 'Home',
+        name: loc === 'ka' ? 'მთავარი' : loc === 'ru' ? 'Главная' : loc === 'de' ? 'Start' : 'Home',
         item: 'https://sivrce.ge',
       },
       {
@@ -108,7 +110,7 @@ export default async function ProjectsPage({ params }: PageProps) {
       <main id="main">
         <PageHero
           tone="light"
-          kicker={loc === 'ka' ? 'მშენებარე ბინები' : loc === 'ru' ? 'Новостройки' : 'New developments'}
+          kicker={loc === 'ka' ? 'მშენებარე ბინები' : loc === 'ru' ? 'Новостройки' : loc === 'de' ? 'Neubauprojekte' : 'New developments'}
           title={c.h1}
           subtitle={c.sub}
         />

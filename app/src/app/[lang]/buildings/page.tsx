@@ -9,11 +9,10 @@ import { BUILDINGS } from '@/data/buildings'
 import { buildingDealCounts } from '@/data/buildings-listings'
 import { getDeveloper } from '@/data/professionals'
 import { getBuildingDealCountsBySlug } from '@/lib/map/db-buildings'
-import { faqPageLd, type DirLoc } from '@/lib/directory-seo'
+import { faqPageLd, pickLoc, type DirLoc } from '@/lib/directory-seo'
 import { jsonLd } from '@/lib/utils'
 import { pageMeta } from '@/lib/i18n/server'
 import { isValidLang } from '@/lib/i18n/core'
-import { dirLoc } from '@/lib/directory-seo'
 
 const tbilisi = BUILDINGS.filter((b) => b.city === 'თბილისი')
 const tbilisiCount = tbilisi.length
@@ -25,7 +24,7 @@ const districtCount = new Set(tbilisi.map((b) => b.district).filter((d) => RAION
 const ubaniCount = new Set(tbilisi.map((b) => b.ubani).filter(Boolean)).size
 
 // Per-locale page copy (hero + FAQ) — mirrors the pageMeta table above.
-const COPY: Record<DirLoc, {
+const COPY: Record<DirLoc | 'de', {
   kicker: string; title: string; subtitle: string; faqTitle: string
   faqs: { q: string; a: string }[]; ldName: string
 }> = {
@@ -92,6 +91,27 @@ const COPY: Record<DirLoc, {
     ],
     ldName: 'Жилые комплексы и корпуса — Тбилиси',
   },
+  de: {
+    kicker: 'Katalog',
+    title: 'Gebäude & Wohnkomplexe',
+    subtitle: `${tbilisiCount} Gebäude in Tiflis über ${districtCount} Bezirke und ${ubaniCount} Viertel — Foto, Adresse, Metro und Beschreibung an einem Ort`,
+    faqTitle: 'Häufig gestellte Fragen',
+    faqs: [
+      {
+        q: 'Welche Gebäude gibt es auf sivrce in Tiflis?',
+        a: `Der Katalog listet ${tbilisiCount} Gebäude in ${districtCount} Tifliser Bezirken — Foto, Adresse, Viertel, Bauträger, Etagen, Beschreibung, Metro und Inserate. Sivrce — Immobilien an einem Ort.`,
+      },
+      {
+        q: 'Kann ich nach Viertel oder Bezirk filtern?',
+        a: 'Ja. Wählen Sie eine Stadt, einen Bezirk (Vake, Saburtalo, Gldani…) und ein Viertel (Lisi, Didi Dighomi, Varketili…). Die Suche funktioniert nach Name, Adresse und Bauträger.',
+      },
+      {
+        q: 'Wie sehe ich Metro und Route?',
+        a: 'Auf jeder Tifliser Gebäudekarte steht die nächste Metrostation mit Gehzeit. Auf der Gebäudeseite: Schulen, Parks, Kliniken, Läden sowie Apple-Maps- und Google-Maps-Routen.',
+      },
+    ],
+    ldName: 'Gebäude & Wohnkomplexe — Tiflis',
+  },
 }
 
 
@@ -121,6 +141,10 @@ export async function generateMetadata({
         title: `Жилые комплексы и корпуса — Тбилиси (${tbilisiCount})`,
         description: `${tbilisiCount} корпусов Тбилиси в ${districtCount} районах и ${ubaniCount}+ кварталах — фото, адрес, застройщик, этажи, метро и объявления. Sivrce — недвижимость в одном пространстве.`,
       },
+      de: {
+        title: `Gebäude & Wohnkomplexe — Tiflis (${tbilisiCount})`,
+        description: `${tbilisiCount} Tifliser Gebäude in ${districtCount} Bezirken und ${ubaniCount}+ Vierteln — Foto, Adresse, Bauträger, Etagen, Metro und Inserate. Sivrce — Immobilien an einem Ort.`,
+      },
     }),
     openGraph: {
       title: 'შენობები და კორპუსები',
@@ -135,7 +159,8 @@ export async function generateMetadata({
 
 export default async function BuildingsPage({ params }: { params: Promise<{ lang: string }> }) {
   const { lang: raw } = await params
-  const loc = dirLoc(isValidLang(raw) ? raw : 'ka')
+  const lang = isValidLang(raw) ? raw : 'ka'
+  const loc: DirLoc | 'de' = lang === 'ka' || lang === 'ru' || lang === 'de' ? lang : 'en'
   const c = COPY[loc]
   const liveCounts = await getBuildingDealCountsBySlug()
   const countsBySlug: Record<string, ReturnType<typeof buildingDealCounts>> = {}
@@ -147,7 +172,7 @@ export default async function BuildingsPage({ params }: { params: Promise<{ lang
         : buildingDealCounts(b.slug)
     if (b.developerSlug && !developerNames[b.developerSlug]) {
       const name = getDeveloper(b.developerSlug)?.name
-      if (name) developerNames[b.developerSlug] = name[loc]
+      if (name) developerNames[b.developerSlug] = pickLoc(name, loc)
     }
   }
 
@@ -161,7 +186,9 @@ export default async function BuildingsPage({ params }: { params: Promise<{ lang
     mainEntity: {
       '@type': 'ItemList',
       numberOfItems: BUILDINGS.length,
-      itemListElement: BUILDINGS.map((b, i) => ({
+      // Capped: 2206 inline ListItems ≈ 194 KB of JSON-LD. numberOfItems
+      // keeps the true total; the sitemap carries every building URL.
+      itemListElement: BUILDINGS.slice(0, 120).map((b, i) => ({
         '@type': 'ListItem',
         position: i + 1,
         name: b.name,
@@ -171,7 +198,14 @@ export default async function BuildingsPage({ params }: { params: Promise<{ lang
     },
   }
 
-  const homeLabel = loc === 'ka' ? 'მთავარი' : loc === 'ru' ? 'Главная' : 'Home'
+  const homeLabel = loc === 'ka' ? 'მთავარი' : loc === 'ru' ? 'Главная' : loc === 'de' ? 'Startseite' : 'Home'
+  // Catalog prop slimming: the client filter needs every row, but not every
+  // field — galleries (~150 KB) and the other locales' descriptions (~250 KB)
+  // never render on this page. Drops ~40% of the flight payload.
+  const catalogBuildings = BUILDINGS.map(({ gallery: _gallery, ...b }) => ({
+    ...b,
+    description: { [loc]: b.description[loc] ?? b.description.en },
+  }))
   const breadcrumbLd = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
@@ -189,7 +223,7 @@ export default async function BuildingsPage({ params }: { params: Promise<{ lang
         <section className="mx-auto max-w-[1440px] px-5 pb-16 md:px-10">
           <div className="mt-6">
             <BuildingsCatalog
-              buildings={BUILDINGS}
+              buildings={catalogBuildings}
               countsBySlug={countsBySlug}
               developerNames={developerNames}
               loc={loc}

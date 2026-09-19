@@ -79,6 +79,22 @@ export const DE_HUB: CountryCopy = {
       q: 'Is sivrce.de a separate website?',
       a: 'No. sivrce.de permanently redirects to sivrce.com/de so Germany has one canonical URL. Georgia stays on sivrce.ge.',
     },
+    {
+      q: 'How much extra does a purchase cost on top of the price?',
+      a: 'Grunderwerbsteuer is state law: 3.5% in Bavaria, 5.5% in Bremen (since July 2025) and Hamburg, 6% in Berlin, 6.5% in NRW, Brandenburg, Saarland and Schleswig-Holstein. Add about 1.5% notary, 0.5% land register, and 3.57% buyer Makler unless the listing is provisionsfrei. Typical cash on top: 8–12%.',
+    },
+    {
+      q: 'Do tenants pay the estate-agent commission?',
+      a: 'No. Bestellerprinzip: whoever hires the agent pays. Tenant commission on residential lets is banned. On sales, §656c BGB splits the fee 50/50 unless the seller lists provisionsfrei.',
+    },
+    {
+      q: 'Is an Energieausweis mandatory in the advert?',
+      a: 'Yes. The GEG requires the energy certificate (class A+ to H, consumption or demand, and the essential heating facts) in every public advert. sivrce will not publish a German listing that omits those Pflichtangaben.',
+    },
+    {
+      q: 'How do I decide between renting and buying?',
+      a: 'Open the Germany rent-vs-buy calculator. It models Kaufnebenkosten per Bundesland, mortgage, rent inflation and the opportunity cost of the down payment. Short stays usually favour renting because closing costs must be earned back first.',
+    },
   ],
 }
 
@@ -103,6 +119,22 @@ export const DE_HUB_DE: CountryCopy = {
     {
       q: 'Ist sivrce.de eine eigene Website?',
       a: 'Nein. sivrce.de leitet dauerhaft auf sivrce.com/de um. Eine kanonische URL. Georgien bleibt auf sivrce.ge.',
+    },
+    {
+      q: 'Was kostet ein Kauf zusätzlich zum Kaufpreis?',
+      a: 'Grunderwerbsteuer ist Landesrecht: 3,5 % in Bayern, 5,5 % in Bremen (seit Juli 2025) und Hamburg, 6 % in Berlin, 6,5 % in NRW, Brandenburg, Saarland und Schleswig-Holstein. Dazu Notar rund 1,5 %, Grundbuch 0,5 % und Käufer-Makler 3,57 %, sofern das Inserat nicht provisionsfrei ist. Typisch 8–12 % extra bar.',
+    },
+    {
+      q: 'Zahlt der Mieter die Maklerprovision?',
+      a: 'Nein. Bestellerprinzip: wer beauftragt, der zahlt. Bei Wohnraummiete ist eine Mieterprovision unzulässig. Beim Kauf teilt §656c BGB die Courtage 50/50, außer der Verkäufer inseriert provisionsfrei.',
+    },
+    {
+      q: 'Muss der Energieausweis schon in der Anzeige stehen?',
+      a: 'Ja. Das GEG verlangt die Pflichtangaben (Klasse A+ bis H, Bedarf oder Verbrauch, wesentliche Heizdaten) in jeder öffentlichen Anzeige. sivrce veröffentlicht kein deutsches Inserat ohne diese Angaben.',
+    },
+    {
+      q: 'Miete oder kaufen — wie entscheide ich?',
+      a: 'Mit dem Rechner Miete oder kaufen. Er modelliert Kaufnebenkosten je Bundesland, Annuität, Mietsteigerung und die Opportunitätskosten des Eigenkapitals. Kurze Horizonte begünstigen meist die Miete, weil die Nebenkosten erst verdient werden müssen.',
     },
   ],
 }

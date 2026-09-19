@@ -12,6 +12,7 @@ import LocalizedLink from '@/components/LocalizedLink'
 import { useTheme } from 'next-themes'
 import { statusPaint, type CadastreParcel, type CadastreStatus } from '@/lib/map/cadastre'
 import { CadastreMapLazy } from '@/components/map/CadastreMapLazy'
+import { useI18n } from '@/lib/i18n/context'
 
 export type MyListingPin = {
   slug: string
@@ -27,16 +28,78 @@ export type MyListingPin = {
   cadastral: string | null
 }
 
-const STATUS_KA: Record<CadastreStatus, string> = {
-  active: 'აქტიური',
-  pending: 'მოლოდინში',
-  sold: 'გაყიდული',
-  expired: 'ვადაგასული',
-  withdrawn: 'გაუქმებული',
-}
+const L = {
+  ka: {
+    backAria: 'უკან, ჩემს სივრცეში',
+    title: 'ჩემი ქონება საკადასტრო რუკაზე',
+    countListings: 'განცხადება',
+    noListings: 'განცხადებები არ არის',
+    loading: 'ნაკვეთების საზღვრები იტვირთება…',
+    emptyTitle: 'საკადასტრო ნაკვეთები ჯერ არ არის',
+    emptyBody:
+      'განცხადებებს საკადასტრო კოდი არ აქვთ — დაამატეთ კოდი და თქვენი ქონება რუკაზე ოფიციალური საზღვრებით გამოჩნდება.',
+    emptyAction: 'განცხადების დამატება',
+    listAria: 'განცხადებების სია',
+    locationOnly: 'მხოლოდ მდებარეობა',
+    noCode: 'საკადასტრო კოდი არ აქვს',
+    legend: 'საზღვრები საჯარო რეესტრიდან (NAPR) — მწვანე: აქტიური, ნარინჯისფერი: მოლოდინში, მუქი: დახურული.',
+    status: {
+      active: 'აქტიური',
+      pending: 'მოლოდინში',
+      sold: 'გაყიდული',
+      expired: 'ვადაგასული',
+      withdrawn: 'გაუქმებული',
+    },
+  },
+  en: {
+    backAria: 'Back to my account',
+    title: 'My properties on the cadastral map',
+    countListings: 'listings',
+    noListings: 'No listings',
+    loading: 'Loading parcel boundaries…',
+    emptyTitle: 'No cadastral parcels yet',
+    emptyBody:
+      'Your listings have no cadastral code — add a code and your property will appear on the map with its official boundaries.',
+    emptyAction: 'Add listing',
+    listAria: 'Listings list',
+    locationOnly: 'Location only',
+    noCode: 'No cadastral code',
+    legend: 'Boundaries from the public registry (NAPR) — green: active, orange: pending, dark: closed.',
+    status: {
+      active: 'Active',
+      pending: 'Pending',
+      sold: 'Sold',
+      expired: 'Expired',
+      withdrawn: 'Withdrawn',
+    },
+  },
+  de: {
+    backAria: 'Zurück zu meinem Konto',
+    title: 'Meine Immobilien auf der Katasterkarte',
+    countListings: 'Inserate',
+    noListings: 'Keine Inserate',
+    loading: 'Flurstücksgrenzen werden geladen…',
+    emptyTitle: 'Noch keine Kataster-Flurstücke',
+    emptyBody:
+      'Ihre Inserate haben noch keinen Katastercode — fügen Sie einen Code hinzu, und Ihre Immobilie erscheint mit den offiziellen Grenzen auf der Karte.',
+    emptyAction: 'Inserieren',
+    listAria: 'Liste der Inserate',
+    locationOnly: 'Nur Lage',
+    noCode: 'Kein Katastercode',
+    legend: 'Grenzen aus dem öffentlichen Register (NAPR) — Grün: aktiv, Orange: ausstehend, Dunkel: abgeschlossen.',
+    status: {
+      active: 'Aktiv',
+      pending: 'Ausstehend',
+      sold: 'Verkauft',
+      expired: 'Abgelaufen',
+      withdrawn: 'Zurückgezogen',
+    },
+  },
+} as const
 
-function priceLabel(price: number, currency: string): string {
-  return new Intl.NumberFormat('ka-GE', {
+function priceLabel(price: number, currency: string, lang: string): string {
+  const locale = lang === 'en' ? 'en-US' : lang === 'de' ? 'de-DE' : 'ka-GE'
+  return new Intl.NumberFormat(locale, {
     style: 'currency',
     currency,
     maximumFractionDigits: 0,
@@ -45,6 +108,8 @@ function priceLabel(price: number, currency: string): string {
 
 export default function MyCadastreView({ pins, name }: { pins: MyListingPin[]; name?: string | null }) {
   const { resolvedTheme } = useTheme()
+  const { lang } = useI18n()
+  const c = L[lang === 'en' ? 'en' : lang === 'de' ? 'de' : 'ka']
   const isDark = resolvedTheme === 'dark'
   const [rings, setRings] = useState<Map<string, [number, number][]>>(new Map())
   const [settled, setSettled] = useState(false)
@@ -128,28 +193,26 @@ export default function MyCadastreView({ pins, name }: { pins: MyListingPin[]; n
       >
         <LocalizedLink
           href="/account"
-          aria-label="უკან, ჩემს სივრცეში"
+          aria-label={c.backAria}
           className={`grid h-10 w-10 shrink-0 place-items-center rounded-full border transition focus-visible:outline-2 focus-visible:outline-sv-blue/50 focus-visible:-outline-offset-2 ${hair} ${muted}`}
         >
           <ArrowLeft className="h-4 w-4 rtl:rotate-180" aria-hidden />
         </LocalizedLink>
         <div className="min-w-0 flex-1">
-          <h1 className="truncate text-[15px] font-black tracking-tight">
-            ჩემი ქონება საკადასტრო რუკაზე
-          </h1>
+          <h1 className="truncate text-[15px] font-black tracking-tight">{c.title}</h1>
           <p className={`truncate text-[12px] font-medium ${muted}`}>
             {name ? `${name} · ` : ''}
             {pins.length > 0
-              ? `${pins.length} განცხადება${counts.active ? ` · ${counts.active} აქტიური` : ''}${
-                  counts.sold ? ` · ${counts.sold} გაყიდული` : ''
+              ? `${pins.length} ${c.countListings}${counts.active ? ` · ${counts.active} ${c.status.active}` : ''}${
+                  counts.sold ? ` · ${counts.sold} ${c.status.sold}` : ''
                 }`
-              : 'განცხადებები არ არის'}
+              : c.noListings}
           </p>
         </div>
         {loading && (
           <p className={`flex shrink-0 items-center gap-2 text-[12px] font-bold ${muted}`}>
             <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-            <span className="hidden sm:inline">ნაკვეთების საზღვრები იტვირთება…</span>
+            <span className="hidden sm:inline">{c.loading}</span>
           </p>
         )}
       </header>
@@ -158,16 +221,13 @@ export default function MyCadastreView({ pins, name }: { pins: MyListingPin[]; n
         <div className="grid flex-1 place-items-center px-4">
           <div className={`max-w-sm rounded-tile border p-8 text-center ${hair} ${chip}`}>
             <MapPinned className="mx-auto h-8 w-8 text-sv-blue" strokeWidth={1.75} aria-hidden />
-            <h2 className="mt-4 text-[17px] font-black tracking-tight">საკადასტრო ნაკვეთები ჯერ არ არის</h2>
-            <p className={`mt-2 text-[13px] font-medium leading-relaxed ${muted}`}>
-              განცხადებებს საკადასტრო კოდი არ აქვთ — დაამატეთ კოდი და თქვენი ქონება რუკაზე
-              ოფიციალური საზღვრებით გამოჩნდება.
-            </p>
+            <h2 className="mt-4 text-[17px] font-black tracking-tight">{c.emptyTitle}</h2>
+            <p className={`mt-2 text-[13px] font-medium leading-relaxed ${muted}`}>{c.emptyBody}</p>
             <LocalizedLink
               href="/add-listing"
               className="mt-5 inline-flex h-11 items-center justify-center rounded-pill bg-sv-orange px-5 text-[13px] font-extrabold text-sv-ink shadow-glow-orange transition hover:-translate-y-0.5"
             >
-              განცხადების დამატება
+              {c.emptyAction}
             </LocalizedLink>
           </div>
         </div>
@@ -191,7 +251,7 @@ export default function MyCadastreView({ pins, name }: { pins: MyListingPin[]; n
           {/* Sidebar */}
           <aside
             className={`order-2 flex min-h-0 flex-col border-t lg:order-1 lg:w-80 lg:shrink-0 lg:border-r lg:border-t-0 ${hair}`}
-            aria-label="განცხადებების სია"
+            aria-label={c.listAria}
           >
             <ul className="min-h-0 flex-1 divide-y overflow-y-auto overscroll-contain lg:divide-y">
               {pins.map((pin) => {
@@ -220,9 +280,9 @@ export default function MyCadastreView({ pins, name }: { pins: MyListingPin[]; n
                           {pin.title || `${pin.city}${pin.district ? ` · ${pin.district}` : ''}`}
                         </span>
                         <span className={`mt-0.5 flex items-center gap-1.5 text-[11px] font-bold ${muted}`}>
-                          {priceLabel(pin.price, pin.currency)}
+                          {priceLabel(pin.price, pin.currency, lang)}
                           <span aria-hidden>·</span>
-                          {STATUS_KA[pin.status]}
+                          {c.status[pin.status]}
                         </span>
                         <span className={`mt-0.5 flex items-center gap-1 truncate text-[11px] font-medium ${muted}`}>
                           {pin.cadastral ? (
@@ -234,13 +294,13 @@ export default function MyCadastreView({ pins, name }: { pins: MyListingPin[]; n
                             ) : (
                               <>
                                 <MapPin className="h-3 w-3 shrink-0" aria-hidden />
-                                მხოლოდ მდებარეობა · {pin.cadastral}
+                                {c.locationOnly} · {pin.cadastral}
                               </>
                             )
                           ) : (
                             <>
                               <MapPin className="h-3 w-3 shrink-0" aria-hidden />
-                              საკადასტრო კოდი არ აქვს
+                              {c.noCode}
                             </>
                           )}
                         </span>
@@ -251,8 +311,7 @@ export default function MyCadastreView({ pins, name }: { pins: MyListingPin[]; n
               })}
             </ul>
             <p className={`shrink-0 border-t px-4 py-2.5 text-[11px] font-medium ${hair} ${muted}`}>
-              საზღვრები საჯარო რეესტრიდან (NAPR) — მწვანე: აქტიური, ნარინჯისფერი: მოლოდინში,
-              მუქი: დახურული.
+              {c.legend}
             </p>
           </aside>
         </div>

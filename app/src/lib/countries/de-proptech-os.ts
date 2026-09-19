@@ -352,7 +352,8 @@ export function underwriteDeProperty(input: DeUnderwritingInput): DeUnderwriting
   const equityRequiredEur = Math.round(price * downPaymentRatio + acquisition.totalClosingCostsEur + energy.netRenovationCapexEur)
   const loanPrincipalEur = Math.round(price * (1 - downPaymentRatio))
 
-  const interestRate = (input.mortgageInterestPct ?? 3.8) / 100
+  // ponytail: Sep 2026 10y Bauzins corridor ~3.8–4.3% (Interhyp/Verivox). Upgrade: live Bundesbank series.
+  const interestRate = (input.mortgageInterestPct ?? 4.1) / 100
   const repaymentRate = (input.mortgageRepaymentPct ?? 2.0) / 100
   const annualAnnuityRate = interestRate + repaymentRate
   const annualDebtService = Math.round(loanPrincipalEur * annualAnnuityRate)

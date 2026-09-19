@@ -44,7 +44,7 @@ export default function TourCard({
       </div>
       <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1 border-t border-sv-ink/6 pt-3 text-[12.5px] font-medium text-sv-ink/60">
         <span className="font-bold text-sv-ink/75">
-          {fmtDate(tour.tourDate)} · {tour.tourTime}
+          {fmtDate(tour.tourDate, lang)} · {tour.tourTime}
         </span>
         <span>{tour.guestName}</span>
         <a

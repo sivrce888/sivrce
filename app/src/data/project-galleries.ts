@@ -424,4 +424,11 @@ export const PROJECT_GALLERIES: Record<string, string[]> = {
   'york-vista-garden': ['/images/projects/york-vista-garden-g1.webp'],
   'zenari-kutaisi': ['/images/projects/zenari-kutaisi-g1.webp'],
   'zygma': ['/images/projects/zygma-g1.webp', '/images/projects/zygma-g2.webp'],
+
+  
+  
+
+  // ═══ WORLD PROJECTS — auto-generated ═══
+  'alliance-residence-batumi': ['/images/projects/alliance-residence-batumi-g1.webp'],
+  'abu-dhabi-al-reem': ['/images/projects/abu-dhabi-al-reem-g1.webp'],
 }

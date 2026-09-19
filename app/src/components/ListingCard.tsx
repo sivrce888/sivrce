@@ -580,7 +580,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
         <span className="text-[13px] font-semibold text-sv-ink/60 dark:text-sv-blue-light/70">{displaySecondaryPrice}</span>
         {l.dealType === 'pledge' && (
           <span
-            className="self-center rounded-full px-2 py-0.5 text-[10px] font-extrabold tracking-wide text-white"
+            className="self-center rounded-full px-2 py-0.5 text-[10px] font-extrabold tracking-wide text-sv-navy"
             style={{ backgroundColor: DEAL_BRAND.pledge }}
           >
             {t('map.pledge')}
@@ -588,7 +588,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
         )}
         {isLandLease(l.dealType, l.propType) && (
           <span
-            className="self-center rounded-full px-2 py-0.5 text-[10px] font-extrabold tracking-wide text-white"
+            className="self-center rounded-full px-2 py-0.5 text-[10px] font-extrabold tracking-wide text-sv-navy"
             style={{ backgroundColor: CATEGORY_BRAND.land.hue }}
           >
             {t('add.deal.lease')}
@@ -706,7 +706,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
           <span className="shrink-0 text-[13px] font-black tabular-nums tracking-tight text-sv-ink">
             {displayScore || '—'}
           </span>
-          <span className="min-w-0 flex-1 truncate text-[12px] font-semibold leading-snug text-sv-ink/50">
+          <span className="min-w-0 flex-1 truncate text-[12px] font-semibold leading-snug text-sv-ink/60">
             {displayLabel || t('detail.aiScore')}
           </span>
           {l.verified ? (

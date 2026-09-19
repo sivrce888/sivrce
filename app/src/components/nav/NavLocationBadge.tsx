@@ -226,6 +226,7 @@ export function NavLocationBadge({
         <div className="mb-2 px-1">
           <input
             type="text"
+            name="country-search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder={T('ქვეყნის ძიება…', 'Land suchen…', 'Search country…')}

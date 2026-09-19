@@ -1,19 +1,3 @@
-const dateFmt = new Intl.DateTimeFormat("ka-GE", {
-  day: "numeric",
-  month: "short",
-  year: "numeric",
-})
-const numFmt = new Intl.NumberFormat("ka-GE")
-
-export function fmtDate(d: Date): string {
-  return dateFmt.format(d)
-}
-
-export function fmtPrice(price: number, currency: string): string {
-  const symbol = currency === "USD" ? "$" : currency === "EUR" ? "€" : "₾"
-  return `${symbol}${numFmt.format(price)}`
-}
-
 export type BadgeTone = "green" | "blue" | "orange" | "red" | "neutral"
 
 const L = {
@@ -49,6 +33,18 @@ const L = {
       completed: "დასრულებული",
       no_show: "არ გამოცხადდა",
     },
+    inquiry: {
+      new: "ახალი",
+      contacted: "დაკავშირებული",
+      qualified: "კვალიფიცირებული",
+      closed: "დახურული",
+    },
+    project: {
+      construction: "მშენებარე",
+      completed: "დასრულებული",
+      planned: "დაგეგმილი",
+      draft: "მონახაზი",
+    },
   },
   en: {
     listing: {
@@ -81,6 +77,18 @@ const L = {
       cancelled_by_agent: "Cancelled by agent",
       completed: "Completed",
       no_show: "No-show",
+    },
+    inquiry: {
+      new: "New",
+      contacted: "Contacted",
+      qualified: "Qualified",
+      closed: "Closed",
+    },
+    project: {
+      construction: "Under construction",
+      completed: "Completed",
+      planned: "Planned",
+      draft: "Draft",
     },
   },
   de: {
@@ -115,6 +123,18 @@ const L = {
       completed: "Abgeschlossen",
       no_show: "Nicht erschienen",
     },
+    inquiry: {
+      new: "Neu",
+      contacted: "Kontaktiert",
+      qualified: "Qualifiziert",
+      closed: "Abgeschlossen",
+    },
+    project: {
+      construction: "Im Bau",
+      completed: "Fertiggestellt",
+      planned: "Geplant",
+      draft: "Entwurf",
+    },
   },
 } as const
 
@@ -122,6 +142,33 @@ type Loc = keyof typeof L
 
 function locOf(lang: string): Loc {
   return lang === "en" ? "en" : lang === "de" ? "de" : "ka"
+}
+
+const DATE_FMTS: Record<Loc, Intl.DateTimeFormat> = {
+  ka: new Intl.DateTimeFormat("ka-GE", { day: "numeric", month: "short", year: "numeric" }),
+  en: new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric" }),
+  de: new Intl.DateTimeFormat("de-DE", { day: "numeric", month: "short", year: "numeric" }),
+}
+
+const NUM_FMTS: Record<Loc, Intl.NumberFormat> = {
+  ka: new Intl.NumberFormat("ka-GE"),
+  en: new Intl.NumberFormat("en-GB"),
+  de: new Intl.NumberFormat("de-DE"),
+}
+
+export function fmtDate(d: Date, lang = "ka"): string {
+  return DATE_FMTS[locOf(lang)].format(d)
+}
+
+export function fmtNum(n: number, lang = "ka"): string {
+  return NUM_FMTS[locOf(lang)].format(n)
+}
+
+export function fmtPrice(price: number, currency: string, lang = "ka"): string {
+  const symbol = currency === "USD" ? "$" : currency === "EUR" ? "€" : "₾"
+  const loc = locOf(lang)
+  const n = NUM_FMTS[loc].format(price)
+  return loc === "de" ? `${n} ${symbol}` : `${symbol}${n}`
 }
 
 export function listingStatusLabel(lang: string): Record<string, string> {
@@ -138,6 +185,14 @@ export function leadStatusLabel(lang: string): Record<string, string> {
 
 export function tourStatusLabel(lang: string): Record<string, string> {
   return L[locOf(lang)].tour
+}
+
+export function inquiryStatusLabel(lang: string): Record<string, string> {
+  return L[locOf(lang)].inquiry
+}
+
+export function projectStatusLabel(lang: string): Record<string, string> {
+  return L[locOf(lang)].project
 }
 
 export const listingStatusTone: Record<string, BadgeTone> = {

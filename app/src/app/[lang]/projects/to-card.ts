@@ -12,7 +12,7 @@ import { cityByName, nearestMapCity } from '@/lib/map/user-place'
 import type { ProjectCard } from './card'
 
 /** Server-side projection: resolves dev name + delivered once so the client grid never imports the catalog. */
-export function toCard(p: Project, loc: DirLoc): ProjectCard {
+export function toCard(p: Project, loc: DirLoc | 'de'): ProjectCard {
   const dev = getDeveloper(p.developerSlug)
   const pin = cityByName(p.city)
   const cc = pin?.cc ?? (p.coords ? nearestMapCity(p.coords.lat, p.coords.lng)?.cc : null) ?? 'GE'

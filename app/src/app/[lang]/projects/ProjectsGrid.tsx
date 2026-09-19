@@ -6,14 +6,14 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { Building2, CalendarCheck, CheckCircle2, ChevronLeft, ChevronRight, MapPin, Star } from 'lucide-react'
-import { MICRO, finishLabel, hasPriceFrom, priceFromLabel, unitsLabel, type DirLoc } from '@/lib/directory-seo-lite'
+import { MICRO, MICRO_DE, finishLabel, hasPriceFrom, priceFromLabel, unitsLabel, type DirLoc } from '@/lib/directory-seo-lite'
 import type { ProjectCard } from './card'
 
 /** Cards per hub page — 18 rows × 2 cols desktop. Caps ISR payload weight. */
 export const PER_PAGE = 36
 
-export function ProjectsGrid({ projects, loc }: { projects: ProjectCard[]; loc: DirLoc }) {
-  const micro = MICRO[loc]
+export function ProjectsGrid({ projects, loc }: { projects: ProjectCard[]; loc: DirLoc | 'de' }) {
+  const micro = loc === 'de' ? MICRO_DE : MICRO[loc]
   if (projects.length === 0) {
     return (
       <div className="mt-6 rounded-card border border-dashed border-sv-ink/15 px-6 py-12 text-center text-[14px] font-semibold text-sv-ink/65">
@@ -114,10 +114,10 @@ export function Pager({
 }: {
   page: number
   totalPages: number
-  loc: DirLoc
+  loc: DirLoc | 'de'
   basePath?: string
 }) {
-  const micro = MICRO[loc]
+  const micro = loc === 'de' ? MICRO_DE : MICRO[loc]
   const href = (n: number) => (n <= 1 ? basePath : `${basePath}/page/${n}`)
   const cls = 'flex h-11 w-11 items-center justify-center rounded-control border border-sv-ink/10 bg-sv-surface text-sv-ink shadow-card transition-colors hover:border-sv-ink/25'
   return (

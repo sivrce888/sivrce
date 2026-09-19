@@ -78,7 +78,9 @@ export default async function NeighborhoodPage({ params }: PageProps) {
   const city = pick(n.city, loc)
   const desc = pick(n.description, loc)
   const livePrice = market.stats?.avgPerM2USD ?? n.avgPriceM2USD
-  const faqs = neighborhoodFaqs(n, loc, livePrice)
+  // de gets German FAQ copy (neighborhoodFaqs carries its own 'de' corpus);
+  // everything else on this page stays on the ka/en/ru dirLoc convention.
+  const faqs = neighborhoodFaqs(n, lang === 'de' ? 'de' : loc, livePrice)
 
   // aggregateRating intentionally omitted — ratings are runtime data (Review model)
   const placeLd = {

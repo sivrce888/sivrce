@@ -1484,7 +1484,11 @@ export default function SearchClient({
                 className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[11px] font-extrabold transition-colors ${
                   c.hue ? '' : 'bg-sv-blue/10 text-sv-blue-deep hover:bg-sv-blue/15'
                 }`}
-                style={c.hue ? { backgroundColor: `${c.hue}1A`, color: c.hue } : undefined}
+                style={
+                  c.hue
+                    ? { backgroundColor: `${c.hue}1A`, color: `color-mix(in oklab, ${c.hue} 75%, var(--color-sv-navy))` }
+                    : undefined
+                }
               >
                 {c.hue === CATEGORY_BRAND.partyHouses.hue ? (
                   <PartyHouseIcon className="h-3 w-3" aria-hidden />
@@ -1500,6 +1504,7 @@ export default function SearchClient({
           <div className="ml-auto flex flex-wrap items-center gap-1.5">
             <div className="relative">
               <select
+                name="sort"
                 value={sort}
                 onChange={(e) => patchParams({ sort: e.target.value === 'date' ? undefined : e.target.value })}
                 className={`${selectClass} min-w-[140px]`}
@@ -1608,6 +1613,8 @@ export default function SearchClient({
           </div>
         ) : (
           <div className={view === 'grid' ? 'sv-card-grid' : 'grid grid-cols-1 gap-5'}>
+            {/* Keeps h1 → h3 card titles sequential for AT and crawlers. */}
+            <h2 className="sr-only">{t('search.results', { n: results.length })}</h2>
             {results.flatMap((l, i) => {
               const card = (
                 <ListingCard

@@ -106,7 +106,7 @@ export const DE_CITIES: DeCity[] = [
   { slug: "leipzig", de: "Leipzig", ka: "ლაიფციგი", state: "Sachsen", transferTaxPct: 5.5, center: { lat: 51.3397, lng: 12.3731 }, buyEurSqm: 3300, rentEurSqm: 8.3 },
   { slug: "dortmund", de: "Dortmund", ka: "დორტმუნდი", state: "Nordrhein-Westfalen", transferTaxPct: 6.5, center: { lat: 51.5136, lng: 7.4653 }, buyEurSqm: 2700, rentEurSqm: 8.0 },
   { slug: "essen", de: "Essen", ka: "ესენი", state: "Nordrhein-Westfalen", transferTaxPct: 6.5, center: { lat: 51.4556, lng: 7.0116 }, buyEurSqm: 2600, rentEurSqm: 8.2 },
-  { slug: "bremen", de: "Bremen", ka: "ბრემენი", state: "Bremen", transferTaxPct: 5.0, center: { lat: 53.0793, lng: 8.8017 }, buyEurSqm: 3200, rentEurSqm: 10.0 },
+  { slug: "bremen", de: "Bremen", ka: "ბრემენი", state: "Bremen", transferTaxPct: 5.5, center: { lat: 53.0793, lng: 8.8017 }, buyEurSqm: 3200, rentEurSqm: 10.0 },
   { slug: "dresden", de: "Dresden", ka: "დრეზდენი", state: "Sachsen", transferTaxPct: 5.5, center: { lat: 51.0504, lng: 13.7373 }, buyEurSqm: 3600, rentEurSqm: 9.5 },
   { slug: "hanover", de: "Hannover", ka: "ჰანოვერი", state: "Niedersachsen", transferTaxPct: 5.0, center: { lat: 52.3759, lng: 9.732 }, buyEurSqm: 3900, rentEurSqm: 11.0 },
   { slug: "nuremberg", de: "Nürnberg", ka: "ნიურნბერგი", state: "Bayern", transferTaxPct: 3.5, center: { lat: 49.4521, lng: 11.0767 }, buyEurSqm: 4600, rentEurSqm: 12.5 },
@@ -132,9 +132,9 @@ export const DE_CITIES: DeCity[] = [
   { slug: "krefeld", de: "Krefeld", ka: "კრეფელდი", state: "Nordrhein-Westfalen", transferTaxPct: 6.5, center: { lat: 51.3397, lng: 6.5899 }, buyEurSqm: 2700, rentEurSqm: 8.8 },
   { slug: "mainz", de: "Mainz", ka: "მაინცი", state: "Rheinland-Pfalz", transferTaxPct: 5.0, center: { lat: 49.9929, lng: 8.2473 }, buyEurSqm: 4800, rentEurSqm: 13.5 },
   { slug: "luebeck", de: "Lübeck", ka: "ლიუბეკი", state: "Schleswig-Holstein", transferTaxPct: 6.5, center: { lat: 53.8655, lng: 10.6866 }, buyEurSqm: 3600, rentEurSqm: 10.5 },
-  { slug: "erfurt", de: "Erfurt", ka: "ერფურტი", state: "Thüringen", transferTaxPct: 6.5, center: { lat: 50.9848, lng: 11.0299 }, buyEurSqm: 3300, rentEurSqm: 9.5 },
+  { slug: "erfurt", de: "Erfurt", ka: "ერფურტი", state: "Thüringen", transferTaxPct: 5.0, center: { lat: 50.9848, lng: 11.0299 }, buyEurSqm: 3300, rentEurSqm: 9.5 },
   { slug: "oberhausen", de: "Oberhausen", ka: "ობერჰაუზენი", state: "Nordrhein-Westfalen", transferTaxPct: 6.5, center: { lat: 51.4704, lng: 6.8517 }, buyEurSqm: 2200, rentEurSqm: 7.8 },
-  { slug: "rostock", de: "Rostock", ka: "როსტოკი", state: "Mecklenburg-Vorpommern", transferTaxPct: 6.5, center: { lat: 54.0887, lng: 12.1405 }, buyEurSqm: 3400, rentEurSqm: 10.0 },
+  { slug: "rostock", de: "Rostock", ka: "როსტოკი", state: "Mecklenburg-Vorpommern", transferTaxPct: 6.0, center: { lat: 54.0887, lng: 12.1405 }, buyEurSqm: 3400, rentEurSqm: 10.0 },
   { slug: "kassel", de: "Kassel", ka: "კასელი", state: "Hessen", transferTaxPct: 6.0, center: { lat: 51.3127, lng: 9.4797 }, buyEurSqm: 3100, rentEurSqm: 9.3 },
   { slug: "potsdam", de: "Potsdam", ka: "პოტსდამი", state: "Brandenburg", transferTaxPct: 6.5, center: { lat: 52.3906, lng: 13.0645 }, buyEurSqm: 4700, rentEurSqm: 12.5 },
   { slug: "saarbruecken", de: "Saarbrücken", ka: "ზაარბრიუკენი", state: "Saarland", transferTaxPct: 6.5, center: { lat: 49.2402, lng: 6.9969 }, buyEurSqm: 2800, rentEurSqm: 8.8 },
@@ -159,7 +159,7 @@ export const DE_CITIES: DeCity[] = [
   { slug: "bottrop", de: "Bottrop", ka: "ბოტროპი", state: "Nordrhein-Westfalen", transferTaxPct: 6.5, center: { lat: 51.5236, lng: 6.9287 }, buyEurSqm: 2200, rentEurSqm: 7.5 },
   { slug: "fuerth", de: "Fürth", ka: "ფიურტი", state: "Bayern", transferTaxPct: 3.5, center: { lat: 49.4774, lng: 10.9883 }, buyEurSqm: 4100, rentEurSqm: 11.5 },
   { slug: "recklinghausen", de: "Recklinghausen", ka: "რეკლინგჰაუზენი", state: "Nordrhein-Westfalen", transferTaxPct: 6.5, center: { lat: 51.6139, lng: 7.1966 }, buyEurSqm: 2300, rentEurSqm: 7.5 },
-  { slug: "bremerhaven", de: "Bremerhaven", ka: "ბრემერჰაფენი", state: "Bremen", transferTaxPct: 5.0, center: { lat: 53.5499, lng: 8.5905 }, buyEurSqm: 2300, rentEurSqm: 8.0 },
+  { slug: "bremerhaven", de: "Bremerhaven", ka: "ბრემერჰაფენი", state: "Bremen", transferTaxPct: 5.5, center: { lat: 53.5499, lng: 8.5905 }, buyEurSqm: 2300, rentEurSqm: 8.0 },
   { slug: "reutlingen", de: "Reutlingen", ka: "როიტლინგენი", state: "Baden-Württemberg", transferTaxPct: 5.0, center: { lat: 48.492, lng: 9.2042 }, buyEurSqm: 3300, rentEurSqm: 9.5 },
   { slug: "remscheid", de: "Remscheid", ka: "რემშაიდი", state: "Nordrhein-Westfalen", transferTaxPct: 6.5, center: { lat: 51.1794, lng: 7.1978 }, buyEurSqm: 2500, rentEurSqm: 8.0 },
   { slug: "koblenz", de: "Koblenz", ka: "კობლენცი", state: "Rheinland-Pfalz", transferTaxPct: 5.0, center: { lat: 50.3554, lng: 7.5752 }, buyEurSqm: 3300, rentEurSqm: 9.8 },
@@ -167,12 +167,12 @@ export const DE_CITIES: DeCity[] = [
   { slug: "erlangen", de: "Erlangen", ka: "ერლანგენი", state: "Bayern", transferTaxPct: 3.5, center: { lat: 49.5964, lng: 11.0044 }, buyEurSqm: 4800, rentEurSqm: 13.0 },
   { slug: "trier", de: "Trier", ka: "ტრიერი", state: "Rheinland-Pfalz", transferTaxPct: 5.0, center: { lat: 49.7596, lng: 6.642 }, buyEurSqm: 3400, rentEurSqm: 9.8 },
   { slug: "salzgitter", de: "Salzgitter", ka: "ზალცგიტერი", state: "Niedersachsen", transferTaxPct: 5.0, center: { lat: 52.15, lng: 10.3333 }, buyEurSqm: 1900, rentEurSqm: 6.8 },
-  { slug: "jena", de: "Jena", ka: "იენა", state: "Thüringen", transferTaxPct: 6.5, center: { lat: 50.9272, lng: 11.5892 }, buyEurSqm: 3600, rentEurSqm: 10.0 },
+  { slug: "jena", de: "Jena", ka: "იენა", state: "Thüringen", transferTaxPct: 5.0, center: { lat: 50.9272, lng: 11.5892 }, buyEurSqm: 3600, rentEurSqm: 10.0 },
   { slug: "cottbus", de: "Cottbus", ka: "კოტბუსი", state: "Brandenburg", transferTaxPct: 6.5, center: { lat: 51.7606, lng: 14.3345 }, buyEurSqm: 2100, rentEurSqm: 6.8 },
   { slug: "hildesheim", de: "Hildesheim", ka: "ჰილდესჰაიმი", state: "Niedersachsen", transferTaxPct: 5.0, center: { lat: 52.1522, lng: 9.9512 }, buyEurSqm: 2900, rentEurSqm: 8.8 },
   { slug: "moers", de: "Moers", ka: "მერსი", state: "Nordrhein-Westfalen", transferTaxPct: 6.5, center: { lat: 51.4524, lng: 6.6214 }, buyEurSqm: 2600, rentEurSqm: 8.3 },
   { slug: "siegen", de: "Siegen", ka: "ზიგენი", state: "Nordrhein-Westfalen", transferTaxPct: 6.5, center: { lat: 50.8751, lng: 8.017 }, buyEurSqm: 2500, rentEurSqm: 8.0 },
-  { slug: "gera", de: "Gera", ka: "გერა", state: "Thüringen", transferTaxPct: 6.5, center: { lat: 50.8776, lng: 12.0889 }, buyEurSqm: 1900, rentEurSqm: 6.5 },
+  { slug: "gera", de: "Gera", ka: "გერა", state: "Thüringen", transferTaxPct: 5.0, center: { lat: 50.8776, lng: 12.0889 }, buyEurSqm: 1900, rentEurSqm: 6.5 },
   { slug: "kaiserslautern", de: "Kaiserslautern", ka: "კაიზერსლაუტერნი", state: "Rheinland-Pfalz", transferTaxPct: 5.0, center: { lat: 49.4403, lng: 7.7607 }, buyEurSqm: 2400, rentEurSqm: 8.0 },
   { slug: "goettingen", de: "Göttingen", ka: "გოტინგენი", state: "Niedersachsen", transferTaxPct: 5.0, center: { lat: 51.5413, lng: 9.9128 }, buyEurSqm: 2900, rentEurSqm: 10.0 },
   { slug: "hagen", de: "Hagen", ka: "ჰაგენი", state: "Nordrhein-Westfalen", transferTaxPct: 6.5, center: { lat: 51.3671, lng: 7.4633 }, buyEurSqm: 1900, rentEurSqm: 7.3 },
@@ -197,19 +197,20 @@ export function acquisitionCostEstimate(priceEur: number, citySlug: string): num
 }
 
 /**
- * Grunderwerbsteuer by Bundesland, % (public state law, stable for years —
- * re-check yearly, not per request; Stand 2026). DE_CITIES.transferTaxPct
- * mirrors these values for every city.
+ * Grunderwerbsteuer by Bundesland, % (public state law).
+ * Stand June 2026 vs BMF: Bremen 5.5% since 2025-07-01, Thüringen 5.0%
+ * since 2024-01-01, Mecklenburg-Vorpommern 6.0% since 2019. Re-check yearly.
+ * DE_CITIES.transferTaxPct mirrors these values for every city.
  */
 export const GRUNDERWERBSTEUER_BY_STATE: Record<string, number> = {
   'Baden-Württemberg': 5.0,
   Bayern: 3.5,
   Berlin: 6.0,
   Brandenburg: 6.5,
-  Bremen: 5.0,
+  Bremen: 5.5,
   Hamburg: 5.5,
   Hessen: 6.0,
-  'Mecklenburg-Vorpommern': 6.5,
+  'Mecklenburg-Vorpommern': 6.0,
   Niedersachsen: 5.0,
   'Nordrhein-Westfalen': 6.5,
   'Rheinland-Pfalz': 5.0,
@@ -217,7 +218,7 @@ export const GRUNDERWERBSTEUER_BY_STATE: Record<string, number> = {
   Sachsen: 5.5,
   'Sachsen-Anhalt': 5.0,
   'Schleswig-Holstein': 6.5,
-  Thüringen: 6.5,
+  Thüringen: 5.0,
 }
 
 /**

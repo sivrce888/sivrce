@@ -53,29 +53,20 @@ export const PERSONA_LABEL_KA: Record<Exclude<Persona, "admin">, { title: string
   developer: { title: "დეველოპერი", blurb: "პროექტები, ბინები და ლიდები" },
 }
 
-export function panelTitle(persona: Persona): string {
-  switch (persona) {
-    case "buyer":
-      return "ჩემი სივრცე"
-    case "tenant":
-      return "დამქირავებლის პანელი"
-    case "seller":
-      return "გამყიდველის პანელი"
-    case "landlord":
-      return "გამქირავებლის პანელი"
-    case "agent":
-      return "აგენტის პანელი"
-    case "agency":
-      return "სააგენტოს პანელი"
-    case "developer":
-      return "დეველოპერის პანელი"
-    case "admin":
-      return "ადმინ პანელი"
-    default: {
-      const _exhaustive: never = persona
-      return _exhaustive
-    }
+/** Dashboard shell title per persona + locale (ka default keeps old behavior). */
+export function panelTitle(persona: Persona, lang = "ka"): string {
+  const T: Record<Persona, { ka: string; en: string; de: string }> = {
+    buyer: { ka: "ჩემი სივრცე", en: "Buyer account", de: "Käufer-Konto" },
+    tenant: { ka: "დამქირავებლის პანელი", en: "Tenant dashboard", de: "Mieter-Dashboard" },
+    seller: { ka: "გამყიდველის პანელი", en: "Seller dashboard", de: "Verkäufer-Dashboard" },
+    landlord: { ka: "გამქირავებლის პანელი", en: "Landlord dashboard", de: "Vermieter-Dashboard" },
+    agent: { ka: "აგენტის პანელი", en: "Agent dashboard", de: "Makler-Dashboard" },
+    agency: { ka: "სააგენტოს პანელი", en: "Agency dashboard", de: "Agentur-Dashboard" },
+    developer: { ka: "დეველოპერის პანელი", en: "Developer dashboard", de: "Bauträger-Dashboard" },
+    admin: { ka: "ადმინ პანელი", en: "Admin panel", de: "Admin-Panel" },
   }
+  const t = T[persona]
+  return lang === "en" ? t.en : lang === "de" ? t.de : t.ka
 }
 
 export function isRentFocus(persona: Persona): boolean {

@@ -57,7 +57,7 @@ export interface DirectoryHubCopy {
   faqs: FaqItem[]
 }
 
-export const DEVELOPERS_HUB: Record<DirLoc, DirectoryHubCopy> = {
+export const DEVELOPERS_HUB: Record<DirLoc | 'de', DirectoryHubCopy> = {
   ka: {
     title: 'დეველოპერები საქართველოში — თბილისი, ბათუმი, მიმდინარე პროექტები',
     ogTitle: 'დეველოპერები საქართველოში | sivrce',
@@ -166,9 +166,37 @@ export const DEVELOPERS_HUB: Record<DirLoc, DirectoryHubCopy> = {
       },
     ],
   },
+  de: {
+    title: 'Bauträger in Georgien — Tiflis, Batumi, laufende Projekte',
+    ogTitle: 'Bauträger in Georgien | sivrce',
+    description:
+      'Alle Bauträger Georgiens an einem Ort: Archi, m², Alliance, ORBI, Domus, Blox, Eagle Hills, Mira, Ocean Capital — Projekte, Adressen, Karte und Preise.',
+    h1: 'Bauträger in Georgien',
+    sub: 'Alle Bauunternehmen in Tiflis, Batumi und Georgien — mit laufenden Projekten, Preisen, internen Ratenzahlungen und Käuferbewertungen',
+    proseTitle: 'Wohnung direkt vom Bauträger — warum es sich lohnt',
+    prose: [
+      'Auf sivrce sind alle bedeutenden Bauträger Georgiens versammelt: Archi, m², Alliance Group, ORBI, Domus, Blox, Eagle Hills, King David, White Square und weitere. Im Profil jedes Unternehmens sehen Sie laufende Bauprojekte in Tiflis und Batumi, fertiggestellte Projekte, Adressen, Kartenkoordinaten und Bewertungen von Käufern.',
+      'Der Kauf direkt vom Bauträger bedeutet den besten Preis ohne Makler, interne Ratenzahlung mit Anzahlung und die Wahl der Ausbaustufe — roh, weiß oder grün. Vergleichen Sie Quadratmeterpreise, Übergabetermine und die Zuverlässigkeit der Unternehmen an einem Ort, bevor Sie in einem Neubauprojekt kaufen.',
+    ],
+    faqTitle: 'Häufige Fragen',
+    faqs: [
+      {
+        q: 'Welche Bauträger sind in Georgien die größten?',
+        a: 'Zu den größten und etabliertesten zählen Archi, m² (Saba Capital), Alliance Group, ORBI Group, Domus, Blox, Lisi Development und Ark Georgia. Auf jedem Bauträger-Profil finden Sie laufende und abgeschlossene Projekte mit Preisen und Übergabeterminen.',
+      },
+      {
+        q: 'Kann man eine Wohnung vom Bauträger in Raten kaufen?',
+        a: 'Ja — die meisten georgischen Bauträger bieten interne Ratenzahlung: 10–30 % Anzahlung und monatliche Zahlungen bis zur Übergabe, ohne Bank und ohne Zinsen. Alternativ gibt es Hypotheken akkreditierter Banken.',
+      },
+      {
+        q: 'Wie prüft man die Zuverlässigkeit eines Bauträgers?',
+        a: 'Sehen Sie sich die Bauhistorie, abgeschlossene Projekte und Käuferbewertungen auf sivrce an. Ein seit Jahren pünktlich lieferndes Unternehmen mit mehreren fertiggestellten Komplexen ist deutlich risikoärmer als ein Debütant mit einem einzigen Projekt.',
+      },
+    ],
+  },
 }
 
-export const PROJECTS_HUB: Record<DirLoc, DirectoryHubCopy> = {
+export const PROJECTS_HUB: Record<DirLoc | 'de', DirectoryHubCopy> = {
   ka: {
     title: 'მშენებარე ბინები — ბინა ახალ კორპუსში თბილისში და ბათუმში',
     ogTitle: 'მშენებარე ბინები — თბილისი და ბათუმი | sivrce',
@@ -274,6 +302,42 @@ export const PROJECTS_HUB: Record<DirLoc, DirectoryHubCopy> = {
       {
         q: 'Выгодно ли вкладываться в новостройки?',
         a: 'Квартиры, купленные на этапе строительства, как правило, дорожают к сдаче; доходность аренды (ROI) в Тбилиси и Батуми зависит от района и туристического спроса. Сравнивайте цены, локации и надёжность застройщиков на sivrce.',
+      },
+    ],
+  },
+  de: {
+    title: 'Neubauwohnungen — Wohnung im Neubau in Tiflis und Batumi',
+    ogTitle: 'Neubauwohnungen — Tiflis und Batumi | sivrce',
+    description:
+      'Neubauwohnungen in Tiflis und Batumi 2026: Coordinate, Archi Horizon, m² Highlight, Alliance Highline — Preis pro m², Fortschritt und Übergabetermine.',
+    h1: 'Neubauwohnungen — Tiflis und Batumi',
+    sub: 'Neubauwohnungen aller Bauträger — Preis pro m², Übergabetermine, interne Ratenzahlung und realer Baufortschritt an einem Ort',
+    proseTitle: 'Neubauwohnungen in Georgien — Marktüberblick',
+    prose: [
+      'Hier finden Sie jeden neuen Wohnkomplex in Tiflis, Batumi und anderen georgischen Städten — mit Bauprojekten von m² Highlight, Archi Horizon, Alliance Highline, Coordinate by Keystone, ORBI, Blox und weiteren Bauträgern. Für jedes Projekt sind Preis pro Quadratmeter, Baufortschritt in Prozent, Übergabetermin und Wohnungsanzahl angegeben.',
+      'Der Kauf im Bauzustand ist günstiger als der einer fertigen Wohnung — der Preis steigt bis zur Übergabe, weshalb Neubauprojekte zu den beliebtesten Investitionen Georgiens zählen. Vergleichen Sie Stadtteile, Ausbaustufen und Preise 2026 und finden Sie eine Wohnung zum Wohnen oder Vermieten.',
+    ],
+    faqTitle: 'Häufige Fragen',
+    faqs: [
+      {
+        q: 'Was kostet eine Wohnung in einem Tifliser Neubauprojekt 2026?',
+        a: 'Der Quadratmeterpreis in Tiflis beginnt bei etwa $1.100–1.200 (Gldani, Didi Digomi) und erreicht $3.000–4.000 in Vake und Mtatsminda. Batumer Seeprojekte liegen zwischen $1.500–3.000. Genaue Preise finden Sie auf den Projektseiten.',
+      },
+      {
+        q: 'Soll ich im Bauzustand oder fertig kaufen?',
+        a: 'Im Bauzustand ist meist günstiger und mit interner Ratenzahlung verfügbar — das Risiko ist eine verzögerte Übergabe. Eine fertige Wohnung kann sofort genutzt oder vermietet werden. Das Projekt eines zuverlässigen Bauträgers im Bauzustand ist langfristig oft der bessere Preis.',
+      },
+      {
+        q: 'Was ist der weiße Ausbauzustand?',
+        a: 'Der weiße Ausbauzustand (beli karkasi) ist eine renovierfertige Wohnung: verputzte Wände, verlegte Elektro- und Sanitärleitungen, vorbereiteter Bodenbelag sowie Türen und Fenster. Die meisten Neubauprojekte in Georgien werden im weißen oder rohen Zustand verkauft.',
+      },
+      {
+        q: 'Kann man eine Neubauwohnung mit Hypothek kaufen?',
+        a: 'Ja — georgische Banken vergeben Hypotheken für Neubauwohnungen, die Konditionen hängen von der Akkreditierung des Bauträgers ab. Alternative ist die interne Ratenzahlung: 10–30 % Anzahlung und monatliche Zahlung bis zur Übergabe.',
+      },
+      {
+        q: 'Lohnt sich der Kauf in einem Neubauprojekt als Investition?',
+        a: 'Eine im Bauzustand gekaufte Wohnung steigt bis zur Übergabe in der Regel im Wert; die Mietrendite (ROI) in Tiflis und Batumi schwankt je nach Stadtteil und touristischer Nachfrage. Vergleichen Sie Preis, Lage und Bauträger-Zuverlässigkeit auf sivrce.',
       },
     ],
   },
@@ -1330,7 +1394,7 @@ export function districtHubCopy(loc: DirLoc, d: DistrictHub, count: number): Dir
 
 export function neighborhoodFaqs(
   n: Neighborhood,
-  loc: DirLoc,
+  loc: DirLoc | 'de',
   liveAvg?: number,
 ): FaqItem[] {
   const price = liveAvg ?? n.avgPriceM2USD
@@ -1377,6 +1441,27 @@ export function neighborhoodFaqs(
       {
         q: `Как найти проверенное жилье в ${name}?`,
         a: `На sivrce.ge все объявления в районе ${name} проходят проверку собственника, кадастровых данных NAPR и алгоритм оценки рыночной цены.`,
+      },
+    ]
+  }
+
+  if (loc === 'de') {
+    return [
+      {
+        q: `Wie hoch ist der durchschnittliche Quadratmeterpreis in ${name}?`,
+        a: `Der durchschnittliche Immobilienpreis in ${name} liegt bei etwa $${price.toLocaleString('en-US')}/m². Die tatsächlichen Preise variieren je nach Gebäudezustand, Etage, Ausblick und Renovierungsgrad. Für jedes aktive Inserat zeigt Sivrce eine detaillierte KI-Bewertung.`,
+      },
+      {
+        q: `Wie hoch ist die Wohnqualität und Bewertung in ${name}?`,
+        a: `Der Gesamtscore für die Wohnqualität in ${name} beträgt ${score}/10. Bewertung der Infrastruktur: Verkehr ${s.transport}/10, Schulen und Kitas ${s.schools}/10, Grünflächen ${s.green}/10, Sicherheit ${s.safety}/10, Gastronomie und Nachtleben ${s.nightlife}/10.`,
+      },
+      {
+        q: `Warum wird ${name} zum Wohnen oder für Investitionen gewählt?`,
+        a: `${pickNb(n.description, 'de')} Der Stadtteil zeichnet sich durch hohe Liquidität sowohl bei der langfristigen als auch bei der täglichen Vermietung aus.`,
+      },
+      {
+        q: `Wie finde ich verifizierte Wohnungen in ${name}?`,
+        a: `Auf sivrce.ge durchläuft jedes Inserat in ${name} eine Verifizierung: Eigentümerprüfung, Katastercode aus dem öffentlichen Register und eine KI-Preisbewertung auf Basis realer Marktkenndaten.`,
       },
     ]
   }

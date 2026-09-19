@@ -10,9 +10,10 @@ export type FraudRiskTier = 'SAFE' | 'LOW_RISK' | 'MEDIUM_RISK' | 'HIGH_RISK_SUS
 export interface FraudRiskReport {
   riskScore: number // 0 (safest) to 100 (highest risk)
   tier: FraudRiskTier
-  flags: { code: string; titleEn: string; titleKa: string; severity: 'low' | 'medium' | 'high' }[]
+  flags: { code: string; titleEn: string; titleKa: string; titleDe: string; severity: 'low' | 'medium' | 'high' }[]
   safetyTipsEn: string[]
   safetyTipsKa: string[]
+  safetyTipsDe: string[]
 }
 
 const SUSPICIOUS_PHRASES = [
@@ -49,6 +50,7 @@ export function evaluateListingFraudRisk(listing: {
         code: 'PRICE_SUSPICIOUSLY_LOW',
         titleEn: 'Price per m² is >55% below district median',
         titleKa: 'ფასი კვ.მ-ზე 55%-ით დაბალია უბნის საშუალოზე',
+        titleDe: 'Quadratmeterpreis liegt über 55% unter dem Bezirksmedian',
         severity: 'high',
       })
     }
@@ -63,6 +65,7 @@ export function evaluateListingFraudRisk(listing: {
           code: 'SUSPICIOUS_PAYMENT_TERMS',
           titleEn: 'Description contains advance payment or owner abroad keywords',
           titleKa: 'აღწერა შეიცავს წინასწარი გადახდის ან საზღვარგარეთ ყოფნის მითითებას',
+          titleDe: 'Beschreibung enthält Schlüsselwörter zu Vorauszahlung oder im Ausland weilenden Eigentümers',
           severity: 'high',
         })
         break
@@ -77,6 +80,7 @@ export function evaluateListingFraudRisk(listing: {
       code: 'PHONE_UNVERIFIED',
       titleEn: 'Seller phone number is unverified',
       titleKa: 'გამყიდველის ტელეფონი შეუმცირებელია',
+      titleDe: 'Telefonnummer des Verkäufers ist nicht verifiziert',
       severity: 'medium',
     })
   }
@@ -88,6 +92,7 @@ export function evaluateListingFraudRisk(listing: {
       code: 'NO_CADASTRE_CODE',
       titleEn: 'No official NAPR cadastral code attached',
       titleKa: 'არ არის მითითებული საკადასტრო კოდი',
+      titleDe: 'Keine offizielle Kataster-Nummer (NAPR) hinterlegt',
       severity: 'low',
     })
   }
@@ -98,6 +103,7 @@ export function evaluateListingFraudRisk(listing: {
       code: 'INSUFFICIENT_PHOTOS',
       titleEn: 'Listing has only 1 or no photos',
       titleKa: 'განცხადებას აქვს მხოლოდ 1 ან 0 ფოტო',
+      titleDe: 'Inserat hat nur ein oder kein Foto',
       severity: 'medium',
     })
   }
@@ -121,6 +127,11 @@ export function evaluateListingFraudRisk(listing: {
       'არასოდეს გადარიცხოთ თანხა ბინის პირადად დათვალიერებამდე.',
       'შეამოწმეთ საკადასტრო კოდი საჯარო რეესტრში.',
       'შეტყობინეთ ადმინისტრაციას, თუ გამყიდველი ითხოვს საეჭვო გადარიცხვას.',
+    ],
+    safetyTipsDe: [
+      'Überweisen Sie niemals Geld oder Anzahlung vor einer persönlichen Besichtigung.',
+      'Prüfen Sie die offizielle Kataster-Nummer zur rechtlichen Eigentumsprüfung.',
+      'Melden Sie Verkäufer, die Western Union oder nicht nachvollziehbare Zahlungsmethoden verlangen.',
     ],
   }
 }

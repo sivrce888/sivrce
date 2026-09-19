@@ -10,6 +10,7 @@ import { jsonLd } from '@/lib/utils'
 import {pageAlternates, OG_LOCALE  } from '@/lib/i18n/server'
 import { isValidLang, type Lang } from '@/lib/i18n/core'
 import { MICRO, PROJECTS_HUB, dirLoc } from '@/lib/directory-seo'
+import { MICRO_DE } from '@/lib/directory-seo-lite'
 import { toCard } from '../../to-card'
 import { PER_PAGE, Pager, ProjectsGrid } from '../../ProjectsGrid'
 
@@ -29,10 +30,9 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { lang: raw, pg: rawPg } = await params
   const lang: Lang = isValidLang(raw) ? raw : 'ka'
   const pg = parsePg(rawPg)
-  const loc = dirLoc(lang)
-  const c = PROJECTS_HUB[loc]
+  const c = PROJECTS_HUB[lang === 'ka' || lang === 'ru' || lang === 'de' ? lang : 'en']
   const path = `/projects/page/${pg}`
-  const title = pg ? `${c.title} — ${MICRO[loc].page(pg)}` : c.title
+  const title = pg ? `${c.title} — ${(lang === 'de' ? MICRO_DE : MICRO[dirLoc(lang)]).page(pg)}` : c.title
   return {
     title,
     description: c.description,
@@ -54,8 +54,9 @@ export default async function ProjectsPageN({ params }: PageProps) {
   if (!isValidLang(raw)) notFound()
   const pg = parsePg(rawPg)
   if (!pg) notFound()
-  const loc = dirLoc(raw)
-  const c = PROJECTS_HUB[loc]
+  // Hub copy falls back to English for de; grid chrome carries German (MICRO_DE).
+  const c = PROJECTS_HUB[raw === 'ka' || raw === 'ru' || raw === 'de' ? raw : 'en']
+  const loc = raw === 'ka' || raw === 'ru' || raw === 'de' ? raw : 'en'
 
   const projects = await projectsLive()
   const totalPages = Math.max(1, Math.ceil(projects.length / PER_PAGE))
@@ -78,7 +79,12 @@ export default async function ProjectsPageN({ params }: PageProps) {
     <div className="min-h-screen bg-sv-cloud">
       <Navbar />
       <main id="main">
-        <PageHero tone="light" kicker="მშენებარე ბინები" title={c.h1} subtitle={c.sub} />
+        <PageHero
+          tone="light"
+          kicker={loc === 'ka' ? 'მშენებარე ბინები' : loc === 'ru' ? 'Новостройки' : loc === 'de' ? 'Neubauprojekte' : 'New developments'}
+          title={c.h1}
+          subtitle={c.sub}
+        />
         <AdSlot slot="projects" lang={raw} />
         <section className="mx-auto max-w-[1440px] px-5 pb-16 md:px-10">
           <ProjectsGrid projects={pageProjects.map((p) => toCard(p, loc))} loc={loc} />

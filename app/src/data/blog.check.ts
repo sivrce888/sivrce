@@ -38,4 +38,14 @@ assert.ok(BLOG_POSTS.every((x) => x.title && x.excerpt && x.body && x.cover && x
 // Named author wins over fallback.
 assert.equal(dbPostToBlogPost(row, 'Luka B.').author, 'Luka B.')
 
-console.log('ok: blog db→public mapping + seed integrity')
+// Localized corpus: every seed post carries an English and German body
+// (blog-bodies-{en,de}.ts), so /en and /de never fall back to Georgian text.
+import { BLOG_BODIES_EN } from './blog-bodies-en'
+import { BLOG_BODIES_DE } from './blog-bodies-de'
+const missEn = BLOG_POSTS.filter((x) => (BLOG_BODIES_EN[x.slug]?.length ?? 0) < 200).map((x) => x.slug)
+const missDe = BLOG_POSTS.filter((x) => (BLOG_BODIES_DE[x.slug]?.length ?? 0) < 200).map((x) => x.slug)
+assert.equal(missEn.length, 0, `missing English blog bodies: ${missEn.join(', ')}`)
+assert.equal(missDe.length, 0, `missing German blog bodies: ${missDe.join(', ')}`)
+assert.ok(BLOG_POSTS.every((x) => !BLOG_BODIES_DE[x.slug] || !BLOG_BODIES_DE[x.slug].includes('###')), 'no stray ### headings')
+
+console.log('ok: blog db→public mapping + seed integrity + en/de corpus')

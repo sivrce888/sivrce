@@ -8,20 +8,62 @@ import { agentNav } from "@/components/agent-dashboard/nav"
 import { db } from "@/lib/db"
 import { requireRole, safeQuery } from "@/lib/guards"
 import { inquiryWhere, listingOwnerWhere } from "@/lib/pro-leads"
+import { isValidLang } from "@/lib/i18n/core"
 
 export const dynamic = "force-dynamic"
 
-export const metadata: Metadata = {
-  title: "ლიდები — აგენტის პანელი",
-  robots: { index: false },
-}
+const L = {
+  ka: {
+    metaTitle: "ლიდები — აგენტის პანელი",
+    title: "აგენტის პანელი",
+    subtitle: "ლიდები",
+    h1: "ლიდები",
+    tabAll: "ყველა",
+    tabNew: "ახალი",
+    tabActive: "მიმდინარე",
+    tabClosed: "დასრულებული",
+    emptyTitle: "ლიდები არ მოიძებნა",
+    emptyAll: "ახალი მოთხოვნები აქ გამოჩნდება მაშინვე, როცა მომხმარებელი დაგიკავშირდება.",
+    emptyFiltered: "ამ სტატუსით ლიდი ჯერ არ არის.",
+  },
+  en: {
+    metaTitle: "Leads — Agent dashboard",
+    title: "Agent dashboard",
+    subtitle: "Leads",
+    h1: "Leads",
+    tabAll: "All",
+    tabNew: "New",
+    tabActive: "In progress",
+    tabClosed: "Closed",
+    emptyTitle: "No leads found",
+    emptyAll: "New inquiries will appear here as soon as a user reaches out.",
+    emptyFiltered: "No leads with this status yet.",
+  },
+  de: {
+    metaTitle: "Leads — Agenten-Dashboard",
+    title: "Agenten-Dashboard",
+    subtitle: "Leads",
+    h1: "Leads",
+    tabAll: "Alle",
+    tabNew: "Neu",
+    tabActive: "In Bearbeitung",
+    tabClosed: "Abgeschlossen",
+    emptyTitle: "Keine Leads gefunden",
+    emptyAll: "Neue Anfragen erscheinen hier, sobald ein Nutzer Kontakt aufnimmt.",
+    emptyFiltered: "Noch keine Leads mit diesem Status.",
+  },
+} as const
+type Loc = keyof typeof L
 
-const tabs = [
-  { key: "all", label: "ყველა", statuses: null as string[] | null },
-  { key: "new", label: "ახალი", statuses: ["new"] },
-  { key: "active", label: "მიმდინარე", statuses: ["contacted", "qualified"] },
-  { key: "closed", label: "დასრულებული", statuses: ["closed"] },
-] as const
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>
+}): Promise<Metadata> {
+  const { lang: raw } = await params
+  const loc: Loc = raw === "en" ? "en" : raw === "de" ? "de" : "ka"
+  return { title: L[loc].metaTitle, robots: { index: false } }
+}
 
 interface LeadsPageProps {
   params: Promise<{ lang: string }>
@@ -29,10 +71,19 @@ interface LeadsPageProps {
 }
 
 export default async function AgentLeadsPage({ params, searchParams }: LeadsPageProps) {
-  const { lang } = await params
+  const { lang: raw } = await params
+  const lang = isValidLang(raw) ? raw : "ka"
+  const loc = lang === "en" ? "en" : lang === "de" ? "de" : "ka"
+  const T = L[loc]
   const user = await requireRole("agent", "/agent")
   const { status: rawStatus } = await searchParams
   const activeKey = typeof rawStatus === "string" ? rawStatus : "all"
+  const tabs = [
+    { key: "all", label: T.tabAll, statuses: null as string[] | null },
+    { key: "new", label: T.tabNew, statuses: ["new"] },
+    { key: "active", label: T.tabActive, statuses: ["contacted", "qualified"] },
+    { key: "closed", label: T.tabClosed, statuses: ["closed"] },
+  ] as const
   const activeTab = tabs.find((t) => t.key === activeKey) ?? tabs[0]
 
   const listingRows = await safeQuery(
@@ -62,11 +113,11 @@ export default async function AgentLeadsPage({ params, searchParams }: LeadsPage
   return (
     <DashboardShell
       nav={agentNav(lang)}
-      title="აგენტის პანელი"
-      subtitle="ლიდები"
+      title={T.title}
+      subtitle={T.subtitle}
       userLabel={user.name ?? user.email}
     >
-      <h1 className="mb-5 text-xl font-black tracking-tight text-sv-ink">ლიდები</h1>
+      <h1 className="mb-5 text-xl font-black tracking-tight text-sv-ink">{T.h1}</h1>
 
       <div className="mb-5 flex gap-2 overflow-x-auto scrollbar-hide">
         {tabs.map((tab) => (
@@ -86,15 +137,11 @@ export default async function AgentLeadsPage({ params, searchParams }: LeadsPage
 
       {leads.length === 0 ? (
         <EmptyState
-          title="ლიდები არ მოიძებნა"
-          body={
-            activeTab.key === "all"
-              ? "ახალი მოთხოვნები აქ გამოჩნდება მაშინვე, როცა მომხმარებელი დაგიკავშირდება."
-              : "ამ სტატუსით ლიდი ჯერ არ არის."
-          }
+          title={T.emptyTitle}
+          body={activeTab.key === "all" ? T.emptyAll : T.emptyFiltered}
         />
       ) : (
-        <LeadInbox leads={leads} titles={titles} />
+        <LeadInbox leads={leads} titles={titles} lang={lang} />
       )}
     </DashboardShell>
   )

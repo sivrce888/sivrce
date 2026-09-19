@@ -1,12 +1,16 @@
 /**
- * SIVRCE — Production Real User Monitoring (RUM) & Zero-Jank Telemetry.
+ * SIVRCE — Real User Monitoring (RUM) field Core Web Vitals.
  * Zero external libraries, zero main-thread block, zero layout shift.
  *
- * Captures Core Web Vitals:
+ * Captures:
  *  - LCP (Largest Contentful Paint) — Target < 1200ms
- *  - INP (Interaction to Next Paint) — Target < 50ms
  *  - CLS (Cumulative Layout Shift) — Target < 0.05
  *  - TTFB (Time to First Byte) — Target < 100ms
+ *
+ * Delivery is NOT this module's job: it hands each metric to `send`, which
+ * PostHogProvider wires to the consent-gated analytics transport. There is no
+ * own endpoint on purpose — a beacon route would cost one Vercel invocation
+ * per pageview and would fire before the TDDDG §25 consent gate.
  */
 
 export interface RumMetric {
@@ -15,7 +19,6 @@ export interface RumMetric {
   rating: 'good' | 'needs-improvement' | 'poor'
   url: string
   deviceTier: 'high' | 'mid' | 'low'
-  connection?: string
   timestamp: number
 }
 
@@ -34,31 +37,22 @@ export function rateMetric(name: RumMetric['name'], value: number): 'good' | 'ne
   }
 }
 
-/** Client-side RUM initializer — registers observers during idle time. */
-export function initRumTelemetry(endpoint = '/api/rum') {
+/**
+ * Registers the observers and reports every metric through `send`.
+ *
+ * `buffered: true` replays entries recorded before this ran, so arming late
+ * (the consent gate boots analytics on the first interaction) still yields
+ * the real field values rather than a truncated sample.
+ */
+export function initRumTelemetry(send: (metric: RumMetric) => void): void {
   if (typeof window === 'undefined' || typeof PerformanceObserver === 'undefined') return
 
-  const queue: RumMetric[] = []
-  const deviceTier = (navigator.hardwareConcurrency ?? 4) >= 8 ? 'high' : (navigator.hardwareConcurrency ?? 4) >= 4 ? 'mid' : 'low'
-
-  function sendQueue() {
-    if (queue.length === 0) return
-    const payload = JSON.stringify(queue.splice(0, queue.length))
-    if (navigator.sendBeacon) {
-      navigator.sendBeacon(endpoint, payload)
-    } else {
-      fetch(endpoint, {
-        method: 'POST',
-        body: payload,
-        headers: { 'Content-Type': 'application/json' },
-        keepalive: true,
-      }).catch(() => {})
-    }
-  }
+  const cores = navigator.hardwareConcurrency ?? 4
+  const deviceTier = cores >= 8 ? 'high' : cores >= 4 ? 'mid' : 'low'
 
   function report(name: RumMetric['name'], val: number) {
     const value = Math.round(val * 100) / 100
-    queue.push({
+    send({
       name,
       value,
       rating: rateMetric(name, value),
@@ -66,15 +60,9 @@ export function initRumTelemetry(endpoint = '/api/rum') {
       deviceTier,
       timestamp: Date.now(),
     })
-    if ('requestIdleCallback' in window) {
-      window.requestIdleCallback(sendQueue, { timeout: 4000 })
-    } else {
-      setTimeout(sendQueue, 1500)
-    }
   }
 
   try {
-    // 1. LCP Observer
     const lcpObserver = new PerformanceObserver((entryList) => {
       const entries = entryList.getEntries()
       const lastEntry = entries[entries.length - 1]
@@ -82,7 +70,6 @@ export function initRumTelemetry(endpoint = '/api/rum') {
     })
     lcpObserver.observe({ type: 'largest-contentful-paint', buffered: true })
 
-    // 2. CLS Observer
     let clsValue = 0
     interface LayoutShiftEntry extends PerformanceEntry {
       hadRecentInput?: boolean
@@ -98,7 +85,6 @@ export function initRumTelemetry(endpoint = '/api/rum') {
     })
     clsObserver.observe({ type: 'layout-shift', buffered: true })
 
-    // 3. Navigation Timing (TTFB, FCP)
     const navEntries = performance.getEntriesByType('navigation') as PerformanceNavigationTiming[]
     if (navEntries.length > 0) {
       const nav = navEntries[0]!

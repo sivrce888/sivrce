@@ -10,7 +10,6 @@ import { getDistrictListingCounts, USD_GEL } from '@/lib/listings-db'
 import { getNeighborhoodMarketStats } from '@/lib/market-stats'
 import { jsonLd } from '@/lib/utils'
 import { pageMeta } from '@/lib/i18n/server'
-import { dirLoc } from '@/lib/directory-seo'
 
 export const revalidate = 3600
 
@@ -38,6 +37,11 @@ export async function generateMetadata({
         description:
           'Посуточно в Сабуртало и Ваке, продажа и аренда. Оценки качества жизни, цена за м² и реальные фото.',
       },
+      de: {
+        title: 'Tifliser Stadtviertel — Vake, Saburtalo: Guides & Preise',
+        description:
+          'Tagesmieten in Saburtalo und Vake, Kauf und Miete. Lebensqualitäts-Scores, Preis pro m² und echte Fotos.',
+      },
     }),
     openGraph: {
       title: 'უბნების გზამკვლევი — ცხოვრების ხარისხის ქულები და ფასები',
@@ -55,7 +59,7 @@ export default async function NeighborhoodsPage({
 }) {
   const { lang: raw } = await params
   const lang: Lang = isValidLang(raw) ? raw : 'ka'
-  const loc = dirLoc(lang)
+  const loc: 'ka' | 'en' | 'ru' | 'de' = lang === 'ka' || lang === 'ru' || lang === 'de' ? lang : 'en'
   const counts = await getDistrictListingCounts()
   // Same live source as the detail page so index and detail never contradict.
   const markets = await Promise.all(
@@ -67,9 +71,9 @@ export default async function NeighborhoodsPage({
     if (v) liveAvg[n.slug] = v
   })
 
-  const hubName = loc === 'ka' ? 'უბნების გზამკვლევი — sivrce' : loc === 'ru' ? 'Районы Грузии — sivrce' : 'Georgia Neighborhood Guides — sivrce'
-  const homeLabel = loc === 'ka' ? 'მთავარი' : loc === 'ru' ? 'Главная' : 'Home'
-  const hubLabel = loc === 'ka' ? 'უბნები' : loc === 'ru' ? 'Районы' : 'Neighborhoods'
+  const hubName = loc === 'ka' ? 'უბნების გზამკვლევი — sivrce' : loc === 'ru' ? 'Районы Грузии — sivrce' : loc === 'de' ? 'Stadtviertel-Guides Georgien — sivrce' : 'Georgia Neighborhood Guides — sivrce'
+  const homeLabel = loc === 'ka' ? 'მთავარი' : loc === 'ru' ? 'Главная' : loc === 'de' ? 'Startseite' : 'Home'
+  const hubLabel = loc === 'ka' ? 'უბნები' : loc === 'ru' ? 'Районы' : loc === 'de' ? 'Stadtviertel' : 'Neighborhoods'
 
   const listLd = {
     '@context': 'https://schema.org',

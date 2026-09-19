@@ -2,7 +2,8 @@ import LocalizedLink from "@/components/LocalizedLink"
 import { MessageCircle, Phone } from "lucide-react"
 
 import { setProLeadStatus } from "@/components/dashboard/lead-actions"
-import { INQUIRY_STATUS_KA, INQUIRY_STATUSES, isInquiryStatus, leadWaText } from "@/lib/pro-leads"
+import { INQUIRY_STATUSES, isInquiryStatus, leadWaText } from "@/lib/pro-leads"
+import { inquiryStatusLabel } from "@/components/agent-dashboard/format"
 import { telHref, waHref } from "@/lib/inquiries/phone"
 
 export type InboxLead = {
@@ -18,21 +19,43 @@ export type InboxLead = {
   createdAt: Date
 }
 
-const dateFmt = new Intl.DateTimeFormat("ka-GE", {
-  dateStyle: "medium",
-  timeStyle: "short",
-})
-
-function statusKa(status: string): string {
-  return INQUIRY_STATUS_KA[status as keyof typeof INQUIRY_STATUS_KA] ?? status
-}
+const L = {
+  ka: {
+    call: "ზარი",
+    email: "ელფოსტა",
+    statusAria: "ლიდის სტატუსი",
+    save: "შენახვა",
+    empty: "ცარიელი",
+    dateFmt: new Intl.DateTimeFormat("ka-GE", { dateStyle: "medium", timeStyle: "short" }),
+  },
+  en: {
+    call: "Call",
+    email: "Email",
+    statusAria: "Lead status",
+    save: "Save",
+    empty: "Empty",
+    dateFmt: new Intl.DateTimeFormat("en-GB", { dateStyle: "medium", timeStyle: "short" }),
+  },
+  de: {
+    call: "Anrufen",
+    email: "E-Mail",
+    statusAria: "Lead-Status",
+    save: "Speichern",
+    empty: "Leer",
+    dateFmt: new Intl.DateTimeFormat("de-DE", { dateStyle: "medium", timeStyle: "short" }),
+  },
+} as const
 
 function LeadCard({
   lead,
   title,
+  t,
+  statusLabel,
 }: {
   lead: InboxLead
   title: string | undefined
+  t: (typeof L)[keyof typeof L]
+  statusLabel: Record<string, string>
 }) {
   const phone = lead.buyerPhone?.trim() || null
   const wa = phone ? waHref(phone, leadWaText(lead.buyerName, title)) : null
@@ -55,7 +78,7 @@ function LeadCard({
           </p>
         </div>
         <span className="rounded-full bg-sv-blue/10 px-2.5 py-1 text-[11px] font-bold text-sv-blue-deep">
-          {statusKa(lead.status)}
+          {statusLabel[lead.status] ?? lead.status}
         </span>
       </div>
 
@@ -72,7 +95,7 @@ function LeadCard({
             className="inline-flex h-10 items-center gap-1.5 rounded-full bg-sv-orange px-4 text-[13px] font-bold text-sv-ink shadow-glow-orange transition hover:opacity-95"
           >
             <Phone size={14} strokeWidth={2.4} />
-            ზარი
+            {t.call}
           </a>
         ) : null}
         {wa ? (
@@ -91,24 +114,24 @@ function LeadCard({
             href={`mailto:${lead.buyerEmail}`}
             className="inline-flex h-10 items-center rounded-full border border-sv-ink/12 px-4 text-[12.5px] font-bold text-sv-ink/70 transition hover:border-sv-blue hover:text-sv-blue"
           >
-            ელფოსტა
+            {t.email}
           </a>
         ) : null}
       </div>
 
       <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-sv-ink/6 pt-3">
-        <p className="text-[11.5px] font-semibold text-sv-ink/60">{dateFmt.format(lead.createdAt)}</p>
+        <p className="text-[11.5px] font-semibold text-sv-ink/60">{t.dateFmt.format(lead.createdAt)}</p>
         <form action={setProLeadStatus} className="flex items-center gap-2">
           <input type="hidden" name="id" value={lead.id} />
           <select
             name="status"
             defaultValue={isInquiryStatus(lead.status) ? lead.status : "new"}
-            aria-label="ლიდის სტატუსი"
+            aria-label={t.statusAria}
             className="h-9 rounded-full border border-sv-ink/12 bg-sv-cloud/40 px-3 text-[12px] font-bold text-sv-ink outline-none focus:border-sv-blue"
           >
             {INQUIRY_STATUSES.map((value) => (
               <option key={value} value={value}>
-                {INQUIRY_STATUS_KA[value]}
+                {statusLabel[value]}
               </option>
             ))}
           </select>
@@ -116,7 +139,7 @@ function LeadCard({
             type="submit"
             className="rounded-full bg-sv-navy px-3.5 py-1.5 text-[12px] font-bold text-white transition hover:opacity-90"
           >
-            შენახვა
+            {t.save}
           </button>
         </form>
       </div>
@@ -128,11 +151,16 @@ export default function LeadInbox({
   leads,
   titles,
   layout = "list",
+  lang = "ka",
 }: {
   leads: InboxLead[]
   titles: Record<string, string>
   layout?: "list" | "board"
+  lang?: string
 }) {
+  const t = L[lang === "en" ? "en" : lang === "de" ? "de" : "ka"]
+  const statusLabel = inquiryStatusLabel(lang)
+
   if (layout === "board") {
     return (
       <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
@@ -145,7 +173,7 @@ export default function LeadInbox({
             >
               <header className="flex items-center justify-between px-1 pb-2">
                 <h2 className="text-[12px] font-extrabold uppercase tracking-wide text-sv-ink/60">
-                  {INQUIRY_STATUS_KA[status]}
+                  {statusLabel[status]}
                 </h2>
                 <span className="rounded-full bg-sv-ink/6 px-2 py-0.5 text-[11px] font-black tabular-nums text-sv-ink/60">
                   {bucket.length}
@@ -154,11 +182,11 @@ export default function LeadInbox({
               <div className="flex flex-col gap-2">
                 {bucket.length === 0 ? (
                   <p className="rounded-xl border border-dashed border-sv-ink/10 px-3 py-6 text-center text-[11.5px] font-medium text-sv-ink/35">
-                    ცარიელი
+                    {t.empty}
                   </p>
                 ) : (
                   bucket.map((lead) => (
-                    <LeadCard key={lead.id} lead={lead} title={titles[lead.listingId]} />
+                    <LeadCard key={lead.id} lead={lead} title={titles[lead.listingId]} t={t} statusLabel={statusLabel} />
                   ))
                 )}
               </div>
@@ -172,7 +200,7 @@ export default function LeadInbox({
   return (
     <div className="flex flex-col gap-3">
       {leads.map((lead) => (
-        <LeadCard key={lead.id} lead={lead} title={titles[lead.listingId]} />
+        <LeadCard key={lead.id} lead={lead} title={titles[lead.listingId]} t={t} statusLabel={statusLabel} />
       ))}
     </div>
   )

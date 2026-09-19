@@ -17,6 +17,27 @@ const DAY = 86_400_000
 const MONDAY_FIRST = ["2026-06-01", "2026-06-02", "2026-06-03", "2026-06-04", "2026-06-05", "2026-06-06", "2026-06-07"]
 const MONTHS_AHEAD = 6
 
+const L = {
+  ka: {
+    toast: "ვერ შეიცვალა — სცადე თავიდან",
+    prevMonth: "წინა თვე",
+    nextMonth: "შემდეგი თვე",
+    blockedNights: "დაბლოკილი ღამები:",
+  },
+  en: {
+    toast: "Could not update — try again",
+    prevMonth: "Previous month",
+    nextMonth: "Next month",
+    blockedNights: "Blocked nights:",
+  },
+  de: {
+    toast: "Änderung fehlgeschlagen — bitte erneut versuchen",
+    prevMonth: "Vorheriger Monat",
+    nextMonth: "Nächster Monat",
+    blockedNights: "Gesperrte Nächte:",
+  },
+} as const
+
 function localTodayIso(): string {
   const d = new Date()
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`
@@ -37,6 +58,7 @@ export function BlockedDatesManager({
   initialBlocked: string[]
 }) {
   const { lang } = useI18n()
+  const c = L[lang === "en" ? "en" : lang === "de" ? "de" : "ka"]
   const [blocked, setBlocked] = useState<Set<string>>(() => new Set(initialBlocked))
   const [cursor, setCursor] = useState(0)
   const todayIso = localTodayIso()
@@ -78,7 +100,7 @@ export function BlockedDatesManager({
       if (!res.ok) throw new Error(String(res.status))
     } catch {
       setBlocked(blocked) // revert
-      toast.error("ვერ შეიცვლა — სცადე თავიდან")
+      toast.error(c.toast)
     }
   }
 
@@ -88,7 +110,7 @@ export function BlockedDatesManager({
       <div className="mb-2 flex items-center justify-between">
         <button
           type="button"
-          aria-label="წინა თვე"
+          aria-label={c.prevMonth}
           disabled={cursor === 0}
           onClick={() => setCursor((c) => Math.max(0, c - 1))}
           className="rounded-full border border-sv-ink/10 bg-sv-cloud p-1.5 text-sv-ink/60 disabled:opacity-30"
@@ -98,7 +120,7 @@ export function BlockedDatesManager({
         <span className="text-[13px] font-black text-sv-ink">{labelFmt.format(first)}</span>
         <button
           type="button"
-          aria-label="შემდეგი თვე"
+          aria-label={c.nextMonth}
           disabled={cursor >= MONTHS_AHEAD - 1}
           onClick={() => setCursor((c) => Math.min(MONTHS_AHEAD - 1, c + 1))}
           className="rounded-full border border-sv-ink/10 bg-sv-cloud p-1.5 text-sv-ink/60 disabled:opacity-30"
@@ -136,7 +158,7 @@ export function BlockedDatesManager({
         })}
       </div>
       <p className="mt-2 text-[11.5px] font-semibold text-sv-ink/45">
-        დაბლოკილი ღამები: {blocked.size}
+        {c.blockedNights} {blocked.size}
       </p>
     </div>
   )

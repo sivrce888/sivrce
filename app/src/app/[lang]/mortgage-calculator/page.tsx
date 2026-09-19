@@ -9,7 +9,7 @@ import { isValidLang } from '@/lib/i18n/core'
 import MortgageCalcClient from '@/components/mortgage/MortgageCalcClient'
 import { jsonLd } from '@/lib/utils'
 import { pageMeta } from '@/lib/i18n/server'
-import { dirLoc, type DirLoc } from '@/lib/directory-seo'
+import { type DirLoc } from '@/lib/directory-seo'
 
 export const revalidate = 86400
 
@@ -38,6 +38,11 @@ export async function generateMetadata({
         description:
           'Бесплатный ипотечный калькулятор для рынка Грузии — ежемесячный платёж для любой квартиры. Ставки 2026: Bank of Georgia, TBC, Credo, BasisBank. Срок 15–25 лет, взнос 15–30%.',
       },
+      de: {
+        title: 'Hypothekenrechner Georgien — Monatsrate, Anzahlung, Zinssatz',
+        description:
+          'Kostenloser Hypothekenrechner für den georgischen Markt — die Monatsrate für jede Wohnung. Zinssätze 2026: Bank of Georgia, TBC, Credo, BasisBank. Laufzeiten 15–25 Jahre, Anzahlung 15–30 %.',
+      },
     }),
     openGraph: {
       title: 'იპოთეკის კალკულატორი საქართველოში',
@@ -52,7 +57,7 @@ export async function generateMetadata({
 
 type BankRow = { name: string; local: string; rate: string; term: string; note: string }
 
-const COPY: Record<DirLoc, {
+const COPY: Record<DirLoc | 'de', {
   kicker: string; title: string; subtitle: string
   bankSection: string; thBank: string; thRate: string; thTerm: string; thNote: string
   ratesNote: string; guideTitle: string; guide: string[]
@@ -158,9 +163,41 @@ const COPY: Record<DirLoc, {
       { name: 'BasisBank', local: 'БазисБанк', rate: '9.5-13%', term: '5–20 лет', note: 'Гибкие условия для нерезидентов' },
     ],
   },
+  de: {
+    kicker: 'Nach Marktbedingungen 2026',
+    title: 'Hypothekenrechner Georgien',
+    subtitle: 'Berechnen Sie Monatsrate, Gesamtzinsen und Anzahlung für jede Wohnung. Der Rechner nutzt die Standard-Annuitätenformel — dieselbe, die auch Bank of Georgia und TBC verwenden.',
+    bankSection: 'Georgische Banken im Vergleich', thBank: 'Bank', thRate: 'Jahreszins', thTerm: 'Laufzeit', thNote: 'Hinweis',
+    ratesNote: 'Die Zinssätze spiegeln den Markt 2026 wider und können sich ändern. Wenden Sie sich für ein konkretes Angebot an die jeweilige Bank.',
+    guideTitle: 'So funktionieren Hypotheken in Georgien',
+    guide: [
+      'Hypotheken in Georgien werden in GEL oder einer Fremdwährung (USD/EUR) vergeben. Die GEL-Zinssätze sind höher (8–13 %), ohne Währungsrisiko. Die Fremdwährungszinssätze sind niedriger (6–9 %), doch Kursschwankungen können Ihre Monatsrate erhöhen.',
+      'Standardanforderungen: Alter 21+, Nachweis eines georgischen Einkommens (Kontoauszüge der letzten 3–6 Monate) und Gebäudeversicherung. Nichtansässige erhalten meist kürzere Laufzeiten und eine höhere Anzahlung.',
+      'Die Prüfung dauert 3–10 Werktage. Eine Vorabgenehmigung in den Apps von TBC und Bank of Georgia gibt es oft innerhalb weniger Stunden. Der endgültige Vertrag wird nach der Auswahl der Immobilie geschlossen.',
+    ],
+    faqTitle: 'Häufig gestellte Fragen',
+    faqs: [
+      { q: 'Wie hoch ist die Mindestanzahlung für eine Hypothek in Georgien?', a: 'Für Ansässige lag die Mindestanzahlung früher bei 10–20 %, im Markt 2026 verlangen die meisten Banken 20–30 %. Für Nichtansässige steigt die Anforderung oft auf 30–50 %, da kein georgisches Einkommen vorliegt.' },
+      { q: 'Welche Bank bietet 2026 die besten Hypothekenkonditionen?', a: 'Die wichtigsten Anbieter sind Bank of Georgia, TBC Bank, Credo Bank und BasisBank. Die Zinssätze reichen von 8–13 % in GEL und 6–9 % in Fremdwährung (lange Laufzeiten). Das konkrete Angebot hängt von Einkommen, Kreditgeschichte und Immobilientyp ab.' },
+      { q: 'Kann ein Ausländer in Georgien eine Hypothek bekommen?', a: 'Ja, mit Einschränkungen. Ohne georgisches Einkommen verlangen Banken eine hohe Anzahlung (30–50 %) und eine kürzere Laufzeit (10–15 Jahre). Manche Banken verlangen einen lokalen Bürgen oder eine in Georgien registrierte Firma. Die Barzahlung des vollständigen Preises ist immer möglich und ist der üblichste Weg für Ausländer.' },
+      { q: 'Welche Zusatzkosten kommen beim Immobilienkauf auf mich zu?', a: 'Die Grundstücksübertragungssteuer beträgt 1 % des geschätzten Werts auf die ersten 100.000 GEL und 2 % darüber. Notar- und Registrierungsgebühren liegen meist bei 150–300 $. Die Maklerprovision liegt bei 1–3 % (üblicherweise zahlt sie der Verkäufer oder sie wird geteilt). Die Eigentumsregistrierung im öffentlichen Register dauert 1–4 Werktage.' },
+      { q: 'Welche Laufzeit ist am günstigsten?', a: 'Eine kurze Laufzeit (10–15 Jahre) halbiert die Gesamtzinsen, erhöht aber die Monatsrate. Eine lange Laufzeit (20–25 Jahre) senkt die monatliche Belastung, erhöht aber die Endkosten. Der Sweet Spot für eine georgische Wohnung liegt bei 15–20 Jahren.' },
+    ],
+    ctaTitle: 'Sie suchen eine Wohnung?',
+    ctaSub: 'Verifizierte Inserate mit KI-Preisschätzung — Tiflis, Batumi, Kutaissi.',
+    ctaButton: 'Verifizierte Wohnungen',
+    crumbHome: 'Startseite', crumbCalc: 'Hypothekenrechner', lang: 'de',
+    sibling: 'Mieten oder kaufen? Vergleichen Sie mit Zahlen →',
+    banks: [
+      { name: 'Bank of Georgia', local: 'Bank of Georgia', rate: '8.9-12.5%', term: '5–25 J.', note: 'Größtes Portfolio; schnelle Prüfung für Ansässige' },
+      { name: 'TBC Bank', local: 'TBC Bank', rate: '9.2-13%', term: '5–25 J.', note: 'Digitaler Antrag, Online-Vorabgenehmigung' },
+      { name: 'Credo Bank', local: 'Credo Bank', rate: '10-14%', term: '5–20 J.', note: 'Spezialist für Mikro- und Kleinhypotheken' },
+      { name: 'BasisBank', local: 'BasisBank', rate: '9.5-13%', term: '5–20 J.', note: 'Flexible Konditionen für Nichtansässige' },
+    ],
+  },
 }
 
-function hubLdFor(loc: DirLoc) {
+function hubLdFor(loc: DirLoc | 'de') {
   const c = COPY[loc]
   return {
     '@context': 'https://schema.org',
@@ -207,7 +244,7 @@ export default async function MortgageCalculatorPage({
 }) {
   const { lang: raw } = await params
   const lang = isValidLang(raw) ? raw : 'ka'
-  const loc = dirLoc(lang)
+  const loc: DirLoc | 'de' = lang === 'ka' || lang === 'ru' || lang === 'de' ? lang : 'en'
   const c = COPY[loc]
   return (
     <div className="min-h-screen bg-sv-cloud">

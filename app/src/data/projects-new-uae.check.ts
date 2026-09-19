@@ -48,6 +48,11 @@ for (const p of NEW_PROJECTS_UAE) {
 // Renders wired in gallery must exist on disk (gen-project-renders.ts fills them).
 for (const p of PROJECTS) {
   for (const src of p.gallery ?? []) {
+    // World rows carry governed remote Commons galleries (world-project-media.check).
+    if (/^https?:\/\//.test(src)) {
+      assert.ok(src.startsWith('https://commons.wikimedia.org/wiki/Special:FilePath/'), `remote render not a Commons thumb: ${src}`)
+      continue
+    }
     assert.ok(fs.existsSync(path.join(process.cwd(), 'public', src)), `render file: ${src}`)
   }
 }

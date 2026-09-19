@@ -152,7 +152,7 @@ export default async function SettingsPage({
   return (
     <DashboardShell
       nav={settingsNavFor(user.role, lang)}
-      title={settingsTitleFor(user.role, persona)}
+      title={settingsTitleFor(user.role, persona, lang)}
       subtitle={c.sub}
       userLabel={user.name ?? user.email}
     >

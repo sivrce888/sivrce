@@ -8,34 +8,82 @@ import DashboardShell from "@/components/dashboard/DashboardShell"
 import EmptyState from "@/components/dashboard/EmptyState"
 import UserAvatar from "@/components/UserAvatar"
 import { requireRole } from "@/lib/guards"
+import { isValidLang } from "@/lib/i18n/core"
 
 export const dynamic = "force-dynamic"
 
-export const metadata: Metadata = {
-  title: "სააგენტოს გუნდი",
-  robots: { index: false },
+const L = {
+  ka: {
+    metaTitle: "სააგენტოს გუნდი",
+    title: "სააგენტოს პანელი",
+    subtitle: "გუნდი",
+    emptyTitle: "აგენტები ჯერ არ არის",
+    teamSizeNote: (n: number) =>
+      `პროფილში მითითებულია გუნდის ზომა: ${n}. აგენტის პროფილი გუნდში გამოჩნდება, როცა მისი სააგენტო ემთხვევა ამ სააგენტოს სახელს.`,
+    noAgents: "ჯერ არ არის ამ სააგენტოსთან დაკავშირებული აგენტების პროფილები.",
+    verified: "ვერიფიცირებული",
+    reviewsWord: "შეფასება",
+    listingsWord: "განცხადება",
+    publicProfile: "საჯარო პროფილი →",
+  },
+  en: {
+    metaTitle: "Agency team",
+    title: "Agency dashboard",
+    subtitle: "Team",
+    emptyTitle: "No agents yet",
+    teamSizeNote: (n: number) =>
+      `Team size listed in the profile: ${n}. An agent's profile appears on the team when their agency matches this agency's name.`,
+    noAgents: "No agent profiles are linked to this agency yet.",
+    verified: "Verified",
+    reviewsWord: "reviews",
+    listingsWord: "listings",
+    publicProfile: "Public profile →",
+  },
+  de: {
+    metaTitle: "Agentur-Team",
+    title: "Agentur-Dashboard",
+    subtitle: "Team",
+    emptyTitle: "Noch keine Agenten",
+    teamSizeNote: (n: number) =>
+      `Im Profil ist eine Teamgröße von ${n} hinterlegt. Das Profil eines Agenten erscheint im Team, wenn seine Agentur zum Namen dieser Agentur passt.`,
+    noAgents: "Mit dieser Agentur sind noch keine Agentenprofile verknüpft.",
+    verified: "Verifiziert",
+    reviewsWord: "Bewertungen",
+    listingsWord: "Inserate",
+    publicProfile: "Öffentliches Profil →",
+  },
+} as const
+type Loc = keyof typeof L
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>
+}): Promise<Metadata> {
+  const { lang: raw } = await params
+  const loc: Loc = raw === "en" ? "en" : raw === "de" ? "de" : "ka"
+  return { title: L[loc].metaTitle, robots: { index: false } }
 }
 
 export default async function AgencyTeamPage({ params }: { params: Promise<{ lang: string }> }) {
-  const { lang } = await params
+  const { lang: raw } = await params
+  const lang = isValidLang(raw) ? raw : "ka"
+  const loc = lang === "en" ? "en" : lang === "de" ? "de" : "ka"
+  const T = L[loc]
   const user = await requireRole("agency", "/agency")
   const { profile, team } = await getAgencyContext(user)
 
   return (
     <DashboardShell
       nav={AGENCY_NAV(lang)}
-      title="სააგენტოს პანელი"
-      subtitle="გუნდი"
+      title={T.title}
+      subtitle={T.subtitle}
       userLabel={user.name ?? user.email}
     >
       {team.length === 0 ? (
         <EmptyState
-          title="აგენტები ჯერ არ არის"
-          body={
-            profile
-              ? `პროფილში მითითებულია გუნდის ზომა: ${profile.teamSize}. აგენტის პროფილი გუნდში გამოჩნდება, როცა მისი სააგენტო ემთხვევა ამ სააგენტოს სახელს.`
-              : "ჯერ არ არის ამ სააგენტოსთან დაკავშირებული აგენტების პროფილები."
-          }
+          title={T.emptyTitle}
+          body={profile ? T.teamSizeNote(profile.teamSize) : T.noAgents}
         />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
@@ -50,18 +98,18 @@ export default async function AgencyTeamPage({ params }: { params: Promise<{ lan
                   <p className="flex items-center gap-1.5 truncate text-[14.5px] font-extrabold text-sv-ink">
                     {agent.name}
                     {agent.verified ? (
-                      <BadgeCheck size={15} className="shrink-0 text-sv-blue" aria-label="ვერიფიცირებული" />
+                      <BadgeCheck size={15} className="shrink-0 text-sv-blue" aria-label={T.verified} />
                     ) : null}
                   </p>
                   <p className="text-[12px] font-semibold text-sv-ink/60">
                     <Star size={12} className="mr-0.5 inline -translate-y-px text-sv-blue" aria-hidden />
-                    {agent.rating.toFixed(1)} · {agent.reviewsCount} შეფასება
+                    {agent.rating.toFixed(1)} · {agent.reviewsCount} {T.reviewsWord}
                   </p>
                 </div>
               </div>
               <p className="mt-3 text-[13px] font-black tabular-nums text-sv-ink">
                 {agent.listingsCount}{" "}
-                <span className="text-[11.5px] font-bold text-sv-ink/60">განცხადება</span>
+                <span className="text-[11.5px] font-bold text-sv-ink/60">{T.listingsWord}</span>
               </p>
               {agent.languages.length > 0 ? (
                 <div className="mt-3 flex flex-wrap gap-1.5">
@@ -85,7 +133,7 @@ export default async function AgencyTeamPage({ params }: { params: Promise<{ lan
                   href={`/u/${agent.ownerId}`}
                   className="mt-3 inline-block text-[12px] font-bold text-sv-blue hover:underline"
                 >
-                  საჯარო პროფილი →
+                  {T.publicProfile}
                 </LocalizedLink>
               ) : null}
             </article>

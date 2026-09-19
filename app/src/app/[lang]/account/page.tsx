@@ -37,7 +37,7 @@ export default async function AccountPage({ params }: { params: Promise<{ lang: 
   return (
     <DashboardShell
       nav={buyerNav(lang)}
-      title={panelTitle(persona)}
+      title={panelTitle(persona, lang)}
       subtitle="მიმოხილვა"
       userLabel={user.name ?? user.email}
     >

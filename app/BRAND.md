@@ -1,4 +1,4 @@
-# სივრცე — Brand Lock (v1.19) · WCAG AA text pass 2026-09-11 · dark AA floor + focus ring 2026-09-08 · FROZEN 2026-07-17 · EN tagline “in one place” 2026-08-31 · Logo from owner SVG (2048×508 embed) 2026-07-20 · Status = newProjects sky 2026-07-18 · Hero day/night 2026-08-31
+# სივრცე — Brand Lock (v1.20) · Liquid Glass material + floating dock capsule 2026-09-19 · WCAG AA text pass 2026-09-11 · dark AA floor + focus ring 2026-09-08 · FROZEN 2026-07-17 · EN tagline “in one place” 2026-08-31 · Logo from owner SVG (2048×508 embed) 2026-07-20 · Status = newProjects sky 2026-07-18 · Hero day/night 2026-08-31
 
 **STATUS: LOCKED.** Do not invent colors, radii, fonts, motion, logo geometry,
 or category hues. Owner-approved. Change only with explicit owner approval +
@@ -235,7 +235,17 @@ Rules:
   outer 12 + p-1 → inner 8 `rounded-lg`)
 - **Icon chips:** ≥44px box → r=16 (`rounded-module`); <44px → r=12 (`rounded-control`)
 - Shadows only from `elevation` tokens — never `shadow-lg/2xl` or arbitrary black shadows
-- Glass: `.glass` (dark) / `.glass-light` (light) — 20px blur, hairline translucent border only
+- Glass — **Liquid Glass** (v1.20, owner-approved 2026-09-19): `.glass` (on dark) /
+  `.glass-hero` / `.glass-light`. Each tier = translucent base + 20–24px blur +
+  saturate, a **specular top gradient** (white alpha, fading by ~45% height) and
+  **edge lighting** (brighter `border-top-color`, navy-tint `border-bottom-color`).
+  No new hues — white alpha + `rgba(10,16,48,…)` only. The specular is a
+  `background` layer, never `box-shadow`: these tiers are composed with Tailwind
+  `shadow-*` utilities, which own `box-shadow`. Lite devices drop the blur and
+  keep tint + specular (`html[data-lite]`, globals.css).
+- Floating chrome: the mobile dock is a **capsule** (`rounded-full`, inset 0.75rem,
+  0.5rem off the safe-area floor), not an edge-to-edge bar — content flows under it.
+  Clearance token `--sv-dock` must equal capsule height + float gap + safe area.
 
 ## 6. Motion
 

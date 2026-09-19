@@ -40,19 +40,19 @@ import { PER_PAGE, ProjectsGrid } from './ProjectsGrid'
 import type { ProjectCard } from './card'
 import { cityName, type DirLoc } from '@/lib/directory-seo-lite'
 
-const COUNTRY_LABELS: Record<string, { ka: string; en: string; ru: string }> = {
-  GE: { ka: 'საქართველო', en: 'Georgia', ru: 'Грузия' },
-  DE: { ka: 'გერმანია', en: 'Germany', ru: 'Германия' },
-  AE: { ka: 'საამიროები', en: 'UAE', ru: 'ОАЭ' },
-  US: { ka: 'აშშ', en: 'USA', ru: 'США' },
-  GB: { ka: 'დიდი ბრიტანეთი', en: 'UK', ru: 'Великобритания' },
-  FR: { ka: 'საფრანგეთი', en: 'France', ru: 'Франция' },
-  ES: { ka: 'ესპანეთი', en: 'Spain', ru: 'Испания' },
-  IT: { ka: 'იტალია', en: 'Italy', ru: 'Италия' },
-  TR: { ka: 'თურქეთი', en: 'Turkey', ru: 'Турция' },
-  SA: { ka: 'საუდის არაბეთი', en: 'Saudi Arabia', ru: 'Саудовская Аравия' },
-  CY: { ka: 'კვიპროსი', en: 'Cyprus', ru: 'Кипр' },
-  GR: { ka: 'საბერძნეთი', en: 'Greece', ru: 'Греция' },
+const COUNTRY_LABELS: Record<string, { ka: string; en: string; ru: string; de: string }> = {
+  GE: { ka: 'საქართველო', en: 'Georgia', ru: 'Грузия', de: 'Georgien' },
+  DE: { ka: 'გერმანია', en: 'Germany', ru: 'Германия', de: 'Deutschland' },
+  AE: { ka: 'საამიროები', en: 'UAE', ru: 'ОАЭ', de: 'Vereinigte Arabische Emirate' },
+  US: { ka: 'აშშ', en: 'USA', ru: 'США', de: 'USA' },
+  GB: { ka: 'დიდი ბრიტანეთი', en: 'UK', ru: 'Великобритания', de: 'Vereinigtes Königreich' },
+  FR: { ka: 'საფრანგეთი', en: 'France', ru: 'Франция', de: 'Frankreich' },
+  ES: { ka: 'ესპანეთი', en: 'Spain', ru: 'Испания', de: 'Spanien' },
+  IT: { ka: 'იტალია', en: 'Italy', ru: 'Италия', de: 'Italien' },
+  TR: { ka: 'თურქეთი', en: 'Turkey', ru: 'Турция', de: 'Türkei' },
+  SA: { ka: 'საუდის არაბეთი', en: 'Saudi Arabia', ru: 'Саудовская Аравия', de: 'Saudi-Arabien' },
+  CY: { ka: 'კვიპროსი', en: 'Cyprus', ru: 'Кипр', de: 'Zypern' },
+  GR: { ka: 'საბერძნეთი', en: 'Greece', ru: 'Греция', de: 'Griechenland' },
 }
 
 type Labels = {
@@ -83,7 +83,7 @@ const ruResults = (n: number) => {
   return `${n} ${word}`
 }
 
-const L: Record<DirLoc, Labels> = {
+const L: Record<DirLoc | 'de', Labels> = {
   ka: {
     aria: 'პროექტების ფილტრები',
     searchAria: 'ძიება',
@@ -141,6 +141,25 @@ const L: Record<DirLoc, Labels> = {
     clear: 'Сбросить',
     empty: 'По этим фильтрам ничего не найдено',
   },
+  de: {
+    aria: 'Projektfilter',
+    searchAria: 'Suche',
+    searchPh: 'Projekt, Viertel, Bauträger…',
+    allCountries: 'Alle Länder',
+    statusBuild: 'Im Bau',
+    statusDone: 'Fertiggestellt',
+    other: 'Weitere',
+    allDistricts: 'Alle Bezirke',
+    districtAria: 'Bezirk',
+    allDev: 'Alle Bauträger',
+    devAria: 'Bauträger',
+    sortAria: 'Sortierung',
+    sorts: { rec: 'Empfohlen', price: 'Preis: aufsteigend', 'price-desc': 'Preis: absteigend', handover: 'Übergabe: früheste', rating: 'Bewertung: absteigend', progress: 'Baufortschritt: höchster' },
+    results: (n) => `${n} ${n === 1 ? 'Projekt' : 'Projekte'}`,
+    more: 'Mehr anzeigen',
+    clear: 'Zurücksetzen',
+    empty: 'Keine Projekte passen zu diesen Filtern',
+  },
 }
 
 const chipBase =
@@ -165,7 +184,7 @@ export function ProjectsExplorer({
   pager,
 }: {
   projects: ProjectCard[]
-  loc: DirLoc
+  loc: DirLoc | 'de'
   /** Server-rendered SEO pager — shown while no filter is engaged. */
   pager?: ReactNode
 }) {

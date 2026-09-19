@@ -31,8 +31,10 @@ export interface CopilotAnswer {
   questionCategory: 'valuation' | 'investment' | 'tco_hidden_costs' | 'trust_safety' | 'general'
   headlineEn: string
   headlineKa: string
+  headlineDe: string
   bodyEn: string
   bodyKa: string
+  bodyDe: string
   confidenceScore: number
   factState: 'FACT' | 'ESTIMATE' | 'PREDICTION'
 }
@@ -55,6 +57,8 @@ export function answerPropertyQuestion(
         headlineKa: `ფასი უბნის საშუალოზე ${Math.abs(diffPct)}%-ით დაბალია ($${pricePerSqm}/მ² vs $${context.districtMedianPerSqm}/მ²)`,
         bodyEn: `This property is priced attractively compared to the ${context.district} median. Check photos and cadastral verification to ensure no renovation is required.`,
         bodyKa: `ეს ბინა ${context.district}-ის საშუალოზე იაფია. შეამოწმეთ ფოტოები და საკადასტრო კოდი რემონტის საჭიროების დასადგენად.`,
+        headlineDe: `Preis ${Math.abs(diffPct)}% unter Bezirksmedian ($${pricePerSqm}/m² vs. $${context.districtMedianPerSqm}/m²)`,
+        bodyDe: `Diese Immobilie ist im Vergleich zum Median in ${context.district} attraktiv bepreist. Prüfen Sie Fotos und Kataster-Nachweis, um einen Renovierungsbedarf auszuschließen.`,
         confidenceScore: 90,
         factState: 'FACT',
       }
@@ -66,6 +70,8 @@ export function answerPropertyQuestion(
       headlineKa: `საბაზრო ფასი ${context.district}-ის ფარგლებში`,
       bodyEn: `At $${pricePerSqm}/m², this listing aligns closely with the current ${context.district} district average of $${context.districtMedianPerSqm}/m².`,
       bodyKa: `$${pricePerSqm}/მ² ფასით ეს ბინა სრულად შეესაბამება ${context.district}-ის საშუალო საბაზრო ნორმას ($${context.districtMedianPerSqm}/მ²).`,
+      headlineDe: `Marktgerechter Preis im Rahmen des ${context.district}-Benchmarks`,
+      bodyDe: `Mit $${pricePerSqm}/m² liegt dieses Inserat nahe am aktuellen Bezirksdurchschnitt von $${context.districtMedianPerSqm}/m² in ${context.district}.`,
       confidenceScore: 85,
       factState: 'FACT',
     }
@@ -87,6 +93,8 @@ export function answerPropertyQuestion(
       headlineKa: `საორიენტაციო წლიური მომგებიანობა: ${metrics.grossYieldPct}%`,
       bodyEn: `Estimated monthly rental income is ~$${monthlyRent}/month. Expected annual gross yield is ${metrics.grossYieldPct}%, with net cashflow estimated at ~$${metrics.cashflowMonthlyEst}/month.`,
       bodyKa: `საორიენტაციო თვიური იჯარა ~$${monthlyRent}/თვეში. მოსალოდნელი წლიური მომგებიანობა ${metrics.grossYieldPct}%-ია.`,
+      headlineDe: `Prognostizierte Bruttorendite: ${metrics.grossYieldPct}% pro Jahr`,
+      bodyDe: `Die geschätzte Monatsmiete beträgt ~$${monthlyRent}. Die erwartete jährliche Bruttorendite liegt bei ${metrics.grossYieldPct}%, der Nettocashflow bei ~$${metrics.cashflowMonthlyEst}/Monat.`,
       confidenceScore: 80,
       factState: 'ESTIMATE',
     }
@@ -102,6 +110,8 @@ export function answerPropertyQuestion(
       headlineKa: `სრული შესყიდვის ხარჯი: ~$${tco.totalAcquisitionCostUSD.toLocaleString()}`,
       bodyEn: `Includes registration tax (~$${tco.registrationTaxUSD}) and legal/notary fees (~$${tco.notaryLegalUSD}). Estimated annual upkeep is ~$${tco.estimatedAnnualUpkeepUSD}/year.`,
       bodyKa: `მოიცავს რეგისტრაციას (~$${tco.registrationTaxUSD}) და სანოტარო მომსახურებას (~$${tco.notaryLegalUSD}). წლიური მოვლის ხარჯი ~$${tco.estimatedAnnualUpkeepUSD}/წელში.`,
+      headlineDe: `Gesamterwerbskosten: ~$${tco.totalAcquisitionCostUSD.toLocaleString()}`,
+      bodyDe: `Enthält Registrierungssteuer (~$${tco.registrationTaxUSD}) und Notar-/Rechtskosten (~$${tco.notaryLegalUSD}). Geschätzte jährliche Instandhaltung ~$${tco.estimatedAnnualUpkeepUSD}/Jahr.`,
       confidenceScore: 95,
       factState: 'FACT',
     }
@@ -125,6 +135,8 @@ export function answerPropertyQuestion(
       headlineKa: `ნდობის შეფასება: ${fraud.tier} (რისკის ქულა ${fraud.riskScore}/100)`,
       bodyEn: fraud.flags.length > 0 ? `Risk factors detected: ${fraud.flags.map((f) => f.titleEn).join('; ')}` : 'This listing passes all primary verification safety checks.',
       bodyKa: fraud.flags.length > 0 ? `დაფიქსირდა რისკ-ფაქტორები: ${fraud.flags.map((f) => f.titleKa).join('; ')}` : 'განცხადებამ წარმატებით გაიარა უსაფრთხოების შემოწმება.',
+      headlineDe: `Vertrauensbewertung: ${fraud.tier} (Risikowert ${fraud.riskScore}/100)`,
+      bodyDe: fraud.flags.length > 0 ? `Erkannte Risikofaktoren: ${fraud.flags.map((f) => f.titleDe).join('; ')}` : 'Dieses Inserat besteht alle primären Verifizierungs- und Sicherheitsprüfungen.',
       confidenceScore: 90,
       factState: 'FACT',
     }
@@ -137,6 +149,8 @@ export function answerPropertyQuestion(
     headlineKa: `ქონების შეფასება — ${context.title}`,
     bodyEn: `${context.areaSqm}m² property located in ${context.district}, ${context.city} for $${context.priceUSD.toLocaleString()} ($${Math.round(context.priceUSD / Math.max(1, context.areaSqm))}/m²).`,
     bodyKa: `${context.areaSqm}მ² ბინა ${context.district}-ში (${context.city}), ფასი $${context.priceUSD.toLocaleString()} ($${Math.round(context.priceUSD / Math.max(1, context.areaSqm))}/მ²).`,
+    headlineDe: `Immobilien-Zusammenfassung für ${context.title}`,
+    bodyDe: `${context.areaSqm} m² Immobilie in ${context.district}, ${context.city}, Preis $${context.priceUSD.toLocaleString()} ($${Math.round(context.priceUSD / Math.max(1, context.areaSqm))}/m²).`,
     confidenceScore: 85,
     factState: 'FACT',
   }

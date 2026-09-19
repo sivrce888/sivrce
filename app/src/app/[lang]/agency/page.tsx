@@ -15,18 +15,125 @@ import StatCard from "@/components/dashboard/StatCard"
 import UserAvatar from "@/components/UserAvatar"
 import { db } from "@/lib/db"
 import { requireRole, safeQuery } from "@/lib/guards"
-import { INQUIRY_STATUS_KA, INQUIRY_STATUSES, inquiryWhere, listingOwnerWhere } from "@/lib/pro-leads"
+import { INQUIRY_STATUSES, inquiryWhere, listingOwnerWhere } from "@/lib/pro-leads"
+import { inquiryStatusLabel } from "@/components/agent-dashboard/format"
 import { phoneRevealsOf } from "@/lib/inquiries/phone"
+import { isValidLang } from "@/lib/i18n/core"
 
 export const dynamic = "force-dynamic"
 
-export const metadata: Metadata = {
-  title: "სააგენტოს პანელი",
-  robots: { index: false },
+const L = {
+  ka: {
+    metaTitle: "სააგენტოს პანელი",
+    title: "სააგენტოს პანელი",
+    addListing: "დაამატე განცხადება",
+    noProfileTitle: "სააგენტოს პროფილი ვერ მოიძებნა",
+    noProfileBody: "შეავსე პროფილი — საჯარო გვერდი და სტატისტიკა გამოჩნდება შენახვისთანავე.",
+    fillProfile: "პროფილის შევსება",
+    active: "აქტიური",
+    total: (n: number) => `${n} სულ`,
+    views: "ნახვები",
+    teamPortfolio: "გუნდის პორტფოლიო",
+    newLeads: "ახალი ლიდები",
+    totalLeads: (n: number) => `სულ ${n}`,
+    phoneReveals: (n: number) => `ნომრის ნახვა: ${n}`,
+    crm: "CRM",
+    tours: "ვიზიტები",
+    leadPipeline: "ლიდების ძარღვი",
+    noLeads: "ლიდები ჯერ არ არის — ახალი მოთხოვნები აქ გამოჩნდება.",
+    allLeads: "ყველა ლიდი →",
+    quickActions: "სწრაფი ქმედებები",
+    newListing: "+ ახალი განცხადება",
+    manageListings: "განცხადებების მართვა",
+    team: "გუნდი",
+    vipPlans: "VIP ტარიფები",
+    publicPage: "საჯარო გვერდი",
+    teamSizeNote: (n: number) =>
+      `პროფილში მითითებულია გუნდის ზომა: ${n}. აგენტი გუნდში გამოჩნდება, როცა მისი სააგენტო ემთხვევა ამ სააგენტოს სახელს.`,
+    noAgents: "აგენტები ჯერ არ არის დამატებული.",
+    listingsWord: "განცხადება",
+    viewTeam: "გუნდის ნახვა →",
+  },
+  en: {
+    metaTitle: "Agency dashboard",
+    title: "Agency dashboard",
+    addListing: "Add listing",
+    noProfileTitle: "Agency profile not found",
+    noProfileBody: "Complete your profile — the public page and statistics will appear as soon as you save.",
+    fillProfile: "Complete profile",
+    active: "Active",
+    total: (n: number) => `${n} total`,
+    views: "Views",
+    teamPortfolio: "team portfolio",
+    newLeads: "New leads",
+    totalLeads: (n: number) => `${n} total`,
+    phoneReveals: (n: number) => `Phone reveals: ${n}`,
+    crm: "CRM",
+    tours: "Tours",
+    leadPipeline: "Lead pipeline",
+    noLeads: "No leads yet — new inquiries will appear here.",
+    allLeads: "All leads →",
+    quickActions: "Quick actions",
+    newListing: "+ New listing",
+    manageListings: "Manage listings",
+    team: "Team",
+    vipPlans: "VIP plans",
+    publicPage: "Public page",
+    teamSizeNote: (n: number) =>
+      `Team size listed in the profile: ${n}. An agent appears on the team when their agency matches this agency's name.`,
+    noAgents: "No agents added yet.",
+    listingsWord: "listings",
+    viewTeam: "View team →",
+  },
+  de: {
+    metaTitle: "Agentur-Dashboard",
+    title: "Agentur-Dashboard",
+    addListing: "Inserat hinzufügen",
+    noProfileTitle: "Agenturprofil nicht gefunden",
+    noProfileBody: "Vervollständige dein Profil — öffentliche Seite und Statistiken erscheinen sofort nach dem Speichern.",
+    fillProfile: "Profil vervollständigen",
+    active: "Aktiv",
+    total: (n: number) => `${n} gesamt`,
+    views: "Aufrufe",
+    teamPortfolio: "Team-Portfolio",
+    newLeads: "Neue Leads",
+    totalLeads: (n: number) => `Gesamt ${n}`,
+    phoneReveals: (n: number) => `Telefon-Aufrufe: ${n}`,
+    crm: "CRM",
+    tours: "Besichtigungen",
+    leadPipeline: "Lead-Pipeline",
+    noLeads: "Noch keine Leads — neue Anfragen erscheinen hier.",
+    allLeads: "Alle Leads →",
+    quickActions: "Schnellaktionen",
+    newListing: "+ Neues Inserat",
+    manageListings: "Inserate verwalten",
+    team: "Team",
+    vipPlans: "VIP-Tarife",
+    publicPage: "Öffentliche Seite",
+    teamSizeNote: (n: number) =>
+      `Im Profil ist eine Teamgröße von ${n} hinterlegt. Ein Agent erscheint im Team, wenn seine Agentur zum Namen dieser Agentur passt.`,
+    noAgents: "Noch keine Agenten hinzugefügt.",
+    listingsWord: "Inserate",
+    viewTeam: "Team ansehen →",
+  },
+} as const
+type Loc = keyof typeof L
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ lang: string }>
+}): Promise<Metadata> {
+  const { lang: raw } = await params
+  const loc: Loc = raw === "en" ? "en" : raw === "de" ? "de" : "ka"
+  return { title: L[loc].metaTitle, robots: { index: false } }
 }
 
 export default async function AgencyOverviewPage({ params }: { params: Promise<{ lang: string }> }) {
-  const { lang } = await params
+  const { lang: raw } = await params
+  const lang = isValidLang(raw) ? raw : "ka"
+  const loc = lang === "en" ? "en" : lang === "de" ? "de" : "ka"
+  const T = L[loc]
   const user = await requireRole("agency", "/agency")
   const { profile, team, ownerIds } = await getAgencyContext(user)
 
@@ -76,7 +183,7 @@ export default async function AgencyOverviewPage({ params }: { params: Promise<{
   return (
     <DashboardShell
       nav={AGENCY_NAV(lang)}
-      title="სააგენტოს პანელი"
+      title={T.title}
       subtitle={profile?.name}
       userLabel={user.name ?? user.email}
     >
@@ -86,49 +193,47 @@ export default async function AgencyOverviewPage({ params }: { params: Promise<{
           className="inline-flex items-center gap-1.5 rounded-full bg-sv-orange px-5 py-2.5 text-[13px] font-bold text-sv-ink shadow-glow-orange transition hover:opacity-95"
         >
           <Plus size={15} strokeWidth={2.5} />
-          დაამატე განცხადება
+          {T.addListing}
         </LocalizedLink>
       </div>
       <ImportCompetitorPanel />
       {!profile ? (
         <EmptyState
-          title="სააგენტოს პროფილი ვერ მოიძებნა"
-          body="შეავსე პროფილი — საჯარო გვერდი და სტატისტიკა გამოჩნდება შენახვისთანავე."
+          title={T.noProfileTitle}
+          body={T.noProfileBody}
           actionHref="/agency/profile"
-          actionLabel="პროფილის შევსება"
+          actionLabel={T.fillProfile}
         />
       ) : (
         <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
           <StatCard
-            label="აქტიური"
+            label={T.active}
             value={activeListings}
-            hint={`${listings.length} სულ`}
+            hint={T.total(listings.length)}
             icon={<Building2 size={18} />}
           />
-          <StatCard label="ნახვები" value={totalViews} hint="გუნდის პორტფოლიო" icon={<Eye size={18} />} />
+          <StatCard label={T.views} value={totalViews} hint={T.teamPortfolio} icon={<Eye size={18} />} />
           <StatCard
-            label="ახალი ლიდები"
+            label={T.newLeads}
             value={newLeads}
-            hint={totalLeads ? `სულ ${totalLeads}` : totalReveals ? `ნომრის ნახვა: ${totalReveals}` : "CRM"}
+            hint={totalLeads ? T.totalLeads(totalLeads) : totalReveals ? T.phoneReveals(totalReveals) : T.crm}
             icon={<Users size={18} />}
           />
-          <StatCard label="ვიზიტები" value={upcomingTours} icon={<CalendarDays size={18} />} />
+          <StatCard label={T.tours} value={upcomingTours} icon={<CalendarDays size={18} />} />
         </div>
       )}
 
       <div className="mt-6 grid gap-6 lg:grid-cols-2">
         <section className="rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card">
-          <h2 className="text-[15px] font-extrabold text-sv-ink">ლიდების ძარღვი</h2>
+          <h2 className="text-[15px] font-extrabold text-sv-ink">{T.leadPipeline}</h2>
           {totalLeads === 0 ? (
-            <p className="mt-4 text-[13px] font-medium text-sv-ink/60">
-              ლიდები ჯერ არ არის — ახალი მოთხოვნები აქ გამოჩნდება.
-            </p>
+            <p className="mt-4 text-[13px] font-medium text-sv-ink/60">{T.noLeads}</p>
           ) : (
             <div className="mt-4 flex flex-col gap-2.5">
               {INQUIRY_STATUSES.map((status) => (
                 <BarRow
                   key={status}
-                  label={INQUIRY_STATUS_KA[status]}
+                  label={inquiryStatusLabel(lang)[status]}
                   count={counts.get(status) ?? 0}
                   max={maxCount}
                 />
@@ -139,20 +244,20 @@ export default async function AgencyOverviewPage({ params }: { params: Promise<{
             href="/agency/leads"
             className="mt-5 inline-block text-[12.5px] font-bold text-sv-blue hover:underline"
           >
-            ყველა ლიდი →
+            {T.allLeads}
           </LocalizedLink>
         </section>
 
         <section className="rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card">
-          <h2 className="text-[15px] font-extrabold text-sv-ink">სწრაფი ქმედებები</h2>
+          <h2 className="text-[15px] font-extrabold text-sv-ink">{T.quickActions}</h2>
           <div className="mt-4">
             <DashboardQuickLinks
               links={[
-                { href: "/add-listing", label: "+ ახალი განცხადება", primary: true },
-                { href: "/agency/listings", label: "განცხადებების მართვა" },
-                { href: "/agency/team", label: "გუნდი" },
-                { href: "/advertise", label: "VIP ტარიფები" },
-                ...(user.id ? [{ href: `/u/${user.id}`, label: "საჯარო გვერდი" }] : []),
+                { href: "/add-listing", label: T.newListing, primary: true },
+                { href: "/agency/listings", label: T.manageListings },
+                { href: "/agency/team", label: T.team },
+                { href: "/advertise", label: T.vipPlans },
+                ...(user.id ? [{ href: `/u/${user.id}`, label: T.publicPage }] : []),
               ]}
             />
           </div>
@@ -160,12 +265,10 @@ export default async function AgencyOverviewPage({ params }: { params: Promise<{
       </div>
 
       <section className="mt-6 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card">
-        <h2 className="text-[15px] font-extrabold text-sv-ink">გუნდი</h2>
+        <h2 className="text-[15px] font-extrabold text-sv-ink">{T.team}</h2>
         {team.length === 0 ? (
           <p className="mt-4 text-[13px] font-medium text-sv-ink/60">
-            {profile
-              ? `პროფილში მითითებულია გუნდის ზომა: ${profile.teamSize}. აგენტი გუნდში გამოჩნდება, როცა მისი სააგენტო ემთხვევა ამ სააგენტოს სახელს.`
-              : "აგენტები ჯერ არ არის დამატებული."}
+            {profile ? T.teamSizeNote(profile.teamSize) : T.noAgents}
           </p>
         ) : (
           <ul className="mt-4 flex flex-col gap-3">
@@ -175,7 +278,7 @@ export default async function AgencyOverviewPage({ params }: { params: Promise<{
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-[13.5px] font-bold text-sv-ink">{agent.name}</p>
                   <p className="text-[11.5px] font-medium text-sv-ink/60">
-                    {agent.listingsCount} განცხადება · {agent.rating.toFixed(1)}
+                    {agent.listingsCount} {T.listingsWord} · {agent.rating.toFixed(1)}
                   </p>
                 </div>
               </li>
@@ -186,7 +289,7 @@ export default async function AgencyOverviewPage({ params }: { params: Promise<{
           href="/agency/team"
           className="mt-5 inline-block text-[12.5px] font-bold text-sv-blue hover:underline"
         >
-          გუნდის ნახვა →
+          {T.viewTeam}
         </LocalizedLink>
       </section>
 

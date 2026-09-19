@@ -1,12 +1,14 @@
 import Link from 'next/link'
 import { Suspense } from 'react'
-import { ArrowUpRight, Building2, Home, Landmark, MapPin, ShieldCheck } from 'lucide-react'
+import { ArrowUpRight, Building2, Calculator, Home, Landmark, MapPin, Scale, ShieldCheck, TrainFront } from 'lucide-react'
 import { Reveal } from '@/components/Reveal'
 import HScroll from '@/components/HScroll'
+import LocalizedLink from '@/components/LocalizedLink'
+import { DeveloperLogo } from '@/components/entities/DeveloperLogo'
 import CountryHero from '@/components/country/CountryHero'
 import MarketListings from '@/components/country/MarketListings'
 import DeProjectCard from '@/components/country/DeProjectCard'
-import DePropTechOS from '@/components/country/DePropTechOS'
+import DePropTechOSGate from '@/components/country/DePropTechOSGate'
 import type { Developer, Project } from '@/data/professionals'
 import { NEW_DEVELOPERS_BERLIN, NEW_PROJECTS_BERLIN } from '@/data/projects-new-berlin'
 import { NEW_DEVELOPERS_GERMANY, NEW_PROJECTS_GERMANY } from '@/data/projects-new-germany'
@@ -188,7 +190,31 @@ function BezirkeBand({ de }: { de: boolean }) {
   )
 }
 
+function CityTile({ c, de, base }: { c: (typeof DE_CITIES)[number]; de: boolean; base: string }) {
+  return (
+    <Link
+      href={`${base}/${c.slug}`}
+      className="flex flex-col gap-1.5 rounded-module border border-sv-ink/[0.07] bg-sv-surface px-5 py-4 font-extrabold text-sv-ink shadow-card transition-all duration-300 hover:-translate-y-1 hover:border-sv-blue/30 hover:shadow-card-hover"
+    >
+      <span className="flex items-center justify-between gap-3">
+        <span className="text-[15px]">{c.de}</span>
+        <span className="text-[12px] font-black text-sv-blue" title="Grunderwerbsteuer">
+          {c.transferTaxPct.toLocaleString(de ? 'de-DE' : 'en-US', { minimumFractionDigits: 1 })}%
+        </span>
+      </span>
+      <span className="text-[12px] font-bold text-sv-ink/55">
+        {de
+          ? `Kauf ${nfDe.format(c.buyEurSqm)} €/m² · Miete ${c.rentEurSqm.toLocaleString('de-DE')} €/m² · ~${grossYieldPct(c).toLocaleString('de-DE')} %`
+          : `Buy €${nf.format(c.buyEurSqm)}/m² · Rent €${c.rentEurSqm}/m² · ~${grossYieldPct(c)}%`}
+      </span>
+    </Link>
+  )
+}
+
 function CitiesBand({ de }: { de: boolean }) {
+  const base = de ? '/de/de' : '/de'
+  const featured = DE_CITIES.slice(0, 12)
+  const rest = DE_CITIES.slice(12)
   return (
     <section className="bg-sv-cloud py-16 md:py-20">
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
@@ -202,50 +228,98 @@ function CitiesBand({ de }: { de: boolean }) {
           }
           sub={
             de
-              ? 'Grunderwerbsteuer ist Landesrecht — dieselbe Wohnung kostet in München und Köln unterschiedlich viel Nebenkosten. Jede Stadt trägt Kauf- und Mietniveau (Bestandsmarken) und die lokale Steuer.'
-              : 'Grunderwerbsteuer is state law — the same apartment costs a different surcharge in Munich and Cologne. Every city carries buy and rent anchors plus its local rate.'
+              ? 'Grunderwerbsteuer ist Landesrecht — dieselbe Wohnung kostet in München und Köln unterschiedlich viel Nebenkosten. Die zwölf größten zuerst; der Rest klappt auf.'
+              : 'Grunderwerbsteuer is state law — the same apartment costs a different surcharge in Munich and Cologne. The twelve largest first; the rest folds open.'
           }
         />
         <Reveal>
           <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {DE_CITIES.map((c) => (
+            {featured.map((c) => (
               <li key={c.slug}>
+                <CityTile c={c} de={de} base={base} />
+              </li>
+            ))}
+          </ul>
+        </Reveal>
+        {rest.length > 0 && (
+          <details className="group mt-4">
+            <summary className="cursor-pointer list-none rounded-module border border-sv-ink/[0.07] bg-sv-surface px-5 py-4 text-[14px] font-black text-sv-ink shadow-card [&::-webkit-details-marker]:hidden">
+              <span className="flex items-center justify-between gap-3">
+                {de ? `Weitere ${rest.length} Städte` : `${rest.length} more cities`}
+                <ArrowUpRight className="h-4 w-4 text-sv-blue transition-transform group-open:rotate-90" aria-hidden />
+              </span>
+            </summary>
+            <ul className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {rest.map((c) => (
+                <li key={c.slug}>
+                  <CityTile c={c} de={de} base={base} />
+                </li>
+              ))}
+            </ul>
+          </details>
+        )}
+      </div>
+    </section>
+  )
+}
+
+function ToolsBand({ de }: { de: boolean }) {
+  const base = de ? '/de/de' : '/de'
+  const tools = [
+    {
+      href: `${base}/miete-oder-kaufen`,
+      icon: Scale,
+      title: de ? 'Miete oder kaufen' : 'Rent or buy',
+      sub: de ? 'Vermögen über jeden Horizont, Kaufnebenkosten je Bundesland.' : 'Wealth over any horizon, closing costs per state.',
+    },
+    {
+      href: `${base}/metro/germany`,
+      icon: TrainFront,
+      title: de ? 'U-Bahn & S-Bahn' : 'U-Bahn & S-Bahn',
+      sub: de ? 'Alle Systeme — Berlin, München, Hamburg, Frankfurt, Köln.' : 'Every system — Berlin, Munich, Hamburg, Frankfurt, Cologne.',
+    },
+    {
+      href: `${base}/metro`,
+      icon: Landmark,
+      title: de ? 'Berlin Stationen' : 'Berlin stations',
+      sub: de ? 'U- und S-Bahn, Linien und Kartenpunkte für die Suche.' : 'U- and S-Bahn, lines and map pins for the search.',
+    },
+  ] as const
+  return (
+    <section className="bg-sv-cloud pb-8 md:pb-12">
+      <div className="mx-auto max-w-[1440px] px-5 md:px-10">
+        <Reveal>
+          <ul className="grid gap-3 md:grid-cols-3">
+            {tools.map((t) => (
+              <li key={t.href}>
                 <Link
-                  href={`${de ? '/de/de' : '/de'}/${c.slug}`}
-                  className="flex flex-col gap-1.5 rounded-module border border-sv-ink/[0.07] bg-sv-surface px-5 py-4 font-extrabold text-sv-ink shadow-card transition-all duration-300 hover:-translate-y-1 hover:border-sv-blue/30 hover:shadow-card-hover"
+                  href={t.href}
+                  className="flex h-full flex-col gap-2 rounded-module border border-sv-ink/[0.07] bg-sv-surface p-5 shadow-card transition-all duration-300 hover:-translate-y-1 hover:border-sv-blue/30 hover:shadow-card-hover"
                 >
-                  <span className="flex items-center justify-between gap-3">
-                    <span className="text-[15px]">{c.de}</span>
-                    <span className="text-[12px] font-black text-sv-blue" title="Grunderwerbsteuer">
-                      {c.transferTaxPct.toLocaleString(de ? 'de-DE' : 'en-US', { minimumFractionDigits: 1 })}%
-                    </span>
-                  </span>
-                  <span className="text-[12px] font-bold text-sv-ink/55">
-                    {de
-                      ? `Kauf ${nfDe.format(c.buyEurSqm)} €/m² · Miete ${c.rentEurSqm.toLocaleString('de-DE')} €/m² · ~${grossYieldPct(c).toLocaleString('de-DE')} %`
-                      : `Buy €${nf.format(c.buyEurSqm)}/m² · Rent €${c.rentEurSqm}/m² · ~${grossYieldPct(c)}%`}
-                  </span>
+                  <t.icon className="h-5 w-5 text-sv-blue" aria-hidden />
+                  <span className="text-[16px] font-black tracking-tight text-sv-ink">{t.title}</span>
+                  <span className="text-[13px] font-semibold leading-snug text-sv-ink/60">{t.sub}</span>
                 </Link>
               </li>
             ))}
           </ul>
         </Reveal>
-        <Reveal delay={0.05}>
-          <Link
-            href="/de/metro"
-            className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-module border border-sv-ink/[0.07] bg-sv-surface px-5 py-4 shadow-card transition-all duration-300 hover:-translate-y-0.5 hover:border-sv-blue/30 hover:shadow-card-hover"
+        <Reveal delay={0.04}>
+          <LocalizedLink
+            href="/search?country=DE"
+            className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-module border border-sv-ink/[0.07] bg-sv-navy px-5 py-4 text-white shadow-glow-navy transition-all duration-300 hover:-translate-y-0.5"
           >
-            <span className="inline-flex items-center gap-3 text-[14px] font-bold text-sv-ink/70">
-              <Landmark className="h-4 w-4 shrink-0 text-sv-blue" aria-hidden />
+            <span className="inline-flex items-center gap-3 text-[14px] font-bold">
+              <Calculator className="h-4 w-4 shrink-0 text-sv-blue-light" aria-hidden />
               {de
-                ? 'U-Bahn & S-Bahn in Berlin — alle Stationen, Linien und Kartenpunkte im Überblick.'
-                : 'Berlin U-Bahn & S-Bahn — station, line and map directory.'}
+                ? 'Suche mit 3D-Karte — ALKIS, B-Plan, StEP Wohnen 2040.'
+                : 'Search with the 3D map — ALKIS, B-Plan, StEP Wohnen 2040.'}
             </span>
-            <span className="inline-flex items-center gap-1.5 text-[13px] font-black text-sv-blue">
-              {de ? 'Zur Stationsübersicht' : 'Station directory'}
+            <span className="inline-flex items-center gap-1.5 text-[13px] font-black text-sv-blue-light">
+              {de ? 'Zur Karte' : 'Open map'}
               <ArrowUpRight className="h-3.5 w-3.5" aria-hidden />
             </span>
-          </Link>
+          </LocalizedLink>
         </Reveal>
       </div>
     </section>
@@ -306,6 +380,11 @@ function BuyerCosts({ citySlug, de }: { citySlug?: string; de: boolean }) {
               <ul className="mt-5 space-y-4 text-[15px] font-medium leading-relaxed text-white/75">
                 <li>
                   {de
+                    ? 'Bestellerprinzip: wer den Makler beauftragt, zahlt. Bei Wohnraummiete keine Mieterprovision.'
+                    : 'Bestellerprinzip: whoever hires the agent pays. No tenant commission on residential lets.'}
+                </li>
+                <li>
+                  {de
                     ? 'Kaution höchstens drei Kaltmieten (§551 BGB), getrennt angelegt.'
                     : 'Deposits cap at three months’ cold rent (§551 BGB) and must sit on a separate savings account.'}
                 </li>
@@ -353,22 +432,10 @@ function DeveloperRail({ citySlug, de }: { citySlug?: string; de: boolean }) {
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
         <HScroll aria-label={de ? 'Deutsche Bauträger' : 'German developers'} step={320} className="gap-5 pb-4">
           {rail.map((d) => {
-            const initials = d.name.en
-              .split(/\s+/)
-              .filter(Boolean)
-              .slice(0, 2)
-              .map((w) => w[0])
-              .join('')
-              .toUpperCase()
             const body = (
               <>
                 <div className="flex items-center gap-3.5">
-                  <span
-                    aria-hidden
-                    className="grid h-12 w-12 shrink-0 place-items-center rounded-control bg-sv-blue/10 text-[15px] font-black text-sv-blue-deep dark:text-sv-blue-light"
-                  >
-                    {initials}
-                  </span>
+                  <DeveloperLogo slug={d.slug} name={d.name} logoUrl={d.logoUrl} size="sm" />
                   <div className="min-w-0">
                     <div className="flex items-center gap-1.5">
                       <h3 className="truncate text-[16px] font-black text-sv-ink">{d.name.en}</h3>
@@ -382,19 +449,17 @@ function DeveloperRail({ citySlug, de }: { citySlug?: string; de: boolean }) {
                 <p className="mt-4 line-clamp-3 border-t border-sv-ink/[0.06] pt-3 text-[13px] font-semibold leading-snug text-sv-ink/60">
                   {(de ? d.description.de : undefined) ?? d.description.en}
                 </p>
-                {d.website ? (
-                  <span className="mt-3 inline-flex items-center gap-1 text-[13px] font-extrabold text-sv-blue-deep dark:text-sv-blue-light">
-                    {de ? 'Offizielle Seite' : 'Official site'} <ArrowUpRight className="h-3.5 w-3.5" aria-hidden />
-                  </span>
-                ) : null}
+                <span className="mt-3 inline-flex items-center gap-1 text-[13px] font-extrabold text-sv-blue-deep dark:text-sv-blue-light">
+                  {de ? 'Profil' : 'Profile'} <ArrowUpRight className="h-3.5 w-3.5" aria-hidden />
+                </span>
               </>
             )
             const cls =
               'group flex w-[300px] shrink-0 flex-col rounded-tile border border-sv-ink/[0.07] bg-sv-surface p-5 shadow-card transition-all duration-300 hover:-translate-y-1.5 hover:border-sv-blue/30 hover:shadow-card-hover'
-            return d.website ? (
-              <a key={d.slug} href={d.website} target="_blank" rel="noopener noreferrer" className={cls}>{body}</a>
-            ) : (
-              <div key={d.slug} className={cls}>{body}</div>
+            return (
+              <LocalizedLink key={d.slug} href={`/developers/${d.slug}`} className={cls}>
+                {body}
+              </LocalizedLink>
             )
           })}
         </HScroll>
@@ -430,7 +495,8 @@ export default function DeMarketHome({
       <StatsBand citySlug={city} de={de} />
       {city === 'berlin' && <BezirkeBand de={de} />}
       <ProjectRail citySlug={city} de={de} />
-      <DePropTechOS citySlug={city} de={de} />
+      {(!city || city === 'berlin') && <DePropTechOSGate citySlug={city} de={de} />}
+      <ToolsBand de={de} />
       <CitiesBand de={de} />
       <BuyerCosts citySlug={city} de={de} />
       <DeveloperRail citySlug={city} de={de} />
@@ -446,14 +512,14 @@ export default function DeMarketHome({
           {copy.faqs.length > 0 && (
             <section className="mt-14">
               <h2 className="text-[22px] font-black tracking-tight text-sv-ink">FAQ</h2>
-              <dl className="mt-6 space-y-6">
+              <div className="mt-6 space-y-3">
                 {copy.faqs.map((f) => (
-                  <div key={f.q}>
-                    <dt className="font-extrabold text-sv-ink">{f.q}</dt>
-                    <dd className="mt-2 text-[15px] font-medium text-sv-ink/75">{f.a}</dd>
-                  </div>
+                  <details key={f.q} className="rounded-module border border-sv-ink/[0.07] bg-sv-surface px-5 py-4 shadow-card">
+                    <summary className="cursor-pointer font-extrabold text-sv-ink">{f.q}</summary>
+                    <p className="mt-2 text-[15px] font-medium text-sv-ink/75">{f.a}</p>
+                  </details>
                 ))}
-              </dl>
+              </div>
             </section>
           )}
           <p className="mt-14 text-[13px] font-semibold text-sv-ink/45">

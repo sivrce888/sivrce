@@ -77,6 +77,9 @@ assert.equal(DE_MAKLER_BUYER_PCT, 3.57, 'makler split rate')
 assert.equal(Object.keys(GRUNDERWERBSTEUER_BY_STATE).length, 16, '16 states')
 assert.equal(GRUNDERWERBSTEUER_BY_STATE.Berlin, 6.0, 'state berlin')
 assert.equal(GRUNDERWERBSTEUER_BY_STATE.Bayern, 3.5, 'state bavaria')
+assert.equal(GRUNDERWERBSTEUER_BY_STATE.Bremen, 5.5, 'Bremen 5.5% since 2025-07-01')
+assert.equal(GRUNDERWERBSTEUER_BY_STATE.Thüringen, 5.0, 'Thüringen 5.0% since 2024-01-01')
+assert.equal(GRUNDERWERBSTEUER_BY_STATE['Mecklenburg-Vorpommern'], 6.0, 'MV 6.0%')
 for (const c of DE_CITIES) {
   assert.equal(c.transferTaxPct, GRUNDERWERBSTEUER_BY_STATE[c.state], `city mirrors state: ${c.slug}`)
 }

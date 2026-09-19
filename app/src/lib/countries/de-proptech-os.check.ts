@@ -30,6 +30,11 @@ assert.equal(munichProvisionsfrei.transferTaxEur, 35_000)
 assert.equal(munichProvisionsfrei.maklerEur, 0)
 assert.equal(munichProvisionsfrei.totalClosingCostsEur, 55_000) // 35k tax + 15k notary + 5k register
 
+// Stand 2026 statutory rates — Bremen 5.5% (2025-07-01), Thüringen 5.0% (2024-01-01), MV 6.0%.
+assert.equal(calculateDeAcquisitionCosts(100_000, 'bremen').transferTaxPct, 5.5)
+assert.equal(calculateDeAcquisitionCosts(100_000, 'erfurt').transferTaxPct, 5.0)
+assert.equal(calculateDeAcquisitionCosts(100_000, 'rostock').transferTaxPct, 6.0)
+
 // 2. Energy & GEG 2026 check
 const energyA = analyzeDeEnergyState('A+', 100, 'waermepumpe', 2024)
 assert.equal(energyA.gegComplianceStatus, 'COMPLIANT_RENEWABLE')

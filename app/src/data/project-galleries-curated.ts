@@ -5,10 +5,8 @@
 // here: withGeoRenders/withDERenders in professionals.ts append that trio for
 // every slug that has one.
 export const CURATED_GALLERIES: Record<string, string[]> = {
-  'abu-dhabi-al-reem': ['/images/projects/abu-dhabi-al-reem-g1.webp'],
   'al-raha-beach': ['/images/projects/al-raha-beach-g1.webp'],
   'alliance-centropolis-b': ['/images/projects/alliance-centropolis-b-1.webp', '/images/projects/alliance-centropolis-b-2.webp'],
-  'alliance-residence-batumi': ['/images/projects/alliance-residence-batumi-g1.webp'],
   'anagi-villa-park': ['/images/projects/anagi-villa-park-1.webp', '/images/projects/anagi-villa-park-2.webp'],
   'archi-dighomi': ['/images/projects/archi-dighomi-3.webp', '/images/projects/archi-dighomi-g1.webp'],
   'avlabari-residence': ['/images/projects/avlabari-residence-1.webp', '/images/projects/avlabari-residence-2.webp'],

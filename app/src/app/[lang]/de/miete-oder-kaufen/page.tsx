@@ -54,7 +54,7 @@ const FAQS = [
   },
   {
     q: 'Was kosten die Kaufnebenkosten in meinem Bundesland?',
-    a: 'Der Rechner übernimmt sie live aus der gesetzlichen Kostenstruktur: Grunderwerbsteuer 3,5 % (Bayern) bis 6,5 % (z. B. Brandenburg, Nordrhein-Westfalen, Thüringen), Notar 1,5 % nach GNotKG, Grundbuch 0,5 %, Makleranteil 3,57 % nach §656c BGB. In Berlin sind das 11,57 % — bei 500.000 € also 57.850 € zusätzlich zum Kaufpreis.',
+    a: 'Der Rechner übernimmt sie live aus der gesetzlichen Kostenstruktur: Grunderwerbsteuer 3,5 % (Bayern) bis 6,5 % (Brandenburg, Nordrhein-Westfalen, Saarland, Schleswig-Holstein), Notar 1,5 % nach GNotKG, Grundbuch 0,5 %, Makleranteil 3,57 % nach §656c BGB. Thüringen liegt seit 2024 bei 5,0 %, Bremen seit Juli 2025 bei 5,5 %. In Berlin sind das 11,57 % — bei 500.000 € also 57.850 € zusätzlich zum Kaufpreis.',
   },
   {
     q: 'Warum gewinnt bei flachen Preisen oft die Miete?',

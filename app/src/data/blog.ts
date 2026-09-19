@@ -5,6 +5,9 @@
  * Body is markdown-ish (rendered as paragraphs split on blank line).
  */
 
+import { BLOG_BODIES_EN } from './blog-bodies-en'
+import { BLOG_BODIES_DE } from './blog-bodies-de'
+
 export interface BlogPost {
   slug: string
   title: string
@@ -28,6 +31,13 @@ export function blogTitle(p: Pick<BlogPost, 'title' | 'enTitle'>, lang: string):
 /** Locale-preferring excerpt: ka → excerpt, other locales → enExcerpt (fallback ka). */
 export function blogExcerpt(p: Pick<BlogPost, 'excerpt' | 'enExcerpt'>, lang: string): string {
   return lang === 'ka' || !p.enExcerpt ? p.excerpt : p.enExcerpt
+}
+
+/** Locale-preferring body: ka → body, de → German map, others → English map (fallback ka). */
+export function blogBody(p: Pick<BlogPost, 'slug' | 'body'>, lang: string): string {
+  if (lang === 'ka') return p.body
+  if (lang === 'de') return BLOG_BODIES_DE[p.slug] ?? BLOG_BODIES_EN[p.slug] ?? p.body
+  return BLOG_BODIES_EN[p.slug] ?? p.body
 }
 
 export const BLOG_POSTS: BlogPost[] = [

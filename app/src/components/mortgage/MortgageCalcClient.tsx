@@ -5,7 +5,7 @@ import { monthlyPayment } from '@/lib/finance'
 import { formatUSD } from '@/lib/listing-format'
 import type { DirLoc } from '@/lib/directory-seo'
 
-const L: Record<DirLoc, {
+const L: Record<DirLoc | 'de', {
   price: string; down: (pct: number) => string; rate: string; years: string
   yearsN: (n: number) => string; monthly: string; principal: string
   interest: string; total: string; disclaimer: string
@@ -31,6 +31,13 @@ const L: Record<DirLoc, {
     disclaimer:
       'Расчёт по стандартной аннуитетной формуле — не является банковским предложением.',
   },
+  de: {
+    price: 'Wohnungspreis', down: (pct) => `Anzahlung (${pct}%)`, rate: 'Jahreszins',
+    years: 'Laufzeit', yearsN: (n) => `${n} Jahre`, monthly: 'Monatsrate',
+    principal: 'Kreditbetrag', interest: 'Gesamtzinsen', total: 'Gesamtrückzahlung',
+    disclaimer:
+      'Richtwert, berechnet mit der Standard-Annuitätenformel — kein Bankangebot.',
+  },
 }
 
 const PRESETS = [
@@ -40,7 +47,7 @@ const PRESETS = [
   { label: '$250,000', price: 250_000 },
 ]
 
-export default function MortgageCalcClient({ loc }: { loc: DirLoc }) {
+export default function MortgageCalcClient({ loc }: { loc: DirLoc | 'de' }) {
   const t = L[loc]
   const [price, setPrice] = useState(120_000)
   const [downPct, setDownPct] = useState(25)

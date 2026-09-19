@@ -41,6 +41,11 @@ export async function generateMetadata({
         description:
           'Каталог агентств недвижимости в Грузии: размер команды, активные объявления, показатель ответов и верификация — выберите своё агентство.',
       },
+      de: {
+        title: 'Immobilienagenturen in Georgien — Teams, Inserate, Vertrauen',
+        description:
+          'Verzeichnis von Immobilienagenturen in Georgien: Teamgröße, aktive Inserate, Antwortquote und Verifizierungsstatus — wählen Sie Ihre Agentur.',
+      },
     }),
     openGraph: {
       title: 'უძრავი ქონების სააგენტოები',
@@ -92,8 +97,8 @@ export default async function AgenciesPage({ params }: { params: Promise<{ lang:
     })),
   }
 
-  const homeLabel = lang === 'ka' ? 'მთავარი' : lang === 'ru' ? 'Главная' : 'Home'
-  const hubLabel = lang === 'ka' ? 'სააგენტოები' : lang === 'ru' ? 'Агентства' : 'Agencies'
+  const homeLabel = lang === 'ka' ? 'მთავარი' : lang === 'ru' ? 'Главная' : lang === 'de' ? 'Startseite' : 'Home'
+  const hubLabel = lang === 'ka' ? 'სააგენტოები' : lang === 'ru' ? 'Агентства' : lang === 'de' ? 'Agenturen' : 'Agencies'
   const breadcrumbLd = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
@@ -109,14 +114,16 @@ export default async function AgenciesPage({ params }: { params: Promise<{ lang:
       <main id="main">
         <PageHero
           tone="light"
-          kicker={lang === 'ka' ? 'დირექტორია' : lang === 'ru' ? 'Каталог' : 'Directory'}
-          title={lang === 'ka' ? 'სააგენტოები' : lang === 'ru' ? 'Агентства' : 'Agencies'}
+          kicker={lang === 'ka' ? 'დირექტორია' : lang === 'ru' ? 'Каталог' : lang === 'de' ? 'Verzeichnis' : 'Directory'}
+          title={lang === 'ka' ? 'სააგენტოები' : lang === 'ru' ? 'Агентства' : lang === 'de' ? 'Agenturen' : 'Agencies'}
           subtitle={
             lang === 'ka'
               ? 'გუნდის ზომითა და აქტიური განცხადებებით — ვერიფიცირებული სააგენტოები სანდოობის სიგნალებით'
               : lang === 'ru'
                 ? 'По размеру команды и активным объявлениям — проверенные агентства с сигналами надёжности'
-                : 'Ranked by team size and active listings — verified agencies with trust signals'
+                : lang === 'de'
+                  ? 'Nach Teamgröße und aktiven Inseraten sortiert — verifizierte Agenturen mit Vertrauenssignalen'
+                  : 'Ranked by team size and active listings — verified agencies with trust signals'
           }
         >
           <LocalizedLink
@@ -127,7 +134,9 @@ export default async function AgenciesPage({ params }: { params: Promise<{ lang:
               ? 'დაარეგისტრირე შენი სააგენტო'
               : lang === 'ru'
                 ? 'Зарегистрируй своё агентство'
-                : 'Register your agency'}
+                : lang === 'de'
+                  ? 'Registrieren Sie Ihre Agentur'
+                  : 'Register your agency'}
             <ArrowRight className="h-4 w-4" />
           </LocalizedLink>
         </PageHero>
@@ -139,7 +148,9 @@ export default async function AgenciesPage({ params }: { params: Promise<{ lang:
                 ? 'კატალოგი ივსება — შენი სააგენტო შეიძლება იყოს პირველი.'
                 : lang === 'ru'
                   ? 'Каталог наполняется — твоё агентство может быть первым.'
-                  : 'The directory is filling up — your agency could be first.'}
+                  : lang === 'de'
+                    ? 'Das Verzeichnis füllt sich — Ihre Agentur könnte die erste sein.'
+                    : 'The directory is filling up — your agency could be first.'}
             </p>
           ) : (
             <div className="mt-10 sv-card-grid-3">

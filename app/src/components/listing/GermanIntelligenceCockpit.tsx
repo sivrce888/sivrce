@@ -86,21 +86,21 @@ export default function GermanIntelligenceCockpit({
     report.dealVerdict === 'EXCELLENT_BUY'
       ? {
           label: isDe ? 'Top Kaufgelegenheit' : isKa ? 'საუკეთესო შენაძენი' : 'Prime Buy Opportunity',
-          color: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20',
+          color: 'bg-sv-blue/10 text-sv-blue-deep dark:text-sv-blue-light border-sv-blue/20',
         }
       : report.dealVerdict === 'FAIR_VALUE'
         ? {
             label: isDe ? 'Marktgerechter Preis' : isKa ? 'სამართლიანი ფასი' : 'Fair Market Value',
-            color: 'bg-sv-blue/10 text-sv-blue border-sv-blue/20',
+            color: 'bg-sv-cloud text-sv-ink border-sv-ink/[0.08]',
           }
         : report.dealVerdict === 'HOLD_ANALYZE'
           ? {
               label: isDe ? 'Prüfung empfohlen' : isKa ? 'დამატებითი ანალიზი' : 'Due Diligence Required',
-              color: 'bg-amber-500/10 text-amber-500 border-amber-500/20',
+              color: 'bg-sv-orange/10 text-sv-orange border-sv-orange/20',
             }
           : {
               label: isDe ? 'Überteuert / Risikoreich' : isKa ? 'მაღალი რისკი / ძვირი' : 'Elevated Risk / Overpriced',
-              color: 'bg-rose-500/10 text-rose-500 border-rose-500/20',
+              color: 'bg-sv-orange-deep/10 text-sv-orange-deep border-sv-orange-deep/20',
             }
 
   return (
@@ -159,7 +159,7 @@ export default function GermanIntelligenceCockpit({
               : 'text-sv-ink/60 hover:text-sv-ink'
           }`}
         >
-          <Zap className="h-3.5 w-3.5 text-amber-500" aria-hidden />
+          <Zap className="h-3.5 w-3.5 text-sv-orange" aria-hidden />
           <span>{isDe ? 'Energie & GEG' : isKa ? 'ენერგია და GEG' : 'Energy & GEG'}</span>
         </button>
 
@@ -264,7 +264,7 @@ export default function GermanIntelligenceCockpit({
                 <Zap className="h-4 w-4 text-amber-500" aria-hidden />
                 <span>{isDe ? 'KfW / BEG Förderung' : 'KfW Subsidy Potential'}</span>
               </div>
-              <div className="mt-2 text-[20px] font-black text-emerald-500">
+              <div className="mt-2 text-[20px] font-black text-sv-blue">
                 +{report.energy.kfwSubsidyEligibleEur.toLocaleString('de-DE')} €
               </div>
               <p className="mt-1 text-[11px] text-sv-ink/60">
@@ -471,7 +471,7 @@ export default function GermanIntelligenceCockpit({
           {/* Deal Drivers & Risks */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
             <div className="rounded-tile border border-emerald-500/15 bg-emerald-500/[0.03] p-4">
-              <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-600">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-700">
                 <ShieldCheck className="h-4 w-4" aria-hidden />
                 <span>{isDe ? 'Stärken & Deal-Treiber' : 'Deal Drivers & Strengths'}</span>
               </div>

@@ -65,10 +65,21 @@ const HUB = {
     count: (n: number) => `${n} ${n === 1 ? 'компания' : 'компаний'}`,
     featured: 'Избранные компании',
   },
+  de: {
+    title: 'Immobilien-Services in Georgien — Renovierung, Recht, Fotografie',
+    description:
+      'Renovierung, Interieur, Fotografie und 3D, Recht, Bewertung, Umzug, Reinigung und Immobilienverwaltung — verifizierte Firmen in Georgien.',
+    kicker: 'Services',
+    h1: 'Alles rund um die Immobilie',
+    sub: 'Renovierung, Recht, Fotografie, Bewertung, Umzug, Reinigung, Verwaltung. Ein Konto listet einen Service und eine Wohnung.',
+    add: 'Firma hinzufügen',
+    count: (n: number) => `${n} ${n === 1 ? 'Firma' : 'Firmen'}`,
+    featured: 'Ausgewählte Firmen',
+  },
 } as const
 
 function hubCopy(lang: string) {
-  return lang === 'ka' ? HUB.ka : lang === 'ru' ? HUB.ru : HUB.en
+  return lang === 'ka' ? HUB.ka : lang === 'ru' ? HUB.ru : lang === 'de' ? HUB.de : HUB.en
 }
 
 export async function generateMetadata({
@@ -119,7 +130,7 @@ export default async function ServicesPage({ params }: { params: Promise<{ lang:
     })),
   }
 
-  const homeLabel = lang === 'ka' ? 'მთავარი' : lang === 'ru' ? 'Главная' : 'Home'
+  const homeLabel = lang === 'ka' ? 'მთავარი' : lang === 'ru' ? 'Главная' : lang === 'de' ? 'Startseite' : 'Home'
   const hubLabel = lang === 'ka' ? 'სერვისები' : lang === 'ru' ? 'Сервисы' : 'Services'
   const breadcrumbLd = {
     '@context': 'https://schema.org',

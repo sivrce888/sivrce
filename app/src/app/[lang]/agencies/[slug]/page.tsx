@@ -17,15 +17,17 @@ import {kaOnlyAlternates,  } from '@/lib/i18n/server'
 import { db } from '@/lib/db'
 import { safeQuery } from '@/lib/guards'
 import type { EntitiesKey } from '@/components/entities/i18n'
+import { isValidLang } from '@/lib/i18n/core'
 
 export const revalidate = 3600
 
 interface PageProps {
-  params: Promise<{ slug: string }>
+  params: Promise<{ lang: string; slug: string }>
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { slug } = await params
+  const { lang: rawLang, slug } = await params
+  const lang = isValidLang(rawLang) ? rawLang : 'ka'
   const agency = await safeQuery(
     () =>
       db.agencyProfile.findFirst({
@@ -38,28 +40,44 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const alt = altName(agency.name)
   const body =
     agency.summary.replace(/\s+/g, ' ') ||
-    `${agency.name} — უძრავი ქონების სააგენტო ${agency.city}-ში · sivrce.ge`
+    (lang === 'de'
+      ? `${agency.name} — Immobilienmakler in ${agency.city} · sivrce.ge`
+      : lang === 'en'
+      ? `${agency.name} — real estate agency in ${agency.city} · sivrce.ge`
+      : lang === 'ru'
+      ? `${agency.name} — агентство недвижимости в ${agency.city} · sivrce.ge`
+      : `${agency.name} — უძრავი ქონების სააგენტო ${agency.city}-ში · sivrce.ge`)
   const description = ((alt && !body.includes(alt) ? `${agency.name} (${alt}). ` : '') + body).slice(
     0,
     155,
   )
+  const suffix = lang === 'de' ? 'Makler' : lang === 'en' ? 'Agency' : lang === 'ru' ? 'Агентство' : 'სააგენტო'
   return {
-    title: `${agency.name} — სააგენტო`,
+    title: `${agency.name} — ${suffix}`,
     description,
     alternates: kaOnlyAlternates(`/agencies/${slug}`),
     openGraph: {
-      title: `${agency.name} — სააგენტო`,
+      title: `${agency.name} — ${suffix}`,
       description,
       type: 'profile',
       url: `https://sivrce.ge/agencies/${slug}`,
       siteName: 'sivrce',
-      locale: 'ka_GE',
+      locale: lang === 'de' ? 'de_DE' : lang === 'ru' ? 'ru_RU' : lang === 'en' ? 'en_US' : 'ka_GE',
     },
   }
 }
 
 export default async function AgencyPage({ params }: PageProps) {
-  const { slug } = await params
+  const { lang: rawLang, slug } = await params
+  const lang = isValidLang(rawLang) ? rawLang : 'ka'
+  const loc = lang === 'ka' || lang === 'ru' || lang === 'de' ? lang : 'en'
+  // Tri-lang+ru section headings — ka block is the SEO surface.
+  const H = {
+    ka: { about: 'შესახებ', location: 'მდებარეობა', team: 'გუნდის აგენტები', listings: 'განცხადებები', home: 'მთავარი', agencies: 'სააგენტოები' },
+    ru: { about: 'Об агентстве', location: 'Расположение', team: 'Агенты команды', listings: 'Объявления', home: 'Главная', agencies: 'Агентства' },
+    de: { about: 'Über uns', location: 'Lage', team: 'Makler-Team', listings: 'Inserate', home: 'Startseite', agencies: 'Makler' },
+    en: { about: 'About', location: 'Location', team: 'Team agents', listings: 'Listings', home: 'Home', agencies: 'Agencies' },
+  }[loc]
   const agency = await safeQuery(
     () => db.agencyProfile.findFirst({ where: { slug, deletedAt: null } }),
     null,
@@ -124,8 +142,8 @@ export default async function AgencyPage({ params }: PageProps) {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'მთავარი', item: 'https://sivrce.ge' },
-      { '@type': 'ListItem', position: 2, name: 'სააგენტოები', item: 'https://sivrce.ge/agencies' },
+      { '@type': 'ListItem', position: 1, name: H.home, item: 'https://sivrce.ge' },
+      { '@type': 'ListItem', position: 2, name: H.agencies, item: 'https://sivrce.ge/agencies' },
       { '@type': 'ListItem', position: 3, name: agency.name, item: `https://sivrce.ge/agencies/${agency.slug}` },
     ],
   }
@@ -148,7 +166,7 @@ export default async function AgencyPage({ params }: PageProps) {
         {agency.summary ? (
           <section className="mx-auto max-w-[1440px] px-5 py-12 md:px-10">
             <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
-              შესახებ
+              {H.about}
             </h2>
             <p className="mt-3 max-w-3xl text-[15px] font-semibold leading-relaxed text-sv-ink/70">
               {agency.summary}
@@ -158,7 +176,7 @@ export default async function AgencyPage({ params }: PageProps) {
 
         <section className="mx-auto max-w-[1440px] px-5 pb-12 md:px-10">
           <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
-            მდებარეობა
+            {H.location}
           </h2>
           <div className="relative mt-6 overflow-hidden rounded-card shadow-card">
             <MapEmbed
@@ -177,7 +195,7 @@ export default async function AgencyPage({ params }: PageProps) {
         {team.length > 0 && (
           <section className="mx-auto max-w-[1440px] px-5 pb-12 md:px-10">
             <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
-              გუნდის აგენტები
+              {H.team}
             </h2>
             <div className="mt-6 sv-card-grid-3">
               {teamCards.map((t) => (

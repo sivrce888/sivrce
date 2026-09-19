@@ -11,7 +11,7 @@ import { jsonLd } from '@/lib/utils'
 import { requestOrigin } from '@/lib/request-market'
 import { pageMeta } from '@/lib/i18n/server'
 import { isValidLang, type Lang } from '@/lib/i18n/core'
-import { dirLoc, type DirLoc } from '@/lib/directory-seo'
+import { type DirLoc } from '@/lib/directory-seo'
 import { CONTACT_PHONE } from '@/lib/inquiries/phone'
 
 export const revalidate = 86400
@@ -34,15 +34,20 @@ export async function generateMetadata({
       description:
         'sivrce — real estate in Georgia in one place. Daily rentals in Tbilisi, for sale and for rent. Simple, fast, safe search, 3D map and AI pricing.',
     },
-    ru: {
-      title: 'О sivrce — недвижимость в одном пространстве',
-      description:
-        'sivrce — недвижимость в Грузии в одном пространстве. Посуточно в Тбилиси, продажа и аренда. Простой, быстрый и безопасный поиск, 3D-карта и ИИ-оценка.',
-    },
-  })
+      ru: {
+        title: 'О sivrce — недвижимость в одном пространстве',
+        description:
+          'sivrce — недвижимость в Грузии в одном пространстве. Посуточно в Тбилиси, продажа и аренда. Простой, быстрый и безопасный поиск, 3D-карта и ИИ-оценка.',
+      },
+      de: {
+        title: 'Über sivrce — Immobilien an einem Ort',
+        description:
+          'sivrce — Immobilien in Georgien an einem Ort. Tagesmieten in Tiflis, Kauf und Miete. Einfache, schnelle und sichere Suche, 3D-Karte und KI-Preisschätzung.',
+      },
+    })
 }
 
-const VALUES: Record<DirLoc, { icon: ComponentType<{ className?: string }>; title: string; text: string }[]> = {
+const VALUES: Record<DirLoc | 'de', { icon: ComponentType<{ className?: string }>; title: string; text: string }[]> = {
   ka: [
     {
       icon: ShieldCheck,
@@ -109,13 +114,35 @@ const VALUES: Record<DirLoc, { icon: ComponentType<{ className?: string }>; titl
       text: 'Общайтесь напрямую с владельцем или верифицированным агентом — без посредников.',
     },
   ],
+  de: [
+    {
+      icon: ShieldCheck,
+      title: 'Verifizierung',
+      text: 'Jeder Makler und jedes Inserat wird geprüft — Sie sehen nur echte Objekte zu echten Preisen.',
+    },
+    {
+      icon: SparkMark,
+      title: 'KI-Preisschätzung',
+      text: 'Unsere KI vergleicht jeden Preis mit Tausenden Marktsignalen und zeigt Ihnen, wie fair er ist.',
+    },
+    {
+      icon: MapIcon,
+      title: '3D-Karte',
+      text: 'Erkunden Sie Viertel, Infrastruktur und Sonnenlicht auf einer interaktiven 3D-Karte.',
+    },
+    {
+      icon: MessageCircle,
+      title: 'Direkter Kontakt',
+      text: 'Sprechen Sie direkt mit dem Eigentümer oder einem verifizierten Makler — ohne Zwischenhändler.',
+    },
+  ],
 }
 
 // ponytail: prior values (56,000+ listings / 1,800+ agents / 400k MAU) were
 // unverifiable against the live catalog and carry YMYL manual-action risk in
 // the real-estate vertical. These substitutes are defensible against the
 // actual data: NEIGHBORHOODS, STREETS, BLOG_POSTS, CITIES registry.
-const STATS: Record<DirLoc, { value: string; label: string }[]> = {
+const STATS: Record<DirLoc | 'de', { value: string; label: string }[]> = {
   ka: [
     { value: '17', label: 'უბნის გზამკვლევი' },
     { value: '3,900+', label: 'თბილისის ქუჩა კატალოგში' },
@@ -134,9 +161,15 @@ const STATS: Record<DirLoc, { value: string; label: string }[]> = {
     { value: '3', label: 'города с полным покрытием' },
     { value: '6', label: 'городов с растущей базой' },
   ],
+  de: [
+    { value: '17', label: 'Stadtviertel-Guides' },
+    { value: '3.900+', label: 'Tifliser Straßen im Katalog' },
+    { value: '3', label: 'Städte vollständig abgedeckt' },
+    { value: '6', label: 'Städte mit wachsender Basis' },
+  ],
 }
 
-const HERO: Record<DirLoc, { kicker: string; titleA: string; titleB: string; subtitle: string }> = {
+const HERO: Record<DirLoc | 'de', { kicker: string; titleA: string; titleB: string; subtitle: string }> = {
   ka: {
     kicker: 'მისია',
     titleA: 'უძრავი ქონება', titleB: 'ერთ სივრცეში',
@@ -152,19 +185,25 @@ const HERO: Record<DirLoc, { kicker: string; titleA: string; titleB: string; sub
     titleA: 'Недвижимость', titleB: 'в одном пространстве',
     subtitle: 'Самая простая, быстрая, безопасная и современная платформа в Грузии — sivrce соединяет покупателей, арендаторов, продавцов, арендодателей, агентов и застройщиков с прозрачными ценами, верифицированными объявлениями и 3D-картой.',
   },
+  de: {
+    kicker: 'Unsere Mission',
+    titleA: 'Immobilien', titleB: 'an einem Ort',
+    subtitle: 'Die einfachste, schnellste, sicherste und modernste Plattform in Georgien — sivrce verbindet Käufer, Mieter, Verkäufer, Vermieter, Makler und Bauträger mit transparenten Preisen, verifizierten Inseraten und einer 3D-Karte.',
+  },
 }
 
-const TAIL: Record<DirLoc, { why: string; jobs: string; jobsSub: string; vacancies: string; questions: string; contact: string }> = {
+const TAIL: Record<DirLoc | 'de', { why: string; jobs: string; jobsSub: string; vacancies: string; questions: string; contact: string }> = {
   ka: { why: 'რატომ sivrce', jobs: 'გვინდა ჩვენთან მუშაობა?', jobsSub: 'გვჭირდება გაყიდვების მენეჯერები თბილისსა და ბათუმში.', vacancies: 'ვაკანსიები', questions: 'გაქვს კითხვები?', contact: 'დაგვიკავშირდი' },
   en: { why: 'Why sivrce', jobs: 'Want to work with us?', jobsSub: 'We are hiring sales managers in Tbilisi and Batumi.', vacancies: 'Open positions', questions: 'Have questions?', contact: 'Contact us' },
   ru: { why: 'Почему sivrce', jobs: 'Хотите работать с нами?', jobsSub: 'Ищем менеджеров по продажам в Тбилиси и Батуми.', vacancies: 'Вакансии', questions: 'Есть вопросы?', contact: 'Напишите нам' },
+  de: { why: 'Warum sivrce', jobs: 'Wollen Sie mit uns arbeiten?', jobsSub: 'Wir stellen Vertriebsmitarbeiter in Tiflis und Batumi ein.', vacancies: 'Offene Stellen', questions: 'Fragen?', contact: 'Kontaktieren Sie uns' },
 }
 
 export default async function AboutPage({ params }: { params: Promise<{ lang: string }> }) {
   const origin = await requestOrigin()
   const { lang: raw } = await params
   const lang: Lang = isValidLang(raw) ? raw : 'ka'
-  const loc = dirLoc(lang)
+  const loc: DirLoc | 'de' = lang === 'ka' || lang === 'ru' || lang === 'de' ? lang : 'en'
   const hero = HERO[loc]
   const tail = TAIL[loc]
 
@@ -175,7 +214,7 @@ export default async function AboutPage({ params }: { params: Promise<{ lang: st
         '@type': 'AboutPage',
         '@id': `${origin}/about#webpage`,
         url: `${origin}/about`,
-        name: lang === 'ka' ? 'ჩვენ შესახებ — sivrce' : lang === 'ru' ? 'О нас — sivrce' : 'About Us — sivrce',
+        name: lang === 'ka' ? 'ჩვენ შესახებ — sivrce' : lang === 'ru' ? 'О нас — sivrce' : lang === 'de' ? 'Über uns — sivrce' : 'About Us — sivrce',
         inLanguage: loc,
         isPartOf: { '@id': `${origin}/#website` },
         about: { '@id': `${origin}/#organization` },
@@ -188,7 +227,7 @@ export default async function AboutPage({ params }: { params: Promise<{ lang: st
         '@type': 'BreadcrumbList',
         itemListElement: [
           { '@type': 'ListItem', position: 1, name: 'sivrce', item: origin },
-          { '@type': 'ListItem', position: 2, name: lang === 'ka' ? 'ჩვენ შესახებ' : lang === 'ru' ? 'О нас' : 'About Us', item: `${origin}/about` },
+          { '@type': 'ListItem', position: 2, name: lang === 'ka' ? 'ჩვენ შესახებ' : lang === 'ru' ? 'О нас' : lang === 'de' ? 'Über uns' : 'About Us', item: `${origin}/about` },
         ],
       },
       {
@@ -202,7 +241,9 @@ export default async function AboutPage({ params }: { params: Promise<{ lang: st
           ? 'სივრცე — უძრავი ქონება საქართველოში. ბინები, სახლები და აგარაკები — იყიდება, ქირავდება, დღიურად ქირავდება.'
           : lang === 'ru'
             ? 'sivrce — недвижимость в Грузии. Квартиры, дома и коттеджи — продажа, аренда, посуточная аренда.'
-            : 'sivrce — real estate in Georgia. Apartments, houses and cottages — for sale, for rent, daily rental.',
+            : lang === 'de'
+              ? 'sivrce — Immobilien in Georgien. Wohnungen, Häuser und Villen — Kauf, Miete, Tagesmiete.'
+              : 'sivrce — real estate in Georgia. Apartments, houses and cottages — for sale, for rent, daily rental.',
         foundingDate: '2025',
         contactPoint: {
           '@type': 'ContactPoint',

@@ -9,31 +9,114 @@ import { DISTRICTS } from '@/lib/seo-pages'
 import { WeatherBadge } from '@/components/WeatherBadge'
 import { cityCoords } from '@/lib/weather'
 import { jsonLd } from '@/lib/utils'
-import {kaOnlyAlternates,  } from '@/lib/i18n/server'
+import { isValidLang, translateRaw, type Lang } from '@/lib/i18n/core'
+import { kaOnlyAlternates, OG_LOCALE } from '@/lib/i18n/server'
 
 const BASE = 'https://sivrce.ge'
 const PATH = '/tbilisi/kuchebi'
 
 export const revalidate = 86400
 
-const TITLE = 'თბილისის ქუჩები — ბინები ქუჩების მიხედვით'
-const DESCRIPTION =
-  'თბილისის ქუჩების სრული კატალოგი უბნებით: იყიდება და ქირავდება ბინები, ფასები და ბაზრის სტატისტიკა კონკრეტული მისამართისთვის — ვაკე, საბურთალო, მთაწმინდა, ძველი თბილისი და სხვა უბნები.'
+/** On-page copy per locale — {var}/{plural:one|other} templates resolved via translateRaw. */
+interface Copy {
+  title: string
+  description: string
+  ariaCrumbs: string
+  crumbHome: string
+  crumbTbilisi: string
+  crumbStreets: string
+  badge: string
+  city: string
+  intro: string
+  letterAria: string
+}
 
-export const metadata: Metadata = {
-  title: TITLE,
-  description: DESCRIPTION,
-  alternates: kaOnlyAlternates(PATH),
-  openGraph: {
-    title: TITLE,
-    description: DESCRIPTION,
-    type: 'website',
-    url: `${BASE}${PATH}`,
-    siteName: 'sivrce',
-    locale: 'ka_GE',
-    images: [{ url: '/images/og-brand.png', width: 1200, height: 630, alt: TITLE }],
+// ka strings verbatim; canonicals stay ka (kaOnlyAlternates) — this localizes the visit, not the index.
+const C: Record<'ka' | 'en' | 'ru' | 'de', Copy> = {
+  ka: {
+    title: 'თბილისის ქუჩები — ბინები ქუჩების მიხედვით',
+    description:
+      'თბილისის ქუჩების სრული კატალოგი უბნებით: იყიდება და ქირავდება ბინები, ფასები და ბაზრის სტატისტიკა კონკრეტული მისამართისთვის — ვაკე, საბურთალო, მთაწმინდა, ძველი თბილისი და სხვა უბნები.',
+    ariaCrumbs: 'ბრედკრამბი',
+    crumbHome: 'მთავარი',
+    crumbTbilisi: 'თბილისი',
+    crumbStreets: 'ქუჩები',
+    badge: '{n} ქუჩა',
+    city: 'თბილისი',
+    intro:
+      'თბილისის ყველა ქუჩა ერთ სივრცეში — აირჩიეთ ქუჩა და ნახეთ იყიდება და ქირავდება ბინები, ფასები და ბაზრის სტატისტიკა კონკრეტული მისამართისთვის. {n} ყველაზე მოთხოვნადი ქუჩა — ილია ჭავჭავაძის გამზირიდან შოთა რუსთაველის გამზირამდე — ცოცხალი მარაგით და AI ფასის შეფასებით უკვე ცალკე გვერდზეა.',
+    letterAria: 'ასო {letter}',
   },
-  twitter: { card: 'summary_large_image', title: TITLE, description: DESCRIPTION, images: ['/images/og-brand.png'] },
+  en: {
+    title: 'Tbilisi streets — apartments by street',
+    description:
+      'The complete directory of Tbilisi streets by district: apartments for sale and rent, prices and market statistics for a specific address — Vake, Saburtalo, Mtatsminda, Old Tbilisi and other districts.',
+    ariaCrumbs: 'Breadcrumb',
+    crumbHome: 'Home',
+    crumbTbilisi: 'Tbilisi',
+    crumbStreets: 'Streets',
+    badge: '{n} {plural:street|streets}',
+    city: 'Tbilisi',
+    intro:
+      'Every street in Tbilisi in one place — pick a street and see apartments for sale and rent, prices and market statistics for a specific address. The {n} most sought-after streets — from Ilia Chavchavadze Avenue to Shota Rustaveli Avenue — already have their own page with live inventory and AI price valuation.',
+    letterAria: 'Letter {letter}',
+  },
+  ru: {
+    title: 'Улицы Тбилиси — квартиры по улицам',
+    description:
+      'Полный каталог улиц Тбилиси по районам: квартиры в продаже и в аренду, цены и статистика рынка для конкретного адреса — Ваке, Сабуртало, Мтацминда, Старый Тбилиси и другие районы.',
+    ariaCrumbs: 'Навигация',
+    crumbHome: 'Главная',
+    crumbTbilisi: 'Тбилиси',
+    crumbStreets: 'Улицы',
+    badge: '{n} {plural:улица|улицы|улиц}',
+    city: 'Тбилиси',
+    intro:
+      'Все улицы Тбилиси в одном месте — выберите улицу и смотрите квартиры в продаже и в аренду, цены и статистику рынка для конкретного адреса. {n} самых востребованных улиц — от проспекта Ильи Чавчавадзе до проспекта Шота Руставели — уже имеют отдельную страницу с живым ассортиментом и ИИ-оценкой цены.',
+    letterAria: 'Буква {letter}',
+  },
+  de: {
+    title: 'Straßen in Tiflis — Wohnungen nach Straßen',
+    description:
+      'Das vollständige Straßenverzeichnis von Tiflis nach Vierteln: Wohnungen zu verkaufen und zur Miete, Preise und Marktstatistik für eine bestimmte Adresse — Vake, Saburtalo, Mtatsminda, Alt-Tiflis und weitere Viertel.',
+    ariaCrumbs: 'Brotkrumen',
+    crumbHome: 'Startseite',
+    crumbTbilisi: 'Tiflis',
+    crumbStreets: 'Straßen',
+    badge: '{n} {plural:Straße|Straßen}',
+    city: 'Tiflis',
+    intro:
+      'Alle Straßen Tiflis an einem Ort — wählen Sie eine Straße und sehen Sie Wohnungen zu verkaufen und zur Miete, Preise und Marktstatistik für eine bestimmte Adresse. Die {n} gefragtesten Straßen — von der Ilia-Tschawtschawadse-Allee bis zur Schota-Rustaweli-Allee — haben bereits eine eigene Seite mit live Angebot und KI-Preisschätzung.',
+    letterAria: 'Buchstabe {letter}',
+  },
+}
+
+type CopyLang = keyof typeof C
+const cLang = (l: Lang): CopyLang => (l === 'ka' || l === 'ru' || l === 'de' ? l : 'en')
+
+interface PageProps {
+  params: Promise<{ lang: string }>
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const { lang: rawLang } = await params
+  const cl = cLang(isValidLang(rawLang) ? rawLang : 'ka')
+  const c = C[cl]
+  return {
+    title: c.title,
+    description: c.description,
+    alternates: kaOnlyAlternates(PATH),
+    openGraph: {
+      title: c.title,
+      description: c.description,
+      type: 'website',
+      url: `${BASE}${PATH}`,
+      siteName: 'sivrce',
+      locale: OG_LOCALE[cl],
+      images: [{ url: '/images/og-brand.png', width: 1200, height: 630, alt: c.title }],
+    },
+    twitter: { card: 'summary_large_image', title: c.title, description: c.description, images: ['/images/og-brand.png'] },
+  }
 }
 
 const GEO_ALPHABET = 'აბგდევზთიკლმნოპჟრსტუფქღყშჩცძწჭხჯჰ'
@@ -54,16 +137,22 @@ function groupStreets(streets: TbilisiStreet[]) {
     .map(([letter, list]) => ({ letter, list: list.sort((a, b) => a.ka.localeCompare(b.ka, 'ka')) }))
 }
 
-const districtKa = (slug: string) => DISTRICTS.find((d) => d.slug === slug)?.ka ?? slug
+const districtLabel = (slug: string, cl: CopyLang) => {
+  const d = DISTRICTS.find((x) => x.slug === slug)
+  return d ? (cl === 'ka' ? d.ka : cl === 'ru' ? d.ru : d.en) : slug
+}
 
-export default function StreetsDirectoryPage() {
+export default async function StreetsDirectoryPage({ params }: PageProps) {
+  const { lang: rawLang } = await params
+  const cl = cLang(isValidLang(rawLang) ? rawLang : 'ka')
+  const c = C[cl]
   const groups = groupStreets(STREETS)
   const linked = STREETS.filter((s) => s.district !== undefined).length
 
   const crumbs = [
-    { name: 'მთავარი', href: '/' },
-    { name: 'თბილისი', href: '/tbilisi' },
-    { name: 'ქუჩები', href: PATH },
+    { name: c.crumbHome, href: '/' },
+    { name: c.crumbTbilisi, href: '/tbilisi' },
+    { name: c.crumbStreets, href: PATH },
   ]
 
   const ld = {
@@ -71,19 +160,19 @@ export default function StreetsDirectoryPage() {
     '@graph': [
       {
         '@type': 'CollectionPage',
-        name: TITLE,
-        description: DESCRIPTION,
+        name: c.title,
+        description: c.description,
         url: `${BASE}${PATH}`,
-        inLanguage: 'ka',
+        inLanguage: cl,
         isPartOf: { '@id': `${BASE}/#website` },
       },
       {
         '@type': 'BreadcrumbList',
-        itemListElement: crumbs.map((c, i) => ({
+        itemListElement: crumbs.map((cr, i) => ({
           '@type': 'ListItem',
           position: i + 1,
-          name: c.name,
-          item: `${BASE}${c.href}`,
+          name: cr.name,
+          item: `${BASE}${cr.href}`,
         })),
       },
     ],
@@ -94,18 +183,18 @@ export default function StreetsDirectoryPage() {
       <Navbar />
       <main id="main" className="sv-pt-nav mx-auto max-w-[1440px] px-5 pb-20 md:px-10">
         {/* Breadcrumbs */}
-        <nav aria-label="ბრედკრამბი" className="mb-6">
+        <nav aria-label={c.ariaCrumbs} className="mb-6">
           <ol className="flex flex-wrap items-center gap-1.5 text-[13px] font-bold text-sv-ink/60">
-            {crumbs.map((c, i) => (
-              <li key={c.href} className="flex items-center gap-1.5">
+            {crumbs.map((cr, i) => (
+              <li key={cr.href} className="flex items-center gap-1.5">
                 {i > 0 && <ChevronRight className="h-3.5 w-3.5 text-sv-ink/30" aria-hidden />}
                 {i === crumbs.length - 1 ? (
                   <span aria-current="page" className="text-sv-ink/80">
-                    {c.name}
+                    {cr.name}
                   </span>
                 ) : (
-                  <Link href={c.href} className="transition-colors hover:text-sv-blue">
-                    {c.name}
+                  <Link href={cr.href} className="transition-colors hover:text-sv-blue">
+                    {cr.name}
                   </Link>
                 )}
               </li>
@@ -116,24 +205,21 @@ export default function StreetsDirectoryPage() {
         {/* Header */}
         <header className="mb-10">
           <span className="mb-3 inline-flex items-center gap-2 rounded-full bg-sv-blue/10 px-4 py-1.5 text-[12px] font-black uppercase tracking-wider text-sv-blue-deep">
-            <SparkMark className="h-3.5 w-3.5" aria-hidden /> {STREETS.length} ქუჩა
+            <SparkMark className="h-3.5 w-3.5" aria-hidden /> {translateRaw(c.badge, { n: STREETS.length })}
           </span>
-          <WeatherBadge coords={cityCoords('tbilisi')} label="თბილისი" className="mb-3 ml-2 rounded-full border border-sv-ink/[0.06] bg-sv-surface px-3 py-1.5 text-sv-ink/60 shadow-card" />
+          <WeatherBadge coords={cityCoords('tbilisi')} label={c.city} className="mb-3 ml-2 rounded-full border border-sv-ink/[0.06] bg-sv-surface px-3 py-1.5 text-sv-ink/60 shadow-card" />
           <h1 className="max-w-[900px] text-balance text-[30px] font-black tracking-[-0.02em] text-sv-ink md:text-[44px]">
-            {TITLE}
+            {c.title}
           </h1>
           <p className="mt-3 max-w-[860px] text-[15px] font-semibold leading-relaxed text-sv-ink/60 md:text-[16px]">
-            თბილისის ყველა ქუჩა ერთ სივრცეში — აირჩიეთ ქუჩა და ნახეთ იყიდება და ქირავდება ბინები, ფასები
-            და ბაზრის სტატისტიკა კონკრეტული მისამართისთვის. {linked} ყველაზე მოთხოვნადი ქუჩა — ილია
-            ჭავჭავაძის გამზირიდან შოთა რუსთაველის გამზირამდე — ცოცხალი მარაგით და AI ფასის შეფასებით
-            უკვე ცალკე გვერდზეა.
+            {translateRaw(c.intro, { n: linked })}
           </p>
         </header>
 
         {/* Alphabetical directory */}
         <div className="columns-1 gap-10 sm:columns-2 lg:columns-3 xl:columns-4">
           {groups.map((g) => (
-            <section key={g.letter} className="mb-10 break-inside-avoid" aria-label={`ასო ${g.letter}`}>
+            <section key={g.letter} className="mb-10 break-inside-avoid" aria-label={translateRaw(c.letterAria, { letter: g.letter })}>
               <h2 className="mb-3 border-b border-sv-ink/[0.06] pb-2 text-[20px] font-black text-sv-blue">
                 {g.letter}
               </h2>
@@ -148,7 +234,7 @@ export default function StreetsDirectoryPage() {
                         >
                           {s.ka}
                         </Link>
-                        <span className="shrink-0 text-[11px] font-bold text-sv-ink/60">{districtKa(s.district)}</span>
+                        <span className="shrink-0 text-[11px] font-bold text-sv-ink/60">{districtLabel(s.district, cl)}</span>
                       </>
                     ) : (
                       <span className="text-[14px] font-medium text-sv-ink/60">{s.ka}</span>

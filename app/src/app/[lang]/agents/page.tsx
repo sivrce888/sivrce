@@ -44,6 +44,11 @@ export async function generateMetadata({
         description:
           'Проверенные агенты по недвижимости в Тбилиси и Батуми: опыт, закрытые сделки, языки и реальные отзывы — выберите своего агента.',
       },
+      de: {
+        title: 'Verifizierte Immobilienmakler in Tiflis & Batumi',
+        description:
+          'Verifizierte Immobilienmakler in Tiflis und Batumi: Erfahrung, abgeschlossene Deals, Sprachen und echte Bewertungen — wählen Sie Ihren Makler.',
+      },
     }),
     openGraph: {
       title: 'უძრავი ქონების აგენტები',
@@ -78,15 +83,25 @@ export default async function AgentsPage({ params }: { params: Promise<{ lang: s
             topAgencies: 'Топ агентств',
             agentsSuffix: 'агентов',
           }
-        : {
-            kicker: 'Directory',
-            title: 'Agents & Agencies',
-            subtitle:
-              'Ranked by active listings — verified professionals with experience and reviews',
-            cta: 'Become an agent on Sivrce',
-            topAgencies: 'Top agencies',
-            agentsSuffix: 'agents',
-          }
+        : lang === 'de'
+          ? {
+              kicker: 'Verzeichnis',
+              title: 'Makler & Agenturen',
+              subtitle:
+                'Nach aktiven Inseraten sortiert — verifizierte Profis mit Erfahrung und Bewertungen',
+              cta: 'Werden Sie Makler auf Sivrce',
+              topAgencies: 'Top-Agenturen',
+              agentsSuffix: 'Makler',
+            }
+          : {
+              kicker: 'Directory',
+              title: 'Agents & Agencies',
+              subtitle:
+                'Ranked by active listings — verified professionals with experience and reviews',
+              cta: 'Become an agent on Sivrce',
+              topAgencies: 'Top agencies',
+              agentsSuffix: 'agents',
+            }
   const counts = await getAgentListingCountsByKaName()
   // DB-signed-up agents join the index; curated static profiles win on overlap.
   // ponytail: cap 60 DB cards — pagination when signups outgrow one page.
@@ -173,8 +188,8 @@ export default async function AgentsPage({ params }: { params: Promise<{ lang: s
     })),
   }
 
-  const homeLabel = lang === 'ka' ? 'მთავარი' : lang === 'ru' ? 'Главная' : 'Home'
-  const hubLabel = lang === 'ka' ? 'აგენტები' : lang === 'ru' ? 'Агенты' : 'Agents'
+  const homeLabel = lang === 'ka' ? 'მთავარი' : lang === 'ru' ? 'Главная' : lang === 'de' ? 'Startseite' : 'Home'
+  const hubLabel = lang === 'ka' ? 'აგენტები' : lang === 'ru' ? 'Агенты' : lang === 'de' ? 'Makler' : 'Agents'
   const breadcrumbLd = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',

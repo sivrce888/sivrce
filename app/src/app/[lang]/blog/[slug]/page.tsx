@@ -4,7 +4,7 @@ import { notFound } from 'next/navigation'
 import { ChevronRight, Clock, ArrowLeft, ArrowRight } from 'lucide-react'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
-import { BLOG_POSTS, relatedPosts, blogTitle, blogExcerpt } from '@/data/blog'
+import { BLOG_POSTS, relatedPosts, blogTitle, blogExcerpt, blogBody } from '@/data/blog'
 import { getBlogPost } from '@/lib/blog-live'
 import { jsonLd, ogImage } from '@/lib/utils'
 import { requestOrigin } from '@/lib/request-market'
@@ -177,7 +177,7 @@ export default async function BlogPostPage({ params }: PageProps) {
           />
           </picture>
 
-          <div>{renderBody(post.body)}</div>
+          <div>{renderBody(blogBody(post, lang))}</div>
 
           {/* CTA */}
           <div className="mt-12 rounded-tile bg-sv-navy p-8 text-center md:p-10">

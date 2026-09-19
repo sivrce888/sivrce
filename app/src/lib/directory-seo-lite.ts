@@ -189,9 +189,9 @@ export const DISTRICTS: District[] = [
 ]
 
 /** City display name per locale (CITIES registry, fallback raw). */
-export function cityName(city: string, loc: DirLoc): string {
+export function cityName(city: string, loc: DirLoc | 'de'): string {
   const c = CITIES.find((c) => c.ka === city)
-  return c ? (loc === 'ka' ? c.ka : loc === 'ru' ? c.ru : c.en) : city
+  return c ? (loc === 'ka' ? c.ka : loc === 'ru' ? c.ru : loc === 'de' ? (c.de ?? c.en) : c.en) : city
 }
 
 export interface FaqItem {

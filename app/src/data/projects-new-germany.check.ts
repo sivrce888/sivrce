@@ -15,6 +15,12 @@ import { DE_CITIES as DE_CITY_ROWS } from '../lib/countries/de'
 // scripts/gen-project-renders.ts would otherwise 404 every DE gallery.
 for (const p of PROJECTS) {
   for (const src of p.gallery ?? []) {
+    // World rows carry zero-byte remote Commons galleries (license-safe, swept
+    // by world-project-media.check) — only local paths must exist on disk.
+    if (/^https?:\/\//.test(src)) {
+      assert.ok(src.startsWith('https://commons.wikimedia.org/wiki/Special:FilePath/'), `remote render not a Commons thumb: ${src}`)
+      continue
+    }
     assert.ok(fs.existsSync(path.join(process.cwd(), 'public', src)), `render file: ${src}`)
   }
 }

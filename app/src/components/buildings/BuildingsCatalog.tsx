@@ -6,26 +6,31 @@ import { MapPin, Building2, Star, Search } from 'lucide-react'
 import LocalizedLink from '@/components/LocalizedLink'
 import type { BuildingCatalogEntry } from '@/data/buildings'
 import { DEAL_BRAND } from '@/lib/category-brand'
-import { cityName, MICRO, DISTRICTS, type DirLoc } from '@/lib/directory-seo-lite'
+import { cityName, MICRO, MICRO_DE, DISTRICTS, type DirLoc } from '@/lib/directory-seo-lite'
 import { MetroLine } from '@/components/MetroLine'
 
 type Counts = { sale: number; rent: number; daily: number; pledge: number }
 
 type Props = {
-  buildings: BuildingCatalogEntry[]
+  /** Accepts the slimmed server payload: one locale of description, no gallery. */
+  buildings: (Omit<BuildingCatalogEntry, 'description'> & { description: Record<string, string> })[]
   countsBySlug: Record<string, Counts>
   developerNames: Record<string, string>
-  loc: DirLoc
+  loc: DirLoc | 'de'
 }
 
 const empty: Counts = { sale: 0, rent: 0, daily: 0, pledge: 0 }
+
+/** Cards rendered per batch — keeps first paint DOM (and SSR HTML) bounded on
+ * a 2200-entry catalog; the rest reveal on demand via the show-more button. */
+const PAGE = 60
 
 const L: Record<DirLoc | 'tr' | 'ar' | 'de' | 'he' | 'hy' | 'az' | 'uk', {
   search: string; allCity: string; allDistrict: string; allUbani: string; all: string
   ready: string; construction: string; cityAria: string; districtAria: string
   ubaniAria: string; statusAria: string; nBuildings: (n: number) => string
   none: string; forSale: string; rent: string; daily: string; pledge: string
-  listings: (n: number) => string; floorsAbbr: string; unitsAbbr: string
+  listings: (n: number) => string; floorsAbbr: string; unitsAbbr: string; more: string
 }> = {
   ka: {
     search: 'ძებნა სახელით, უბნით, მისამართით ან დეველოპერით',
@@ -35,7 +40,7 @@ const L: Record<DirLoc | 'tr' | 'ar' | 'de' | 'he' | 'hy' | 'az' | 'uk', {
     nBuildings: (n) => `${n} შენობა`,
     none: '{t.none}',
     forSale: 'იყიდება', rent: 'ქირა', daily: 'დღიურად', pledge: 'გირავნობა',
-    listings: (n) => `${n} განცხადება`, floorsAbbr: 'სართ.', unitsAbbr: 'ბინა',
+    listings: (n) => `${n} განცხადება`, floorsAbbr: 'სართ.', unitsAbbr: 'ბინა', more: 'მეტის ჩვენება',
   },
   en: {
     search: 'Search by name, neighborhood, address or developer',
@@ -45,7 +50,7 @@ const L: Record<DirLoc | 'tr' | 'ar' | 'de' | 'he' | 'hy' | 'az' | 'uk', {
     nBuildings: (n) => `${n} buildings`,
     none: 'Nothing found — change a filter or the search term',
     forSale: 'for sale', rent: 'rent', daily: 'daily', pledge: 'pledge',
-    listings: (n) => `${n} listings`, floorsAbbr: 'fl.', unitsAbbr: 'units',
+    listings: (n) => `${n} listings`, floorsAbbr: 'fl.', unitsAbbr: 'units', more: 'Show more',
   },
   ru: {
     search: 'Поиск по названию, кварталу, адресу или застройщику',
@@ -55,7 +60,7 @@ const L: Record<DirLoc | 'tr' | 'ar' | 'de' | 'he' | 'hy' | 'az' | 'uk', {
     nBuildings: (n) => `${n} корпусов`,
     none: 'Ничего не найдено — измените фильтр или запрос',
     forSale: 'продажа', rent: 'аренда', daily: 'посуточно', pledge: 'залог',
-    listings: (n) => `${n} объявлений`, floorsAbbr: 'эт.', unitsAbbr: 'кв.',
+    listings: (n) => `${n} объявлений`, floorsAbbr: 'эт.', unitsAbbr: 'кв.', more: 'Показать ещё',
   },
   tr: {
     search: 'İsim, mahalle, adres veya müteahhit ile arayın',
@@ -65,7 +70,7 @@ const L: Record<DirLoc | 'tr' | 'ar' | 'de' | 'he' | 'hy' | 'az' | 'uk', {
     nBuildings: (n) => `${n} bina`,
     none: 'Sonuç bulunamadı — filtreyi veya arama terimini değiştirin',
     forSale: 'satılık', rent: 'kiralık', daily: 'günlük', pledge: 'ipotekli',
-    listings: (n) => `${n} ilan`, floorsAbbr: 'kat.', unitsAbbr: 'daire',
+    listings: (n) => `${n} ilan`, floorsAbbr: 'kat.', unitsAbbr: 'daire', more: 'Daha fazla göster',
   },
   ar: {
     search: 'ابحث بالاسم أو الحي أو العنوان أو المطوّر',
@@ -75,7 +80,7 @@ const L: Record<DirLoc | 'tr' | 'ar' | 'de' | 'he' | 'hy' | 'az' | 'uk', {
     nBuildings: (n) => `${n} مبنى`,
     none: 'لا توجد نتائج — غيّر عامل التصفية أو كلمة البحث',
     forSale: 'للبيع', rent: 'إيجار', daily: 'يومي', pledge: 'مرهون',
-    listings: (n) => `${n} إعلان`, floorsAbbr: 'طوابق', unitsAbbr: 'وحدات',
+    listings: (n) => `${n} إعلان`, floorsAbbr: 'طوابق', unitsAbbr: 'وحدات', more: 'عرض المزيد',
   },
   de: {
     search: 'Nach Name, Viertel, Adresse oder Bauträger suchen',
@@ -85,7 +90,7 @@ const L: Record<DirLoc | 'tr' | 'ar' | 'de' | 'he' | 'hy' | 'az' | 'uk', {
     nBuildings: (n) => `${n} Gebäude`,
     none: 'Nichts gefunden — Filter oder Suchbegriff ändern',
     forSale: 'Kauf', rent: 'Miete', daily: 'täglich', pledge: 'Pfand',
-    listings: (n) => `${n} Inserate`, floorsAbbr: 'Et.', unitsAbbr: 'WE',
+    listings: (n) => `${n} Inserate`, floorsAbbr: 'Et.', unitsAbbr: 'WE', more: 'Mehr anzeigen',
   },
   he: {
     search: 'חיפוש לפי שם, שכונה, כתובת או יזם',
@@ -95,7 +100,7 @@ const L: Record<DirLoc | 'tr' | 'ar' | 'de' | 'he' | 'hy' | 'az' | 'uk', {
     nBuildings: (n) => `${n} בניינים`,
     none: 'לא נמצאו תוצאות — שנו מסנן או טקסט חיפוש',
     forSale: 'למכירה', rent: 'להשכרה', daily: 'יומי', pledge: 'ממושכן',
-    listings: (n) => `${n} מודעות`, floorsAbbr: 'קומות', unitsAbbr: 'דירות',
+    listings: (n) => `${n} מודעות`, floorsAbbr: 'קומות', unitsAbbr: 'דירות', more: 'הצג עוד',
   },
   hy: {
     search: 'Որոնում անվամբ, թաղամասով, հասցեով կամ դեվելոպերով',
@@ -105,7 +110,7 @@ const L: Record<DirLoc | 'tr' | 'ar' | 'de' | 'he' | 'hy' | 'az' | 'uk', {
     nBuildings: (n) => `${n} շենք`,
     none: 'Ոչինչ չի գտնվել — փոխեք ֆիլտրը կամ հարցումը',
     forSale: 'վաճառք', rent: 'վարձակալություն', daily: 'օրեկան', pledge: 'գրավ',
-    listings: (n) => `${n} հայտարարություն`, floorsAbbr: 'հարկ.', unitsAbbr: 'բն.',
+    listings: (n) => `${n} հայտարարություն`, floorsAbbr: 'հարկ.', unitsAbbr: 'բն.', more: 'Ցուցադրել ավելին',
   },
   az: {
     search: 'Ad, məhəllə, ünvan və ya tikinti şirkəti ilə axtarış',
@@ -115,7 +120,7 @@ const L: Record<DirLoc | 'tr' | 'ar' | 'de' | 'he' | 'hy' | 'az' | 'uk', {
     nBuildings: (n) => `${n} bina`,
     none: 'Heç nə tapılmadı — filtri və ya sorğunu dəyişdirin',
     forSale: 'satılıq', rent: 'kirayə', daily: 'günlük', pledge: 'girova',
-    listings: (n) => `${n} elan`, floorsAbbr: 'mərt.', unitsAbbr: 'mənzil',
+    listings: (n) => `${n} elan`, floorsAbbr: 'mərt.', unitsAbbr: 'mənzil', more: 'Daha çox göstər',
   },
   uk: {
     search: 'Пошук за назвою, кварталом, адресою або забудовником',
@@ -125,15 +130,15 @@ const L: Record<DirLoc | 'tr' | 'ar' | 'de' | 'he' | 'hy' | 'az' | 'uk', {
     nBuildings: (n) => `${n} корпусів`,
     none: 'Нічого не знайдено — змініть фільтр або запит',
     forSale: 'продаж', rent: 'оренда', daily: 'подобово', pledge: 'застава',
-    listings: (n) => `${n} оголошень`, floorsAbbr: 'пов.', unitsAbbr: 'кв.',
+    listings: (n) => `${n} оголошень`, floorsAbbr: 'пов.', unitsAbbr: 'кв.', more: 'Показати ще',
   },
 }
 
 /** District/ubani names are KA data keys — show the locale name when one exists. */
-function geoName(ka: string, loc: DirLoc): string {
+function geoName(ka: string, loc: DirLoc | 'de'): string {
   if (loc === 'ka') return ka
   const d = DISTRICTS.find((x) => x.ka === ka)
-  if (d) return loc === 'ru' ? d.ru : d.en
+  if (d) return loc === 'ru' ? d.ru : loc === 'de' ? (d.de ?? d.en) : d.en
   return ka
 }
 
@@ -144,6 +149,7 @@ export function BuildingsCatalog({ buildings, countsBySlug, developerNames, loc 
   const [district, setDistrict] = useState<string>('all')
   const [ubani, setUbani] = useState<string>('all')
   const [status, setStatus] = useState<'all' | 'ready' | 'construction'>('all')
+  const [limit, setLimit] = useState(PAGE)
 
   const cities = useMemo(() => {
     const set = new Set(buildings.map((b) => b.city))
@@ -308,7 +314,7 @@ export function BuildingsCatalog({ buildings, countsBySlug, developerNames, loc 
         </p>
       ) : (
         <div className="sv-card-grid-3">
-          {filtered.map((b, i) => {
+          {filtered.slice(0, limit).map((b, i) => {
             const devName = b.developerSlug ? developerNames[b.developerSlug] : undefined
             const counts = countsBySlug[b.slug] ?? empty
             const total = counts.sale + counts.rent + counts.daily + counts.pledge
@@ -320,7 +326,6 @@ export function BuildingsCatalog({ buildings, countsBySlug, developerNames, loc 
               <LocalizedLink
                 key={b.slug}
                 href={`/buildings/${b.slug}`}
-                aria-label={`${b.name} ${b.code}`}
                 className="group block rounded-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue"
               >
                 <article className="overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-card-hover">
@@ -334,9 +339,11 @@ export function BuildingsCatalog({ buildings, countsBySlug, developerNames, loc 
                       className="object-cover transition-transform duration-700 group-hover:scale-[1.05]"
                     />
                     <div className="absolute inset-0 bg-gradient-to-t from-sv-navy/75 via-transparent to-transparent" />
+                    {/* AA at 11px: white needs blue-deep (8.3:1); orange can't
+                        carry white (3.2:1 max) so it takes navy text (6.5:1). */}
                     <span
-                      className={`absolute top-3 right-3 rounded-full px-2.5 py-1 text-[11px] font-extrabold text-white ${
-                        b.status === 'ready' ? 'bg-sv-blue' : 'bg-sv-orange'
+                      className={`absolute top-3 right-3 rounded-full px-2.5 py-1 text-[11px] font-extrabold ${
+                        b.status === 'ready' ? 'bg-sv-blue-deep text-white' : 'bg-sv-orange text-sv-navy'
                       }`}
                     >
                       {b.status === 'ready' ? t.ready : t.construction}
@@ -368,23 +375,49 @@ export function BuildingsCatalog({ buildings, countsBySlug, developerNames, loc 
                     <p className="line-clamp-2 text-[13px] font-medium leading-snug text-sv-ink/60">
                       {b.description[loc]}
                     </p>
-                    <div className="flex flex-wrap gap-2 text-[11px] font-extrabold">
-                      <span style={{ color: DEAL_BRAND.sale }}>{counts.sale} {t.forSale}</span>
-                      <span style={{ color: DEAL_BRAND.rent }}>{counts.rent} {t.rent}</span>
-                      <span style={{ color: DEAL_BRAND.daily }}>{counts.daily} {t.daily}</span>
-                      <span style={{ color: DEAL_BRAND.pledge }}>{counts.pledge} {t.pledge}</span>
+                    <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] font-extrabold text-sv-ink/70">
+                      {/* Brand hue rides the marker dot; the number stays ink —
+                          pledge green alone is 3.3:1 on white (fails AA as text). */}
+                      <span className="inline-flex items-center gap-1">
+                        <i className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: DEAL_BRAND.sale }} aria-hidden />
+                        {counts.sale} {t.forSale}
+                      </span>
+                      <span className="inline-flex items-center gap-1">
+                        <i className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: DEAL_BRAND.rent }} aria-hidden />
+                        {counts.rent} {t.rent}
+                      </span>
+                      <span className="inline-flex items-center gap-1">
+                        <i className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: DEAL_BRAND.daily }} aria-hidden />
+                        {counts.daily} {t.daily}
+                      </span>
+                      <span className="inline-flex items-center gap-1">
+                        <i className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: DEAL_BRAND.pledge }} aria-hidden />
+                        {counts.pledge} {t.pledge}
+                      </span>
                     </div>
                     <p className="inline-flex flex-wrap items-center gap-1.5 text-[12px] font-bold text-sv-ink/60">
                       <Building2 className="h-3.5 w-3.5" />
                       {t.listings(total)} · {b.floors} {t.floorsAbbr}
                       {b.units ? ` · ${b.units} ${t.unitsAbbr}` : ''}
-                      {b.priceFromM2 ? ` · ${b.priceFromM2}${MICRO[loc].perM2}` : ''}
+                      {b.priceFromM2 ? ` · ${b.priceFromM2}${(loc === 'de' ? MICRO_DE : MICRO[loc]).perM2}` : ''}
                     </p>
                   </div>
                 </article>
               </LocalizedLink>
             )
           })}
+        </div>
+      )}
+
+      {filtered.length > limit && (
+        <div className="flex justify-center pt-2">
+          <button
+            type="button"
+            onClick={() => setLimit((n) => n + PAGE)}
+            className="h-12 rounded-control border border-sv-ink/10 bg-sv-surface px-6 text-[14px] font-bold text-sv-ink shadow-card transition hover:border-sv-blue hover:text-sv-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue"
+          >
+            {t.more} · {filtered.length - limit}
+          </button>
         </div>
       )}
     </div>

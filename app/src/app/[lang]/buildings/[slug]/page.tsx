@@ -65,7 +65,7 @@ import {
   type PoiCategory,
 } from '@/lib/map/pois'
 import { getDistrictPeerPerM2 } from '@/lib/listings-db'
-import { dirLoc, type DirLoc } from '@/lib/directory-seo'
+import { type DirLoc } from '@/lib/directory-seo'
 import { DISTRICTS } from '@/lib/seo-pages'
 import { priceScaleOf } from '@/lib/price-scale'
 import { medianOf } from '@/lib/market-stats-core'
@@ -76,7 +76,7 @@ import { jsonLd, ogImage } from '@/lib/utils'
 import {pageAlternates,  } from '@/lib/i18n/server'
 import { isValidLang } from '@/lib/i18n/core'
 
-const FACTOR_LABEL: Record<DirLoc, Record<BuildingFactorKey, string>> = {
+const FACTOR_LABEL: Record<DirLoc | 'de', Record<BuildingFactorKey, string>> = {
   ka: {
     value: 'ღირებულება',
     liquidity: 'ლიკვიდურობა',
@@ -98,9 +98,16 @@ const FACTOR_LABEL: Record<DirLoc, Record<BuildingFactorKey, string>> = {
     quality: 'Качество',
     location: 'Локация',
   },
+  de: {
+    value: 'Wert',
+    liquidity: 'Liquidität',
+    trust: 'Vertrauen',
+    quality: 'Qualität',
+    location: 'Lage',
+  },
 }
 
-const T: Record<DirLoc, {
+const T: Record<DirLoc | 'de', {
   ready: string; construction: string; buildings: string
   sale: string; rent: string; daily: string; pledge: string
   listingsIn: (n: number) => string; listings: (n: number) => string
@@ -162,10 +169,27 @@ const T: Record<DirLoc, {
       aboveAverage: 'Выше среднего', high: 'Высокая цена',
     },
   },
+  de: {
+    ready: 'Fertiggestellt', construction: 'Im Bau', buildings: 'Gebäude',
+    sale: 'zu verkaufen', rent: 'zur Miete', daily: 'täglich', pledge: 'verpfändet',
+    listingsIn: (n) => `${n} Inserate`, listings: (n) => `${n} Inserate`,
+    intel: 'Gebäude-Intelligenz', trustHigh: 'Hohe Konfidenz', trustMedium: 'Mittlere Konfidenz', trustLow: 'Niedrige Konfidenz',
+    avgPrice: 'Durchschnittspreis', medianPrice: 'Medianpreis', vsDistrict: 'vs. Bezirk',
+    floorsAbbr: 'OG', unitsAbbr: 'Wohnungen', handover: 'Übergabe', perM2From: '/m² ab',
+    viewMap: 'Auf Karte ansehen', project: 'Projekt', about: 'Über das Gebäude',
+    spec: { code: 'Code', district: 'Bezirk', ubani: 'Viertel', floors: 'Etagen', units: 'Wohnungen', year: 'Jahr', corpus: 'Gebäude Nr.' },
+    around: 'In der Umgebung', location: 'Lage & Anfahrt', photos: 'Fotos', plan: 'Grundriss',
+    listingsHere: 'Inserate in diesem Gebäude', noListings: 'Für diese Adresse gibt es noch keine Inserate.',
+    related: 'Im selben Bezirk', faqTitle: 'Häufige Fragen',
+    band: {
+      low: 'Niedriger Preis', mediumLow: 'Unter dem Durchschnitt', average: 'Durchschnittspreis',
+      aboveAverage: 'Über dem Durchschnitt', high: 'Hoher Preis',
+    },
+  },
 }
 
-/** District/ubani names are KA data keys — locale name when one exists. */
-function geoName(ka: string, loc: DirLoc): string {
+/** District/ubani names are KA data keys — locale name when one exists. de falls back to the Latin `en` name. */
+function geoName(ka: string, loc: DirLoc | 'de'): string {
   if (loc === 'ka') return ka
   const d = DISTRICTS.find((x) => x.ka === ka)
   if (d) return loc === 'ru' ? d.ru : d.en
@@ -220,7 +244,7 @@ async function resolveBuilding(slug: string) {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { lang: rawLang, slug } = await params
   const lang = isValidLang(rawLang) ? rawLang : 'ka'
-  const loc = dirLoc(lang)
+  const loc: DirLoc | 'de' = lang === 'ka' || lang === 'ru' || lang === 'de' ? lang : 'en'
   const t = T[loc]
   const { building: b } = await resolveBuilding(slug)
   if (!b) return {}
@@ -228,7 +252,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const counts = live ?? buildingDealCounts(slug)
   const bName = loc === 'ka' ? b.name : b.nameEn
   const place = [b.ubani, b.district, b.city].filter((n): n is string => Boolean(n)).map((n) => geoName(n, loc)).join(', ')
-  const description = `${b.description[loc]} ${place}. ${counts.sale} ${t.sale}, ${counts.rent} ${t.rent}.`.slice(0, 160)
+  const description = `${b.description[loc] ?? b.description.en} ${place}. ${counts.sale} ${t.sale}, ${counts.rent} ${t.rent}.`.slice(0, 160)
   return {
     title: `${bName} (${b.code}) — ${geoName(b.district, loc)}, ${b.city}`,
     description,
@@ -239,7 +263,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       type: 'website',
       url: `https://sivrce.ge/buildings/${b.slug}`,
       siteName: 'sivrce',
-      locale: loc === 'ka' ? 'ka_GE' : loc === 'ru' ? 'ru_RU' : 'en_US',
+      locale: loc === 'ka' ? 'ka_GE' : loc === 'ru' ? 'ru_RU' : loc === 'de' ? 'de_DE' : 'en_US',
       images: [{ url: ogImage(b.img), alt: bName }],
     },
   }
@@ -248,7 +272,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 export default async function BuildingPage({ params }: PageProps) {
   const { lang: rawLang, slug } = await params
   const lang = isValidLang(rawLang) ? rawLang : 'ka'
-  const loc = dirLoc(lang)
+  const loc: DirLoc | 'de' = lang === 'ka' || lang === 'ru' || lang === 'de' ? lang : 'en'
   const t = T[loc]
   const { building, developer: dbDeveloper } = await resolveBuilding(slug)
   if (!building) notFound()
@@ -301,54 +325,64 @@ export default async function BuildingPage({ params }: PageProps) {
   const bName = loc === 'ka' ? building.name : building.nameEn
   const faqs = [
     {
-      q: loc === 'ka' ? `რამდენი განცხადებაა ${building.name}-ში?` : loc === 'ru' ? `Сколько объявлений в ${bName}?` : `How many listings are in ${bName}?`,
+      q: loc === 'ka' ? `რამდენი განცხადებაა ${building.name}-ში?` : loc === 'ru' ? `Сколько объявлений в ${bName}?` : loc === 'de' ? `Wie viele Inserate gibt es in ${bName}?` : `How many listings are in ${bName}?`,
       a: loc === 'ka'
         ? `ამჟამად ${listings.length} განცხადება: ${counts.sale} იყიდება, ${counts.rent} ქირავდება, ${counts.daily} დღიურად, ${counts.pledge} გირავდება.`
         : loc === 'ru'
           ? `Сейчас ${listings.length} объявлений: ${counts.sale} продажа, ${counts.rent} аренда, ${counts.daily} посуточно, ${counts.pledge} залог.`
-          : `Currently ${listings.length} listings: ${counts.sale} for sale, ${counts.rent} for rent, ${counts.daily} daily, ${counts.pledge} pledge.`,
+          : loc === 'de'
+            ? `Derzeit ${listings.length} Inserate: ${counts.sale} zu verkaufen, ${counts.rent} zur Miete, ${counts.daily} täglich, ${counts.pledge} verpfändet.`
+            : `Currently ${listings.length} listings: ${counts.sale} for sale, ${counts.rent} for rent, ${counts.daily} daily, ${counts.pledge} pledge.`,
     },
     {
-      q: loc === 'ka' ? `სად არის ${building.name}?` : loc === 'ru' ? `Где находится ${bName}?` : `Where is ${bName}?`,
+      q: loc === 'ka' ? `სად არის ${building.name}?` : loc === 'ru' ? `Где находится ${bName}?` : loc === 'de' ? `Wo befindet sich ${bName}?` : `Where is ${bName}?`,
       a: loc === 'ka'
         ? `მისამართი: ${building.address}. ${place}. კოდი: ${building.code}.${metro ? ` უახლოესი მეტრო: ${metro.name} (${formatMetroDist(metro)}).` : ''}`
         : loc === 'ru'
           ? `Адрес: ${building.address}. ${place}. Код: ${building.code}.${metro ? ` Ближайшее метро: ${metro.name} (${formatMetroDist(metro)}).` : ''}`
-          : `Address: ${building.address}. ${place}. Code: ${building.code}.${metro ? ` Nearest metro: ${metro.name} (${formatMetroDist(metro)}).` : ''}`,
+          : loc === 'de'
+            ? `Adresse: ${building.address}. ${place}. Code: ${building.code}.${metro ? ` Nächste U-Bahn-Station: ${metro.name} (${formatMetroDist(metro)}).` : ''}`
+            : `Address: ${building.address}. ${place}. Code: ${building.code}.${metro ? ` Nearest metro: ${metro.name} (${formatMetroDist(metro)}).` : ''}`,
     },
     ...(buildingAvgPerM2 != null
       ? [
           {
-            q: loc === 'ka' ? `რა ღირს მ² ${building.name}-ში?` : loc === 'ru' ? `Сколько стоит м² в ${bName}?` : `What does m² cost in ${bName}?`,
+            q: loc === 'ka' ? `რა ღირს მ² ${building.name}-ში?` : loc === 'ru' ? `Сколько стоит м² в ${bName}?` : loc === 'de' ? `Was kostet ein m² in ${bName}?` : `What does m² cost in ${bName}?`,
             a: loc === 'ka'
               ? `აქტიური განცხადებების მიხედვით საშუალო ფასი — $${buildingAvgPerM2.toLocaleString('en-US')} მ²-ზე (${salePerM2.length} განცხადება).${buildingScale ? ` რაიონთან შედარებით: ${buildingScale.labelKa.toLowerCase()}.` : ''}`
               : loc === 'ru'
                 ? `Средняя цена по активным объявлениям — $${buildingAvgPerM2.toLocaleString('en-US')}/м² (${salePerM2.length} объявлений).${buildingScale ? ` По району: ${(t.band[buildingScale.band] ?? buildingScale.labelKa).toLowerCase()}.` : ''}`
-                : `Average active-listing price is $${buildingAvgPerM2.toLocaleString('en-US')}/m² (${salePerM2.length} listings).${buildingScale ? ` vs district: ${(t.band[buildingScale.band] ?? buildingScale.labelKa).toLowerCase()}.` : ''}`,
+                : loc === 'de'
+                  ? `Durchschnittspreis der aktiven Inserate — $${buildingAvgPerM2.toLocaleString('en-US')}/m² (${salePerM2.length} Inserate).${buildingScale ? ` Vs. Bezirk: ${(t.band[buildingScale.band] ?? buildingScale.labelKa).toLowerCase()}.` : ''}`
+                  : `Average active-listing price is $${buildingAvgPerM2.toLocaleString('en-US')}/m² (${salePerM2.length} listings).${buildingScale ? ` vs district: ${(t.band[buildingScale.band] ?? buildingScale.labelKa).toLowerCase()}.` : ''}`,
           },
         ]
       : []),
     ...(dev
       ? [
           {
-            q: loc === 'ka' ? 'ვინ არის დეველოპერი?' : loc === 'ru' ? 'Кто застройщик?' : 'Who is the developer?',
-            a: loc === 'ka' ? `დეველოპერი: ${dev.name[loc]}.` : loc === 'ru' ? `Застройщик: ${dev.name.ru}.` : `Developer: ${dev.name.en}.`,
+            q: loc === 'ka' ? 'ვინ არის დეველოპერი?' : loc === 'ru' ? 'Кто застройщик?' : loc === 'de' ? 'Wer ist der Bauträger?' : 'Who is the developer?',
+            a: loc === 'ka' ? `დეველოპერი: ${dev.name[loc]}.` : loc === 'ru' ? `Застройщик: ${dev.name.ru}.` : loc === 'de' ? `Bauträger: ${dev.name.de ?? dev.name.en}.` : `Developer: ${dev.name.en}.`,
           },
         ]
       : []),
     {
-      q: loc === 'ka' ? 'როგორ მივიდე?' : loc === 'ru' ? 'Как добраться?' : 'How do I get there?',
+      q: loc === 'ka' ? 'როგორ მივიდე?' : loc === 'ru' ? 'Как добраться?' : loc === 'de' ? 'Wie komme ich dorthin?' : 'How do I get there?',
       a: metro
         ? loc === 'ka'
           ? `მეტრო ${metro.name}-დან ფეხით ${metro.walkMin} წთ. გახსენი Apple Maps ან Google Maps მარშრუტისთვის.`
           : loc === 'ru'
             ? `${metro.walkMin} мин пешком от метро ${metro.name}. Маршрут — Apple Maps или Google Maps.`
-            : `${metro.walkMin} min walk from ${metro.name} metro. Open Apple Maps or Google Maps for directions.`
+            : loc === 'de'
+              ? `${metro.walkMin} Min. Fußweg von der U-Bahn-Station ${metro.name}. Öffnen Sie Apple Maps oder Google Maps für die Route.`
+              : `${metro.walkMin} min walk from ${metro.name} metro. Open Apple Maps or Google Maps for directions.`
         : loc === 'ka'
           ? `მისამართი: ${building.address}. გახსენი Apple Maps ან Google Maps მარშრუტისთვის.`
           : loc === 'ru'
             ? `Адрес: ${building.address}. Маршрут — Apple Maps или Google Maps.`
-            : `Address: ${building.address}. Open Apple Maps or Google Maps for directions.`,
+            : loc === 'de'
+              ? `Adresse: ${building.address}. Öffnen Sie Apple Maps oder Google Maps für die Route.`
+              : `Address: ${building.address}. Open Apple Maps or Google Maps for directions.`,
     },
   ]
 
@@ -357,7 +391,7 @@ export default async function BuildingPage({ params }: PageProps) {
     '@type': 'ApartmentComplex',
     name: building.name,
     alternateName: [building.nameEn, building.code],
-    description: building.description[loc],
+    description: building.description[loc] ?? building.description.en,
     url: `https://sivrce.ge/buildings/${building.slug}`,
     image: `https://sivrce.ge${building.img}`,
     address: {
@@ -432,7 +466,7 @@ export default async function BuildingPage({ params }: PageProps) {
           <div className="absolute inset-0 bg-gradient-to-t from-sv-navy/80 via-sv-navy/20 to-transparent" />
           <div aria-hidden className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-sv-navy/55 to-transparent" />
           <div className="absolute inset-x-0 bottom-0 mx-auto max-w-[1440px] px-5 pb-8 md:px-10">
-            <nav aria-label={loc === 'ka' ? 'ბრედკრამბი' : loc === 'ru' ? 'Хлебные крошки' : 'Breadcrumb'} className="mb-3 flex flex-wrap items-center gap-2 text-[12px] font-bold text-white/60">
+            <nav aria-label={loc === 'ka' ? 'ბრედკრამბი' : loc === 'ru' ? 'Хлебные крошки' : loc === 'de' ? 'Brotkrumen' : 'Breadcrumb'} className="mb-3 flex flex-wrap items-center gap-2 text-[12px] font-bold text-white/60">
               <Link href="/buildings" className="hover:text-white">
                 {t.buildings}
               </Link>
@@ -457,7 +491,7 @@ export default async function BuildingPage({ params }: PageProps) {
                     className="mt-1 inline-flex min-h-11 items-center gap-1.5 text-[14px] font-bold text-white/85 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                   >
                     <BadgeCheck className="h-4 w-4 text-sv-success" aria-hidden />
-                    {dev.name[loc]}
+                    {loc === 'de' ? (dev.name.de ?? dev.name.en) : dev.name[loc]}
                   </Link>
                 )}
               </div>
@@ -654,7 +688,7 @@ export default async function BuildingPage({ params }: PageProps) {
             {t.about}
           </h2>
           <p className="mt-3 max-w-3xl whitespace-pre-line text-[15px] font-semibold leading-relaxed text-sv-ink/70">
-            {building.description[loc]}
+            {building.description[loc] ?? building.description.en}
           </p>
           <dl className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {[

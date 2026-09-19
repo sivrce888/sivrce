@@ -21,8 +21,47 @@ import { WORLD_PROJECTS, type WorldProject } from './world-projects'
 import { worldDevelopers, type WorldDeveloperEntry } from './world-developers'
 import { PROJECT_GALLERIES } from './project-galleries'
 import { CURATED_GALLERIES } from './project-galleries-curated'
+import { WORLD_PROJECT_MEDIA } from './world-project-media'
 import { PROJECT_VIDEOS, PROJECT_FLOORPLANS, DEVELOPER_GALLERIES } from './project-media'
 import { ON_REQUEST } from '@/lib/directory-seo-lite'
+
+const WORLD_LOCAL_HEROES = new Set([
+  '220-central-park-south-nyc',
+  '30-park-place-nyc',
+  'azabudai-hills-mori-jp-tower',
+  'bentley-residences-miami',
+  'bosco-verticale-milan',
+  'bugatti-residences-dubai',
+  'bulgari-residences-jumeirah-bay',
+  'capitaspring-singapore',
+  'citylife-residences-milan',
+  'crown-residences-barangaroo',
+  'deansgate-square-manchester',
+  'eighty-seven-park-miami',
+  'ellington-beach-house',
+  'kings-cross-central-london',
+  'l-archipel-paris-la-defense',
+  'mercedes-benz-places-dubai',
+  'one-frankfurt-ca-immo',
+  'one-park-drive-canary-wharf',
+  'one-pearl-bank-singapore',
+  'one-sydney-harbour',
+  'porsche-design-tower-miami',
+  'port-de-la-mer-dubai',
+  'prime-tower-zurich',
+  'santa-clara-homes-marbella',
+  'six-senses-residences-palm',
+  'sugar-wharf-toronto',
+  'the-arc-shoreditch-london',
+  'the-brooklyn-tower',
+  'the-opus-dubai',
+  'tokyo-midtown-yaesu',
+  'torch-tower-tokyo',
+  'torre-isea-barcelona',
+  'vancouver-house-big',
+  'wallich-residence-singapore',
+  'wardian-london',
+])
 
 /**
  * Convert WorldProject to Project format for professionals.ts integration.
@@ -35,11 +74,15 @@ function worldProjectToProject(wp: WorldProject): Project {
     'planned': 0,
     'sold-out': 100,
   }
+  const img = WORLD_LOCAL_HEROES.has(wp.slug)
+    ? `/images/projects/${wp.slug}.webp`
+    : (WORLD_PROJECT_MEDIA[wp.slug]?.images?.[0]?.url ?? `https://images.sivrce.ge/projects/${wp.slug}.webp`)
+
   return {
     slug: wp.slug,
     name: wp.name,
     developerSlug: wp.developer || undefined,
-    img: `/images/projects/${wp.slug}.webp`,
+    img,
     location: wp.district ? `${wp.district}, ${wp.city}` : wp.city,
     city: wp.city,
     priceFromM2: wp.pricePerSqm ? `$${wp.pricePerSqm.toLocaleString()}` : ON_REQUEST,
@@ -144,6 +187,8 @@ export interface Project {
   img: string
   /** Extra renders / progress photos (local CDN). */
   gallery?: string[]
+  /** CC-attribution per remote gallery URL (Wikimedia Commons) — keyed by image URL. */
+  galleryCredits?: Record<string, { author?: string; license: string; page: string }>
   /** Floor-plan / passport image (local CDN). */
   passportUrl?: string
   /** Official source page — provenance for street-verified DE rows. */
@@ -189,7 +234,7 @@ const CURRENT_YEAR = new Date().getFullYear()
  * card from coords — same first-party pipeline, no hotlinked binaries.
  */
 function withRenderTrio(p: Project): Project {
-  if (!(p.slug in PROJECT_FLOORPLANS)) return p
+  if (!p.img.startsWith('/images/') || !(p.slug in PROJECT_FLOORPLANS)) return p
   const base = p.img.replace(/\.webp$/, '')
   const existing = p.gallery ?? []
   const trio = [`${base}-massing.webp`, `${base}-timeline.webp`, `${base}-lage.webp`]
@@ -202,18 +247,23 @@ function withRenderTrio(p: Project): Project {
 /** Real mirrored photos/renders lead; synthetic cards trail; attaches real video tours, virtual 360s & floor plans. */
 function withRealGallery(p: Project): Project {
   const real = [...(PROJECT_GALLERIES[p.slug] ?? []), ...(CURATED_GALLERIES[p.slug] ?? [])]
+  // ponytail: world rows gain zero-byte remote Commons galleries (license-safe,
+  // HEAD-verified by scripts/enrich-world-media.mjs) — no local binaries, no tree weight.
+  const remote = WORLD_PROJECT_MEDIA[p.slug]?.images ?? []
   const video = p.videoUrl ?? PROJECT_VIDEOS[p.slug]
   // ponytail: PROJECT_VIRTUAL_TOURS dropped from project-media (fake Matterport IDs); keep project-level URL only
   const virtualTour = p.virtualTourUrl
   const passport = p.passportUrl ?? PROJECT_FLOORPLANS[p.slug]
   const existing = p.gallery ?? []
-  const merged = [...real, ...existing].filter((g, i, all) => all.indexOf(g) === i)
+  const merged = [...real, ...existing, ...remote.map((r) => r.url)].filter((g, i, all) => all.indexOf(g) === i)
+  const credits = Object.fromEntries(remote.map((r) => [r.url, { author: r.author, license: r.license ?? 'see file page', page: r.page }]))
   return {
     ...p,
     ...(video ? { videoUrl: video } : {}),
     ...(virtualTour ? { virtualTourUrl: virtualTour } : {}),
     ...(passport ? { passportUrl: passport } : {}),
     ...(merged.length > 0 ? { gallery: merged } : {}),
+    ...(remote.length > 0 ? { galleryCredits: { ...(p.galleryCredits ?? {}), ...credits } } : {}),
   }
 }
 

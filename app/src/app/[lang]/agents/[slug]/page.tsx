@@ -13,7 +13,9 @@ import { getListingsForAgentProfile } from '@/lib/listings-db'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
 import { altNameList } from '@/lib/bilingual'
 import { jsonLd } from '@/lib/utils'
-import {kaOnlyAlternates,  } from '@/lib/i18n/server'
+import { kaOnlyAlternates } from '@/lib/i18n/server'
+import { isValidLang } from '@/lib/i18n/core'
+import { pickLoc } from '@/lib/directory-seo-lite'
 import { db } from '@/lib/db'
 import { safeQuery } from '@/lib/guards'
 
@@ -26,25 +28,28 @@ export function generateStaticParams() {
 }
 
 interface PageProps {
-  params: Promise<{ slug: string }>
+  params: Promise<{ lang: string; slug: string }>
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { slug } = await params
+  const { lang: rawLang, slug } = await params
+  const lang = isValidLang(rawLang) ? rawLang : 'ka'
+  const loc = lang === 'ka' || lang === 'ru' || lang === 'de' ? lang : 'en'
   const a = getAgentProfile(slug)
   if (a) {
-    const description = a.description.ka.replace(/\s+/g, ' ').slice(0, 155)
+    const description = pickLoc(a.description, loc).replace(/\s+/g, ' ').slice(0, 155)
+    const name = pickLoc(a.name, loc)
     return {
-      title: `${a.name.ka} — ${a.agency}`,
+      title: `${name} — ${a.agency}`,
       description,
       alternates: kaOnlyAlternates(`/agents/${a.slug}`),
       openGraph: {
-        title: `${a.name.ka} — ${a.agency}`,
+        title: `${name} — ${a.agency}`,
         description,
         type: 'profile',
         url: `https://sivrce.ge/agents/${a.slug}`,
         siteName: 'sivrce',
-        locale: 'ka_GE',
+        locale: lang === 'de' ? 'de_DE' : lang === 'ru' ? 'ru_RU' : lang === 'en' ? 'en_US' : 'ka_GE',
       },
     }
   }
@@ -60,7 +65,16 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 }
 
 export default async function AgentPage({ params }: PageProps) {
-  const { slug } = await params
+  const { lang: rawLang, slug } = await params
+  const lang = isValidLang(rawLang) ? rawLang : 'ka'
+  const loc = lang === 'ka' || lang === 'ru' || lang === 'de' ? lang : 'en'
+  // Tri-lang section headings (ka/en+de) — ka block is the SEO surface.
+  const H = {
+    ka: { about: 'შესახებ', location: 'მდებარეობა', listings: 'აგენტის განცხადებები', home: 'მთავარი', agents: 'აგენტები' },
+    ru: { about: 'Об агенте', location: 'Расположение', listings: 'Объявления агента', home: 'Главная', agents: 'Агенты' },
+    de: { about: 'Über uns', location: 'Lage', listings: 'Inserate des Maklers', home: 'Startseite', agents: 'Makler' },
+    en: { about: 'About', location: 'Location', listings: "Agent's listings", home: 'Home', agents: 'Agents' },
+  }[loc]
   const agent = getAgentProfile(slug)
 
   // Live DB agents → unified /u/[id] (listings + role)
@@ -74,6 +88,7 @@ export default async function AgentPage({ params }: PageProps) {
   }
 
   const listings = await getListingsForAgentProfile(agent.slug, agent.name.ka)
+  const descLoc = pickLoc(agent.description, loc)
   const aggregate = await getReviewAggregate('agent', slug)
   const mapPin = cityCenter(agent.city)
 
@@ -102,9 +117,9 @@ export default async function AgentPage({ params }: PageProps) {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'მთავარი', item: 'https://sivrce.ge' },
-      { '@type': 'ListItem', position: 2, name: 'აგენტები', item: 'https://sivrce.ge/agents' },
-      { '@type': 'ListItem', position: 3, name: agent.name.ka, item: `https://sivrce.ge/agents/${agent.slug}` },
+      { '@type': 'ListItem', position: 1, name: H.home, item: 'https://sivrce.ge' },
+      { '@type': 'ListItem', position: 2, name: H.agents, item: 'https://sivrce.ge/agents' },
+      { '@type': 'ListItem', position: 3, name: pickLoc(agent.name, loc), item: `https://sivrce.ge/agents/${agent.slug}` },
     ],
   }
 
@@ -128,16 +143,16 @@ export default async function AgentPage({ params }: PageProps) {
 
         <section className="mx-auto max-w-[1440px] px-5 py-12 md:px-10">
           <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
-            შესახებ
+            {H.about}
           </h2>
           <p className="mt-3 max-w-3xl text-[15px] font-semibold leading-relaxed text-sv-ink/70">
-            {agent.description.ka}
+            {descLoc}
           </p>
         </section>
 
         <section className="mx-auto max-w-[1440px] px-5 pb-12 md:px-10">
           <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
-            მდებარეობა
+            {H.location}
           </h2>
           <div className="relative mt-6 overflow-hidden rounded-card shadow-card">
             <MapEmbed
@@ -158,7 +173,7 @@ export default async function AgentPage({ params }: PageProps) {
         {listings.length > 0 && (
           <section className="mx-auto max-w-[1440px] px-5 pb-12 md:px-10">
             <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
-              აგენტის განცხადებები
+              {H.listings}
             </h2>
             <div className="mt-6 sv-card-grid-3">
               {listings.map((l, i) => (
@@ -169,7 +184,7 @@ export default async function AgentPage({ params }: PageProps) {
         )}
 
         <section className="mx-auto grid max-w-[1440px] gap-10 px-5 pb-16 md:px-10 lg:grid-cols-2">
-          <LeadForm targetType="agent" targetId={agent.slug} recipientName={agent.name.ka} />
+          <LeadForm targetType="agent" targetId={agent.slug} recipientName={pickLoc(agent.name, loc)} />
           <ReviewsSectionServer targetType="agent" targetId={agent.slug} />
         </section>
       </main>
