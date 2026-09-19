@@ -582,103 +582,6 @@ async function ensureLayers(
     },
   })
 
-  // Mid-zoom Airbnb capsules — stretchable white pill + ink price; hide when clustered / footprints.
-  map.addLayer({
-    id: PRICE_ID,
-    type: 'symbol',
-    source: PTS_SOURCE_ID,
-    minzoom: zooms.priceMinZoom,
-    maxzoom: PRICE_MAX_ZOOM,
-    filter: pricePillFilter(null),
-    layout: {
-      'icon-image': PRICE_PILL_IDLE,
-      'icon-text-fit': 'both',
-      'icon-text-fit-padding': [5, 10, 5, 10],
-      'icon-allow-overlap': false,
-      'icon-padding': 4,
-      'symbol-sort-key': ['*', -1, ['coalesce', ['get', 'total'], 1]],
-      'text-field': ['get', 'priceLabel'],
-      'text-size': 12,
-      'text-font': ['Noto Sans Bold'],
-      'text-anchor': 'center',
-      'text-allow-overlap': false,
-      'text-padding': 2,
-    },
-    paint: {
-      'text-color': BRAND.colors.ink,
-      'icon-opacity': [
-        'case',
-        [
-          'any',
-          ['boolean', ['feature-state', 'selected'], false],
-          ['boolean', ['feature-state', 'hover'], false],
-        ],
-        0,
-        ['boolean', ['feature-state', 'seen'], false],
-        0.55,
-        1,
-      ],
-      'text-opacity': [
-        'case',
-        [
-          'any',
-          ['boolean', ['feature-state', 'selected'], false],
-          ['boolean', ['feature-state', 'hover'], false],
-        ],
-        0,
-        ['boolean', ['feature-state', 'seen'], false],
-        0.55,
-        1,
-      ],
-      'icon-opacity-transition': MAP_FADE,
-      'text-opacity-transition': MAP_FADE,
-    },
-  })
-  map.addLayer({
-    id: PRICE_ACTIVE_ID,
-    type: 'symbol',
-    source: PTS_SOURCE_ID,
-    minzoom: zooms.priceMinZoom,
-    maxzoom: PRICE_MAX_ZOOM,
-    filter: pricePillFilter(null),
-    layout: {
-      'icon-image': PRICE_PILL_ACTIVE,
-      'icon-text-fit': 'both',
-      'icon-text-fit-padding': [5, 10, 5, 10],
-      'icon-allow-overlap': true,
-      'icon-ignore-placement': true,
-      'text-field': ['get', 'priceLabel'],
-      'text-size': 12,
-      'text-font': ['Noto Sans Bold'],
-      'text-anchor': 'center',
-      'text-allow-overlap': true,
-      'text-ignore-placement': true,
-    },
-    paint: {
-      'text-color': '#FFFFFF',
-      'icon-opacity': [
-        'case',
-        [
-          'any',
-          ['boolean', ['feature-state', 'selected'], false],
-          ['boolean', ['feature-state', 'hover'], false],
-        ],
-        1,
-        0,
-      ],
-      'text-opacity': [
-        'case',
-        [
-          'any',
-          ['boolean', ['feature-state', 'selected'], false],
-          ['boolean', ['feature-state', 'hover'], false],
-        ],
-        1,
-        0,
-      ],
-    },
-  })
-
   map.addLayer({
     id: FILL_ID,
     type: 'fill',
@@ -904,6 +807,115 @@ async function ensureLayers(
     minzoom: POI_MIN_ZOOM.metro,
     filter: poiLayerFilters(POI_DEFAULT_ON).metro,
     layout: POI_METRO_LAYOUT,
+  })
+
+  /**
+   * Price pills go up LAST, and that ordering is load-bearing.
+   *
+   * MapLibre resolves symbol placement from the top layer down, so whatever is
+   * added last wins a contested spot. While these sat below the amenity badges a
+   * Vake viewport with 9 qualifying pills rendered 0 of them — bus stops had
+   * taken every slot. The pill is the product; context yields to it.
+   *
+   * Being topmost also puts pills in front of the 3D massing, which is what every
+   * map with price pins does: at 60 deg of pitch a tower must not swallow the
+   * price of the building behind it.
+   */
+  // Mid-zoom Airbnb capsules — stretchable white pill + ink price; hide when clustered / footprints.
+  map.addLayer({
+    id: PRICE_ID,
+    type: 'symbol',
+    source: PTS_SOURCE_ID,
+    minzoom: zooms.priceMinZoom,
+    maxzoom: PRICE_MAX_ZOOM,
+    filter: pricePillFilter(null),
+    layout: {
+      'icon-image': PRICE_PILL_IDLE,
+      'icon-text-fit': 'both',
+      'icon-text-fit-padding': [5, 10, 5, 10],
+      'icon-allow-overlap': false,
+      'icon-padding': 4,
+      'symbol-sort-key': ['*', -1, ['coalesce', ['get', 'total'], 1]],
+      'text-field': ['get', 'priceLabel'],
+      'text-size': 12,
+      'text-font': ['Noto Sans Bold'],
+      'text-anchor': 'center',
+      'text-allow-overlap': false,
+      'text-padding': 2,
+    },
+    paint: {
+      'text-color': BRAND.colors.ink,
+      'icon-opacity': [
+        'case',
+        [
+          'any',
+          ['boolean', ['feature-state', 'selected'], false],
+          ['boolean', ['feature-state', 'hover'], false],
+        ],
+        0,
+        ['boolean', ['feature-state', 'seen'], false],
+        0.55,
+        1,
+      ],
+      'text-opacity': [
+        'case',
+        [
+          'any',
+          ['boolean', ['feature-state', 'selected'], false],
+          ['boolean', ['feature-state', 'hover'], false],
+        ],
+        0,
+        ['boolean', ['feature-state', 'seen'], false],
+        0.55,
+        1,
+      ],
+      'icon-opacity-transition': MAP_FADE,
+      'text-opacity-transition': MAP_FADE,
+    },
+  })
+  map.addLayer({
+    id: PRICE_ACTIVE_ID,
+    type: 'symbol',
+    source: PTS_SOURCE_ID,
+    minzoom: zooms.priceMinZoom,
+    maxzoom: PRICE_MAX_ZOOM,
+    filter: pricePillFilter(null),
+    layout: {
+      'icon-image': PRICE_PILL_ACTIVE,
+      'icon-text-fit': 'both',
+      'icon-text-fit-padding': [5, 10, 5, 10],
+      'icon-allow-overlap': true,
+      'icon-ignore-placement': true,
+      'text-field': ['get', 'priceLabel'],
+      'text-size': 12,
+      'text-font': ['Noto Sans Bold'],
+      'text-anchor': 'center',
+      'text-allow-overlap': true,
+      'text-ignore-placement': true,
+    },
+    paint: {
+      'text-color': '#FFFFFF',
+      'icon-opacity': [
+        'case',
+        [
+          'any',
+          ['boolean', ['feature-state', 'selected'], false],
+          ['boolean', ['feature-state', 'hover'], false],
+        ],
+        1,
+        0,
+      ],
+      'text-opacity': [
+        'case',
+        [
+          'any',
+          ['boolean', ['feature-state', 'selected'], false],
+          ['boolean', ['feature-state', 'hover'], false],
+        ],
+        1,
+        0,
+      ],
+    },
   })
 }
 
@@ -3105,9 +3117,13 @@ function Map3DInner({
           </div>
         </div>
 
-        {/* Mobile filter sheet */}
+        {/* Mobile filter sheet.
+            Stacking on this page, bottom to top: map chrome (20) · the global
+            chat FAB (50) · an open detail sheet (60) · this modal (70). The FAB
+            is `max-lg:start-3 bottom-24`, which on phones landed squarely on the
+            selected building's address line until the sheet outranked it. */}
         {filtersOpen && (
-          <div className="fixed inset-0 z-50 md:hidden">
+          <div className="fixed inset-0 z-[70] md:hidden">
             <button
               type="button"
               className="absolute inset-0 bg-sv-navy/45 backdrop-blur-[2px]"
@@ -3386,7 +3402,7 @@ function Map3DInner({
           initial={{ y: 36, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ type: 'spring', bounce: 0.12, duration: 0.5 }}
-          className="absolute inset-x-0 bottom-0 z-30 max-h-[48%] overflow-hidden rounded-t-card border-t border-sv-ink/8 md:static md:max-h-none md:rounded-none md:border-t-0"
+          className="absolute inset-x-0 bottom-0 z-[60] max-h-[48%] overflow-hidden rounded-t-card border-t border-sv-ink/8 md:static md:max-h-none md:rounded-none md:border-t-0"
         >
           <BuildingPanel
             building={selected}
@@ -3405,7 +3421,7 @@ function Map3DInner({
           initial={{ y: 36, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ type: 'spring', bounce: 0.12, duration: 0.5 }}
-          className="absolute inset-x-0 bottom-0 z-30 max-h-[48%] overflow-hidden rounded-t-card border-t border-sv-ink/8 md:static md:max-h-none md:rounded-none md:border-t-0"
+          className="absolute inset-x-0 bottom-0 z-[60] max-h-[48%] overflow-hidden rounded-t-card border-t border-sv-ink/8 md:static md:max-h-none md:rounded-none md:border-t-0"
         >
           <BerlinFeaturePanel feature={berlinPick} onClose={() => setBerlinPick(null)} />
         </motion.div>
