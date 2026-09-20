@@ -27,7 +27,7 @@ import { isValidLang, type Lang } from '@/lib/i18n/core'
 import { featureLabel, isFeatureKey } from '@/lib/features'
 import { COM_ORIGIN, GE_ORIGIN, listingCanonicalPath, listingOrigin } from '@/lib/markets'
 import { georgiaListingAlternates, surfacePathPrefix, type DomainId } from '@/lib/domain-scope'
-import { requestDomain } from '@/lib/request-market'
+import { requestDomain, requestHostKind } from '@/lib/request-market'
 import { buyerCostBreakdownByCityName } from '@/lib/countries/de'
 import { parseDeExpose } from '@/lib/countries/de-expose'
 
@@ -170,6 +170,11 @@ export default async function ListingPage({ params }: PageProps) {
   // bare /listing/id and wrong/garbage slugs all 301 to it — juice consolidates.
   const canonical = listingPath(listing)
   const world = (listing.country ?? 'GE') !== 'GE'
+  // sivrce.ge is Georgian inventory only — a world listing's home is sivrce.com.
+  // Dev/preview keep rendering so local global flows still work.
+  if (world && (await requestHostKind()) === 'ge') {
+    permanentRedirect(`${COM_ORIGIN}${listingCanonicalPath(canonical, listing.country)}`)
+  }
   const domain = await requestDomain()
   const absCanonical = listingAlternates(canonical, lang, listing.country, domain).canonical
   const origin = world || domain === 'com' ? COM_ORIGIN : GE_ORIGIN

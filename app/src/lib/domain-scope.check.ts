@@ -56,6 +56,40 @@ assert.ok(
   !requestMarketSrc.includes('cf-ipcountry'),
   'requestMarket must not use IP as market authority',
 )
+assert.ok(
+  requestMarketSrc.includes('requestHostKind'),
+  'request-market must expose the exact host kind for constitution checks',
+)
+
+// The .ge-only constitution holds only if every listing surface consults the
+// host kind — pin the call sites, not just the helpers.
+const searchPageSrc = readFileSync(
+  new URL('../app/[lang]/search/page.tsx', import.meta.url),
+  'utf8',
+)
+assert.ok(
+  searchPageSrc.includes('enforcedCountry(kind'),
+  'search page must clamp country via enforcedCountry',
+)
+assert.ok(
+  searchPageSrc.includes("kind !== 'ge' && canCatalogFallback(filters)"),
+  'search page must gate the non-GE catalog fallback off production sivrce.ge',
+)
+
+const searchApiSrc = readFileSync(new URL('../app/api/search/route.ts', import.meta.url), 'utf8')
+assert.ok(
+  searchApiSrc.includes('kind !== "ge" && canCatalogFallback(filters)'),
+  '/api/search must gate the catalog fallback off production sivrce.ge',
+)
+
+const listingPageSrc = readFileSync(
+  new URL('../app/[lang]/listing/[id]/[[...slug]]/page.tsx', import.meta.url),
+  'utf8',
+)
+assert.ok(
+  listingPageSrc.includes("world && (await requestHostKind()) === 'ge'"),
+  'world listings must 308 off production sivrce.ge to their sivrce.com canonical',
+)
 
 const geoSrc = readFileSync(new URL('./geo-market.ts', import.meta.url), 'utf8')
 assert.ok(!/marketFromIso\(input\.iso\)/.test(geoSrc), 'geoLaunchTarget must not 302 from IP ISO')

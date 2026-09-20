@@ -11,6 +11,7 @@ import { getServerT,pageAlternates,  } from '@/lib/i18n/server'
 import { jsonLd } from '@/lib/utils'
 import { requestMarket } from '@/lib/request-market'
 import { marketCenter } from '@/lib/geo-market'
+import { countryIsoForMarket } from '@/lib/markets'
 import { cityBySlug, nearestMapCity } from '@/lib/map/user-place.server'
 import { cityShellFor } from '@/lib/countries/world-city-osm'
 import { Map3DLazy } from './Map3DLazy'
@@ -75,7 +76,12 @@ export default async function MapPage({
   // Geometry-only project projection — full Project objects are ~11MB of RSC
   // payload Map3D never renders. Listings/buildings stream from /api/map-data
   // on mount (Map3D's empty-props fetch), platform config is bytes.
-  const [projects, platform] = await Promise.all([projectsLive(), getMapPlatformConfig()])
+  // Country markets map their own projects; only the worldwide surface gets all.
+  const [liveProjects, platform] = await Promise.all([projectsLive(), getMapPlatformConfig()])
+  const marketIso = countryIsoForMarket(market)
+  const projects = marketIso
+    ? liveProjects.filter((p) => (p.cc ?? 'GE') === marketIso)
+    : liveProjects
   const slimProjects = slimProjectsForMap(projects)
   const mapLd = {
     '@context': 'https://schema.org',

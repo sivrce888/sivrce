@@ -6,8 +6,9 @@ import { canCatalogFallback, catalogSearch } from '@/lib/catalog-search'
 import { isValidLang } from '@/lib/i18n/core'
 import { kaOnlyAlternates, pageMeta } from '@/lib/i18n/server'
 import { mapSearchHit } from '@/lib/map-search-hit'
+import { enforcedCountry } from '@/lib/domain-scope'
 import { countryIsoForMarket } from '@/lib/markets'
-import { requestMarket } from '@/lib/request-market'
+import { requestHostKind, requestMarket } from '@/lib/request-market'
 import { parseSearchParams } from '@/lib/search-filters'
 
 function one(v: string | string[] | undefined): string | undefined {
@@ -66,6 +67,7 @@ export default async function SearchPage({
   const spIn = await searchParams
   const ads = await pickAds(['search_top', 'search_native'], { audience: 'guest', lang })
   const marketIso = countryIsoForMarket(await requestMarket()) ?? 'all'
+  const kind = await requestHostKind()
 
   const qs = new URLSearchParams()
   for (const [k, v] of Object.entries(spIn)) {
@@ -73,13 +75,18 @@ export default async function SearchPage({
     if (s) qs.set(k, s)
   }
   if (!qs.get('country') && marketIso !== 'all') qs.set('country', marketIso)
+  // Domain constitution: production sivrce.ge searches Georgia only — an
+  // explicit `country=DE` in the URL cannot widen the surface.
+  const lockedCountry = enforcedCountry(kind, qs.get('country'))
+  if (lockedCountry) qs.set('country', lockedCountry)
 
   const filters = parseSearchParams(qs)
   const country = filters.country ?? marketIso
 
   let initialHits: ReturnType<typeof mapSearchHit>[] | undefined
   let initialTotal: number | undefined
-  if (canCatalogFallback(filters)) {
+  // Catalog fallback serves non-GE sample inventory only — never on prod .ge.
+  if (kind !== 'ge' && canCatalogFallback(filters)) {
     const cat = await catalogSearch(filters)
     if (cat && cat.totalHits > 0) {
       initialHits = cat.hits.map((h) => mapSearchHit(h as Record<string, unknown>))

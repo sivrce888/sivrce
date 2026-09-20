@@ -309,7 +309,9 @@ export async function GET(req: Request) {
   }
 
   const dbResult = await dbSearch(filters)
-  if (dbResult.totalHits === 0 && canCatalogFallback(filters)) {
+  // Catalog fallback serves non-GE sample inventory — the .ge country lock
+  // above cannot be widened back open through the German-q fallback path.
+  if (dbResult.totalHits === 0 && kind !== "ge" && canCatalogFallback(filters)) {
     const cat = await catalogSearch(filters)
     if (cat && cat.totalHits > 0) {
       return Response.json({ ok: true, ...cat }, { headers: CACHE_HEADERS })
