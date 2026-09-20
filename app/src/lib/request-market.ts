@@ -27,6 +27,17 @@ export async function requestHostKind(): Promise<HostKind> {
 export async function requestMarket(): Promise<MarketId> {
   try {
     const h = await headers()
+    const host = (h.get('x-forwarded-host') || h.get('host') || '')
+      .split(',')[0]!
+      .trim()
+      .split(':')[0]!
+      .toLowerCase()
+    // Constitution hard lock: production sivrce.ge is Georgian-only. No
+    // client header, cookie or query can widen it — this early return runs
+    // before MARKET_HEADER is ever read, covering requests the proxy does
+    // not stamp (edge passthroughs such as /api/*). Dev/preview keep the
+    // stamped market so local global work still functions.
+    if (host && hostKind(host, process.env.VERCEL_ENV) === 'ge') return 'ge'
     const raw = h.get(MARKET_HEADER)
     if (raw === 'global' || raw === 'ge' || (raw && isPathCountry(raw))) return raw
   } catch {
