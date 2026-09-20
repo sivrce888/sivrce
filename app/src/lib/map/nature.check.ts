@@ -1,14 +1,21 @@
 /**
- * nature.check — the land stack must survive every basemap OFM ships.
+ * nature.check — the basemap look must survive every style OFM ships.
  *
  * Runs against synthetic styles shaped like the three real ones (Liberty has
  * grass but no city park, Positron has three landcover classes, Dark patterns
  * forests through a sprite it does not ship). No network: the shapes below are
  * the parts of the real styles this transform actually reads.
+ *
+ * The palette assertions at the end cover floorLayers' ink tables too: both
+ * modules paint the same basemap, and floorLayers.check cannot run in prebuild
+ * because it fetches the live style from OFM. These are pure, so they run on
+ * every build — which is the whole point of having them.
  */
 
 import assert from 'node:assert/strict'
 import type { LayerSpecification, StyleSpecification } from 'maplibre-gl'
+import { BRAND } from '@/lib/brand'
+import { BUILDING_PALETTE, TRANSPORT_INK, WORLD_INK } from '@/lib/map/floorLayers'
 import {
   CANOPY_TEX_ID,
   NATURE_FILL_IDS,
@@ -18,6 +25,14 @@ import {
   waterwayWidth,
   withNature,
 } from '@/lib/map/nature'
+
+/** Relative luminance — enough to prove a tone separates from its backdrop. */
+function luma(hex: string): number {
+  const n = Number.parseInt(hex.slice(1), 16)
+  return (0.2126 * ((n >> 16) & 255) + 0.7152 * ((n >> 8) & 255) + 0.0722 * (n & 255)) / 255
+}
+
+type LookKey = keyof typeof TRANSPORT_INK
 
 const SRC = 'sivrce'
 
@@ -224,5 +239,90 @@ for (const src of [LIBERTY, POSITRON, DARK]) {
 
 /* 10. Canvas-free environments (this check, SSR) must not throw. */
 assert.equal(canopyImage(NATURE_PALETTE.light), null, 'canopyImage is browser-only')
+
+/* 11. Ink tables — see floorLayers.ts. */
+{
+  // Transport ink must never collapse into the ground it is drawn on.
+  //
+  // This is the bug it replaced: OFM keys aeroway/pier/rail-sleeper colours to
+  // each style's OWN background, and we repaint that background. Dark shipped
+  // `#000` aprons and `rgb(12,12,12)` piers against brand navy, so every airport
+  // and pier punched a black hole through the night map.
+  const GROUND: Record<LookKey, string> = {
+    light: '#EEF0E9',
+    clean: '#F3F1EC',
+    dark: BRAND.colors.navy,
+  }
+  for (const [name, ink] of Object.entries(TRANSPORT_INK)) {
+    const look = name as LookKey
+    // Each part is judged against what it is actually drawn on: an apron sits on
+    // the land, a runway sits on its apron, a pier sits in the water.
+    const backdrop: Record<string, string> = {
+      apron: GROUND[look],
+      rail: GROUND[look],
+      runway: ink.apron,
+      pier: NATURE_PALETTE[look].water,
+    }
+    for (const [part, hex] of Object.entries(ink)) {
+      assert.match(hex, /^#[0-9A-Fa-f]{6}$/, `${look}.${part} must be a 6-digit hex`)
+      const under = backdrop[part]
+      if (!under) continue
+      assert.ok(
+        Math.abs(luma(hex) - luma(under)) > 0.015,
+        `${look}.${part} (${hex}) is indistinguishable from the ${under} it sits on`,
+      )
+    }
+    // Sleepers are drawn over the track; same colour means no rail read at all.
+    assert.notEqual(ink.rail, ink.hatch, `${look}: rail and its hatch must differ`)
+    // A label has to beat its own halo, whichever direction the look runs.
+    assert.ok(
+      Math.abs(luma(ink.label) - luma(ink.halo)) > 0.3,
+      `${look}: airport label must contrast its halo`,
+    )
+  }
+
+  // The night map is blue, not grey.
+  //
+  // This is the assertion that actually catches the bug above, and luma alone
+  // does not: `#000` against navy is perfectly *distinguishable*, it just reads
+  // as a hole. What made it a hole is that it left the brand's colour family.
+  // Every structural night tone stays blue-dominant, so an OFM neutral leaking
+  // through (`#000`, `rgb(12,12,12)`, `rgb(35,35,35)`) fails here by
+  // construction. Land tones are exempt: a forest or a school is allowed to be
+  // green or warm at night — only the neutral surfaces are locked to the family.
+  const blueDominant = (hex: string) => {
+    const n = Number.parseInt(hex.slice(1), 16)
+    return (n & 255) > ((n >> 16) & 255)
+  }
+  for (const [table, ink] of [
+    ['TRANSPORT_INK', TRANSPORT_INK.dark],
+    ['WORLD_INK', WORLD_INK.dark],
+    ['BUILDING_PALETTE', BUILDING_PALETTE.dark],
+  ] as const) {
+    for (const [part, value] of Object.entries(ink)) {
+      if (typeof value !== 'string') continue
+      assert.ok(
+        blueDominant(value),
+        `${table}.dark.${part} (${value}) is a neutral, not a night tone — ` +
+          'an OFM default has leaked through onto the navy ground',
+      )
+    }
+  }
+
+  // Admin ink: country tier must outrank the sub-national tier in every look,
+  // and both must clear their halo — this is what makes borders read at globe
+  // zoom instead of inheriting whatever the basemap shipped.
+  for (const [look, ink] of Object.entries(WORLD_INK)) {
+    for (const [part, hex] of Object.entries(ink)) {
+      assert.match(hex, /^#[0-9A-Fa-f]{6}$/, `${look}.${part} must be a 6-digit hex`)
+    }
+    assert.ok(
+      Math.abs(luma(ink.country) - luma(ink.halo)) >
+        Math.abs(luma(ink.state) - luma(ink.halo)),
+      `${look}: country labels must read stronger than state labels`,
+    )
+    assert.notEqual(ink.line, ink.sub, `${look}: country and sub-national borders must differ`)
+  }
+}
 
 console.log('nature.check ✓')

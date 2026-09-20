@@ -267,7 +267,7 @@ export function setBasemapBuildings3d(map: MlMap, on: boolean) {
  * Liberty/Positron name their tiers `label_country_*` while Dark uses
  * `place_country_*`. Both families are written; the absent one no-ops.
  */
-const WORLD_INK = {
+export const WORLD_INK = {
   light: { country: '#37414F', state: '#6B7486', halo: '#FFFFFF', line: '#5A6480', sub: '#7A8499' },
   clean: { country: '#514C45', state: '#857F74', halo: '#FFFFFF', line: '#BDB6AA', sub: '#D0C9BD' },
   dark: { country: '#E9EDFF', state: '#AFBDE0', halo: BRAND.colors.navy, line: '#4A5A80', sub: '#3A4A70' },
@@ -315,6 +315,103 @@ function paintWorldLabels(map: MlMap, key: WorldKey) {
     trySet(map, id, 'text-halo-width', 1.5)
     trySet(map, id, 'text-opacity', 0.95)
   }
+}
+
+/**
+ * Transport fabric: rail, airports, piers.
+ *
+ * Not polish — a fix. OFM hard-codes these layers to each style's ORIGINAL
+ * background: Dark paints its apron `#000` and its piers and rail sleepers
+ * `rgb(12,12,12)`, which was its own ground before we repaint it to brand navy.
+ * Every airport and pier was therefore punching a black hole through the night
+ * map, and Positron's cool white did the same, softer, on our warm paper.
+ *
+ * `hatch` is the gap between sleepers, so it reads as ground, not as ink.
+ */
+export const TRANSPORT_INK = {
+  light: {
+    rail: '#B3B8C2', hatch: '#FFFFFF', apron: '#E5E4E0', runway: '#F4F2EE',
+    pier: '#EBEAE7', label: '#5F6368', halo: '#FFFFFF',
+  },
+  clean: {
+    rail: '#C6C1B8', hatch: '#F6F4EF', apron: '#EAE7E0', runway: '#F8F6F1',
+    pier: '#EDEAE4', label: '#66625B', halo: '#FFFFFF',
+  },
+  dark: {
+    rail: '#3A4568', hatch: BRAND.colors.navySoft, apron: '#0C1633', runway: '#1A2750',
+    pier: BRAND.colors.navySoft, label: '#AFBDE0', halo: BRAND.colors.navy,
+  },
+} as const
+
+/** Solid track. Liberty splits by brunnel and rail class; the others do not. */
+const RAIL_LINE_IDS = [
+  'road_major_rail', 'road_transit_rail',
+  'tunnel_major_rail', 'tunnel_transit_rail',
+  'bridge_major_rail', 'bridge_transit_rail',
+  'railway', 'railway_transit', 'railway_service', 'railway_minor',
+] as const
+
+/** Dashed sleeper overlay drawn on top of the track. */
+const RAIL_HATCH_IDS = [
+  'road_major_rail_hatching', 'road_transit_rail_hatching',
+  'tunnel_major_rail_hatching', 'tunnel_transit_rail_hatching',
+  'bridge_major_rail_hatching', 'bridge_transit_rail_hatching',
+  'railway_dashline', 'railway_transit_dashline',
+  'railway_service_dashline', 'railway_minor_dashline',
+] as const
+
+function paintTransport(map: MlMap, key: WorldKey) {
+  const ink = TRANSPORT_INK[key]
+
+  // Rail reads as infrastructure, never as a road: thin, neutral, no casing.
+  // Transit proximity is a price signal on this product, so it must stay legible
+  // at the zooms people actually shop at.
+  for (const id of RAIL_LINE_IDS) {
+    trySet(map, id, 'line-color', ink.rail)
+    trySet(map, id, 'line-width', [
+      'interpolate', ['exponential', 1.4], ['zoom'],
+      11, 0.6, 14, 1.4, 17, 3, 20, 5,
+    ])
+  }
+  for (const id of RAIL_HATCH_IDS) trySet(map, id, 'line-color', ink.hatch)
+
+  for (const id of ['aeroway_fill', 'aeroway-area']) {
+    trySet(map, id, 'fill-color', ink.apron)
+    trySet(map, id, 'fill-opacity', 1)
+  }
+  for (const id of ['aeroway_runway', 'aeroway_taxiway', 'aeroway-runway', 'aeroway-taxiway']) {
+    trySet(map, id, 'line-color', ink.runway)
+  }
+  trySet(map, 'aeroway-runway-casing', 'line-color', ink.apron)
+
+  trySet(map, 'road_area_pier', 'fill-color', ink.pier)
+  trySet(map, 'road_pier', 'line-color', ink.pier)
+
+  trySet(map, 'airport', 'text-color', ink.label)
+  trySet(map, 'airport', 'text-halo-color', ink.halo)
+  trySet(map, 'airport', 'text-halo-width', 1.4)
+}
+
+/**
+ * Road widths for the Positron-schema looks (clean + dark). Liberty has its own
+ * hierarchy in applyLightPaints; these two shared the ids but only dark set the
+ * ramp, so the minimal look was left on OFM defaults.
+ */
+function paintNarrowRoadWidths(map: MlMap) {
+  for (const id of ['highway_minor', 'highway_path']) {
+    trySet(map, id, 'line-width', [
+      'interpolate', ['linear'], ['zoom'],
+      11, 1.2, 14, 2.8, 17, 8,
+    ])
+  }
+  trySet(map, 'highway_major_inner', 'line-width', [
+    'interpolate', ['linear'], ['zoom'],
+    10, 1.2, 14, 2.6, 17, 9,
+  ])
+  trySet(map, 'highway_motorway_inner', 'line-width', [
+    'interpolate', ['linear'], ['zoom'],
+    8, 2.2, 14, 6, 17, 16,
+  ])
 }
 
 /**
@@ -470,6 +567,7 @@ function applyLightPaints(map: MlMap) {
     trySet(map, id, 'text-opacity', 0.55)
     trySet(map, id, 'icon-opacity', 0.6)
   }
+  paintTransport(map, 'light')
   hideOfmSuburbLabels(map)
 }
 
@@ -499,20 +597,7 @@ function applyDarkPaints(map: MlMap) {
   trySet(map, 'highway_major_inner', 'line-color', '#5B688B')
   trySet(map, 'highway_motorway_inner', 'line-color', '#F9C32C')
 
-  for (const id of ['highway_minor', 'highway_path']) {
-    trySet(map, id, 'line-width', [
-      'interpolate', ['linear'], ['zoom'],
-      11, 1.2, 14, 2.8, 17, 8,
-    ])
-  }
-  trySet(map, 'highway_major_inner', 'line-width', [
-    'interpolate', ['linear'], ['zoom'],
-    10, 1.2, 14, 2.6, 17, 9,
-  ])
-  trySet(map, 'highway_motorway_inner', 'line-width', [
-    'interpolate', ['linear'], ['zoom'],
-    8, 2.2, 14, 6, 17, 16,
-  ])
+  paintNarrowRoadWidths(map)
 
   for (const id of [
     'highway_name_other',
@@ -538,6 +623,7 @@ function applyDarkPaints(map: MlMap) {
 
   paintBoundaries(map, 'dark')
   paintWorldLabels(map, 'dark')
+  paintTransport(map, 'dark')
   hideOfmSuburbLabels(map)
 }
 
@@ -584,6 +670,8 @@ function applyCleanPaints(map: MlMap) {
     trySet(map, id, 'text-halo-width', 1.1)
   }
   paintWorldLabels(map, 'clean')
+  paintNarrowRoadWidths(map)
+  paintTransport(map, 'clean')
   hideOfmSuburbLabels(map)
 }
 
