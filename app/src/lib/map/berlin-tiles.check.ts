@@ -6,7 +6,12 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { BERLIN_BBOX } from './berlin-gov'
-import { BERLIN_TILE_BOUNDS, BERLIN_TILE_LAYER_IDS, berlinPickFromProps } from './berlin-tiles'
+import {
+  BERLIN_LAYER_IDS,
+  BERLIN_TILE_BOUNDS,
+  BERLIN_TILE_LAYER_IDS,
+  berlinPickFromProps,
+} from './berlin-tiles'
 
 assert.ok(BERLIN_TILE_LAYER_IDS.includes('sv-alkis-extrude'))
 assert.ok(BERLIN_TILE_LAYER_IDS.includes('sv-step-potential-circle'))
@@ -32,6 +37,15 @@ assert.ok(!src.includes('buildings.ts'), 'must not pull heavy buildings corpus')
 assert.ok(!/from ['\"]@\/data\//.test(src))
 assert.ok(!src.includes('BRAND.violet') && !src.includes('C.violet'), 'violet fill banned')
 assert.ok(src.includes('BRAND.colors') || src.includes('C.blue'))
+
+// Every layer the binder adds must be in BERLIN_LAYER_IDS — one missed id keeps
+// a Berlin source "used" worldwide, which credits dl-de geodata over Tbilisi.
+const added = [...src.matchAll(/^\s*id: '(sv-[a-z0-9-]+)'/gm)].map((m) => m[1]!)
+assert.ok(added.length >= 11, `expected the full Berlin layer set, saw ${added.length}`)
+for (const id of added) {
+  assert.ok(BERLIN_LAYER_IDS.includes(id as (typeof BERLIN_LAYER_IDS)[number]), `layer ${id} missing from BERLIN_LAYER_IDS`)
+}
+assert.ok(src.includes('setBerlinLayersVisible'), 'binder owns the visibility switch')
 
 const ingest = readFileSync(join(process.cwd(), 'scripts/ingest-alkis-buildings.ts'), 'utf8')
 assert.ok(ingest.includes('INSERT INTO geo_features'), 'ALKIS ingest must dual-write MVT table')

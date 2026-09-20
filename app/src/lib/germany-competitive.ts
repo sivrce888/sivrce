@@ -249,7 +249,7 @@ export const GERMANY_PLAYERS: readonly Player[] = [
       },
       mapTransit: {
         score: 100,
-        note: '18 DE rail systems, 209 Berlin U/S-Bahn stations, spatial MVT layers (ALKIS footprints, StEP, B-Pläne), and transit commute walk scores.',
+        note: '18 DE rail systems, 209 Berlin U/S-Bahn stations, spatial MVT layers (ALKIS footprints, StEP, B-Pläne), draw-to-search area filtering, and transit commute walk scores.',
         evidence: 'src/data/germany-metro.ts',
       },
       coverage: {
@@ -260,7 +260,7 @@ export const GERMANY_PLAYERS: readonly Player[] = [
       },
       engineering: {
         score: 100,
-        note: '126 deterministic self-checks run on every prebuild, repo-weight lock (≤96 MB), brand lock, and DB-free SSR-safe modules.',
+        note: '128 deterministic self-checks run on every prebuild, repo-weight lock (≤96 MB), brand lock, and DB-free SSR-safe modules.',
         evidence: 'package.json',
       },
     },

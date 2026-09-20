@@ -24,6 +24,23 @@ export function parseTerrain(v: unknown): MapTerrain {
   return v === 'clean' || v === 'satellite' || v === 'streets' ? v : 'streets'
 }
 
+/**
+ * The three countries that read distances in miles/feet. Everyone else —
+ * including every market Sivrce sells in — gets metric, so the scale bar
+ * follows the reader's own region, not the site language.
+ */
+const IMPERIAL_REGIONS = new Set(['US', 'LR', 'MM'])
+
+export function scaleUnitForLocale(locale: string | undefined): 'metric' | 'imperial' {
+  if (!locale) return 'metric'
+  try {
+    const region = new Intl.Locale(locale).region
+    return region && IMPERIAL_REGIONS.has(region) ? 'imperial' : 'metric'
+  } catch {
+    return 'metric'
+  }
+}
+
 /** Boot / reset camera — 3D is pitched; 2D is north-up.
  *  Both sit inside the price-pill band (11.2–15.2): first paint shows a lived-in
  *  map (pills + clusters), never the empty detail-zoom dead band. */

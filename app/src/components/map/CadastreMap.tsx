@@ -180,7 +180,7 @@ export default function CadastreMap({
         renderWorldCopies: false,
         fadeDuration: 0,
         ...mapRuntimeOptions(),
-        ...mapChromeOptions(),
+        ...mapChromeOptions({ napr: true }),
       })
       mapRef.current = map
       bindMissingImages(map)

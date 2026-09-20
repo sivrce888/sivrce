@@ -11,6 +11,7 @@ import {
   parseTerrain,
   serializeMapUi,
   mapBootCamera,
+  scaleUnitForLocale,
 } from './map-ui'
 
 assert.equal(parseTerrain('streets'), 'streets')
@@ -41,5 +42,14 @@ assert.deepEqual(parseMapUiRaw(null), {})
 
 assert.deepEqual(mapBootCamera(true), { pitch: 58, bearing: -18, zoom: 12.8 })
 assert.deepEqual(mapBootCamera(false), { pitch: 0, bearing: 0, zoom: 12.8 })
+
+// Scale bar follows the reader's region, not the site language.
+assert.equal(scaleUnitForLocale('en-US'), 'imperial')
+assert.equal(scaleUnitForLocale('en-GB'), 'metric')
+assert.equal(scaleUnitForLocale('ka-GE'), 'metric')
+assert.equal(scaleUnitForLocale('de'), 'metric')
+assert.equal(scaleUnitForLocale('my-MM'), 'imperial')
+assert.equal(scaleUnitForLocale(undefined), 'metric')
+assert.equal(scaleUnitForLocale('not a locale'), 'metric')
 
 console.log('map-ui.check: ok')

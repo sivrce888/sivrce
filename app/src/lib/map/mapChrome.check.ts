@@ -4,15 +4,36 @@
  */
 
 import assert from 'node:assert/strict'
-import { loadCleanStyle, MAP_CREDIT_PLAIN, MAP_CREDIT_LEGAL, withBuilding3d, OSM_BUILDING_3D_ID } from './mapChrome'
+import {
+  loadCleanStyle,
+  mapChromeOptions,
+  MAP_CREDIT_PLAIN,
+  MAP_CREDIT_LEGAL,
+  MAP_CREDIT_NAPR,
+  withBuilding3d,
+  OSM_BUILDING_3D_ID,
+} from './mapChrome'
 import { mapProxyPathOk, toMapProxyUrl, MAP_PROXY_PREFIX } from './map-proxy'
 
 async function main() {
   assert.equal(MAP_CREDIT_PLAIN, 'Sivrce Maps')
   assert.ok(/OpenMapTiles/.test(MAP_CREDIT_LEGAL), 'legal credit must name OpenMapTiles')
   assert.ok(/OpenStreetMap/.test(MAP_CREDIT_LEGAL), 'legal credit must name OpenStreetMap')
-  assert.ok(/NAPR/.test(MAP_CREDIT_LEGAL), 'legal credit must name NAPR parcels')
   assert.ok(!/OpenFreeMap|MapLibre/i.test(MAP_CREDIT_LEGAL))
+
+  // Credit must match what is drawn: NAPR only where Georgian cadastre geometry is.
+  const base = String(mapChromeOptions().attributionControl.customAttribution)
+  const ge = String(mapChromeOptions({ napr: true }).attributionControl.customAttribution)
+  assert.ok(!/NAPR/.test(base), 'NAPR must not be credited on non-Georgian maps')
+  assert.ok(ge.includes(MAP_CREDIT_NAPR), 'Georgian maps must credit NAPR')
+  for (const html of [base, ge]) {
+    assert.ok(
+      html.includes('href="https://www.openstreetmap.org/copyright"'),
+      'OSM credit must link to the licence',
+    )
+    assert.ok(html.includes('href="https://www.openmaptiles.org/"'), 'OpenMapTiles must link')
+    assert.ok(!/javascript:|onerror=/i.test(html), 'credit HTML stays inert')
+  }
 
   assert.equal(mapProxyPathOk('styles/liberty'), true)
   assert.equal(mapProxyPathOk('../etc/passwd'), false)

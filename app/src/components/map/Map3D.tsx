@@ -85,9 +85,18 @@ import {
   readMapUi,
   writeMapUi,
   mapBootCamera,
+  scaleUnitForLocale,
   type MapUiSave,
 } from '@/lib/map/map-ui'
 import { applyMapLanguage, bilingualTextField } from '@/lib/map/map-language'
+import {
+  isDrawableRing,
+  pointInRing,
+  ringToGeoJSON,
+  thinPath,
+  type LngLat,
+  type ScreenPoint,
+} from '@/lib/map/draw-area'
 import {
   POI_CATEGORIES,
   POI_COLORS,
@@ -137,6 +146,7 @@ import {
   BERLIN_TILE_LAYER_IDS,
   bindBerlinGeoTiles,
   pickBerlinFeature,
+  setBerlinLayersVisible,
   type BerlinPick,
 } from '@/lib/map/berlin-tiles'
 import {
@@ -177,6 +187,7 @@ import {
   Satellite,
   SlidersHorizontal,
   Compass,
+  SquareDashed,
   Pill,
   Bus,
   TramFront,
@@ -323,6 +334,10 @@ const RAION_SOURCE_ID = 'sivrce-raions'
 const RAION_FILL_ID = 'sivrce-raions-fill'
 const RAION_LINE_ID = 'sivrce-raions-line'
 
+const DRAW_SOURCE_ID = 'sivrce-draw'
+const DRAW_FILL_ID = 'sivrce-draw-fill'
+const DRAW_LINE_ID = 'sivrce-draw-line'
+
 const POI_SOURCE_ID = 'sivrce-pois'
 const POI_ICON_ID = 'sivrce-pois-icon'
 /** Metro only, topmost, collision-exempt — see poiLayerFilters. */
@@ -336,6 +351,7 @@ const TRANSIT_SOURCE_ID = 'sivrce-transit'
 const TRANSIT_ICON_ID = 'sivrce-transit-icon'
 const TRANSIT_LABEL_LAYER_ID = 'sivrce-transit-label'
 const TRANSIT_EMPTY: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [] }
+const DRAW_EMPTY: GeoJSON.FeatureCollection = { type: 'FeatureCollection', features: [] }
 
 /**
  * Shared amenity-badge layout — static OSM POIs and live transit are the same
@@ -432,11 +448,33 @@ async function ensureLayers(
   /** Last transit FC in hand — a style swap drops the source, and refetching it
    *  costs an Overpass round-trip the user did not ask for. */
   transit: GeoJSON.FeatureCollection | null = null,
+  /** Drawn search area — replayed so a style swap keeps the shape on screen. */
+  draw: GeoJSON.FeatureCollection | null = null,
 ) {
   if (map.getSource(SOURCE_ID)) return
 
   await loadPoiImages(map)
   addPricePillImages(map)
+
+  // Drawn area sits under every pin — it frames the search, it is not the result.
+  map.addSource(DRAW_SOURCE_ID, { type: 'geojson', data: draw ?? DRAW_EMPTY })
+  map.addLayer({
+    id: DRAW_FILL_ID,
+    type: 'fill',
+    source: DRAW_SOURCE_ID,
+    paint: { 'fill-color': BRAND.colors.blue, 'fill-opacity': 0.1 },
+  })
+  map.addLayer({
+    id: DRAW_LINE_ID,
+    type: 'line',
+    source: DRAW_SOURCE_ID,
+    layout: { 'line-cap': 'round', 'line-join': 'round' },
+    paint: {
+      'line-color': BRAND.colors.blue,
+      'line-width': 2.5,
+      'line-dasharray': [1.6, 1.1],
+    },
+  })
 
   map.addSource(SOURCE_ID, { type: 'geojson', data: fc.poly })
   // ponytail: MapLibre clusters Points only — parallel centroid source for far zoom.
@@ -1022,6 +1060,24 @@ function MapFilterPills<T extends string>({
   )
 }
 
+/**
+ * Tap → address memo, keyed by 1 m-rounded coords. Reverse geocoding is the
+ * one map call with a hard upstream rate limit, and panning back over a block
+ * you already tapped is the common case.
+ * ponytail: capped Map, oldest-first eviction; upgrade → IndexedDB if the
+ * address panel ever needs to survive a reload.
+ */
+const ADDRESS_CACHE_MAX = 200
+const addressCache = new Map<string, string>()
+
+function rememberAddress(key: string, line: string) {
+  if (addressCache.size >= ADDRESS_CACHE_MAX) {
+    const oldest = addressCache.keys().next().value
+    if (oldest !== undefined) addressCache.delete(oldest)
+  }
+  addressCache.set(key, line)
+}
+
 const BUILDING_HIT_LAYERS = [
   EXTRUDE_ID,
   FILL_ID,
@@ -1177,6 +1233,10 @@ function Map3DInner({
   })
   const [filtersOpen, setFiltersOpen] = useState(false)
   const [layersOpen, setLayersOpen] = useState(false)
+  // Draw-to-search: `drawMode` is the pencil held, `drawRing` the finished shape.
+  const [drawMode, setDrawMode] = useState(false)
+  const [drawRing, setDrawRing] = useState<LngLat[] | null>(null)
+  const drawRingRef = useRef<LngLat[] | null>(null)
   // ponytail: bearing lives in a ref — per-frame setState re-rendered the whole
   // island during rotation. Compass needle turns via direct style; only the
   // |b|>2.5 visibility flip is React state.
@@ -1360,6 +1420,24 @@ function Map3DInner({
     }
   }, [isDark, ready])
 
+  // Berlin's official layers (ALKIS, B-Plan, StEP) only carry Berlin. Left on
+  // over Tbilisi they drew nothing but still made MapLibre credit dl-de
+  // geodata — a false claim about the data on screen, and four live sources
+  // the renderer had to walk every frame. `idle` also catches style swaps.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !ready) return
+    const sync = () => {
+      const c = map.getCenter()
+      setBerlinLayersVisible(map, inGermany(c.lat, c.lng))
+    }
+    sync()
+    map.on('idle', sync)
+    return () => {
+      map.off('idle', sync)
+    }
+  }, [ready])
+
   // ponytail: basemap labels = local + user/EN; cheap layout-prop swap.
   useEffect(() => {
     const map = mapRef.current
@@ -1514,10 +1592,125 @@ function Map3DInner({
     })
   }, [allBuildings])
 
-  const visible = useMemo(
-    () => filterBuildings(allBuildings, dealFilter, statusFilter, kindFilter),
-    [allBuildings, dealFilter, statusFilter, kindFilter],
-  )
+  const visible = useMemo(() => {
+    const matched = filterBuildings(allBuildings, dealFilter, statusFilter, kindFilter)
+    // A drawn shape is the sharpest filter on the map: "this side of the river".
+    return drawRing ? matched.filter((b) => pointInRing(drawRing, b.lng, b.lat)) : matched
+  }, [allBuildings, dealFilter, statusFilter, kindFilter, drawRing])
+
+  // Draw mode: the canvas stops panning and starts recording a shape. Pointer
+  // events cover mouse, pen and touch in one path, and pointer capture keeps the
+  // stroke alive when a finger slides past the canvas edge.
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map || !drawMode) return
+    const canvas = map.getCanvasContainer()
+    // Restore only what was on — a gesture something else disabled (2D lock,
+    // lite device) must not come back enabled when the tool is put down.
+    const gestures = [map.dragPan, map.dragRotate, map.boxZoom, map.touchZoomRotate]
+    const wasEnabled = gestures.map((g) => g.isEnabled())
+    for (const g of gestures) g.disable()
+    const prevCursor = map.getCanvas().style.cursor
+    const prevTouch = canvas.style.touchAction
+    map.getCanvas().style.cursor = 'crosshair'
+    canvas.style.touchAction = 'none'
+
+    const raw: ScreenPoint[] = []
+    let shown = 0
+    let active = false
+    const paint = (ring: LngLat[] | null) => {
+      const src = map.getSource(DRAW_SOURCE_ID) as GeoJSONSource | undefined
+      src?.setData(ringToGeoJSON(ring))
+    }
+    const at = (e: PointerEvent): ScreenPoint => {
+      const r = canvas.getBoundingClientRect()
+      return { x: e.clientX - r.left, y: e.clientY - r.top }
+    }
+    const ringNow = (): LngLat[] =>
+      thinPath(raw).map((p) => {
+        const ll = map.unproject([p.x, p.y])
+        return [ll.lng, ll.lat]
+      })
+
+    const onDown = (e: PointerEvent) => {
+      if (e.pointerType === 'mouse' && e.button !== 0) return
+      active = true
+      raw.length = 0
+      shown = 0
+      raw.push(at(e))
+      try {
+        canvas.setPointerCapture(e.pointerId)
+      } catch {
+        /* pointer already gone — the stroke still works, it just stops at the edge */
+      }
+      e.preventDefault()
+    }
+    const onMove = (e: PointerEvent) => {
+      if (!active) return
+      raw.push(at(e))
+      // Repaint only when the thinned path actually gained a vertex — a 120 Hz
+      // pen would otherwise push a new FeatureCollection every 8 ms.
+      const next = thinPath(raw)
+      if (next.length === shown) return
+      shown = next.length
+      paint(ringNow())
+    }
+    const onUp = (e: PointerEvent) => {
+      if (!active) return
+      active = false
+      try {
+        if (canvas.hasPointerCapture(e.pointerId)) canvas.releasePointerCapture(e.pointerId)
+      } catch {
+        /* capture already released */
+      }
+      const ring = ringNow()
+      // A tap or a flat scribble encloses nothing: treat it as "never mind"
+      // and keep whatever area was already on the map.
+      if (isDrawableRing(ring)) {
+        setDrawRing(ring)
+        paint(ring)
+      } else {
+        paint(drawRingRef.current)
+      }
+      setDrawMode(false)
+    }
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return
+      active = false
+      paint(drawRingRef.current)
+      setDrawMode(false)
+    }
+
+    canvas.addEventListener('pointerdown', onDown)
+    canvas.addEventListener('pointermove', onMove)
+    canvas.addEventListener('pointerup', onUp)
+    canvas.addEventListener('pointercancel', onUp)
+    window.addEventListener('keydown', onKey)
+    return () => {
+      canvas.removeEventListener('pointerdown', onDown)
+      canvas.removeEventListener('pointermove', onMove)
+      canvas.removeEventListener('pointerup', onUp)
+      canvas.removeEventListener('pointercancel', onUp)
+      window.removeEventListener('keydown', onKey)
+      gestures.forEach((g, i) => {
+        if (wasEnabled[i]) g.enable()
+      })
+      map.getCanvas().style.cursor = prevCursor
+      canvas.style.touchAction = prevTouch
+    }
+    // `ready` re-runs the bind if the tool was armed before the map existed.
+  }, [drawMode, ready])
+
+  useEffect(() => {
+    drawRingRef.current = drawRing
+  }, [drawRing])
+
+  // Keep the shape on screen across style swaps and clears.
+  useEffect(() => {
+    const src = mapRef.current?.getSource(DRAW_SOURCE_ID) as GeoJSONSource | undefined
+    src?.setData(ringToGeoJSON(drawRing))
+  }, [drawRing])
+
   // Pin money in the reader's own currency — the GeoJSON carries a baked string
   // (no React context inside a MapLibre worker), so the formatter is injected and
   // the FCs rebuild when the live FX rate lands. Same helper as /search pins.
@@ -1858,7 +2051,9 @@ function Map3DInner({
         renderWorldCopies: false,
         fadeDuration: 0,
         ...mapRuntimeOptions(),
-        ...mapChromeOptions(),
+        // NAPR footprints only back the Georgian market — crediting them on a
+        // Berlin map would be a false claim about the data on screen.
+        ...mapChromeOptions({ napr: market === 'ge' }),
       })
       mapRef.current = map
 
@@ -1872,6 +2067,17 @@ function Map3DInner({
       }
 
       bindMissingImages(map)
+
+      // Scale bar — the one thing a 3D map owes a buyer judging "how far is
+      // that metro". Unit follows the reader's region; CSS hides it under
+      // 768px, where the bottom edge belongs to the POI rail.
+      map.addControl(
+        new maplibregl.ScaleControl({
+          maxWidth: 96,
+          unit: scaleUnitForLocale(navigator.language),
+        }),
+        'bottom-left',
+      )
 
       // ponytail: inline/sat styles fire style.load before the 1600ms watchdog —
       // a once() registered in reveal would miss it and kill every pin layer.
@@ -1968,15 +2174,24 @@ function Map3DInner({
             return
           }
           const seq = ++osmSeq
+          // 5 dp ≈ 1 m: the same tap twice reuses this cache and the CDN entry
+          // instead of spending Nominatim's 1 rps budget again.
+          const lat5 = e.lngLat.lat.toFixed(5)
+          const lng5 = e.lngLat.lng.toFixed(5)
+          const addrKey = `${lat5},${lng5}`
           const root = document.createElement('div')
           root.className = 'sivrce-nbh-pop'
           const title = document.createElement('div')
           title.className = 'sivrce-nbh-pop-title'
-          title.textContent = tRef.current('map.loading')
+          const cachedAddr = addressCache.get(addrKey)
+          title.textContent =
+            cachedAddr === undefined
+              ? tRef.current('map.loading')
+              : cachedAddr || tRef.current('map.pinDropped')
           root.appendChild(title)
           const sub = document.createElement('div')
           sub.className = 'sivrce-nbh-pop-city'
-          sub.textContent = `${e.lngLat.lat.toFixed(5)}, ${e.lngLat.lng.toFixed(5)}`
+          sub.textContent = `${lat5}, ${lng5}`
           root.appendChild(sub)
           nbhPopup.setLngLat(e.lngLat).setDOMContent(root).addTo(map)
           const row = (label: string, v: string) => {
@@ -1990,14 +2205,22 @@ function Map3DInner({
             r.appendChild(b)
             return r
           }
-          fetch(`/api/geocode?lat=${e.lngLat.lat}&lng=${e.lngLat.lng}`)
-            .then((r) => (r.ok ? r.json() : null))
-            .then((d) => {
-              if (seq !== osmSeq || !d?.ok) return
-              const line = formatGeocodeAddress(d)
-              if (line) title.textContent = line
-            })
-            .catch(() => {})
+          // A failed or empty reverse geocode must still resolve the popup —
+          // "loading…" that never ends reads as a broken map.
+          if (cachedAddr === undefined) {
+            fetch(`/api/geocode?lat=${lat5}&lng=${lng5}`)
+              .then((r) => (r.ok ? r.json() : null))
+              .then((d) => {
+                const line = d?.ok ? formatGeocodeAddress(d) : ''
+                rememberAddress(addrKey, line)
+                if (seq !== osmSeq) return
+                title.textContent = line || tRef.current('map.pinDropped')
+              })
+              .catch(() => {
+                // Network blip — no cache entry, so the next tap retries.
+                if (seq === osmSeq) title.textContent = tRef.current('map.pinDropped')
+              })
+          }
           fetch(`/api/site?lat=${e.lngLat.lat}&lng=${e.lngLat.lng}`)
             .then((r) => (r.ok ? r.json() : null))
             .then((d) => {
@@ -2267,6 +2490,7 @@ function Map3DInner({
             // Replay the pins already fetched — a theme or terrain switch used to
             // blank every live transit stop until the user happened to pan.
             transitFcRef.current,
+            ringToGeoJSON(drawRingRef.current),
           )
           try {
             bindBerlinGeoTiles(map, {
@@ -2924,6 +3148,8 @@ function Map3DInner({
     setDealFilter('all')
     setKindFilter('all')
     setStatusFilter('all')
+    setDrawMode(false)
+    setDrawRing(null)
     patchFilterUrl('all', 'all')
     resetView()
   }
@@ -2938,7 +3164,7 @@ function Map3DInner({
     () => allBuildings.reduce((n, b) => n + (b.status === 'construction' ? 1 : 0), 0),
     [allBuildings],
   )
-  const filtersActive = dealFilter !== 'all' || kindFilter !== 'all'
+  const filtersActive = dealFilter !== 'all' || kindFilter !== 'all' || drawRing !== null
 
   const chip = isDark
     ? 'border-white/10 bg-sv-navy/90 text-white shadow-soft backdrop-blur-xl'
@@ -3056,6 +3282,27 @@ function Map3DInner({
               <p className={`w-fit rounded-full border px-3 py-1.5 text-[11px] font-bold ${chip} ${isDark ? 'text-white/70' : 'text-sv-ink/70'}`}>
                 {t('search.emptyTitle')}
               </p>
+            )}
+            {(drawMode || drawRing) && (
+              <div
+                className={`flex w-fit items-center gap-2 rounded-full border px-3 py-1.5 text-[11px] font-bold ${chip} ${
+                  isDark ? 'text-sv-blue-light' : 'text-sv-blue'
+                }`}
+                role="status"
+              >
+                <SquareDashed className="h-3.5 w-3.5 shrink-0" strokeWidth={2.25} aria-hidden />
+                <span>{drawMode ? t('map.drawArea') : t('search.mapInArea', { n: matchListings })}</span>
+                {drawRing && !drawMode && (
+                  <button
+                    type="button"
+                    onClick={() => setDrawRing(null)}
+                    className={`-me-1.5 grid h-6 w-6 place-items-center rounded-full transition ${railHover}`}
+                    aria-label={t('map.drawClear')}
+                  >
+                    <X className="h-3 w-3" strokeWidth={2.5} />
+                  </button>
+                )}
+              </div>
             )}
             {refreshNote && (
               <p
@@ -3312,6 +3559,23 @@ function Map3DInner({
             }`}
           >
             <Layers className="h-4 w-4" strokeWidth={2} />
+          </button>
+
+          {/* Draw-to-search. A drawn shape answers "this side of the river",
+              which no radius can. The list view stays the keyboard path. */}
+          <button
+            type="button"
+            aria-label={t('map.drawArea')}
+            aria-pressed={drawMode}
+            onClick={() => {
+              setDrawMode((v) => !v)
+              setLayersOpen(false)
+            }}
+            className={`grid h-11 w-full place-items-center transition ${railSep} ${
+              drawMode || drawRing ? segOn : railHover
+            }`}
+          >
+            <SquareDashed className="h-4 w-4" strokeWidth={2} />
           </button>
 
           <button

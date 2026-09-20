@@ -1383,6 +1383,34 @@ html[data-lite] .sv-progress {
 .maplibregl-ctrl-bottom-right {
   bottom: 5rem !important;
 }
+/* Scale bar — same plate as the rest of the chrome, quiet until you look.
+   Hidden on phones: that bottom edge is the POI rail's. */
+.maplibregl-ctrl-bottom-left {
+  bottom: 5rem !important;
+}
+@media (max-width: 767px) {
+  .maplibregl-ctrl-scale {
+    display: none !important;
+  }
+}
+.maplibregl-ctrl-scale {
+  background: color-mix(in srgb, var(--color-sv-surface) 88%, transparent) !important;
+  color: color-mix(in srgb, var(--color-sv-ink) 55%, transparent) !important;
+  border-color: color-mix(in srgb, var(--color-sv-ink) 25%, transparent) !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  font-variant-numeric: tabular-nums;
+  border-radius: 0 0 4px 4px !important;
+  box-shadow: 0 1px 4px rgba(10, 16, 48, 0.08) !important;
+  margin: 0 0 10px 10px !important;
+  padding: 0 5px !important;
+}
+.dark .maplibregl-ctrl-scale {
+  background: color-mix(in srgb, var(--color-sv-navy) 88%, transparent) !important;
+  color: rgba(255, 255, 255, 0.6) !important;
+  border-color: rgba(255, 255, 255, 0.28) !important;
+  box-shadow: 0 1px 4px rgba(2, 6, 26, 0.4) !important;
+}
 .maplibregl-ctrl-attrib {
   background: color-mix(in srgb, var(--color-sv-surface) 88%, transparent) !important;
   color: color-mix(in srgb, var(--color-sv-ink) 45%, transparent) !important;

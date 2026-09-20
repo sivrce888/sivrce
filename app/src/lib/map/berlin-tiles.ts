@@ -259,6 +259,31 @@ export const BERLIN_TILE_LAYER_IDS = [
   'sv-bplan-fest-fill',
 ] as const
 
+/** Every layer this module adds — the clickable ones plus their outlines. */
+export const BERLIN_LAYER_IDS = [
+  ...BERLIN_TILE_LAYER_IDS,
+  'sv-bplan-fest-line',
+  'sv-bplan-verf-line',
+] as const
+
+/**
+ * Berlin's official geometry is Berlin-only. Outside Germany the layers draw
+ * nothing but still count as "used", which makes MapLibre credit dl-de
+ * geodata on a map that shows none — and keeps four vector sources live.
+ */
+export function setBerlinLayersVisible(map: MlMap, visible: boolean): void {
+  const next = visible ? 'visible' : 'none'
+  for (const id of BERLIN_LAYER_IDS) {
+    if (!map.getLayer(id)) continue
+    try {
+      if ((map.getLayoutProperty(id, 'visibility') ?? 'visible') === next) continue
+      map.setLayoutProperty(id, 'visibility', next)
+    } catch {
+      /* style mid-remount */
+    }
+  }
+}
+
 export type BerlinPick =
   | {
       kind: string

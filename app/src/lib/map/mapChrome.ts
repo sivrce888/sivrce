@@ -22,7 +22,26 @@ import { withNature } from '@/lib/map/nature'
 export const MAP_CREDIT_PLAIN = 'Sivrce Maps'
 
 /** Required basemap credit — present in DOM, hidden until ⓘ expand. */
-export const MAP_CREDIT_LEGAL = '© OpenMapTiles · © OpenStreetMap · NAPR parcels'
+export const MAP_CREDIT_LEGAL = '© OpenMapTiles · © OpenStreetMap'
+
+function creditLink(href: string, text: string): string {
+  return `<a href="${href}" target="_blank" rel="noopener noreferrer">${text}</a>`
+}
+
+/**
+ * Basemap credit MapLibre renders itself (it sanitizes, keeps anchors, and
+ * lists only sources it is actually drawing). Every other credit — Esri
+ * satellite, Berlin dl-de geodata, Overpass transit — rides on its own source,
+ * so a Berlin map never claims Georgian parcels and vice versa.
+ */
+export const MAP_CREDIT_HTML = [
+  MAP_CREDIT_PLAIN,
+  creditLink('https://www.openmaptiles.org/', '© OpenMapTiles'),
+  creditLink('https://www.openstreetmap.org/copyright', '© OpenStreetMap'),
+].join(' · ')
+
+/** NAPR footprints/parcels — only on maps that draw Georgian cadastre geometry. */
+export const MAP_CREDIT_NAPR = creditLink('https://napr.gov.ge/', 'NAPR')
 
 const PLANET_PATH = '/planet'
 
@@ -171,38 +190,6 @@ const DEAD_SHIELD_LAYERS = new Set([
   'road_shield_us',
 ])
 
-function fillLegalAttribution(inner: Element) {
-  while (inner.firstChild) inner.removeChild(inner.firstChild)
-
-  const brand = document.createElement('span')
-  brand.textContent = MAP_CREDIT_PLAIN
-  const sep1 = document.createTextNode(' · ')
-
-  const omt = document.createElement('a')
-  omt.href = 'https://www.openmaptiles.org/'
-  omt.target = '_blank'
-  omt.rel = 'noopener noreferrer'
-  omt.textContent = '© OpenMapTiles'
-
-  const sep2 = document.createTextNode(' · ')
-
-  const osm = document.createElement('a')
-  osm.href = 'https://www.openstreetmap.org/copyright'
-  osm.target = '_blank'
-  osm.rel = 'noopener noreferrer'
-  osm.textContent = '© OpenStreetMap'
-
-  const sep3 = document.createTextNode(' · ')
-
-  const napr = document.createElement('a')
-  napr.href = 'https://napr.gov.ge/'
-  napr.target = '_blank'
-  napr.rel = 'noopener noreferrer'
-  napr.textContent = 'NAPR parcels'
-
-  inner.append(brand, sep1, omt, sep2, osm, sep3, napr)
-}
-
 /** Fetch style; proxy URLs; legal credit lives on the attribution control (not sources). */
 export async function loadCleanStyle(styleUrl: string): Promise<StyleSpecification> {
   const cached = styleCache.get(styleUrl)
@@ -280,21 +267,26 @@ export async function loadCleanStyle(styleUrl: string): Promise<StyleSpecificati
   return structuredClone(out)
 }
 
-/** Shared Map constructor chrome — compact ⓘ, legal text on expand. */
-export function mapChromeOptions() {
+/**
+ * Shared Map constructor chrome — compact ⓘ, linked legal credit on expand.
+ * `napr` adds the Georgian cadastre credit; pass it only where NAPR-derived
+ * geometry is drawn (cadastre map, Georgia market).
+ */
+export function mapChromeOptions({ napr = false }: { napr?: boolean } = {}) {
   return {
     maplibreLogo: false as const,
     attributionControl: {
       compact: true,
-      // Seed string; tightenAttribution replaces with linked legal DOM.
-      customAttribution: `${MAP_CREDIT_PLAIN} · ${MAP_CREDIT_LEGAL}`,
+      customAttribution: napr ? `${MAP_CREDIT_HTML} · ${MAP_CREDIT_NAPR}` : MAP_CREDIT_HTML,
     },
   }
 }
 
 /**
- * Keep attribution compact (only ⓘ visible). Legal links stay in the DOM
- * so expanding ⓘ satisfies OpenMapTiles + OSM ODbL.
+ * Keep attribution compact (only ⓘ visible) and labelled. The credit list
+ * itself is MapLibre's: it re-renders on every style/source change and only
+ * lists sources it is drawing, so rewriting that DOM here would drop the
+ * per-source credits (Esri, dl-de Berlin, ODbL transit) the licence requires.
  */
 export function tightenAttribution(map: MlMap) {
   const el = map.getContainer().querySelector('.maplibregl-ctrl-attrib')
@@ -307,15 +299,4 @@ export function tightenAttribution(map: MlMap) {
   if (btn) {
     btn.setAttribute('aria-label', `Map data: ${MAP_CREDIT_LEGAL}`)
   }
-
-  const inner = el.querySelector('.maplibregl-ctrl-attrib-inner')
-  if (!inner) return
-
-  const text = inner.textContent ?? ''
-  const hasLegal =
-    /OpenMapTiles/i.test(text) &&
-    /OpenStreetMap/i.test(text) &&
-    inner.querySelector('a[href*="openstreetmap.org"]') &&
-    inner.querySelector('a[href*="openmaptiles.org"]')
-  if (!hasLegal) fillLegalAttribution(inner)
 }
