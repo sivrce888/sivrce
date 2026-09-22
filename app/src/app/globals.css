@@ -379,11 +379,12 @@
    bg-sv-surface, which flips), so a text-sv-ink label on one renders near-white
    on near-white — score pills, price tags and project badges vanished. Only the
    >=70% tiers: bg-white/10../40 are scrims over dark art, where near-white ink is
-   correct. Alpha ink tiers (text-sv-ink/60) keep their own floors above. */
-.dark .bg-white.text-sv-ink,
-.dark .bg-white\/70.text-sv-ink,
-.dark .bg-white\/90.text-sv-ink,
-.dark .bg-white\/95.text-sv-ink {
+   correct, and :not([class*="dark:bg-"]) skips the 13 chips that swap to a dark
+   fill themselves. Alpha ink tiers (text-sv-ink/60) keep their own floors above. */
+.dark .bg-white.text-sv-ink:not([class*="dark:bg-"]),
+.dark .bg-white\/70.text-sv-ink:not([class*="dark:bg-"]),
+.dark .bg-white\/90.text-sv-ink:not([class*="dark:bg-"]),
+.dark .bg-white\/95.text-sv-ink:not([class*="dark:bg-"]) {
   color: var(--sv-navy);
 }
 
@@ -395,12 +396,12 @@
 .dark .text-sv-blue-deep {
   color: var(--sv-blue-light);
 }
-.dark .bg-white .text-sv-blue,
-.dark .bg-white .text-sv-blue-deep,
-.dark .bg-white\/90 .text-sv-blue,
-.dark .bg-white\/90 .text-sv-blue-deep,
-.dark .bg-white\/95 .text-sv-blue,
-.dark .bg-white\/95 .text-sv-blue-deep {
+.dark .bg-white:not([class*="dark:bg-"]) .text-sv-blue,
+.dark .bg-white:not([class*="dark:bg-"]) .text-sv-blue-deep,
+.dark .bg-white\/90:not([class*="dark:bg-"]) .text-sv-blue,
+.dark .bg-white\/90:not([class*="dark:bg-"]) .text-sv-blue-deep,
+.dark .bg-white\/95:not([class*="dark:bg-"]) .text-sv-blue,
+.dark .bg-white\/95:not([class*="dark:bg-"]) .text-sv-blue-deep {
   color: var(--sv-blue-deep);
 }
 
