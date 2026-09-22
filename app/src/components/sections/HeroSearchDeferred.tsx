@@ -9,16 +9,16 @@ import type { HeroQuickChip } from '@/lib/hero-quick'
 
 function Skeleton() {
   return (
-    <div className="mx-auto mt-11 w-full max-w-[1100px]" aria-hidden>
-      <div className="mx-auto h-12 w-[min(100%,420px)] rounded-full glass-hero" />
+    <div className="mx-auto mt-7 w-full max-w-[1100px] sm:mt-11" aria-hidden>
+      <div className="mx-auto h-12 w-full rounded-full glass-hero sm:w-[min(100%,420px)]" />
       <div className="mt-2.5 h-14 w-full rounded-full glass-hero" />
-      <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
-        <span className="h-9 w-16 rounded-full glass-hero" />
-        <span className="h-9 w-[72px] rounded-full glass-hero" />
-        <span className="h-9 w-24 rounded-full glass-hero" />
-        <span className="h-9 w-20 rounded-full glass-hero" />
-        <span className="h-9 w-28 rounded-full glass-hero" />
-        <span className="h-9 w-[76px] rounded-full glass-hero" />
+      <div className="mt-4 flex items-center gap-2 overflow-hidden sm:mt-5 sm:flex-wrap sm:justify-center">
+        <span className="h-9 w-16 shrink-0 rounded-full glass-hero" />
+        <span className="h-9 w-[72px] shrink-0 rounded-full glass-hero" />
+        <span className="h-9 w-24 shrink-0 rounded-full glass-hero" />
+        <span className="h-9 w-20 shrink-0 rounded-full glass-hero" />
+        <span className="h-9 w-28 shrink-0 rounded-full glass-hero" />
+        <span className="h-9 w-[76px] shrink-0 rounded-full glass-hero" />
       </div>
     </div>
   )
@@ -52,11 +52,13 @@ export default function HeroSearchDeferred({
       window.removeEventListener('keydown', go, { capture: true })
     }
   }, [])
-  /* min-h reserves the real island's height per breakpoint (measured 320→1920)
-     so the idle mount can't shift the hero — CLS stays 0 while the search
-     island hydrates off the critical path. Re-measure if HeroSearch grows. */
+  /* min-h reserves the real island's height per breakpoint (re-measured 320→1440
+     on the daily tab, the tallest) so the idle mount can't shift the hero — CLS
+     stays 0 while the search island hydrates off the critical path. w-full: the
+     wrapper is a shrink-to-fit flex item, so without it the island sizes to
+     max-content and overflows the phone viewport. Re-measure if HeroSearch grows. */
   return (
-    <div className="min-h-[708px] sm:min-h-[584px] md:min-h-[491px] lg:min-h-[275px]">
+    <div className="w-full min-w-0 min-h-[450px] sm:min-h-[540px] lg:min-h-[275px]">
       {Search ? <Search quick={quick} country={country} /> : <Skeleton />}
     </div>
   )

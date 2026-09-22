@@ -50,7 +50,8 @@ export default async function Hero({
     <section data-cms-section="hero" className="relative min-h-[calc(100svh-var(--sv-dock))] overflow-x-clip bg-sv-cloud dark:bg-sv-navy">
       <HeroBackground />
 
-      <div className="relative z-10 mx-auto flex min-h-[calc(100svh-var(--sv-dock))] max-w-[1440px] flex-col items-center justify-center px-5 pb-24 pt-[calc(9rem+env(safe-area-inset-top,0px))] md:px-10">
+      {/* Mobile top pad clears the 60px navbar only — 9rem pushed the search CTA under the dock. */}
+      <div className="relative z-10 mx-auto flex min-h-[calc(100svh-var(--sv-dock))] max-w-[1440px] flex-col items-center justify-center px-5 pb-20 pt-[calc(6rem+env(safe-area-inset-top,0px))] md:px-10 md:pb-24 md:pt-[calc(9rem+env(safe-area-inset-top,0px))]">
         {/* LCP: badge/h1/subtitle paint instantly — motion only on trust + scroll hint */}
         <div className="flex flex-col items-center">
           <div className="mb-5 flex items-center gap-2.5 rounded-full glass-hero px-5 py-2 shadow-card">
@@ -76,7 +77,7 @@ export default async function Hero({
         <HeroSearchDeferred quick={geChips ? aliveQuickChips() : []} country={country} />
 
         <div
-          className="sv-hero-in mt-12 flex flex-wrap items-center justify-center gap-x-10 gap-y-4"
+          className="sv-hero-in mt-8 flex flex-wrap items-center justify-center gap-x-10 gap-y-4 md:mt-12"
           style={{ animationDelay: '0.3s' }}
         >
           {TRUST.map((t, i) => (

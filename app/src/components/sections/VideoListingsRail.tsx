@@ -56,7 +56,6 @@ export default function VideoListingsRail({ items }: { items: Listing[] }) {
                   className="group relative w-[148px] shrink-0 overflow-hidden rounded-tile shadow-card transition-transform duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] hover:scale-[1.03] hover:shadow-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
                 >
                   <span className="relative block aspect-[9/16] bg-sv-navy-soft">
-                    { }
                     <picture className="absolute inset-0">
                       {avif ? <source srcSet={avif} type="image/avif" /> : null}
                       <img

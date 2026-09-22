@@ -349,11 +349,11 @@ export default function HeroSearch({ quick = QUICK, country }: { quick?: HeroQui
 
   return (
     <div
-      className="sv-hero-in mx-auto mt-11 w-full min-w-0 max-w-[1100px]"
+      className="sv-hero-in mx-auto mt-7 w-full min-w-0 max-w-[1100px] sm:mt-11"
       style={{ animationDelay: '0.16s' }}
     >
       <div
-        className="mx-auto mb-2.5 grid w-full grid-cols-2 gap-1 rounded-tile glass-hero p-1 sm:flex sm:w-fit sm:flex-wrap sm:rounded-full lg:flex-nowrap"
+        className="mx-auto mb-2.5 flex w-full snap-x gap-1 overflow-x-auto rounded-full glass-hero p-1 [mask-image:linear-gradient(to_right,#000_86%,transparent)] sm:w-fit sm:flex-wrap sm:overflow-x-visible sm:[mask-image:none] lg:flex-nowrap"
         role="tablist"
         aria-label={t('search.dealType')}
       >
@@ -363,9 +363,7 @@ export default function HeroSearch({ quick = QUICK, country }: { quick?: HeroQui
             role="tab"
             aria-selected={tab === i}
             onClick={() => switchTab(i)}
-            className={`relative w-full rounded-full px-2.5 py-2 text-center text-[12.5px] font-extrabold leading-snug transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-cloud dark:focus-visible:ring-offset-sv-navy sm:w-auto sm:px-4 sm:py-2.5 sm:text-[14px] lg:px-5 ${
-              item.id === 'projects' ? 'col-span-2 sm:col-auto' : ''
-            } ${
+            className={`relative shrink-0 snap-start whitespace-nowrap rounded-full px-3.5 py-2.5 text-center text-[13px] font-extrabold leading-snug transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-cloud dark:focus-visible:ring-offset-sv-navy sm:w-auto sm:px-4 sm:text-[14px] lg:px-5 ${
               // white active pill → fixed navy text; sv-ink flips near-white in .dark
               tab === i ? 'text-sv-navy' : 'text-sv-ink/60 hover:text-sv-ink dark:text-white/75 dark:hover:text-white'
             }`}
@@ -549,26 +547,27 @@ export default function HeroSearch({ quick = QUICK, country }: { quick?: HeroQui
         </div>
       </form>
 
-      <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+      {/* Full-bleed scroll row on phones (wrapping cost 190px of fold); centered wrap from sm up. */}
+      <div className="-mx-5 mt-4 flex snap-x items-center gap-2 overflow-x-auto px-5 sm:mx-0 sm:mt-5 sm:flex-wrap sm:justify-center sm:overflow-x-visible sm:px-0">
         {recent && (
           <button
             type="button"
             onClick={() => go(recent.path)}
             onMouseEnter={() => router.prefetch(localizedHref(recent.path, lang))}
-            className="sv-hero-in flex items-center gap-1.5 rounded-full bg-sv-blue px-4 py-2.5 text-[13px] font-bold text-white shadow-glow-blue-sm transition-all duration-200 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-cloud dark:focus-visible:ring-offset-sv-navy"
+            className="sv-hero-in flex shrink-0 snap-start items-center gap-1.5 whitespace-nowrap rounded-full bg-sv-blue px-4 py-2.5 text-[13px] font-bold text-white shadow-glow-blue-sm transition-all duration-200 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-cloud dark:focus-visible:ring-offset-sv-navy"
             style={{ animationDelay: '0.22s' }}
           >
             <History className="h-3.5 w-3.5" />
             {recent.label}
           </button>
         )}
-        <span className="sv-hero-in text-[13px] font-bold text-sv-ink/60 dark:text-white/70" style={{ animationDelay: '0.24s' }}>
+        <span className="sv-hero-in shrink-0 whitespace-nowrap text-[13px] font-bold text-sv-ink/60 dark:text-white/70" style={{ animationDelay: '0.24s' }}>
           {b('home.search.popular')}
         </span>
         {isDaily && (
           <LocalizedLink
             href="/search?deal=daily&feat=add.f.partiesAllowed"
-            className="sv-hero-in inline-flex items-center gap-1.5 rounded-full glass-hero px-4 py-2.5 text-[13px] font-bold text-sv-ink/80 transition-all duration-200 hover:bg-sv-surface hover:text-sv-ink hover:shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-cloud dark:text-white/85 dark:hover:bg-white/20 dark:hover:text-white dark:focus-visible:ring-offset-sv-navy"
+            className="sv-hero-in inline-flex shrink-0 snap-start items-center gap-1.5 whitespace-nowrap rounded-full glass-hero px-4 py-2.5 text-[13px] font-bold text-sv-ink/80 transition-all duration-200 hover:bg-sv-surface hover:text-sv-ink hover:shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-cloud dark:text-white/85 dark:hover:bg-white/20 dark:hover:text-white dark:focus-visible:ring-offset-sv-navy"
             style={{ animationDelay: '0.26s' }}
           >
             <PartyHouseIcon className="h-3.5 w-3.5" style={{ color: CATEGORY_BRAND.partyHouses.hue }} />
@@ -579,7 +578,7 @@ export default function HeroSearch({ quick = QUICK, country }: { quick?: HeroQui
           <LocalizedLink
             key={chip.labelKey}
             href={quickHref(chip, tab, propType)}
-            className="sv-hero-in rounded-full glass-hero px-4 py-2.5 text-[13px] font-bold text-sv-ink/80 transition-all duration-200 hover:bg-sv-surface hover:text-sv-ink hover:shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-cloud dark:text-white/85 dark:hover:bg-white/20 dark:hover:text-white dark:focus-visible:ring-offset-sv-navy"
+            className="sv-hero-in shrink-0 snap-start whitespace-nowrap rounded-full glass-hero px-4 py-2.5 text-[13px] font-bold text-sv-ink/80 transition-all duration-200 hover:bg-sv-surface hover:text-sv-ink hover:shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-cloud dark:text-white/85 dark:hover:bg-white/20 dark:hover:text-white dark:focus-visible:ring-offset-sv-navy"
             style={{ animationDelay: `${0.28 + i * 0.045}s` }}
           >
             {b(chip.labelKey)}

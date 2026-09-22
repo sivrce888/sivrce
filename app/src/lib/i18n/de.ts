@@ -447,7 +447,7 @@ export const de: Dict = {
   'footer.privacy': 'Datenschutz',
   'footer.cookies': 'Cookies',
   'footer.terms': 'AGB',
-  'footer.rights': '© 2026 Sivrce — Alle Rechte vorbehalten',
+  'footer.rights': '© {year} Sivrce — Alle Rechte vorbehalten',
 
   // ——— Add listing wizard ———
   'add.title': 'Inserat aufgeben',

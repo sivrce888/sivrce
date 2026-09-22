@@ -153,6 +153,8 @@ export default function Footer({
 } = {}) {
   const { t, lang } = useI18n()
   const pathname = usePathname()
+  // ponytail: the copyright year was frozen at 2026 in 10 dictionaries — derive it.
+  const year = new Date().getFullYear()
   const loc: SeoLoc = lang === 'en' || lang === 'ru' ? lang : 'ka'
   const deLoc: 'de' | 'en' | 'ka' = lang === 'de' ? 'de' : lang === 'ka' ? 'ka' : 'en'
   const cleanPath = stripLangPrefix(pathname)
@@ -420,7 +422,11 @@ export default function Footer({
 
         <div className="mt-14 flex flex-wrap items-center justify-between gap-4 border-t border-white/[0.07] pt-8">
           <p className="text-[13px] font-semibold text-white/55">
-            {isDe ? '© 2026 Sivrce Germany • sivrce.com/de • sivrce.de' : offGe ? '© 2026 Sivrce • sivrce.com' : t('footer.rights')}
+            {isDe
+              ? `© ${year} Sivrce Germany • sivrce.com/de • sivrce.de`
+              : offGe
+                ? `© ${year} Sivrce • sivrce.com`
+                : t('footer.rights', { year })}
           </p>
           <div className="flex flex-wrap items-center gap-6 text-[13px] font-semibold text-white/60">
             {market === 'de' ? (

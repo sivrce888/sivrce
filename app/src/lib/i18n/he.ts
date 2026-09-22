@@ -441,7 +441,7 @@ export const he: Dict = {
   'footer.co.partnership': 'שותפות',
   'footer.co.ads': 'שירותי פרסום',
   'footer.co.contact': 'צור קשר',
-  'footer.rights': '© 2026 Sivrce • sivrce.ge — כל הזכויות שמורות',
+  'footer.rights': '© {year} Sivrce • sivrce.ge — כל הזכויות שמורות',
   'footer.terms': 'תנאי שימוש',
   'footer.privacy': 'פרטיות',
   'footer.cookies': 'עוגיות',

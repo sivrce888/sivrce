@@ -42,7 +42,8 @@ export default function NeighborhoodCard({
             className="absolute right-4 top-4 flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-[13px] font-black text-sv-ink"
             aria-label={`${s.scoreLabel} ${score}/10`}
           >
-            <span className="grid h-5 w-5 place-items-center rounded-full bg-sv-blue/10 text-[11px] text-sv-blue-deep dark:text-sv-blue-light">
+            {/* Sits on the bg-white/95 pill, which is white in both themes — no dark: flip. */}
+            <span className="grid h-5 w-5 place-items-center rounded-full bg-sv-blue/10 text-[11px] text-sv-blue-deep">
               {score}
             </span>
             /10

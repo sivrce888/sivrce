@@ -364,6 +364,46 @@
 .dark .dark\:text-white\/45 {
   color: color-mix(in srgb, #ffffff 50%, transparent);
 }
+/* The orange CTA keeps the same #ff6a2d in both themes, so its label has to stay
+   navy. text-sv-ink flips to near-white in dark, which drops every primary button
+   (Search, Add listing, Book, Publish) to 2.45:1 on orange — an AA fail on the
+   highest-intent control on the site. 108 call sites across 102 files, so it is
+   pinned here once rather than patched per button. Unlayered, like the floors
+   above, so it beats the @layer utilities `text-sv-ink`. */
+.dark .bg-sv-orange.text-sv-ink,
+.dark .from-sv-orange.text-sv-ink {
+  color: var(--sv-navy);
+}
+
+/* Same trap on literal-white chips: `bg-white` stays white in dark (unlike
+   bg-sv-surface, which flips), so a text-sv-ink label on one renders near-white
+   on near-white — score pills, price tags and project badges vanished. Only the
+   >=70% tiers: bg-white/10../40 are scrims over dark art, where near-white ink is
+   correct. Alpha ink tiers (text-sv-ink/60) keep their own floors above. */
+.dark .bg-white.text-sv-ink,
+.dark .bg-white\/70.text-sv-ink,
+.dark .bg-white\/90.text-sv-ink,
+.dark .bg-white\/95.text-sv-ink {
+  color: var(--sv-navy);
+}
+
+/* Accent blue on navy: sv-blue is 3.33:1 and sv-blue-deep 2.0:1 on the dark
+   surfaces. 99 call sites already hand-write `dark:text-sv-blue-light`; 627 do
+   not, so the lift is done here for all of them. The nested rule re-deepens the
+   blue inside literal-white chips, which stay white in dark. */
+.dark .text-sv-blue,
+.dark .text-sv-blue-deep {
+  color: var(--sv-blue-light);
+}
+.dark .bg-white .text-sv-blue,
+.dark .bg-white .text-sv-blue-deep,
+.dark .bg-white\/90 .text-sv-blue,
+.dark .bg-white\/90 .text-sv-blue-deep,
+.dark .bg-white\/95 .text-sv-blue,
+.dark .bg-white\/95 .text-sv-blue-deep {
+  color: var(--sv-blue-deep);
+}
+
 /* Light AA floor, same contract: ink/50 on white lands at 3.55:1 — every
    small-text usage fails AA. Renders the 50% tier at 60% (4.9:1 on white).
    Text utilities only, unlayered, mirrors the dark floor above. */

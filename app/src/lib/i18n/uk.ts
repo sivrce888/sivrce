@@ -441,7 +441,7 @@ export const uk: Dict = {
   'footer.co.partnership': 'Партнерство',
   'footer.co.ads': 'Рекламні послуги',
   'footer.co.contact': 'Контакти',
-  'footer.rights': '© 2026 Sivrce • sivrce.ge — Усі права захищені',
+  'footer.rights': '© {year} Sivrce • sivrce.ge — Усі права захищені',
   'footer.terms': 'Умови використання',
   'footer.privacy': 'Конфіденційність',
   'footer.cookies': 'Файли cookie',

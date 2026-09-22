@@ -441,7 +441,7 @@ export const ka = {
   'footer.co.partnership': 'პარტნიორობა',
   'footer.co.ads': 'სარეკლამო სერვისები',
   'footer.co.contact': 'კონტაქტი',
-  'footer.rights': '© 2026 სივრცე • sivrce.ge — ყველა უფლება დაცულია',
+  'footer.rights': '© {year} სივრცე • sivrce.ge — ყველა უფლება დაცულია',
   'footer.terms': 'წესები და პირობები',
   'footer.privacy': 'კონფიდენციალურობა',
   'footer.cookies': 'ქუქიები',

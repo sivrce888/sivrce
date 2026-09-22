@@ -441,7 +441,7 @@ export const az: Dict = {
   'footer.co.partnership': 'Tərəfdaşlıq',
   'footer.co.ads': 'Reklam xidmətləri',
   'footer.co.contact': 'Əlaqə',
-  'footer.rights': '© 2026 Sivrce • sivrce.ge — Bütün hüquqlar qorunur',
+  'footer.rights': '© {year} Sivrce • sivrce.ge — Bütün hüquqlar qorunur',
   'footer.terms': 'İstifadə şərtləri',
   'footer.privacy': 'Məxfilik',
   'footer.cookies': 'Kukilər',

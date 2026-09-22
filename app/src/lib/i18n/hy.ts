@@ -441,7 +441,7 @@ export const hy: Dict = {
   'footer.co.partnership': 'Գործընկերություն',
   'footer.co.ads': 'Գովազդային ծառայություններ',
   'footer.co.contact': 'Կապ',
-  'footer.rights': '© 2026 Sivrce • sivrce.ge — Բոլոր իրավունքները պաշտպանված են',
+  'footer.rights': '© {year} Sivrce • sivrce.ge — Բոլոր իրավունքները պաշտպանված են',
   'footer.terms': 'Օգտագործման պայմաններ',
   'footer.privacy': 'Գաղտնիություն',
   'footer.cookies': 'Cookie ֆայլեր',
