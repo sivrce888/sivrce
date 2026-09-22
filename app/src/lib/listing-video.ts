@@ -141,6 +141,67 @@ export function videoEmbedFor(raw: string | undefined): VideoEmbed | null {
   return null
 }
 
+/**
+ * Apple iOS 27 level inline card video embedder:
+ * Zero-layout shift, muted-first autoplay, ambient loop, zero third-party branding/clutter.
+ */
+export function inlineVideoEmbedFor(
+  raw: string | undefined,
+  muted: boolean = true,
+): VideoEmbed | null {
+  if (!raw) return null
+  const yt = youtubeId(raw)
+  if (yt) {
+    return {
+      type: "youtube",
+      url: `https://www.youtube-nocookie.com/embed/${yt}?autoplay=1&mute=${muted ? 1 : 0}&controls=0&playsinline=1&rel=0&modestbranding=1&loop=1&playlist=${yt}&enablejsapi=1`,
+    }
+  }
+  const vm = vimeoId(raw)
+  if (vm) {
+    return {
+      type: "vimeo",
+      url: `${vimeoEmbedUrl(vm)}?autoplay=1&muted=${muted ? 1 : 0}&loop=1&playsinline=1&controls=0&background=1`,
+    }
+  }
+  const st = streamUid(raw)
+  if (st) {
+    return {
+      type: "stream",
+      url: `${streamEmbedUrl(st)}?autoplay=true&muted=${muted ? "true" : "false"}&loop=true&controls=false`,
+    }
+  }
+  if (isNativeVideoUrl(raw)) return { type: "native", url: raw }
+  return null
+}
+
+type VideoListener = (activeId: string | null) => void
+const activeListeners = new Set<VideoListener>()
+let currentActiveVideoId: string | null = null
+
+/** Returns the listing ID currently playing inline video, or null if none */
+export function getActiveVideoCard(): string | null {
+  return currentActiveVideoId
+}
+
+/** Sets the active card video singleton, stopping any previously playing card */
+export function setActiveVideoCard(id: string | null): void {
+  if (currentActiveVideoId === id) return
+  currentActiveVideoId = id
+  for (const listener of activeListeners) {
+    listener(id)
+  }
+}
+
+/** Subscribes to active video card transitions (singleton concurrency governor) */
+export function subscribeActiveVideoCard(listener: VideoListener): () => void {
+  activeListeners.add(listener)
+  return () => {
+    activeListeners.delete(listener)
+  }
+}
+
+
 export function listingVideoKind(
   raw: string | null | undefined,
 ): "file" | "youtube" | "stream" | "vimeo" | null {
