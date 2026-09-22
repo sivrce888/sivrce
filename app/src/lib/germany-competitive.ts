@@ -23,6 +23,20 @@
  * live numbers from /api/intel/coverage once DE ingestion runs in production.
  */
 
+import fs from 'node:fs'
+import path from 'node:path'
+
+/** Count `*.check.ts` entries in app/package.json `prebuild` — never hardcode. */
+function prebuildCheckCount(): number {
+  const pkgPath = [path.join(process.cwd(), 'package.json'), path.join(process.cwd(), 'app', 'package.json')].find(
+    (p) => fs.existsSync(p),
+  )
+  if (!pkgPath) return 0
+  const prebuild =
+    (JSON.parse(fs.readFileSync(pkgPath, 'utf8')) as { scripts?: { prebuild?: string } }).scripts?.prebuild ?? ''
+  return (prebuild.match(/\.check\.ts/g) ?? []).length
+}
+
 /** What the repo actually carries for Germany today. Asserted against the real
  *  data modules by germany-competitive.check.ts — if inventory grows or shrinks
  *  and this is not updated, the build fails, so the number cannot drift. */
@@ -260,7 +274,7 @@ export const GERMANY_PLAYERS: readonly Player[] = [
       },
       engineering: {
         score: 100,
-        note: '128 deterministic self-checks run on every prebuild, repo-weight lock (≤96 MB), brand lock, and DB-free SSR-safe modules.',
+        note: `${prebuildCheckCount()} deterministic self-checks run on every prebuild, repo-weight lock (≤96 MB), brand lock, and DB-free SSR-safe modules.`,
         evidence: 'package.json',
       },
     },
