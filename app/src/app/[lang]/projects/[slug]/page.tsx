@@ -242,9 +242,11 @@ export default async function ProjectPage({ params }: PageProps) {
     // ponytail: numberOfAvailableAccommodationUnits = "currently for sale" — only
     // true for projects under construction. Sold-out/completed buildings would
     // mislead Google's schema (policy risk). Use numberOfAccommodationUnits (total built) for those.
-    ...(isDelivered(project)
+    ...(project.flats > 0 && isDelivered(project)
       ? { numberOfAccommodationUnits: project.flats }
-      : { numberOfAvailableAccommodationUnits: project.flats }),
+      : project.flats > 0
+        ? { numberOfAvailableAccommodationUnits: project.flats }
+        : {}),
     address: {
       '@type': 'PostalAddress',
       streetAddress: project.location,
@@ -435,7 +437,7 @@ export default async function ProjectPage({ params }: PageProps) {
                       : []),
                     { label: c.statsBuilt, value: `${project.done}%` },
                     { label: micro.handover, value: finishLabel(chromeLoc, project.finish) },
-                    { label: micro.flats, value: String(project.flats) },
+                    { label: micro.flats, value: unitsLabel(project.flats, chromeLoc) },
                   ]}
                 />
                 <div className="mt-6 h-1.5 max-w-xl overflow-hidden rounded-full bg-sv-ink/[0.07]">

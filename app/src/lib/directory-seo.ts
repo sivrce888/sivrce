@@ -689,7 +689,7 @@ export function projectFaqs(loc: DirLoc, p: Project, dev: Developer | null): Faq
       },
       {
         q: `როდის ჩაბარდება ${name}?`,
-        a: `ჩაბარების ვადა: ${finish}. მშენებლობის პროგრესი: ${p.done}%. სულ ${unitsLabel(p.flats, loc)}${p.floors ? `, სართულიანობა ${p.floors}-მდე` : ''}.`,
+        a: `ჩაბარების ვადა: ${finish}. მშენებლობის პროგრესი: ${p.done}%.${p.flats > 0 ? ` სულ ${unitsLabel(p.flats, loc)}${p.floors ? `, სართულიანობა ${p.floors}-მდე` : ''}.` : ''}`,
       },
       {
         q: `რომელი კარკასით იყიდება ბინები ${name}-ში?`,
@@ -723,7 +723,7 @@ export function projectFaqs(loc: DirLoc, p: Project, dev: Developer | null): Faq
       },
       {
         q: `Когда сдадут ${p.name}?`,
-        a: `Срок сдачи: ${finish}. Готовность: ${p.done}%. Всего ${unitsLabel(p.flats, loc)}${p.floors ? `, этажность до ${p.floors}` : ''}.`,
+        a: `Срок сдачи: ${finish}. Готовность: ${p.done}%.${p.flats > 0 ? ` Всего ${unitsLabel(p.flats, loc)}${p.floors ? `, этажность до ${p.floors}` : ''}.` : ''}`,
       },
       {
         q: `В каком каркасе продаются квартиры в ${p.name}?`,
@@ -756,7 +756,7 @@ export function projectFaqs(loc: DirLoc, p: Project, dev: Developer | null): Faq
     },
     {
       q: `When will ${p.name} be handed over?`,
-      a: `Handover date: ${finish}. Construction progress: ${p.done}%. Total ${unitsLabel(p.flats, loc)}${p.floors ? `, up to ${p.floors} floors` : ''}.`,
+      a: `Handover date: ${finish}. Construction progress: ${p.done}%.${p.flats > 0 ? ` Total ${unitsLabel(p.flats, loc)}${p.floors ? `, up to ${p.floors} floors` : ''}.` : ''}`,
     },
     {
       q: `Which frame condition are apartments sold in at ${p.name}?`,

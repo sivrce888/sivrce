@@ -52,8 +52,9 @@ export function cityIn(city: string, loc: DirLoc): string {
   return loc === 'ka' ? c.loc : loc === 'ru' ? `в ${c.ru}` : `in ${c.en}`
 }
 
-/** '214 ბინა' / '214 flats' / '214 квартир' / '214 Wohnungen'. */
+/** '214 ბინა' / '214 flats' / '214 квартир' / '214 Wohnungen' — '—' when the count is unknown (aggregator rows). */
 export function unitsLabel(n: number, loc: DirLoc | 'de'): string {
+  if (!Number.isFinite(n) || n <= 0) return '—'
   if (loc === 'ka') return `${n} ბინა`
   if (loc === 'ru') return `${n} ${ruPlural(n, 'квартира', 'квартиры', 'квартир')}`
   if (loc === 'de') return `${n} ${n === 1 ? 'Wohnung' : 'Wohnungen'}`

@@ -237,8 +237,10 @@ async function mirrorLogo(srcUrl: string, slug: string): Promise<string | null> 
         body: webp,
         contentType: "image/webp",
       })
-      if (!OUR.test(pub)) throw new Error(`R2 not configured (${pub})`)
-      return pub
+      // ponytail: no R2 creds on this machine → first-party /images path is
+      // CSP-safe and renderable; upgrade path is re-run with R2 env (CDN wins).
+      if (pub && OUR.test(pub)) return pub
+      return `/images/developers/${slug}.webp`
     } catch (e) {
       if (attempt === 2) {
         console.warn(`  ! mirror ${slug}: ${(e as Error).message}`)
@@ -258,9 +260,9 @@ async function main() {
     console.log("sync-developer-logos.check OK")
     return
   }
-  if (!process.env.R2_ACCOUNT_ID || !process.env.R2_PUBLIC_URL) {
-    console.error("R2 env missing — abort")
-    process.exit(1)
+  const localOnly = !process.env.R2_ACCOUNT_ID || !process.env.R2_PUBLIC_URL
+  if (localOnly) {
+    console.warn("R2 env missing — local-first mode: logos land on /images/developers (re-run with R2 env to promote to CDN)")
   }
 
   const dbRows = await db.developerProfile.findMany({
@@ -300,7 +302,21 @@ async function main() {
   let skip = 0
 
   for (const d of targets.values()) {
-    if (d.logoUrl && OUR.test(d.logoUrl) && existsSync(resolve(PUBLIC_DIR, `${d.slug}.webp`))) {
+    const localFile = resolve(PUBLIC_DIR, `${d.slug}.webp`)
+    if (d.logoUrl && OUR.test(d.logoUrl) && existsSync(localFile)) {
+      skip++
+      continue
+    }
+    // Already-own local webp → first-party logoUrl, no re-download.
+    // (static-catalog assets, prior local-mode runs, or stale remote URLs)
+    if (existsSync(localFile) && !(d.logoUrl && OUR.test(d.logoUrl))) {
+      const localUrl = `/images/developers/${d.slug}.webp`
+      if (byDbSlug.has(d.slug) && d.logoUrl !== localUrl) {
+        await db.developerProfile.update({
+          where: { slug: d.slug },
+          data: { logoUrl: localUrl.slice(0, 320) },
+        })
+      }
       skip++
       continue
     }

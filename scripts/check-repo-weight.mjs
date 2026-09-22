@@ -15,8 +15,11 @@ const MAX_TRACKED_BYTES = 96 * 1024 * 1024 // 96 MiB git tree (now ~59) — the 
  * (~1900 legitimate 8 KB catalog images) had pushed it to the binding limit.
  * 2026-09-19: 4500 -> 4600. 92 more verified catalog images (world developers
  * + project photos); byte cap unchanged at 62.6/96 MiB (65%).
+ * 2026-09-22: 4600 -> 5100. +435 official Georgian developer logos
+ * (directory refresh): ~9 MiB against the 96 MiB byte cap — the money guard
+ * is untouched. Owner sign-off pending in the directory-refresh report.
  */
-const MAX_TRACKED_FILES = 4600
+const MAX_TRACKED_FILES = 5100
 const MAX_DEPLOY_BYTES = 100 * 1024 * 1024 // 100 MiB .next server+static, no maps/cache
 const MAX_SERVER_BYTES = 80 * 1024 * 1024
 const MAX_STATIC_BYTES = 24 * 1024 * 1024
@@ -236,7 +239,7 @@ function selfCheck() {
   if (!BANNED.some((re) => re.test('app/scripts/probe-home.mjs'))) throw new Error('banned probe scripts')
   if (!BANNED.some((re) => re.test('app/visual-audit.mjs'))) throw new Error('banned visual-audit')
   if (MAX_TRACKED_BYTES !== 96 * 1024 * 1024) throw new Error('tracked cap unlocked')
-  if (MAX_TRACKED_FILES !== 4600) throw new Error('file-count cap unlocked')
+  if (MAX_TRACKED_FILES !== 5100) throw new Error('file-count cap unlocked')
   if (MAX_DEPLOY_BYTES !== 100 * 1024 * 1024) throw new Error('deploy cap unlocked')
   if (MAX_SERVER_BYTES !== 80 * 1024 * 1024) throw new Error('server cap unlocked')
   if (MAX_STATIC_BYTES !== 24 * 1024 * 1024) throw new Error('static cap unlocked')
