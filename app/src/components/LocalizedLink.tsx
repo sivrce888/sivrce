@@ -10,6 +10,7 @@
 import Link from 'next/link'
 import type { ComponentProps } from 'react'
 import { useI18n, localizedHref, stripLangPrefix } from '@/lib/i18n/context'
+import { toOrganicKaUrl } from '@/lib/directory-seo-lite'
 
 /** /map pulls Map3D + NAPR/footprint geo JSON (~190KiB) — load on navigation,
  * never prefetch it from idle pages (navbar/footer render it sitewide). */
@@ -19,7 +20,8 @@ export function localizeHref(href: string, lang: Parameters<typeof localizedHref
   if (!href.startsWith('/')) return href
   if (href.startsWith('/api') || href.startsWith('/auth')) return href
   if (stripLangPrefix(href) !== href) return href
-  return localizedHref(href, lang)
+  const base = localizedHref(href, lang)
+  return lang === 'ka' ? toOrganicKaUrl(base) : base
 }
 
 export default function LocalizedLink({ href, prefetch, ...rest }: ComponentProps<typeof Link>) {

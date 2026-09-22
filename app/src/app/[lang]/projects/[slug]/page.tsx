@@ -17,6 +17,7 @@ import { SourcesSection } from '@/components/entities/SourcesSection'
 import { getEntityProfile } from '@/lib/intel/store'
 import { sourcesHeading, toPublicFacts } from '@/lib/intel/public-facts'
 import { LeadForm } from '@/components/lead/LeadForm'
+import { ProjectChatButton } from '@/components/chat/ProjectChatButton'
 import ReviewsSectionServer from '@/components/reviews/ReviewsSectionServer'
 import { FaqSection } from '@/components/seo/FaqSection'
 import { ProjectMediaGallery } from '@/components/entities/ProjectMediaGallery'
@@ -650,7 +651,12 @@ export default async function ProjectPage({ params }: PageProps) {
           id="contact"
           className="mx-auto grid max-w-[1440px] scroll-mt-[7.5rem] gap-10 px-5 pb-16 md:px-10 lg:grid-cols-2"
         >
-          <LeadForm targetType="project" targetId={project.slug} recipientName={project.name} />
+          <div>
+            <ProjectChatButton projectSlug={project.slug} label={c.chatWithDev} />
+            <div className="mt-4">
+              <LeadForm targetType="project" targetId={project.slug} recipientName={project.name} />
+            </div>
+          </div>
           <ReviewsSectionServer targetType="project" targetId={project.slug} />
         </section>
         <StickyLeadBar targetType="project" targetId={project.slug} phone={dev?.phone || CONTACT_PHONE} recipientName={project.name} />

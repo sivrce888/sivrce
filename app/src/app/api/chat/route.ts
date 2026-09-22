@@ -12,6 +12,7 @@ import {
   getChatUnread,
   getOrCreateChatRoom,
   getOrCreateDirectRoom,
+  getOrCreateProjectRoom,
   getOrCreateSupportRoom,
   getUserChats,
 } from "@/lib/chat"
@@ -50,17 +51,20 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "rate_limited" }, { status: 429 })
   }
 
-  let body: { listingId?: string; userId?: string; support?: boolean }
+  let body: { listingId?: string; userId?: string; projectSlug?: string; support?: boolean }
   try {
     body = await req.json()
   } catch {
     return NextResponse.json({ error: "bad_json" }, { status: 400 })
   }
 
-  // Exactly one target — listing room, direct room, or the support line
-  const targets = [body.listingId, body.userId, body.support ? "support" : null].filter(
-    Boolean,
-  ) as string[]
+  // Exactly one target — listing, direct, project, or the support line
+  const targets = [
+    body.listingId,
+    body.userId,
+    body.projectSlug,
+    body.support ? "support" : null,
+  ].filter(Boolean) as string[]
   if (targets.length !== 1) {
     return NextResponse.json({ error: "bad_target" }, { status: 400 })
   }
@@ -68,12 +72,17 @@ export async function POST(req: Request) {
   try {
     const room = body.listingId
       ? await getOrCreateChatRoom(body.listingId, me)
-      : body.userId
-        ? await getOrCreateDirectRoom(me, body.userId)
-        : await getOrCreateSupportRoom(me)
+      : body.projectSlug
+        ? await getOrCreateProjectRoom(body.projectSlug, me)
+        : body.userId
+          ? await getOrCreateDirectRoom(me, body.userId)
+          : await getOrCreateSupportRoom(me)
     // Minimal payload — participant rows (peer ids, lastReadAt) never leave the server
-    const { id, listingId, title, listing, updatedAt } = room
-    return NextResponse.json({ room: { id, listingId, title, listing, updatedAt } }, { status: 201 })
+    const { id, listingId, projectSlug, title, listing, updatedAt } = room
+    return NextResponse.json(
+      { room: { id, listingId, projectSlug, title, listing, updatedAt } },
+      { status: 201 },
+    )
   } catch (error) {
     const msg = (error as Error).message
     if (msg === "self_chat") {
@@ -85,7 +94,7 @@ export async function POST(req: Request) {
     if (msg === "blocked") {
       return NextResponse.json({ error: "blocked" }, { status: 403 })
     }
-    if (msg === "listing_not_found" || msg === "peer_not_found") {
+    if (msg === "listing_not_found" || msg === "peer_not_found" || msg === "project_not_found") {
       return NextResponse.json({ error: msg }, { status: 404 })
     }
     console.error("[api/chat] POST failed:", msg)

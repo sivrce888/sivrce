@@ -325,3 +325,128 @@ export const TYPES: Record<
   commercial: { type: 'commercial', ka: 'კომერციული ფართები', kaSingle: 'კომერციული ფართი', en: 'Commercial Property', enSingle: 'commercial property', ru: 'Коммерческая недвижимость', ruSingle: 'коммерческое помещение', ruGen: 'коммерческой недвижимости', de: 'Gewerbeimmobilien', deSingle: 'Gewerbeobjekt' },
   land: { type: 'land', ka: 'მიწის ნაკვეთები', kaSingle: 'მიწის ნაკვეთი', en: 'Land Plots', enSingle: 'land plot', ru: 'Земельные участки', ruSingle: 'участок', ruGen: 'земельных участков', de: 'Grundstücke', deSingle: 'Grundstück' },
 }
+
+/** Deal token aliases: English, Georgian script, Latin transliteration */
+export const DEAL_ALIASES: Record<string, string> = {
+  sale: 'sale',
+  'იყიდება': 'sale',
+  iyideba: 'sale',
+  rent: 'rent',
+  'ქირავდება': 'rent',
+  qiravdeba: 'rent',
+  kiravdeba: 'rent',
+  daily: 'daily',
+  'დღიურად': 'daily',
+  dghiurad: 'daily',
+  dgiurad: 'daily',
+  pledge: 'pledge',
+  'გირავდება': 'pledge',
+  giravdeba: 'pledge',
+  lease: 'lease',
+  'იჯარა': 'lease',
+  ijara: 'lease',
+}
+
+/** Property-type token aliases: English, Georgian script, Latin transliteration */
+export const TYPE_ALIASES: Record<string, string> = {
+  apartments: 'apartments',
+  'ბინები': 'apartments',
+  'ბინა': 'apartments',
+  binebi: 'apartments',
+  bina: 'apartments',
+  flats: 'apartments',
+  houses: 'houses',
+  'სახლები': 'houses',
+  'სახლი': 'houses',
+  'აგარაკები': 'houses',
+  'აგარაკი': 'houses',
+  'სახლები-და-აგარაკები': 'houses',
+  saxlebi: 'houses',
+  saxli: 'houses',
+  agarakiebi: 'houses',
+  villas: 'houses',
+  villa: 'houses',
+  commercial: 'commercial',
+  'კომერციული': 'commercial',
+  'კომერციული-ფართები': 'commercial',
+  'კომერციული-ფართი': 'commercial',
+  komerciuli: 'commercial',
+  'komerciuli-partebi': 'commercial',
+  land: 'land',
+  'მიწა': 'land',
+  'მიწის-ნაკვეთები': 'land',
+  'მიწის-ნაკვეთი': 'land',
+  'ნაკვეთები': 'land',
+  mitsa: 'land',
+  'mitsis-nakvetebi': 'land',
+}
+
+/** Primary Organic Georgian token for each deal */
+export const DEAL_TO_KA: Record<string, string> = {
+  sale: 'იყიდება',
+  rent: 'ქირავდება',
+  daily: 'დღიურად',
+  pledge: 'გირავდება',
+  lease: 'იჯარა',
+}
+
+/** Primary Organic Georgian token for each property type */
+export const TYPE_TO_KA: Record<string, string> = {
+  apartments: 'ბინები',
+  houses: 'სახლები',
+  commercial: 'კომერციული',
+  land: 'მიწა',
+}
+
+const CITY_SLUG_TO_KA: Record<string, string> = Object.fromEntries(CITIES.map((c) => [c.slug, c.ka]))
+const DISTRICT_SLUG_TO_KA: Record<string, string> = Object.fromEntries(DISTRICTS.map((d) => [d.slug, d.ka]))
+
+/** Convert any SEO path (e.g. /sale/apartments, /sale/apartments/tbilisi/vake) to organic Georgian */
+export function toOrganicKaUrl(path: string): string {
+  if (!path || !path.startsWith('/')) return path
+  if (/[\u10A0-\u10FF]/.test(path)) return path
+
+  const clean = path.split('?')[0].split('#')[0]
+  const query = path.includes('?') ? path.slice(path.indexOf('?')) : ''
+  const segments = clean.slice(1).split('/').filter(Boolean)
+  if (segments.length === 0) return path
+
+  const kaDeal = DEAL_TO_KA[segments[0]]
+  if (kaDeal) {
+    if (segments.length === 1) return `/${kaDeal}${query}`
+
+    const mRoom = segments[1].match(/^apartments-([1-4])$/)
+    const kaType = mRoom ? `${mRoom[1]}-ოთახიანი-ბინები` : TYPE_TO_KA[segments[1]]
+    const kaCityDirect = CITY_SLUG_TO_KA[segments[1]]
+
+    if (kaCityDirect && !kaType) {
+      return `/${kaDeal}/${kaCityDirect}${query}`
+    }
+
+    if (kaType) {
+      if (segments.length === 2) {
+        return `/${kaDeal}/${kaType}${query}`
+      }
+      const kaCity = CITY_SLUG_TO_KA[segments[2]]
+      if (kaCity) {
+        if (segments.length === 3) {
+          return `/${kaDeal}/${kaType}/${kaCity}${query}`
+        }
+        const kaDist = DISTRICT_SLUG_TO_KA[segments[3]]
+        if (kaDist && segments.length === 4) {
+          return `/${kaDeal}/${kaType}/${kaCity}/${kaDist}${query}`
+        }
+      }
+    }
+  }
+
+  const kaCityRoot = CITY_SLUG_TO_KA[segments[0]]
+  if (kaCityRoot) {
+    if (segments.length === 1) return `/${kaCityRoot}${query}`
+    const kaDist = DISTRICT_SLUG_TO_KA[segments[1]]
+    if (kaDist && segments.length === 2) return `/${kaCityRoot}/${kaDist}${query}`
+  }
+
+  return path
+}
+

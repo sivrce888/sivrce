@@ -851,6 +851,8 @@ export const ka = {
   'chat.expand': 'გაფართოება',
   'chat.collapse': 'შემცირება',
   'chat.safetyTip': 'არასდროს გადაიხადო წინასწარ ობიექტის ნახვამდე და არ გაუზიარო პირადი კოდები. საეჭვო შეტყობინება დააფიქსირე.',
+  'chat.leadFacts': 'მოთხოვნა:',
+  'chat.leadUrgent': 'გადაუდებელი',
   'chat.bookViewing': 'ნახვის დაჯავშნა',
   'chat.faqDidYouMean': 'იქნებ ეს გაინტერესებს?',
   'chat.replyHint': 'სწრაფი პასუხი',

@@ -35,9 +35,34 @@ export default function MobileDock() {
 
   if (hidden) return null
 
+  const decodedBare = decodeURIComponent(bare)
+  const isSearchActive =
+    bare === '/search' ||
+    bare.startsWith('/search/') ||
+    bare === '/sale' ||
+    bare.startsWith('/sale/') ||
+    bare === '/rent' ||
+    bare.startsWith('/rent/') ||
+    bare === '/daily' ||
+    bare.startsWith('/daily/') ||
+    bare === '/pledge' ||
+    bare.startsWith('/pledge/') ||
+    bare === '/lease' ||
+    bare.startsWith('/lease/') ||
+    decodedBare === '/იყიდება' ||
+    decodedBare.startsWith('/იყიდება/') ||
+    decodedBare === '/ქირავდება' ||
+    decodedBare.startsWith('/ქირავდება/') ||
+    decodedBare === '/დღიურად' ||
+    decodedBare.startsWith('/დღიურად/') ||
+    decodedBare === '/გირავდება' ||
+    decodedBare.startsWith('/გირავდება/') ||
+    decodedBare === '/იჯარა' ||
+    decodedBare.startsWith('/იჯარა/')
+
   const items = [
     { href: '/', label: 'sivrce', match: bare === '/', icon: 'home' as const },
-    { href: '/search', label: t('nav.search'), match: bare === '/search' || bare.startsWith('/search/') || bare === '/sale' || bare.startsWith('/sale/') || bare === '/rent' || bare.startsWith('/rent/') || bare === '/daily' || bare.startsWith('/daily/') || bare === '/pledge' || bare.startsWith('/pledge/') || bare === '/lease' || bare.startsWith('/lease/'), icon: 'search' as const },
+    { href: '/search', label: t('nav.search'), match: isSearchActive, icon: 'search' as const },
     { href: '/map', label: t('nav.map'), match: bare === '/map' || bare.startsWith('/map/'), icon: 'map' as const },
     { href: '/favorites', label: t('nav.favorites'), match: bare === '/favorites' || bare.startsWith('/favorites/'), icon: 'heart' as const },
     { href: '/add-listing', label: t('nav.addListing'), match: bare.startsWith('/add-listing'), icon: 'add' as const },

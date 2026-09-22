@@ -842,6 +842,8 @@ export const he: Dict = {
   'chat.expand': 'הגדלה',
   'chat.collapse': 'הקטנה',
   'chat.safetyTip': 'אין לשלם מראש לפני שראיתם את הנכס, ואין למסור קודי אימות. דווחו על כל דבר חשוד.',
+  'chat.leadFacts': 'דרישות:',
+  'chat.leadUrgent': 'דחוף',
   'chat.bookViewing': 'קביעת צפייה',
   'chat.faqDidYouMean': 'התכוונתם ל:',
   'chat.replyHint': 'תשובה מהירה',

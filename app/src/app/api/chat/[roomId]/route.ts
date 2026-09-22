@@ -12,6 +12,7 @@ import {
   getChatMessages,
   getMyLastReadAt,
   getPeerLastReadAt,
+  getRoomLead,
   getRoomPushPeers,
   isChatParticipant,
   leaveChatRoom,
@@ -43,12 +44,14 @@ export async function GET(req: Request, { params }: RouteParams) {
   try {
     // myLastReadAt is read before the thread marks itself read, so the client
     // can draw the "New messages" divider where the reader actually stopped.
-    const [result, peerReadAt, myLastReadAt] = await Promise.all([
+    const [result, peerReadAt, myLastReadAt, lead] = await Promise.all([
       getChatMessages(roomId, cursor),
       cursor ? Promise.resolve(null) : getPeerLastReadAt(roomId, session.user.id),
       cursor ? Promise.resolve(null) : getMyLastReadAt(roomId, session.user.id),
+      // Seller-side lead strip: stated requirements for the room's owner only.
+      cursor ? Promise.resolve(null) : getRoomLead(roomId, session.user.id),
     ])
-    return NextResponse.json({ ...result, peerReadAt, myLastReadAt })
+    return NextResponse.json({ ...result, peerReadAt, myLastReadAt, lead })
   } catch (error) {
     console.error("[api/chat/roomId] GET failed:", (error as Error).message)
     return NextResponse.json({ error: "server_error" }, { status: 500 })

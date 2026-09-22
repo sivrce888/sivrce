@@ -720,6 +720,9 @@ export default function ListingDetailClient({
     const peers = peerPerM2 && peerPerM2.length >= 2 ? peerPerM2 : []
     return priceScaleOf(l.perM2USD, peers)
   }, [l, peerPerM2])
+  // priceScaleOf falls back to band "average" without comps — never feed that
+  // fabrication into the score or render a scale with no real peers behind it.
+  const hasPeers = (peerPerM2?.length ?? 0) >= 2
   const fairPrice = useMemo(
     () => (isSale ? fairPriceOf(l.priceUSD, l.area, peerPerM2 ?? []) : null),
     [isSale, l.priceUSD, l.area, peerPerM2],
@@ -734,7 +737,9 @@ export default function ListingDetailClient({
       district: l.district,
       city: l.city,
       countryCode: l.country,
-      districtMedianPerSqm: peers.length ? peers[Math.floor(peers.length / 2)] : l.perM2USD,
+      // Only assert a district median when real peers exist — a circular
+      // "average of $35/m²" (the listing itself) reads as a fabricated FACT.
+      ...(peers.length > 0 && { districtMedianPerSqm: peers[Math.floor(peers.length / 2)] }),
       estimatedMonthlyRentUSD: isSale ? rentEst : undefined,
       sellerPhoneVerified: Boolean(l.verified || l.agent.verified),
       photosCount: l.photoCount ?? l.images.length,
@@ -784,7 +789,7 @@ export default function ListingDetailClient({
         verified: l.verified,
         photos: l.images.length,
         features: l.features.length,
-        band: isSale ? priceScale.band : null,
+        band: isSale && hasPeers ? priceScale.band : null,
         hasCoords: Number.isFinite(l.coords.lat) && Number.isFinite(l.coords.lng),
         hasFootprint: siteBoost.hasFootprint,
         hasPermit: siteBoost.hasPermit,
@@ -796,6 +801,7 @@ export default function ListingDetailClient({
       l.coords.lat,
       l.coords.lng,
       isSale,
+      hasPeers,
       priceScale.band,
       siteBoost.hasFootprint,
       siteBoost.hasPermit,
@@ -1309,7 +1315,8 @@ export default function ListingDetailClient({
               </p>
             ) : null}
 
-            {isSale && l.perM2USD > 0 ? (
+            {/* Honest scale: hidden until ≥2 real district comps back it */}
+            {isSale && hasPeers && l.perM2USD > 0 ? (
               <PriceScale
                 scale={priceScale}
                 priceLabel={`${perM2Label}/${areaSym(lang)}`}
@@ -1709,8 +1716,9 @@ export default function ListingDetailClient({
             {/* AI Advisor — scam radar, instant Q&A, TCO/ROI (lazy chunk) */}
             <AiAdvisor ctx={advisorCtx} isSale={isSale} />
 
-            {/* 10x Institutional Valuation & 3-Scenario Terminal */}
-            {isSale && l.priceUSD > 0 && l.area > 0 && (
+            {/* 10x Institutional Valuation & 3-Scenario Terminal — income model
+                needs rentable space; raw land would fabricate NOI from a guess */}
+            {isSale && l.propType !== 'land' && l.priceUSD > 0 && l.area > 0 && (
               <ValuationTerminal
                 priceUSD={l.priceUSD}
                 areaSqm={l.area}
@@ -1953,7 +1961,7 @@ export default function ListingDetailClient({
         </Reveal>
 
         {/* ————— Similar ————— */}
-        {similar.length > 0 && (
+        {similar.length > 0 ? (
           <Reveal className="mt-16">
             <section style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 400px' }}>
               <div className="mb-6 flex items-end justify-between">
@@ -1986,7 +1994,29 @@ export default function ListingDetailClient({
               </HScroll>
             </section>
           </Reveal>
-        )}
+        ) : hubLink ? (
+          // No comps here (rural districts) — the SEO hub keeps crawl depth and
+          // gives buyers a next step instead of a dead end.
+          <Reveal className="mt-16">
+            <section
+              className="flex flex-wrap items-center justify-between gap-4 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card"
+              style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 120px' }}
+            >
+              <div className="min-w-0">
+                <h2 className="text-[20px] font-black tracking-[-0.02em] text-sv-ink">{hubLink.anchor}</h2>
+                <p className="mt-1 text-[14px] font-semibold text-sv-ink/60">
+                  {lt(lang, 'similarSub', { deal: t(isSale ? 'search.sale' : isLease ? 'add.deal.lease' : isRent ? 'search.rent' : isDailyDeal ? 'nav.daily' : 'map.pledge') })}
+                </p>
+              </div>
+              <LocalizedLink
+                href={hubLink.href}
+                className="flex shrink-0 items-center gap-2 rounded-full bg-sv-blue px-5 py-2.5 text-[14px] font-extrabold text-white transition hover:bg-sv-blue-deep"
+              >
+                {t('detail.seeMore')} <ChevronRight className="h-4 w-4" />
+              </LocalizedLink>
+            </section>
+          </Reveal>
+        ) : null}
         {/* ————— Recently viewed ————— */}
         {recent.length > 0 && (
           <Reveal className="mt-16">

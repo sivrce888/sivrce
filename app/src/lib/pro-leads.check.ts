@@ -4,17 +4,35 @@
 import assert from "node:assert/strict"
 import {
   INQUIRY_STATUSES,
+  INQUIRY_STATUS_EN,
+  OPEN_INQUIRY_STATUSES,
   canWorkLeads,
   inquiryWhere,
   isInquiryStatus,
+  isOpenInquiryStatus,
   leadWaText,
   listingManageRule,
   listingOwnerWhere,
+  normalizeInquiryStatus,
 } from "./pro-leads"
 
-assert.equal(INQUIRY_STATUSES.length, 4)
+// Shared pipeline vocabulary: owner inbox + staff inbox + admin ops all
+// render from this one list, so every value needs a label.
+assert.equal(INQUIRY_STATUSES.length, 10)
+for (const s of INQUIRY_STATUSES) assert.ok(INQUIRY_STATUS_EN[s], `missing label: ${s}`)
 assert.equal(isInquiryStatus("new"), true)
+assert.equal(isInquiryStatus("viewing"), true)
 assert.equal(isInquiryStatus("viewing_scheduled"), false)
+// "closed" stays a legacy alias of "won" for rows written before the Deal OS.
+assert.equal(normalizeInquiryStatus("closed"), "won")
+assert.equal(normalizeInquiryStatus("negotiating"), "negotiating")
+assert.equal(normalizeInquiryStatus("bogus"), "new")
+// Open-pipeline filters never count terminal stages as alive.
+assert.equal(isOpenInquiryStatus("new"), true)
+assert.equal(isOpenInquiryStatus("negotiating"), true)
+assert.equal(isOpenInquiryStatus("won"), false)
+assert.equal(isOpenInquiryStatus("lost"), false)
+assert.ok(OPEN_INQUIRY_STATUSES.every(isOpenInquiryStatus))
 
 const withIds = inquiryWhere(["a"], "ag@sivrce.ge")
 assert.equal(withIds.deletedAt, null)

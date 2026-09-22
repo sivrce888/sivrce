@@ -842,6 +842,8 @@ export const ar: Dict = {
   'chat.expand': 'توسيع',
   'chat.collapse': 'تصغير',
   'chat.safetyTip': 'لا تدفع مقدمًا قبل معاينة العقار، ولا تشارك رموز التحقق. أبلغ عن أي شيء مريب.',
+  'chat.leadFacts': 'المتطلبات:',
+  'chat.leadUrgent': 'عاجل',
   'chat.bookViewing': 'حجز معاينة',
   'chat.faqDidYouMean': 'هل تقصد:',
   'chat.replyHint': 'رد سريع',

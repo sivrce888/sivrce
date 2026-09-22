@@ -842,6 +842,8 @@ export const ru: Dict = {
   'chat.expand': 'Развернуть',
   'chat.collapse': 'Свернуть',
   'chat.safetyTip': 'Никогда не платите заранее, не посмотрев объект, и не сообщайте коды подтверждения. Сообщайте о подозрительном.',
+  'chat.leadFacts': 'Требования:',
+  'chat.leadUrgent': 'Срочно',
   'chat.bookViewing': 'Записаться на просмотр',
   'chat.faqDidYouMean': 'Возможно, вы имели в виду:',
   'chat.replyHint': 'Быстрый ответ',

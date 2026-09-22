@@ -25,13 +25,34 @@ export function seoLocOf(lang: string): SeoLoc {
 
 // Geo registry lives in the client-safe leaf module (client components import it
 // without pulling this file's data/listings graph).
-export { CITIES, DISTRICTS, type GeoLoc, type District, cityMarket } from './directory-seo-lite'
-import { CITIES, DISTRICTS, type GeoLoc, type District, cityMarket } from './directory-seo-lite'
-
-// Deal/type registries live in the client-safe leaf — seo-title and client
-// chrome read them without pulling this file's data/listings graph.
-export { DEALS, TYPES } from './directory-seo-lite'
-import { DEALS, TYPES } from './directory-seo-lite'
+export {
+  CITIES,
+  DISTRICTS,
+  type GeoLoc,
+  type District,
+  cityMarket,
+  DEALS,
+  TYPES,
+  DEAL_ALIASES,
+  TYPE_ALIASES,
+  DEAL_TO_KA,
+  TYPE_TO_KA,
+  toOrganicKaUrl,
+} from './directory-seo-lite'
+import {
+  CITIES,
+  DISTRICTS,
+  type GeoLoc,
+  type District,
+  cityMarket,
+  DEALS,
+  TYPES,
+  DEAL_ALIASES,
+  TYPE_ALIASES,
+  DEAL_TO_KA,
+  TYPE_TO_KA,
+  toOrganicKaUrl,
+} from './directory-seo-lite'
 
 /** Room-page slug pattern: /sale/apartments-2 — the "2-ოთახიანი ბინა" query family. 4 = 4+. */
 export const ROOM_SLUG = /^apartments-([1-4])$/
@@ -44,30 +65,178 @@ export function roomLabel(n: number, loc: SeoLoc = 'ka'): string {
   return n === 4 ? '4+ ოთახიანი' : `${n}-ოთახიანი`
 }
 
-const cityBySlug = (s: string) => CITIES.find((c) => c.slug === s)
-const districtBySlug = (s: string) => DISTRICTS.find((d) => d.slug === s)
+/* ————— O(1) Token Lookup Maps for Instant Fast Parsing ————— */
+
+const CITY_TOKEN_MAP = new Map<string, GeoLoc>()
+for (const c of CITIES) {
+  CITY_TOKEN_MAP.set(c.slug.toLowerCase(), c)
+  CITY_TOKEN_MAP.set(c.ka.toLowerCase(), c)
+  CITY_TOKEN_MAP.set(c.loc.toLowerCase(), c)
+  CITY_TOKEN_MAP.set(c.en.toLowerCase(), c)
+  CITY_TOKEN_MAP.set(c.ru.toLowerCase(), c)
+  if (c.slug === 'tbilisi') {
+    CITY_TOKEN_MAP.set('თბილისში', c)
+    CITY_TOKEN_MAP.set('tbilisshi', c)
+    CITY_TOKEN_MAP.set('tbilisi', c)
+  }
+  if (c.slug === 'batumi') {
+    CITY_TOKEN_MAP.set('ბათუმში', c)
+    CITY_TOKEN_MAP.set('batumshi', c)
+    CITY_TOKEN_MAP.set('batumi', c)
+  }
+  if (c.slug === 'kutaisi') {
+    CITY_TOKEN_MAP.set('ქუთაისში', c)
+    CITY_TOKEN_MAP.set('kutaisshi', c)
+    CITY_TOKEN_MAP.set('kutaisi', c)
+  }
+}
+
+const DISTRICT_TOKEN_MAP = new Map<string, District>()
+for (const d of DISTRICTS) {
+  const k = (s: string) => `${d.citySlug}:${s.toLowerCase()}`
+  DISTRICT_TOKEN_MAP.set(k(d.slug), d)
+  DISTRICT_TOKEN_MAP.set(k(d.ka), d)
+  DISTRICT_TOKEN_MAP.set(k(d.loc), d)
+  DISTRICT_TOKEN_MAP.set(k(d.en), d)
+  DISTRICT_TOKEN_MAP.set(k(d.ru), d)
+}
+
+function resolveCityToken(token?: string): GeoLoc | undefined {
+  if (!token) return undefined
+  return CITY_TOKEN_MAP.get(token.toLowerCase().trim())
+}
+
+function resolveDistrictToken(token: string | undefined, citySlug: string): District | undefined {
+  if (!token) return undefined
+  return DISTRICT_TOKEN_MAP.get(`${citySlug}:${token.toLowerCase().trim()}`)
+}
+
+const ROOM_SLUG_RE = /^(?:apartments-([1-4])|([1-4])-otakhiani-binebi|([1-4])-otaxiani-binebi|([1-4])-ოთახიანი-ბინები|([1-4])-ოთახიანი)$/i
+
+function parseRoomToken(token: string): { rooms: number; typeSlug: string } | null {
+  const m = token.match(ROOM_SLUG_RE)
+  if (!m) return null
+  const num = Number(m[1] || m[2] || m[3] || m[4] || m[5])
+  return { rooms: num, typeSlug: 'apartments' }
+}
+
+function parseCompoundToken(token: string): { typeSlug: string; rooms?: number; city: GeoLoc } | null {
+  if (!token.includes('-')) return null
+  const lastDash = token.lastIndexOf('-')
+  const typePart = token.slice(0, lastDash)
+  const cityPart = token.slice(lastDash + 1)
+  const city = resolveCityToken(cityPart)
+  if (!city) return null
+
+  const room = parseRoomToken(typePart)
+  if (room) {
+    return { typeSlug: room.typeSlug, rooms: room.rooms, city }
+  }
+  const type = TYPE_ALIASES[typePart]
+  if (type) {
+    return { typeSlug: type, city }
+  }
+  return null
+}
+
+function derivePaths(d: {
+  kind: SeoKind
+  dealSlug?: string
+  typeSlug?: string
+  rooms?: number
+  city?: GeoLoc
+  district?: District
+}): { kaPath: string; asciiPath: string; compoundPath?: string } {
+  const dealKa = d.dealSlug ? (DEAL_TO_KA[d.dealSlug] || d.dealSlug) : ''
+  const typeKa = d.rooms ? `${d.rooms}-ოთახიანი-ბინები` : d.typeSlug ? (TYPE_TO_KA[d.typeSlug] || d.typeSlug) : ''
+  const typeAscii = d.rooms ? `apartments-${d.rooms}` : (d.typeSlug || '')
+
+  switch (d.kind) {
+    case 'city':
+      return {
+        kaPath: `/${d.city!.ka}`,
+        asciiPath: `/${d.city!.slug}`,
+      }
+    case 'city-district':
+      return {
+        kaPath: `/${d.city!.ka}/${d.district!.ka}`,
+        asciiPath: `/${d.city!.slug}/${d.district!.slug}`,
+      }
+    case 'deal':
+      return {
+        kaPath: `/${dealKa}`,
+        asciiPath: `/${d.dealSlug}`,
+      }
+    case 'deal-type':
+      if (d.dealSlug === 'lease') {
+        return {
+          kaPath: `/${dealKa}`,
+          asciiPath: `/${d.dealSlug}`,
+        }
+      }
+      return {
+        kaPath: `/${dealKa}/${typeKa}`,
+        asciiPath: `/${d.dealSlug}/${typeAscii}`,
+      }
+    case 'deal-city':
+      return {
+        kaPath: `/${dealKa}/${d.city!.ka}`,
+        asciiPath: `/${d.dealSlug}/${d.city!.slug}`,
+      }
+    case 'deal-type-city': {
+      if (d.dealSlug === 'lease') {
+        return {
+          kaPath: `/${dealKa}/${d.city!.ka}`,
+          asciiPath: `/${d.dealSlug}/${d.city!.slug}`,
+        }
+      }
+      const typeCompound = d.rooms ? `${d.rooms}-ოთახიანი-ბინები` : (d.typeSlug === 'apartments' ? 'ბინები' : typeKa)
+      return {
+        kaPath: `/${dealKa}/${typeKa}/${d.city!.ka}`,
+        asciiPath: `/${d.dealSlug}/${typeAscii}/${d.city!.slug}`,
+        compoundPath: `/${dealKa}/${typeCompound}-${d.city!.loc}`,
+      }
+    }
+    case 'deal-type-city-district':
+      if (d.dealSlug === 'lease') {
+        return {
+          kaPath: `/${dealKa}/${d.city!.ka}/${d.district!.ka}`,
+          asciiPath: `/${d.dealSlug}/${d.city!.slug}/${d.district!.slug}`,
+        }
+      }
+      return {
+        kaPath: `/${dealKa}/${typeKa}/${d.city!.ka}/${d.district!.ka}`,
+        asciiPath: `/${d.dealSlug}/${typeAscii}/${d.city!.slug}/${d.district!.slug}`,
+      }
+    default:
+      return {
+        kaPath: `/${d.dealSlug || d.city?.ka || ''}`,
+        asciiPath: `/${d.dealSlug || d.city?.slug || ''}`,
+      }
+  }
+}
 
 /* ————— Listing → programmatic hub ————— */
 
-/** Reverse-map a Listing's ka `city`/`district` + dealType/propType to a slug hub
- *  (e.g. `იყიდება ბინა ვაკეში` → `/sale/apartments/tbilisi/vake`). null = no real
- *  page (empty combo) → caller falls back to /search. ponytail: one reverse
- *  lookup beats maintaining a parallel slug map; the registry stays canonical. */
 const DEAL_TO_SLUG: Record<DealType, string> = { sale: 'sale', rent: 'rent', daily: 'daily', pledge: 'pledge' }
 const TYPE_TO_SLUG: Record<PropType, string> = {
   apartment: 'apartments',
   house: 'houses',
-  villa: 'houses', // ponytail: no /cottages hub yet
+  villa: 'houses',
   commercial: 'commercial',
   land: 'land',
-  hotel: 'commercial', // ponytail: no /hotels hub yet
+  hotel: 'commercial',
 }
-export function listingHubPath(l: {
-  dealType: DealType
-  propType: PropType
-  city: string
-  district: string
-}): string | null {
+
+export function listingHubPath(
+  l: {
+    dealType: DealType
+    propType: PropType
+    city: string
+    district: string
+  },
+  loc: SeoLoc = 'en',
+): string | null {
   const dealSlug = l.dealType === 'rent' && l.propType === 'land' ? 'lease' : DEAL_TO_SLUG[l.dealType]
   const typeSlug = dealSlug === 'lease' ? undefined : TYPE_TO_SLUG[l.propType]
   const city = CITIES.find((c) => c.ka === l.city)
@@ -87,20 +256,19 @@ export function listingHubPath(l: {
         ]
       : [[dealSlug, typeSlug!], [dealSlug]]
   for (const slug of attempts) {
-    if (parseSeoSlug(slug)) return `/${slug.join('/')}`
+    const def = parseSeoSlug(slug)
+    if (def) return loc === 'ka' ? def.kaPath : def.asciiPath
   }
   return null
 }
 
-/** Keyword anchor text for the hub link: "იყიდება ბინები ვაკეში" / "For sale in Vake".
- *  Reuses h1Of so the anchor literally matches the destination page's <h1>. */
 export function listingHubAnchor(l: {
   dealType: DealType
   propType: PropType
   city: string
   district: string
 }): string | null {
-  const path = listingHubPath(l)
+  const path = listingHubPath(l, 'ka')
   if (!path) return null
   const def = parseSeoSlug(path.slice(1).split('/'))
   return def ? h1Of(def, 'ka') : null
@@ -121,6 +289,9 @@ export type SeoKind =
 export interface SeoPageDef {
   kind: SeoKind
   path: string
+  kaPath: string
+  asciiPath: string
+  compoundPath?: string
   dealSlug?: string
   typeSlug?: string
   /** Apartment room filter: 1-3 exact, 4 = 4+ ("2-ოთახიანი ბინები" pages) */
@@ -146,115 +317,190 @@ function listingsFor(d: {
     district: d.district?.ka ?? d.district?.en,
     country: d.country,
   })
-  // filterListings.rooms is a minimum; SEO pages need exact counts (4 = 4+).
   if (!d.rooms) return out
   return out.filter((l) => (d.rooms === 4 ? l.rooms >= 4 : l.rooms === d.rooms))
 }
 
-/** Parse a [...seo] slug into a page definition. null → 404. */
+/** Parse a [...seo] slug into an organic or standard page definition. null → 404. */
 export function parseSeoSlug(slug: string[], countryIso = 'GE'): SeoPageDef | null {
   if (slug.length < 1 || slug.length > 4) return null
-  const [a, b, c, d] = slug as [string, string?, string?, string?]
 
-  // City hubs: /tbilisi, /tbilisi/vake
-  const city = cityBySlug(a)
-  if (city) {
-    if (!b) {
-      const listings = listingsFor({ city, country: countryIso })
-      // ponytail: a registered city with zero listings still gets a unique
-      // city-info page instead of a 404 — every page has real prose (below).
-      // When listings arrive, the ≥1-listing branch above wins automatically.
-      return listings.length
-        ? { kind: 'city', path: `/${a}`, city, listings }
-        : cityInfoOf(city)
+  const decoded = slug.map((s) => {
+    try {
+      return decodeURIComponent(s)
+    } catch {
+      return s
     }
-    const dist = districtBySlug(b)
-    if (!dist || dist.citySlug !== city.slug || c || d) return null
-    const listings = listingsFor({ city, district: dist, country: countryIso })
+  })
+
+  const isOrganicRequested = decoded.some((s) => /[\u10A0-\u10FF]/.test(s) || s.includes('-თბილის') || s.includes('-ბათუმ'))
+
+  // 1. Single-segment compound check: e.g. "იყიდება-ბინები-თბილისში"
+  if (decoded.length === 1 && decoded[0].includes('-')) {
+    const single = decoded[0]
+    for (const [dealKey, dealVal] of Object.entries(DEAL_ALIASES)) {
+      if (single.startsWith(`${dealKey}-`)) {
+        const rest = single.slice(dealKey.length + 1)
+        const compound = parseCompoundToken(rest)
+        if (compound) {
+          const listings = listingsFor({
+            dealSlug: dealVal,
+            typeSlug: compound.typeSlug,
+            rooms: compound.rooms,
+            city: compound.city,
+            country: countryIso,
+          })
+          if (!listings.length) return null
+          const kind = 'deal-type-city'
+          const paths = derivePaths({ kind, dealSlug: dealVal, typeSlug: compound.typeSlug, rooms: compound.rooms, city: compound.city })
+          return {
+            kind,
+            path: isOrganicRequested ? paths.kaPath : paths.asciiPath,
+            ...paths,
+            dealSlug: dealVal,
+            typeSlug: compound.typeSlug,
+            rooms: compound.rooms,
+            city: compound.city,
+            listings,
+          }
+        }
+      }
+    }
+  }
+
+  // 2. City hubs: /tbilisi, /თბილისი, /tbilisi/vake, /თბილისი/ვაკე
+  const cityA = resolveCityToken(decoded[0])
+  if (cityA) {
+    if (decoded.length === 1) {
+      const listings = listingsFor({ city: cityA, country: countryIso })
+      const paths = derivePaths({ kind: 'city', city: cityA })
+      return listings.length
+        ? { kind: 'city', path: isOrganicRequested ? paths.kaPath : paths.asciiPath, ...paths, city: cityA, listings }
+        : cityInfoOf(cityA)
+    }
+    const dist = resolveDistrictToken(decoded[1], cityA.slug)
+    if (!dist || dist.citySlug !== cityA.slug || decoded[2] || decoded[3]) return null
+    const listings = listingsFor({ city: cityA, district: dist, country: countryIso })
+    const paths = derivePaths({ kind: 'city-district', city: cityA, district: dist })
     return listings.length
-      ? { kind: 'city-district', path: `/${a}/${b}`, city, district: dist, listings }
+      ? { kind: 'city-district', path: isOrganicRequested ? paths.kaPath : paths.asciiPath, ...paths, city: cityA, district: dist, listings }
       : null
   }
 
-  // Deal pages: /sale, /sale/apartments, /sale/tbilisi, /sale/apartments/tbilisi(/vake)
-  // Room pages:  /sale/apartments-2(/tbilisi(/vake)) — type=apartments + room filter.
-  const deal = DEALS[a]
-  if (!deal) return null
+  // 3. Deal hubs: /sale, /იყიდება, etc.
+  const dealSlug = DEAL_ALIASES[decoded[0]]
+  if (!dealSlug) return null
 
-  // /lease = rent × land (იჯარა). Not a 5th DealType. /lease/tbilisi(/gldani).
-  if (a === 'lease') {
-    if (b && (TYPES[b] || ROOM_SLUG.test(b))) return null
+  // /lease special case
+  if (dealSlug === 'lease') {
     const typeSlug = 'land'
     const leaseBase = { dealSlug: 'lease' as const, typeSlug, country: countryIso }
-    if (!b) {
+    if (decoded.length === 1) {
       const listings = listingsFor(leaseBase)
-      return listings.length ? { kind: 'deal-type', path: '/lease', ...leaseBase, listings } : null
-    }
-    const cityB = cityBySlug(b)
-    if (!cityB || d) return null
-    if (!c) {
-      const listings = listingsFor({ ...leaseBase, city: cityB, country: countryIso })
+      const paths = derivePaths({ kind: 'deal-type', ...leaseBase })
       return listings.length
-        ? { kind: 'deal-type-city', path: `/lease/${b}`, ...leaseBase, city: cityB, listings }
+        ? { kind: 'deal-type', path: isOrganicRequested ? paths.kaPath : paths.asciiPath, ...paths, ...leaseBase, listings }
         : null
     }
-    const dist = districtBySlug(c)
+    const cityB = resolveCityToken(decoded[1])
+    if (!cityB || decoded[3]) return null
+    if (!decoded[2]) {
+      const listings = listingsFor({ ...leaseBase, city: cityB, country: countryIso })
+      const paths = derivePaths({ kind: 'deal-type-city', ...leaseBase, city: cityB })
+      return listings.length
+        ? { kind: 'deal-type-city', path: isOrganicRequested ? paths.kaPath : paths.asciiPath, ...paths, ...leaseBase, city: cityB, listings }
+        : null
+    }
+    const dist = resolveDistrictToken(decoded[2], cityB.slug)
     if (!dist || dist.citySlug !== cityB.slug) return null
     const listings = listingsFor({ ...leaseBase, city: cityB, district: dist, country: countryIso })
+    const paths = derivePaths({ kind: 'deal-type-city-district', ...leaseBase, city: cityB, district: dist })
     return listings.length
-      ? { kind: 'deal-type-city-district', path: `/lease/${b}/${c}`, ...leaseBase, city: cityB, district: dist, listings }
+      ? { kind: 'deal-type-city-district', path: isOrganicRequested ? paths.kaPath : paths.asciiPath, ...paths, ...leaseBase, city: cityB, district: dist, listings }
       : null
   }
 
-  const base = { dealSlug: a, country: countryIso }
+  const base = { dealSlug, country: countryIso }
 
-  if (!b) {
+  if (decoded.length === 1) {
     const listings = listingsFor(base)
-    return listings.length ? { kind: 'deal', path: `/${a}`, ...base, listings } : null
+    const paths = derivePaths({ kind: 'deal', ...base })
+    return listings.length
+      ? { kind: 'deal', path: isOrganicRequested ? paths.kaPath : paths.asciiPath, ...paths, ...base, listings }
+      : null
   }
 
-  const roomMatch = ROOM_SLUG.exec(b)
-  const rooms = roomMatch ? Number(roomMatch[1]) : undefined
-  const typeSlug = roomMatch ? 'apartments' : TYPES[b] ? b : undefined
-  const cityB = typeSlug ? undefined : cityBySlug(b)
-  if (!typeSlug && !cityB) return null
+  // Deal + compound: ["იყიდება", "ბინები-თბილისში"] or ["იყიდება", "ბინები-თბილისში", "ვაკე"]
+  const compound = parseCompoundToken(decoded[1])
+  if (compound) {
+    if (decoded.length === 2) {
+      const listings = listingsFor({ ...base, typeSlug: compound.typeSlug, rooms: compound.rooms, city: compound.city })
+      const paths = derivePaths({ kind: 'deal-type-city', ...base, typeSlug: compound.typeSlug, rooms: compound.rooms, city: compound.city })
+      return listings.length
+        ? { kind: 'deal-type-city', path: isOrganicRequested ? paths.kaPath : paths.asciiPath, ...paths, ...base, typeSlug: compound.typeSlug, rooms: compound.rooms, city: compound.city, listings }
+        : null
+    }
+    if (decoded.length === 3) {
+      const dist = resolveDistrictToken(decoded[2], compound.city.slug)
+      if (!dist) return null
+      const listings = listingsFor({ ...base, typeSlug: compound.typeSlug, rooms: compound.rooms, city: compound.city, district: dist })
+      const paths = derivePaths({ kind: 'deal-type-city-district', ...base, typeSlug: compound.typeSlug, rooms: compound.rooms, city: compound.city, district: dist })
+      return listings.length
+        ? { kind: 'deal-type-city-district', path: isOrganicRequested ? paths.kaPath : paths.asciiPath, ...paths, ...base, typeSlug: compound.typeSlug, rooms: compound.rooms, city: compound.city, district: dist, listings }
+        : null
+    }
+    return null
+  }
 
-  if (cityB) {
-    if (c) return null // /sale/tbilisi/x is not a route (districts need a type)
+  // Deal + City: ["sale", "tbilisi"] or ["იყიდება", "თბილისი"]
+  const cityB = resolveCityToken(decoded[1])
+  const roomB = parseRoomToken(decoded[1])
+  const typeB = roomB ? roomB.typeSlug : TYPE_ALIASES[decoded[1]]
+
+  if (cityB && !typeB && !roomB) {
+    if (decoded[2]) return null // /sale/tbilisi/x is not a route (districts need a type)
     const listings = listingsFor({ ...base, city: cityB, country: countryIso })
+    const paths = derivePaths({ kind: 'deal-city', ...base, city: cityB })
     return listings.length
-      ? { kind: 'deal-city', path: `/${a}/${b}`, ...base, city: cityB, listings }
+      ? { kind: 'deal-city', path: isOrganicRequested ? paths.kaPath : paths.asciiPath, ...paths, ...base, city: cityB, listings }
       : null
   }
 
-  if (!c) {
-    const listings = listingsFor({ ...base, typeSlug, rooms })
+  if (!typeB && !roomB) return null
+  const rooms = roomB?.rooms
+
+  if (!decoded[2]) {
+    const listings = listingsFor({ ...base, typeSlug: typeB, rooms })
+    const paths = derivePaths({ kind: 'deal-type', ...base, typeSlug: typeB, rooms })
     return listings.length
-      ? { kind: 'deal-type', path: `/${a}/${b}`, ...base, typeSlug, rooms, listings }
+      ? { kind: 'deal-type', path: isOrganicRequested ? paths.kaPath : paths.asciiPath, ...paths, ...base, typeSlug: typeB, rooms, listings }
       : null
   }
 
-  const cityC = cityBySlug(c)
+  const cityC = resolveCityToken(decoded[2])
   if (!cityC) return null
-  if (!d) {
-    const listings = listingsFor({ ...base, typeSlug, rooms, city: cityC })
+  if (!decoded[3]) {
+    const listings = listingsFor({ ...base, typeSlug: typeB, rooms, city: cityC })
+    const paths = derivePaths({ kind: 'deal-type-city', ...base, typeSlug: typeB, rooms, city: cityC })
     return listings.length
-      ? { kind: 'deal-type-city', path: `/${a}/${b}/${c}`, ...base, typeSlug, rooms, city: cityC, listings }
+      ? { kind: 'deal-type-city', path: isOrganicRequested ? paths.kaPath : paths.asciiPath, ...paths, ...base, typeSlug: typeB, rooms, city: cityC, listings }
       : null
   }
 
-  const dist = districtBySlug(d)
-  if (!dist || dist.citySlug !== cityC.slug) return null
-  const listings = listingsFor({ ...base, typeSlug, rooms, city: cityC, district: dist })
+  const distD = resolveDistrictToken(decoded[3], cityC.slug)
+  if (!distD || distD.citySlug !== cityC.slug) return null
+  const listings = listingsFor({ ...base, typeSlug: typeB, rooms, city: cityC, district: distD })
+  const paths = derivePaths({ kind: 'deal-type-city-district', ...base, typeSlug: typeB, rooms, city: cityC, district: distD })
   return listings.length
     ? {
         kind: 'deal-type-city-district',
-        path: `/${a}/${b}/${c}/${d}`,
+        path: isOrganicRequested ? paths.kaPath : paths.asciiPath,
+        ...paths,
         ...base,
-        typeSlug,
+        typeSlug: typeB,
         rooms,
         city: cityC,
-        district: dist,
+        district: distD,
         listings,
       }
     : null
@@ -856,9 +1102,12 @@ export const CITY_PROSE: Record<string, CityProse> = {
 function cityInfoOf(city: GeoLoc): SeoPageDef | null {
   const prose = CITY_PROSE[city.slug]
   if (!prose) return null
+  // Same URL surface as the city hub — this is its no-listings fallback body.
+  const paths = derivePaths({ kind: 'city', city })
   return {
     kind: 'city-info',
     path: `/${city.slug}`,
+    ...paths,
     city,
     listings: [],
   }
@@ -1327,6 +1576,34 @@ export function breadcrumbsOf(def: SeoPageDef, loc: SeoLoc = 'ka', prefix: strin
   const p = prefix
   const home = loc === 'ka' ? 'მთავარი' : loc === 'de' ? 'Startseite' : loc === 'en' ? 'Home' : 'Главная'
   const crumbs: Crumb[] = [{ name: home, href: p || '/' }]
+  if (loc === 'ka') {
+    if (def.dealSlug) {
+      const kaDeal = DEAL_TO_KA[def.dealSlug] || def.dealSlug
+      crumbs.push({ name: dealLabel(def.dealSlug, loc), href: `${p}/${kaDeal}` })
+      if (def.typeSlug) {
+        const kaType = TYPE_TO_KA[def.typeSlug] || def.typeSlug
+        crumbs.push({ name: typeName(def.typeSlug, loc), href: `${p}/${kaDeal}/${kaType}` })
+      }
+      if (def.rooms) {
+        crumbs.push({ name: roomLabel(def.rooms, loc), href: `${p}/${kaDeal}/${def.rooms}-ოთახიანი-ბინები` })
+      }
+      if (def.city) {
+        const typeToken = def.rooms ? `${def.rooms}-ოთახიანი-ბინები` : def.typeSlug ? (TYPE_TO_KA[def.typeSlug] || def.typeSlug) : null
+        crumbs.push({
+          name: geoName(def.city, loc),
+          href: typeToken ? `${p}/${kaDeal}/${typeToken}/${def.city.ka}` : `${p}/${kaDeal}/${def.city.ka}`,
+        })
+      }
+      if (def.district) {
+        crumbs.push({ name: geoName(def.district, loc), href: `${p}${def.kaPath || def.path}` })
+      }
+    } else if (def.city) {
+      crumbs.push({ name: geoName(def.city, loc), href: `${p}/${def.city.ka}` })
+      if (def.district) crumbs.push({ name: geoName(def.district, loc), href: `${p}${def.kaPath || def.path}` })
+    }
+    return crumbs
+  }
+
   if (def.dealSlug) {
     crumbs.push({ name: dealLabel(def.dealSlug, loc), href: `${p}/${def.dealSlug}` })
     if (def.typeSlug)
@@ -1341,10 +1618,10 @@ export function breadcrumbsOf(def: SeoPageDef, loc: SeoLoc = 'ka', prefix: strin
           : `${p}/${def.dealSlug}/${def.city.slug}`,
       })
     if (def.district)
-      crumbs.push({ name: geoName(def.district, loc), href: `${p}${def.path}` })
+      crumbs.push({ name: geoName(def.district, loc), href: `${p}${def.asciiPath || def.path}` })
   } else if (def.city) {
     crumbs.push({ name: geoName(def.city, loc), href: `${p}/${def.city.slug}` })
-    if (def.district) crumbs.push({ name: geoName(def.district, loc), href: `${p}${def.path}` })
+    if (def.district) crumbs.push({ name: geoName(def.district, loc), href: `${p}${def.asciiPath || def.path}` })
   }
   return crumbs
 }
@@ -1364,13 +1641,20 @@ export function linkChipsOf(def: SeoPageDef, loc: SeoLoc = 'ka', prefix: string 
   const has = (slug: string[]) => parseSeoSlug(slug) !== null
   const p = prefix
   const name = (g: GeoLoc) => geoName(g, loc)
+  const resolveHref = (slug: string[]) => {
+    if (loc === 'ka') {
+      const pageDef = parseSeoSlug(slug)
+      if (pageDef) return `${p}${pageDef.kaPath}`
+    }
+    return `${p}/${slug.join('/')}`
+  }
 
   const dealSwitch = def.dealSlug
     ? (() => {
         const other = def.dealSlug === 'sale' ? 'rent' : 'sale'
         const rest = [def.rooms ? `apartments-${def.rooms}` : def.typeSlug, def.city?.slug, def.district?.slug].filter(Boolean) as string[]
         return has([other, ...rest])
-          ? { label: dealLabel(other, loc), href: `${p}/${[other, ...rest].join('/')}` }
+          ? { label: dealLabel(other, loc), href: resolveHref([other, ...rest]) }
           : undefined
       })()
     : undefined
@@ -1379,19 +1663,19 @@ export function linkChipsOf(def: SeoPageDef, loc: SeoLoc = 'ka', prefix: string 
   if (def.dealSlug === 'lease') {
     types.push({
       label: typeName('land', loc),
-      href: def.city ? `${p}/lease/${def.city.slug}` : `${p}/lease`,
+      href: resolveHref(def.city ? ['lease', def.city.slug] : ['lease']),
       active: true,
     })
   } else if (def.dealSlug) {
     const allTypes = loc === 'ka' ? 'ყველა ტიპი' : loc === 'de' ? 'Alle Typen' : loc === 'en' ? 'All types' : 'Все типы'
     types.push({
       label: allTypes,
-      href: def.city ? `${p}/${def.dealSlug}/${def.city.slug}` : `${p}/${def.dealSlug}`,
+      href: resolveHref(def.city ? [def.dealSlug, def.city.slug] : [def.dealSlug]),
       active: !def.typeSlug,
     })
     for (const t of Object.keys(TYPES)) {
       const slug = [def.dealSlug, t, def.city?.slug].filter(Boolean) as string[]
-      if (has(slug)) types.push({ label: typeName(t, loc), href: `${p}/${slug.join('/')}`, active: def.typeSlug === t && !def.rooms })
+      if (has(slug)) types.push({ label: typeName(t, loc), href: resolveHref(slug), active: def.typeSlug === t && !def.rooms })
     }
   }
 
@@ -1401,7 +1685,7 @@ export function linkChipsOf(def: SeoPageDef, loc: SeoLoc = 'ka', prefix: string 
       const typePart = `apartments-${n}`
       const slug = [def.dealSlug, typePart, def.city?.slug, def.district?.slug].filter(Boolean) as string[]
       if (has(slug)) {
-        rooms.push({ label: roomLabel(n, loc), href: `${p}/${slug.join('/')}`, active: def.rooms === n })
+        rooms.push({ label: roomLabel(n, loc), href: resolveHref(slug), active: def.rooms === n })
       }
     }
   }
@@ -1410,7 +1694,7 @@ export function linkChipsOf(def: SeoPageDef, loc: SeoLoc = 'ka', prefix: string 
   if (def.kind === 'deal' || def.kind === 'deal-type') {
     for (const c of CITIES) {
       const slug = [def.dealSlug!, def.rooms ? `apartments-${def.rooms}` : def.typeSlug, c.slug].filter(Boolean) as string[]
-      if (has(slug)) geo.push({ label: name(c), href: `${p}/${slug.join('/')}`, active: false })
+      if (has(slug)) geo.push({ label: name(c), href: resolveHref(slug), active: false })
     }
   } else if (def.kind === 'deal-city' || def.kind === 'deal-type-city') {
     for (const d of DISTRICTS.filter((x) => x.citySlug === def.city!.slug)) {
@@ -1418,17 +1702,17 @@ export function linkChipsOf(def: SeoPageDef, loc: SeoLoc = 'ka', prefix: string 
       const slug = typePart
         ? [def.dealSlug!, typePart, def.city!.slug, d.slug]
         : undefined
-      if (slug && has(slug)) geo.push({ label: name(d), href: `${p}/${slug.join('/')}`, active: false })
+      if (slug && has(slug)) geo.push({ label: name(d), href: resolveHref(slug), active: false })
     }
   } else if (def.kind === 'city') {
     for (const d of DISTRICTS.filter((x) => x.citySlug === def.city!.slug)) {
       const slug = [def.city!.slug, d.slug]
-      if (has(slug)) geo.push({ label: name(d), href: `${p}/${slug.join('/')}`, active: false })
+      if (has(slug)) geo.push({ label: name(d), href: resolveHref(slug), active: false })
     }
   } else if (def.kind === 'city-info') {
     for (const c of CITIES) {
       if (cityMarket(c) !== cityMarket(def.city!)) continue
-      if (has([c.slug])) geo.push({ label: name(c), href: `${p}/${c.slug}`, active: c.slug === def.city?.slug })
+      if (has([c.slug])) geo.push({ label: name(c), href: resolveHref([c.slug]), active: c.slug === def.city?.slug })
     }
   }
 

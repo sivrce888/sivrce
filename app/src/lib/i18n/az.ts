@@ -843,6 +843,8 @@ export const az: Dict = {
   'chat.expand': 'Böyüt',
   'chat.collapse': 'Kiçilt',
   'chat.safetyTip': 'Obyekti görmədən heç vaxt əvvəlcədən ödəniş etməyin və təsdiq kodlarını paylaşmayın. Şübhəli hər şeyi bildirin.',
+  'chat.leadFacts': 'Tələblər:',
+  'chat.leadUrgent': 'Təcili',
   'chat.bookViewing': 'Baxış təyin et',
   'chat.faqDidYouMean': 'Bunu nəzərdə tuturdunuz?',
   'chat.replyHint': 'Sürətli cavab',

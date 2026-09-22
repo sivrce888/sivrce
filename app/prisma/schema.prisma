@@ -1151,6 +1151,16 @@ model Inquiry {
   isForSale            Boolean   @default(false) @map("is_for_sale")
   price                Int       @default(0)
   exclusivityExpiresAt DateTime? @map("exclusivity_expires_at") @db.Timestamptz(6)
+  /// Set when the lead was born inside a chat room — the "continue the
+  /// conversation" jump from the lead inbox back into that thread.
+  roomId               String?   @map("room_id") @db.VarChar(120)
+  /// "chat" when the lead came from a conversation, "form" from LeadForm etc.
+  source               String    @default("form") @db.VarChar(20)
+  /// Staff member responsible for working this lead (Sivrce team inbox).
+  assignedToId         String?   @map("assigned_to") @db.VarChar(120)
+  /// Detected requirements + staff notes + first-response stamp. One JSON
+  /// column keeps the lead row flat; fields appear only when actually stated.
+  meta                 Json?
   createdAt            DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
   updatedAt            DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
   deletedAt            DateTime? @map("deleted_at") @db.Timestamptz(6)
@@ -1158,6 +1168,8 @@ model Inquiry {
   purchases LeadPurchase[]
 
   @@index([listingId], map: "inquiries_listing_id_idx")
+  @@index([roomId], map: "inquiries_room_id_idx")
+  @@index([assignedToId], map: "inquiries_assigned_to_idx")
   @@index([status], map: "inquiries_status_idx")
   @@index([isForSale, qualityScore(sort: Desc)], map: "inquiries_marketplace_idx")
   @@index([qualityScore(sort: Desc), createdAt(sort: Desc)], map: "inquiries_quality_created_idx")
@@ -2271,6 +2283,7 @@ model ChatRoom {
   typing       ChatTyping[]
 
   @@index([listingId, status], map: "chat_rooms_listing_status_idx")
+  @@index([projectSlug], map: "chat_rooms_project_slug_idx")
   @@index([status, updatedAt(sort: Desc)], map: "chat_rooms_status_updated_idx")
   @@map("chat_rooms")
 }
@@ -2296,6 +2309,11 @@ model ChatParticipant {
   role       String    @default("member") @db.VarChar(20)
   joinedAt   DateTime  @default(now()) @map("joined_at") @db.Timestamptz(6)
   lastReadAt DateTime? @map("last_read_at") @db.Timestamptz(6)
+  /// Per-user mute: no push, no unread badge — the row still shows in the list.
+  mutedAt    DateTime? @map("muted_at") @db.Timestamptz(6)
+  /// Per-user archive: hidden from the list until a new message lands.
+  /// Cleared by markRead — opening the thread re-files it as active.
+  archivedAt DateTime? @map("archived_at") @db.Timestamptz(6)
 
   room ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
 

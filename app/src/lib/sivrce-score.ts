@@ -210,7 +210,9 @@ export interface InvestmentScoreInput {
   price: number
   estimatedMonthlyRent: number
   areaSqm: number
-  districtMedianPerSqm: number
+  /** Real district comps only — absent when there are none, so the "below
+   *  district median" factor never compares a listing against itself. */
+  districtMedianPerSqm?: number
   projectedAnnualAppreciationPct?: number // e.g. 5.5
 }
 
@@ -224,8 +226,11 @@ export interface InvestmentMetrics {
 }
 
 export function calculateInvestmentMetrics(input: InvestmentScoreInput): InvestmentMetrics {
-  const fairValuePrice = Math.round(input.areaSqm * input.districtMedianPerSqm)
-  const valueDifferencePct = Math.round(((input.price - fairValuePrice) / fairValuePrice) * 100)
+  const hasMedian = Number.isFinite(input.districtMedianPerSqm) && input.districtMedianPerSqm! > 0
+  const fairValuePrice = hasMedian ? Math.round(input.areaSqm * input.districtMedianPerSqm!) : input.price
+  const valueDifferencePct = hasMedian
+    ? Math.round(((input.price - fairValuePrice) / fairValuePrice) * 100)
+    : 0
   const annualRent = input.estimatedMonthlyRent * 12
   const grossYieldPct = Math.round((annualRent / input.price) * 1000) / 10
 

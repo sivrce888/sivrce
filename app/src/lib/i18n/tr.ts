@@ -842,6 +842,8 @@ export const tr: Dict = {
   'chat.expand': 'Büyüt',
   'chat.collapse': 'Küçült',
   'chat.safetyTip': 'Mülkü görmeden asla ön ödeme yapmayın ve doğrulama kodlarınızı paylaşmayın. Şüpheli her şeyi bildirin.',
+  'chat.leadFacts': 'Talepler:',
+  'chat.leadUrgent': 'Acil',
   'chat.bookViewing': 'Görüntüleme planla',
   'chat.faqDidYouMean': 'Şunu mu demek istediniz?',
   'chat.replyHint': 'Hızlı yanıt',

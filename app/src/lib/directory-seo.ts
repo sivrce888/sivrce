@@ -444,6 +444,7 @@ export const PROJECT_DETAIL: Record<
     floorsRow: string
     cadastral: string
     contact: string
+    chatWithDev: string
     renderAlt: (i: number) => string
     floorsCaption: (floors: number, flats: number, done: number) => string
     statsBuilt: string
@@ -471,6 +472,7 @@ export const PROJECT_DETAIL: Record<
     floorsRow: 'სართულიანობა',
     cadastral: 'კადასტრული კოდი',
     contact: 'კონტაქტი',
+    chatWithDev: 'მიწერე დეველოპერს',
     renderAlt: (i) => `რენდერი ${i}`,
     floorsCaption: (floors, flats, done) =>
       `${floorsLabel(floors, 'ka')} · ${unitsLabel(flats, 'ka')} · აშენებულია ${done}% · მიატრიე მაუსი სართულს`,
@@ -499,6 +501,7 @@ export const PROJECT_DETAIL: Record<
     floorsRow: 'Floors',
     cadastral: 'Cadastre code',
     contact: 'Contact',
+    chatWithDev: 'Message the developer',
     renderAlt: (i) => `render ${i}`,
     floorsCaption: (floors, flats, done) =>
       `${floorsLabel(floors, 'en')} · ${unitsLabel(flats, 'en')} · ${done}% built · hover a floor`,
@@ -527,6 +530,7 @@ export const PROJECT_DETAIL: Record<
     floorsRow: 'Этажность',
     cadastral: 'Кадастровый код',
     contact: 'Контакт',
+    chatWithDev: 'Написать застройщику',
     renderAlt: (i) => `рендер ${i}`,
     floorsCaption: (floors, flats, done) =>
       `${floorsLabel(floors, 'ru')} · ${unitsLabel(flats, 'ru')} · построено ${done}% · наведите курсор на этаж`,
@@ -541,6 +545,7 @@ export const PROJECT_DETAIL: Record<
  * project's own priceFromM2/finish, never invents facts.
  */
 export const PROJECT_DETAIL_DE: (typeof PROJECT_DETAIL)['en'] = {
+  chatWithDev: 'Nachricht an den Bauträger',
   titleOf: (p) => {
     const kind = isDelivered(p) ? 'fertiggestelltes Neubauprojekt' : 'Neubauwohnungen'
     return hasPriceFrom(p.priceFromM2)

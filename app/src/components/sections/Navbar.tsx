@@ -15,6 +15,7 @@ import { useFavorites } from '@/lib/favorites'
 import { useI18n, localizedHref, stripLangPrefix } from '@/lib/i18n/context'
 import type { DictKey } from '@/lib/i18n/context'
 import { MARKETS, intentHref, parseCountryPath } from '@/lib/markets'
+import { toOrganicKaUrl } from '@/lib/directory-seo-lite'
 
 export default function Navbar({ marketIso }: { marketIso?: string } = {}) {
   const [scrolled, setScrolled] = useState(false)
@@ -109,10 +110,22 @@ export default function Navbar({ marketIso }: { marketIso?: string } = {}) {
   const isActive = (to: string) => {
     const path = to.replace(/[?#].*$/, '')
     if (!path || path === '/') return bare === '/'
-    return bare === path || bare.startsWith(`${path}/`)
+    const decodedBare = decodeURIComponent(bare)
+    const organicPath = toOrganicKaUrl(path)
+    return (
+      bare === path ||
+      bare.startsWith(`${path}/`) ||
+      decodedBare === path ||
+      decodedBare.startsWith(`${path}/`) ||
+      decodedBare === organicPath ||
+      decodedBare.startsWith(`${organicPath}/`)
+    )
   }
-  const navHref = (to: string) =>
-    market && !to.startsWith('/hotels') ? to : localizedHref(to, lang)
+  const navHref = (to: string) => {
+    if (market && !to.startsWith('/hotels')) return to
+    const href = localizedHref(to, lang)
+    return lang === 'ka' ? toOrganicKaUrl(href) : href
+  }
 
   return (
     <header data-cms-section="nav" className="sv-nav-in fixed inset-x-0 top-0 z-50 pt-[env(safe-area-inset-top,0px)]">

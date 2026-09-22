@@ -45,6 +45,7 @@ import { useChat, type ChatRoom } from "./ChatProvider"
 import FaqView from "./FaqView"
 import GuestMessageView from "./GuestMessageView"
 import { canUnsend, presenceOf } from "@/lib/chat-policy"
+import { listingPriceLabel } from "@/lib/listing-share"
 import { useAutoGrow } from "./useAutoGrow"
 import {
   clockLabel,
@@ -591,6 +592,33 @@ function Composer({
   )
 }
 
+/** Seller-side view of the conversation's lead (from GET /api/chat/[roomId]). */
+interface RoomLeadSummary {
+  status: string
+  deal: string
+  facts: {
+    budgetGEL?: number
+    rooms?: number
+    areaM2?: number
+    timeframe?: string
+    urgency?: "high" | "normal"
+    intent?: string
+  }
+  firstResponseAt: string | null
+}
+
+/** "80 000 ₾ · 2 ოთახიანი · 70 მ² · this week" — only what was actually stated. */
+function leadFactsLine(lead: RoomLeadSummary, lang: string): string {
+  const f = lead.facts ?? {}
+  const parts: string[] = []
+  if (f.budgetGEL) parts.push(listingPriceLabel(f.budgetGEL, "GEL"))
+  if (f.rooms)
+    parts.push(lang === "ka" ? `${f.rooms} ოთახიანი` : `${f.rooms} ${f.rooms === 1 ? "room" : "rooms"}`)
+  if (f.areaM2) parts.push(`${f.areaM2} მ²`)
+  if (f.timeframe) parts.push(f.timeframe)
+  return parts.join(" · ")
+}
+
 function MessageThread({
   roomId,
   listingId,
@@ -623,6 +651,8 @@ function MessageThread({
     nextCursor: null,
   })
   const [peerReadAt, setPeerReadAt] = useState<string | null>(null)
+  /** Seller-side lead facts for this conversation (stated requirements). */
+  const [lead, setLead] = useState<RoomLeadSummary | null>(null)
   const [peerTyping, setPeerTyping] = useState(false)
   const [live, setLive] = useState(true)
   const [atBottom, setAtBottom] = useState(true)
@@ -676,6 +706,7 @@ function MessageThread({
         if (!alive) return
         setMessages((prev) => mergeMessages(prev, data.messages ?? []))
         setPeerReadAt(data.peerReadAt ?? null)
+        setLead(data.lead ?? null)
         setPage({ hasMore: !!data.hasMore, nextCursor: data.nextCursor ?? null })
         if (!openedAtReadSet.current) {
           openedAtReadSet.current = true
@@ -1017,6 +1048,17 @@ function MessageThread({
                 {listingTitle}
               </span>
             </a>
+          )}
+          {iAmOwner && lead && leadFactsLine(lead, lang) && (
+            <div className="mb-2 flex flex-wrap items-center gap-x-2 gap-y-1 rounded-control bg-sv-blue/[0.06] px-3 py-2 text-[11.5px] font-bold text-sv-ink/70">
+              <span className="text-sv-blue-deep">{t("chat.leadFacts")}</span>
+              <span>{leadFactsLine(lead, lang)}</span>
+              {lead.facts.urgency === "high" && (
+                <span className="rounded-full bg-sv-orange/15 px-2 py-0.5 text-[10px] font-black text-sv-orange">
+                  {t("chat.leadUrgent")}
+                </span>
+              )}
+            </div>
           )}
           {/* Safety line — every marketplace that handles deposits shows one.
               No dismiss state: it scrolls away with the rest of the header. */}

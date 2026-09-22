@@ -207,11 +207,12 @@ export function seoMetadata(def: SeoPageDef, loc: SeoLoc, urlPrefix: string = lo
             : `${placeName} — недвижимость, цены и гид`)
     : titleOf(def, loc, marketIso)
   const description = isCityInfo ? (cityProseOf(def.city!.slug)?.lede ?? '') : descriptionOf(def, loc, marketIso)
-  const url = `${urlPrefix}${def.path}`
+  const canonicalPath = loc === 'ka' ? (def.kaPath || def.path) : (def.asciiPath || def.path)
+  const url = `${urlPrefix}${canonicalPath}`
   return {
     title,
     description,
-    alternates: pageAlternates(def.path, loc),
+    alternates: pageAlternates(canonicalPath, loc),
     openGraph: {
       title,
       description,

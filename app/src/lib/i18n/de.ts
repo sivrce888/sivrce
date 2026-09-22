@@ -844,6 +844,8 @@ export const de: Dict = {
   'chat.expand': 'Vergrößern',
   'chat.collapse': 'Verkleinern',
   'chat.safetyTip': 'Zahlen Sie nie im Voraus, bevor Sie die Immobilie gesehen haben, und geben Sie keine Bestätigungscodes weiter. Melden Sie Verdächtiges.',
+  'chat.leadFacts': 'Anforderungen:',
+  'chat.leadUrgent': 'Dringend',
   'chat.bookViewing': 'Besichtigung buchen',
   'chat.faqDidYouMean': 'Meinten Sie:',
   'chat.replyHint': 'Schnellantwort',

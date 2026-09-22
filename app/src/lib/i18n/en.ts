@@ -842,6 +842,8 @@ export const en: Dict = {
   'chat.expand': 'Expand',
   'chat.collapse': 'Shrink',
   'chat.safetyTip': 'Never pay in advance before seeing the property, and never share verification codes. Report anything suspicious.',
+  'chat.leadFacts': 'Stated requirements:',
+  'chat.leadUrgent': 'Urgent',
   'chat.bookViewing': 'Book a viewing',
   'chat.faqDidYouMean': 'Did you mean?',
   'chat.replyHint': 'Quick reply',

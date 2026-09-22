@@ -7,6 +7,8 @@
 import { db } from "@/lib/db"
 import { Prisma } from "@/generated/prisma/client"
 import { inquiryDealOf, shouldRecordChatLead } from "@/lib/chat-lead"
+import { detectLeadFacts, mergeLeadFacts, type LeadFacts } from "@/lib/lead-facts"
+import { extractLeadFactsAi } from "@/lib/ai"
 import { canUnsend, isConversationBlocked } from "@/lib/chat-policy"
 import { getConfig } from "@/lib/config"
 import { sendInquiryNotification } from "@/lib/email"
@@ -190,6 +192,46 @@ export async function getOrCreateDirectRoom(userId: string, peerId: string) {
   })
 }
 
+/**
+ * Find or create a buyer ↔ developer room about one project. Only DB-claimed
+ * projects (ProjectDirectory with an owner account) can open a room — catalog
+ * rows without an owner keep falling back to the lead form.
+ */
+export async function getOrCreateProjectRoom(projectSlug: string, userId: string) {
+  const project = await db.projectDirectory.findFirst({
+    where: { slug: projectSlug, deletedAt: null },
+    select: { ownerId: true, name: true },
+  })
+  if (!project) throw new Error("project_not_found")
+  if (!project.ownerId) throw new Error("no_owner")
+  if (project.ownerId === userId) throw new Error("self_chat")
+  if (await isPairBlocked(userId, project.ownerId)) throw new Error("blocked")
+
+  const existing = await db.chatRoom.findFirst({
+    where: {
+      status: "active",
+      projectSlug,
+      participants: { some: { userId } },
+    },
+    include: ROOM_INCLUDE,
+  })
+  if (existing) return existing
+
+  return db.chatRoom.create({
+    data: {
+      projectSlug,
+      title: project.name,
+      participants: {
+        create: [
+          { userId, role: "member" },
+          { userId: project.ownerId, role: "owner" },
+        ],
+      },
+    },
+    include: ROOM_INCLUDE,
+  })
+}
+
 /** Counterparty identity for room lists — feeds the shared monogram avatar. */
 export interface ChatCounterpart {
   id: string
@@ -236,7 +278,7 @@ export async function getUserChats(userId: string): Promise<ChatRoomSummary[]> {
     },
     include: {
       listing: { select: { title: true, id: true } },
-      participants: { select: { userId: true, role: true } },
+      participants: { select: { userId: true, role: true, mutedAt: true, archivedAt: true } },
       messages: {
         orderBy: { createdAt: "desc" },
         take: 1,
@@ -299,6 +341,7 @@ export async function getUserChats(userId: string): Promise<ChatRoomSummary[]> {
 
   return rooms.map((r) => {
     const peerId = r.participants.find((p) => p.userId !== userId)?.userId ?? ""
+    const mine = r.participants.find((p) => p.userId === userId)
     const last = r.messages[0]
     return {
       id: r.id,
@@ -310,6 +353,11 @@ export async function getUserChats(userId: string): Promise<ChatRoomSummary[]> {
       counterpart: byId.get(peerId) ?? null,
       isSupport: r.participants.some((p) => p.userId !== userId && p.role === SUPPORT_ROLE),
       iAmOwner: r.participants.some((p) => p.userId === userId && p.role === "owner"),
+      muted: mine?.mutedAt != null,
+      archived: isArchiveHidden(
+        mine?.archivedAt?.toISOString() ?? null,
+        last?.createdAt.toISOString() ?? null,
+      ),
       blocked: blockedByMe.has(peerId) || blockedMe.has(peerId),
       blockedByMe: blockedByMe.has(peerId),
       lastMessage: last
@@ -334,6 +382,7 @@ export async function getChatUnread(userId: string): Promise<Record<string, numb
     JOIN chat_participants p ON p.room_id = m.room_id AND p.user_id = ${userId}
     WHERE m.sender_id <> ${userId}
       AND m.deleted_at IS NULL
+      AND p.muted_at IS NULL
       AND (p.last_read_at IS NULL OR m.created_at > p.last_read_at)
     GROUP BY m.room_id
   `
@@ -571,19 +620,73 @@ export async function sendMessage(
     }),
   ])
 
-  // First buyer message on a listing room → Inquiry. Never fail the send.
-  void recordChatLead(roomId, senderId, message.id, text).catch(() => {})
+  // Chat is a lead engine: buyer messages enrich the lead with stated facts,
+  // owner/support replies stamp the first response. Never fails the send.
+  void syncChatLead(roomId, senderId, message.id, text).catch(() => {})
 
   return message
 }
 
 const CHAT_LEAD_DEDUP_MS = 7 * 86_400_000
 
+/** Per-lead JSON blob under Inquiry.meta. Fields exist only when real. */
+export interface InquiryMeta {
+  /** Stated requirements detected from the conversation. */
+  facts?: Record<string, unknown>
+  /** ISO stamp of the first owner/support reply — the SLA clock. */
+  firstResponseAt?: string
+  /** Internal staff notes, append-only (staff inbox). */
+  notes?: { at: string; by: string; text: string }[]
+}
+
+export function inquiryMetaOf(meta: unknown): InquiryMeta {
+  return meta && typeof meta === "object" && !Array.isArray(meta) ? (meta as InquiryMeta) : {}
+}
+
+export interface RoomLeadSummary {
+  status: string
+  deal: string
+  facts: Record<string, unknown>
+  firstResponseAt: string | null
+}
+
 /**
- * One Inquiry per buyer×listing per week. Fire-and-forget from sendMessage —
- * LeadInbox + email already exist; chat is the conversation, this is the lead.
+ * The seller-side lead strip: what the buyer has stated in this conversation.
+ * Only the room's owner (or support) may see it — buyers get no lead row.
  */
-async function recordChatLead(
+export async function getRoomLead(
+  roomId: string,
+  viewerId: string,
+): Promise<RoomLeadSummary | null> {
+  const seat = await db.chatParticipant.findUnique({
+    where: { roomId_userId: { roomId, userId: viewerId } },
+    select: { role: true },
+  })
+  if (!seat || (seat.role !== "owner" && seat.role !== SUPPORT_ROLE)) return null
+  const inquiry = await db.inquiry.findFirst({
+    where: { roomId, deletedAt: null },
+    orderBy: { createdAt: "desc" },
+    select: { status: true, deal: true, meta: true },
+  })
+  if (!inquiry) return null
+  const meta = inquiryMetaOf(inquiry.meta)
+  return {
+    status: inquiry.status,
+    deal: inquiry.deal,
+    facts: meta.facts ?? {},
+    firstResponseAt: meta.firstResponseAt ?? null,
+  }
+}
+
+/**
+ * Lead lifecycle wired to the conversation:
+ * - buyer message on a listing room → create the week-deduped Inquiry (with
+ *   detected facts), or enrich the existing one (facts merge, roomId link for
+ *   form-born duplicates);
+ * - owner/support message → stage new→contacted + first-response stamp.
+ * Fire-and-forget from sendMessage — a dead lead path must never block chat.
+ */
+async function syncChatLead(
   roomId: string,
   senderId: string,
   messageId: string,
@@ -596,12 +699,49 @@ async function recordChatLead(
       participants: { select: { userId: true, role: true } },
     },
   })
-  const listingId = room?.listingId
-  const ownerId = room?.participants.find((p) => p.role === "owner")?.userId
+  if (!room) return
+  const listingId = room.listingId
+  if (!listingId) return
+  const ownerId = room.participants.find((p) => p.role === "owner")?.userId
+  const senderIsOwner =
+    senderId === ownerId ||
+    room.participants.some((p) => p.userId === senderId && p.role === SUPPORT_ROLE)
+
+  // The lead row for this conversation, if any.
+  const inquiry = await db.inquiry.findFirst({
+    where: { roomId, deletedAt: null },
+    orderBy: { createdAt: "desc" },
+  })
+
+  if (senderIsOwner) {
+    if (!inquiry || inquiry.status !== "new") return
+    const meta = inquiryMetaOf(inquiry.meta)
+    await db.inquiry.update({
+      where: { id: inquiry.id },
+      data: {
+        status: "contacted",
+        meta: { ...meta, firstResponseAt: new Date().toISOString() } as Prisma.InputJsonValue,
+      },
+    })
+    return
+  }
+
+  const facts = detectLeadFacts(text)
   const prior = await db.chatMessage.findFirst({
     where: { roomId, senderId, NOT: { id: messageId } },
     select: { id: true },
   })
+
+  if (inquiry) {
+    const meta = inquiryMetaOf(inquiry.meta)
+    const merged = mergeLeadFacts((meta.facts ?? null) as LeadFacts | null, facts)
+    await db.inquiry.update({
+      where: { id: inquiry.id },
+      data: { meta: { ...meta, facts: merged } as unknown as Prisma.InputJsonValue },
+    })
+    return
+  }
+
   if (
     !shouldRecordChatLead({
       listingId,
@@ -619,7 +759,7 @@ async function recordChatLead(
       select: { name: true, email: true, phone: true },
     }),
     db.listing.findUnique({
-      where: { id: listingId! },
+      where: { id: listingId },
       select: {
         title: true,
         dealType: true,
@@ -640,14 +780,25 @@ async function recordChatLead(
   const since = new Date(Date.now() - CHAT_LEAD_DEDUP_MS)
   const dup = await db.inquiry.findFirst({
     where: {
-      listingId: listingId!,
+      listingId,
       buyerEmail: sender.email,
       createdAt: { gt: since },
       deletedAt: null,
     },
-    select: { id: true },
+    orderBy: { createdAt: "desc" },
   })
-  if (dup) return
+  // A form lead from the same buyer this week IS this lead — link it to the
+  // conversation instead of spawning a duplicate row.
+  if (dup) {
+    if (!dup.roomId) {
+      await db.inquiry.update({ where: { id: dup.id }, data: { roomId } })
+    }
+    return
+  }
+
+  // AI pass may catch what regex missed; fields stay unset unless stated.
+  const aiFacts = await extractLeadFactsAi(text).catch(() => null)
+  const merged = mergeLeadFacts(mergeLeadFacts(null, facts), aiFacts ?? {})
 
   const agent = listing.agent as { name?: unknown; phone?: unknown } | null
   const agentName =
@@ -662,7 +813,9 @@ async function recordChatLead(
   await db.inquiry.create({
     data: {
       id: crypto.randomUUID(),
-      listingId: listingId!,
+      listingId,
+      roomId,
+      source: "chat",
       agentName,
       agentEmail: owner?.email ?? null,
       agentPhone,
@@ -674,6 +827,7 @@ async function recordChatLead(
       city: listing.city,
       district: listing.district,
       price: listing.price,
+      meta: { facts: merged } as unknown as Prisma.InputJsonValue,
     },
   })
 
@@ -689,11 +843,44 @@ async function recordChatLead(
   })
 }
 
+/**
+ * Per-user room prefs: mute (silence push + badge) and archive (hide from the
+ * list until a newer message lands). Only ever touches the caller's seat.
+ * Returns false when the caller is not a participant.
+ */
+export async function setRoomPrefs(
+  roomId: string,
+  userId: string,
+  prefs: { muted?: boolean; archived?: boolean },
+): Promise<boolean> {
+  const data: { mutedAt?: Date | null; archivedAt?: Date | null } = {}
+  const now = new Date()
+  if (typeof prefs.muted === "boolean") data.mutedAt = prefs.muted ? now : null
+  if (typeof prefs.archived === "boolean") data.archivedAt = prefs.archived ? now : null
+  if (Object.keys(data).length === 0) return true
+  const res = await db.chatParticipant.updateMany({
+    where: { roomId, userId },
+    data,
+  })
+  return res.count > 0
+}
+
+/** Archived seats hide from the list until a message newer than the archive
+ * stamp lands — then the room re-files itself as active. */
+function isArchiveHidden(
+  archivedAt: string | null,
+  lastMessageAt: string | null,
+): boolean {
+  if (!archivedAt) return false
+  if (!lastMessageAt) return true
+  return new Date(lastMessageAt) <= new Date(archivedAt)
+}
+
 /** Mark all messages in a room as read for a given user. */
 export async function markRead(roomId: string, userId: string) {
   await db.chatParticipant.updateMany({
     where: { roomId, userId },
-    data: { lastReadAt: new Date() },
+    data: { lastReadAt: new Date(), archivedAt: null },
   })
 }
 
@@ -756,7 +943,10 @@ export async function leaveChatRoom(roomId: string, userId: string): Promise<boo
 /** Peer seats + sender display name for the new-message push fan-out. */
 export async function getRoomPushPeers(roomId: string, senderId: string) {
   const [peers, sender] = await Promise.all([
-    db.chatParticipant.findMany({ where: { roomId, userId: { not: senderId } }, select: { userId: true } }),
+    db.chatParticipant.findMany({
+      where: { roomId, userId: { not: senderId }, mutedAt: null },
+      select: { userId: true },
+    }),
     db.user.findUnique({ where: { id: senderId }, select: { name: true } }),
   ])
   return { peerIds: peers.map((p) => p.userId), senderName: sender?.name ?? "sivrce" }

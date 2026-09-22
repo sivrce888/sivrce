@@ -167,6 +167,94 @@ Rules:
 }
 
 // ---------------------------------------------------------------------------
+// extractLeadFactsAi — chat→lead extraction (never fabricates)
+// ---------------------------------------------------------------------------
+
+const leadFactsSchema = z
+  .object({
+    budgetGEL: z.number().nullable().describe("Budget the buyer explicitly stated, in whole GEL. null if not stated."),
+    rooms: z.number().nullable().describe("Room count only if explicitly stated. null otherwise."),
+    areaM2: z.number().nullable().describe("Area in m² only if explicitly stated. null otherwise."),
+    timeframe: z.string().nullable().describe("When they need it, as a short quote from the message. null if not stated."),
+    urgency: z.enum(["high", "normal"]).nullable().describe("high only if urgency is explicit."),
+    intent: z.enum(["buy", "rent", "daily", "invest"]).nullable().describe("Only if clearly stated."),
+  })
+  .describe("Facts stated in the message. Return null for anything not explicitly present.")
+
+export interface LeadFactsAi {
+  budgetGEL?: number | null
+  rooms?: number | null
+  areaM2?: number | null
+  timeframe?: string | null
+  urgency?: "high" | "normal" | null
+  intent?: "buy" | "rent" | "daily" | "invest" | null
+}
+
+export async function extractLeadFactsAi(text: string): Promise<LeadFactsAi | null> {
+  if (!hasAi()) return null
+  try {
+    const result = await generateObject({
+      model: model(),
+      schema: leadFactsSchema,
+      prompt: `Extract lead facts from this real-estate buyer message (any language: Georgian, English, Russian, Turkish).
+Rules: never guess or compute a value that is not explicitly written; absent = null. Budget may carry $, €, ₾, "k" or "m" suffixes — convert to GEL.
+
+Message:
+"""${text.slice(0, 1200)}"""`,
+    })
+    return result.object as LeadFactsAi
+  } catch (e) {
+    console.error("[ai] extractLeadFactsAi failed:", (e as Error).message)
+    return null
+  }
+}
+
+// ---------------------------------------------------------------------------
+// summarizeConversationAi — staff assist on /admin/inbox transcripts
+// ---------------------------------------------------------------------------
+
+const conversationAssistSchema = z.object({
+  summary: z.string().describe("2–3 sentence neutral summary of the conversation, in Georgian."),
+  buyerIntent: z.string().describe("One line: what the buyer actually wants, in Georgian."),
+  urgency: z.enum(["high", "normal", "low"]).describe("Conversation urgency."),
+  nextBestAction: z.string().describe("Single most useful next step for the seller/staff, in Georgian."),
+  suggestedReply: z.string().describe("One short ready-to-send reply from the seller to the buyer, in Georgian."),
+})
+
+export interface ConversationAssist {
+  summary: string
+  buyerIntent: string
+  urgency: "high" | "normal" | "low"
+  nextBestAction: string
+  suggestedReply: string
+}
+
+/** Summarize a room's last messages for staff. null without an API key. */
+export async function summarizeConversationAi(
+  turns: { senderId: string; content: string }[],
+): Promise<ConversationAssist | null> {
+  if (!hasAi() || turns.length === 0) return null
+  const transcript = turns
+    .slice(-30)
+    .map((t) => `- ${t.senderId}: ${t.content.replace(/\s+/g, " ").slice(0, 400)}`)
+    .join("\n")
+  try {
+    const result = await generateObject({
+      model: model(),
+      schema: conversationAssistSchema,
+      prompt: `You assist a real-estate marketplace team. Summarize this conversation between a buyer and a seller/support. Ground every sentence in the transcript; do not invent facts.
+
+Transcript:
+${transcript}`,
+    })
+    return result.object as ConversationAssist
+  } catch (e) {
+    console.error("[ai] summarizeConversationAi failed:", (e as Error).message)
+    return null
+  }
+}
+
+// ---------------------------------------------------------------------------
 // estimatePropertyValue
 // ---------------------------------------------------------------------------
 

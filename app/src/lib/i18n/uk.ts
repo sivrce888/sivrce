@@ -843,6 +843,8 @@ export const uk: Dict = {
   'chat.expand': 'Розгорнути',
   'chat.collapse': 'Згорнути',
   'chat.safetyTip': 'Ніколи не платіть наперед, не оглянувши обʼєкт, і не повідомляйте коди підтвердження. Повідомляйте про підозріле.',
+  'chat.leadFacts': 'Вимоги:',
+  'chat.leadUrgent': 'Терміново',
   'chat.bookViewing': 'Записатися на огляд',
   'chat.faqDidYouMean': 'Можливо, ви мали на увазі:',
   'chat.replyHint': 'Швидка відповідь',

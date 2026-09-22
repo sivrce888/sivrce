@@ -843,6 +843,8 @@ export const hy: Dict = {
   'chat.expand': 'Ընդլայնել',
   'chat.collapse': 'Փոքրացնել',
   'chat.safetyTip': 'Երբեք մի վճարեք կանխավճար՝ նախքան գույքը տեսնելը, և մի կիսվեք հաստատման կոդերով: Հաղորդեք կասկածելի ամեն ինչի մասին:',
+  'chat.leadFacts': 'Պահանջներ՝',
+  'chat.leadUrgent': 'Շտապ',
   'chat.bookViewing': 'Ամրագրել դիտում',
   'chat.faqDidYouMean': 'Միգուցե նկատի ունեիք՝',
   'chat.replyHint': 'Արագ պատասխան',

@@ -724,7 +724,9 @@ export default function MapEmbed({
       <div
         ref={containerRef}
         className="h-full w-full"
-        role="img"
+        // group, not img: MapLibre injects focusable attribution/controls, and
+        // role="img" with focusable descendants fails axe nested-interactive.
+        role="group"
         aria-label={coordsOk ? (q ?? 'Sivrce map') : 'Map unavailable'}
       />
       {(status === 'idle' || status === 'loading') && coordsOk && (

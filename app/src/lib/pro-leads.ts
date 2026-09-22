@@ -7,21 +7,68 @@
  */
 import type { Prisma } from "@/generated/prisma/client"
 
-export const INQUIRY_STATUSES = ["new", "contacted", "qualified", "closed"] as const
+/**
+ * Lead pipeline vocabulary, shared by owner inboxes and the Sivrce staff
+ * inbox. "closed" is kept as a legacy alias of "won" — rows written before
+ * the Deal OS keep rendering correctly.
+ */
+export const INQUIRY_STATUSES = [
+  "new",
+  "contacted",
+  "qualified",
+  "matching",
+  "viewing",
+  "negotiating",
+  "won",
+  "closed",
+  "lost",
+  "inactive",
+] as const
 export type InquiryStatus = (typeof INQUIRY_STATUSES)[number]
 
 export const INQUIRY_STATUS_KA: Record<InquiryStatus, string> = {
   new: "ახალი",
   contacted: "დაკავშირებული",
   qualified: "კვალიფიცირებული",
+  matching: "შერჩევა",
+  viewing: "ნახვა",
+  negotiating: "მოლაპარაკება",
+  won: "გაყიდული",
   closed: "დახურული",
+  lost: "დაკარგული",
+  inactive: "პასიური",
 }
 
 export const INQUIRY_STATUS_EN: Record<InquiryStatus, string> = {
-  new: "New Inquiry",
+  new: "New",
   contacted: "Contacted",
-  qualified: "Qualified Buyer",
+  qualified: "Qualified",
+  matching: "Matching",
+  viewing: "Viewing",
+  negotiating: "Negotiating",
+  won: "Won",
   closed: "Closed / Won",
+  lost: "Lost",
+  inactive: "Inactive",
+}
+
+/** Stages where the deal is still alive — the "open leads" filters. */
+export const OPEN_INQUIRY_STATUSES: readonly InquiryStatus[] = [
+  "new",
+  "contacted",
+  "qualified",
+  "matching",
+  "viewing",
+  "negotiating",
+]
+
+export function isOpenInquiryStatus(v: string): boolean {
+  return OPEN_INQUIRY_STATUSES.includes(v as InquiryStatus)
+}
+
+/** Legacy alias normalization for display/stats: closed ≡ won. */
+export function normalizeInquiryStatus(v: string): InquiryStatus {
+  return v === "closed" ? "won" : isInquiryStatus(v) ? v : "new"
 }
 
 export function isInquiryStatus(value: string): value is InquiryStatus {

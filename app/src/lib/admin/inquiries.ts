@@ -3,15 +3,36 @@ import type { Prisma } from "@/generated/prisma/client"
 import { ADMIN_PAGE_SIZE } from "@/lib/admin/query"
 import { db } from "@/lib/db"
 
-/** Allowed ops vocabulary for Inquiry.status (schema default is "new"). */
-export const INQUIRY_STATUSES = ["new", "contacted", "qualified", "closed", "spam"] as const
+/**
+ * Allowed ops vocabulary for Inquiry.status (schema default is "new").
+ * Mirrors the shared pipeline in lib/pro-leads.ts + the staff-only "spam".
+ */
+export const INQUIRY_STATUSES = [
+  "new",
+  "contacted",
+  "qualified",
+  "matching",
+  "viewing",
+  "negotiating",
+  "won",
+  "closed",
+  "lost",
+  "inactive",
+  "spam",
+] as const
 export type InquiryStatusValue = (typeof INQUIRY_STATUSES)[number]
 
 export const INQUIRY_STATUS_LABELS: Record<InquiryStatusValue, string> = {
   new: "New",
   contacted: "Contacted",
   qualified: "Qualified",
-  closed: "Closed",
+  matching: "Matching",
+  viewing: "Viewing",
+  negotiating: "Negotiating",
+  won: "Won",
+  closed: "Closed / Won",
+  lost: "Lost",
+  inactive: "Inactive",
   spam: "Spam",
 }
 

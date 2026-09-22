@@ -56,6 +56,7 @@ export interface ChatRoom {
 type ChatTarget =
   | { kind: "listing"; id: string }
   | { kind: "user"; id: string }
+  | { kind: "project"; slug: string }
   | { kind: "support" }
 
 interface ChatContextValue {
@@ -65,6 +66,8 @@ interface ChatContextValue {
   openChat: (listingId?: string) => void
   /** Open (or create) a direct chat with another user */
   openChatWithUser: (userId: string) => void
+  /** Open (or create) a buyer ↔ developer room about one project */
+  openChatWithProject: (projectSlug: string) => void
   /** Open (or create) the sivrce support line */
   openSupportChat: () => void
   /** Close the chat panel */
@@ -205,6 +208,10 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
     (userId: string) => openTarget({ kind: "user", id: userId }),
     [openTarget],
   )
+  const openChatWithProject = useCallback(
+    (projectSlug: string) => openTarget({ kind: "project", slug: projectSlug }),
+    [openTarget],
+  )
   const openSupportChat = useCallback(() => openTarget({ kind: "support" }), [openTarget])
 
   const closeChat = useCallback(() => {
@@ -253,15 +260,22 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!open || !pendingTarget) return
     const target = pendingTarget
-    const key = target.kind === "support" ? "support" : target.id
+    const key =
+      target.kind === "support"
+        ? "support"
+        : target.kind === "project"
+          ? `project:${target.slug}`
+          : target.id
     if (lastTargetRef.current === key) return
     lastTargetRef.current = key
     const body =
       target.kind === "listing"
         ? { listingId: target.id }
-        : target.kind === "user"
-          ? { userId: target.id }
-          : { support: true }
+        : target.kind === "project"
+          ? { projectSlug: target.slug }
+          : target.kind === "user"
+            ? { userId: target.id }
+            : { support: true }
     ;(async () => {
       try {
         const res = await fetch("/api/chat", {
@@ -278,7 +292,7 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
           // 403 stays deliberately indistinguishable from the other two — the
           // blocked side is never told a block exists.
           if (
-            target.kind === "listing" &&
+            (target.kind === "listing" || target.kind === "project") &&
             (res.status === 409 || res.status === 404 || res.status === 403)
           ) {
             setOpen(false)
@@ -378,6 +392,7 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
       open,
       openChat,
       openChatWithUser,
+      openChatWithProject,
       openSupportChat,
       closeChat,
       activeRoomId,
@@ -396,6 +411,7 @@ export default function ChatProvider({ children }: { children: ReactNode }) {
       open,
       openChat,
       openChatWithUser,
+      openChatWithProject,
       openSupportChat,
       closeChat,
       activeRoomId,

@@ -18,7 +18,9 @@ export interface PropertyCopilotContext {
   district: string
   city: string
   countryCode?: string
-  districtMedianPerSqm: number
+  /** Median $/m² of real district comps — absent when there are none, so
+   *  answers never present the listing's own price as a "district average". */
+  districtMedianPerSqm?: number
   estimatedMonthlyRentUSD?: number
   /** Listing body copy — drives the scam-radar payment-phrase check (+35 risk). */
   description?: string
@@ -48,6 +50,23 @@ export function answerPropertyQuestion(
   // 1. Valuation Question ("Why is it cheap / expensive / value?")
   if (/cheap|expensive|price|value|ფასი|იაფი|ძვირი|ღირს/i.test(q)) {
     const pricePerSqm = Math.round(context.priceUSD / Math.max(1, context.areaSqm))
+
+    // No real comps → say so. A benchmark against the listing's own $/m²
+    // would be a circular claim dressed as a FACT.
+    if (!context.districtMedianPerSqm) {
+      return {
+        questionCategory: 'valuation',
+        headlineEn: 'Not enough local comps for a price verdict yet',
+        headlineKa: 'საკმარისი ადგილობრივი ანალოგი ფასის შესაფასებლად ჯერ არ არის',
+        bodyEn: `This one is $${pricePerSqm}/m², but there aren't enough recent ${context.district} listings to benchmark it honestly. Verified cadastral data and the photo set are the best signals for now.`,
+        bodyKa: `ფასი $${pricePerSqm}/მ²-ია, მაგრამ ${context.district}-ში ბოლო განცხადებები მწირია პატიოსანი შედარებისთვის. ჯერ საუკეთესი საყრდენი საკადასტრო მონაცემები და ფოტოებია.`,
+        headlineDe: 'Noch nicht genug Vergleichsangebote für ein Preisurteil',
+        bodyDe: `Dieser hier liegt bei $${pricePerSqm}/m², doch es gibt zu wenige aktuelle Angebote in ${context.district} für einen ehrlichen Vergleich. Katasterdaten und Fotos sind vorerst die besten Anhaltspunkte.`,
+        confidenceScore: 40,
+        factState: 'ESTIMATE',
+      }
+    }
+
     const diffPct = Math.round(((pricePerSqm - context.districtMedianPerSqm) / context.districtMedianPerSqm) * 100)
 
     if (diffPct < -10) {

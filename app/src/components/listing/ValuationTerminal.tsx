@@ -187,10 +187,12 @@ export default function ValuationTerminal({
           <span className="text-[11px] font-medium text-sv-ink-soft uppercase tracking-wider block">
             {T('5-წლ. წმინდა იჯარა', '5-Jahres-Nettomietzahlung', '5-Yr Net Cash Flow')}
           </span>
-          <span className="mt-1 text-lg font-bold text-emerald-700 dark:text-emerald-400">
-            ${scenario.year5TotalNetCashFlowUSD.toLocaleString()}
+          <span className={`mt-1 text-lg font-bold ${scenario.year5TotalNetCashFlowUSD >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-700 dark:text-red-400'}`}>
+            {scenario.year5TotalNetCashFlowUSD >= 0
+              ? `$${scenario.year5TotalNetCashFlowUSD.toLocaleString()}`
+              : `−$${Math.abs(scenario.year5TotalNetCashFlowUSD).toLocaleString()}`}
           </span>
-          <span className="text-[10px] text-sv-ink-soft">
+          <span className="text-[10px] text-sv-ink-soft block">
             {scenario.vacancyRatePct}% {T('ვაკანტურობა', 'Leerstand', 'vacancy')}
           </span>
         </div>
