@@ -43,7 +43,7 @@ export const az: Dict = {
 
   // ——— Search page chrome ———
   'search.title': 'Axtarış',
-  'search.allGeorgia': 'Bütün dünya',
+  'search.allGeorgia': 'Hər yerdə',
   'search.dealType': 'Sövdələşmə növü',
   'search.all': 'Hamısı',
   'search.sale': 'Satılır',

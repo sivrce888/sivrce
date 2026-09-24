@@ -4,7 +4,7 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { COUNTRY_IDS, MARKETS, countryBasePath, intentHref } from './markets'
-import { cityBySlug } from './map/user-place'
+import { cityBySlug, marketCenter } from './map/user-place'
 import {
   GEO_COOKIE,
   GEO_LAUNCH,
@@ -12,7 +12,6 @@ import {
   geoLaunchTarget,
   isCrawler,
   isGeoLaunch,
-  marketCenter,
   marketFromIso,
 } from './geo-market'
 
@@ -81,10 +80,17 @@ assert.equal(intentHref('de', 'berlin', 'buy', 'en'), '/de/berlin/buy')
     !/from\s+['"]@\/lib\/map\/user-place\.server['"]/.test(src),
     'geo-market must not import user-place.server (client bundle weight)',
   )
+  assert.ok(
+    !/from\s+['"]@\/lib\/map\/user-place['"]/.test(src),
+    'geo-market must not import map/user-place — GeoGate + proxy would ship data/world-places',
+  )
   for (const [id, m] of Object.entries(MARKETS)) {
     for (const slug of [m.defaultCitySlug, ...m.citySlugs]) {
       if (!slug) continue
-      assert.ok(cityBySlug(slug), `${id}: launched city "${slug}" missing from client MAP_CITIES`)
+      const pin = cityBySlug(slug)
+      assert.ok(pin, `${id}: launched city "${slug}" missing from client MAP_CITIES`)
+      // geoHomePath trusts citySlugs membership for the country — keep it true.
+      assert.equal(pin.cc, m.countryCode, `${id}: launched city "${slug}" is in ${pin.cc}, not ${m.countryCode}`)
     }
   }
 }

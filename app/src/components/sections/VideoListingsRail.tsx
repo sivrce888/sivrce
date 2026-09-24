@@ -14,7 +14,8 @@ import { avifCardOf, cardOf } from '@/lib/media'
 export default function VideoListingsRail({ items }: { items: Listing[] }) {
   const { b, t } = useI18n()
   const { currency, rate, eurRate } = useCurrency()
-  if (items.length === 0) return null
+  // A 1–2 card strip reads as broken on a wide screen; those listings still surface in search.
+  if (items.length < 3) return null
 
   return (
     <section

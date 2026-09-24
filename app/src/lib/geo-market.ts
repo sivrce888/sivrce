@@ -1,10 +1,9 @@
-import { COUNTRY_IDS, MARKETS, isPathCountry, marketFromIso, type MarketId, type PathCountryId } from '@/lib/markets'
-import { FREEDOM_SQUARE } from '@/lib/map/map-geo'
-// Client plane on purpose: GeoGate is a client component, and the only cities
-// these helpers can return are launched-market cities, which all live in
-// MAP_CITIES. Importing user-place.server here shipped the 22k GeoNames corpus
-// (~1.9 MB) to every browser. geo-market.check locks the equivalence.
-import { cityByName, cityBySlug } from '@/lib/map/user-place'
+import { COUNTRY_IDS, MARKETS, isPathCountry, marketFromIso, type PathCountryId } from '@/lib/markets'
+// Names-only leaf on purpose: GeoGate (client) and proxy.ts (edge) ship this
+// module. user-place.server once shipped the 22k GeoNames corpus (~1.9 MB);
+// map/user-place still dragged data/world-places (~36 KB gz) onto every home
+// page. Coord helpers (marketCenter) live in map/user-place, server callers only.
+import { cityNameHit } from '@/lib/place-label'
 
 export { marketFromIso }
 
@@ -38,9 +37,11 @@ export function geoHomePath(id: GeoLaunchId, ipCity?: string | null): string {
   } catch {
     /* keep raw */
   }
-  const hit = cityByName(name)
+  const hit = cityNameHit(name)
   const m = MARKETS[id]
-  if (hit && hit.cc === m.countryCode && m.citySlugs.includes(hit.slug)) {
+  // Slugs are catalog-unique, so citySlugs membership implies the country
+  // (geo-market.check asserts every launched slug's cc).
+  if (hit && m.citySlugs.includes(hit.slug)) {
     return `${prefix}/${hit.slug}`
   }
   return prefix
@@ -73,14 +74,4 @@ export function geoLaunchTarget(input: {
   if (cook === 'ge') return 'ge'
   if (isGeoLaunch(cook)) return cook
   return 'hub'
-}
-
-export function marketCenter(market: MarketId): { lat: number; lng: number; slug: string } {
-  if (market === 'ge' || market === 'global') {
-    return { lat: FREEDOM_SQUARE.lat, lng: FREEDOM_SQUARE.lng, slug: 'tbilisi' }
-  }
-  const slug = MARKETS[market].defaultCitySlug
-  const pin = cityBySlug(slug)
-  if (pin) return { lat: pin.lat, lng: pin.lng, slug }
-  return { lat: FREEDOM_SQUARE.lat, lng: FREEDOM_SQUARE.lng, slug }
 }

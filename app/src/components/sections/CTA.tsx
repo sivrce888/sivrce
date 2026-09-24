@@ -62,20 +62,17 @@ export default async function CTA({ lang = 'ka' }: { lang?: Lang }) {
               {secondary}
             </LocalizedLink>
           </div>
-          <nav
-            aria-label={t('nav.main')}
-            className="mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-2"
-          >
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-x-5 gap-y-1">
             {paths.map((p) => (
               <LocalizedLink
                 key={p.href}
                 href={p.href}
-                className="text-[13px] font-extrabold text-white/55 transition-colors hover:text-white"
+                className="py-1 text-[13px] font-extrabold text-white/55 transition-colors hover:text-white"
               >
                 {p.label}
               </LocalizedLink>
             ))}
-          </nav>
+          </div>
         </Reveal>
         <Reveal delay={0.3}>
           <p className="mt-8 flex flex-wrap items-center justify-center text-[13px] font-bold text-white/60">

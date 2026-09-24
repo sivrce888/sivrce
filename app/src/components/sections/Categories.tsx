@@ -186,7 +186,7 @@ export default async function Categories({ lang = 'ka' }: { lang?: Lang }) {
   return (
     <section className="bg-sv-cloud pb-20 md:pb-28">
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
-        <Reveal className="mb-10 flex flex-wrap items-end justify-between gap-4">
+        <Reveal className="mb-6 flex md:mb-10 flex-wrap items-end justify-between gap-4">
           <div>
             <h2 className="sv-h2 text-[clamp(1.75rem,1.2rem+1.8vw,2.5rem)] text-sv-ink">
               {title}
@@ -197,22 +197,22 @@ export default async function Categories({ lang = 'ka' }: { lang?: Lang }) {
           </div>
         </Reveal>
 
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-9">
+        <div className="grid grid-cols-3 gap-2 sm:gap-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-9">
           {CATS.map((c, i) => (
             <Reveal key={c.key} delay={i * 0.03} className="h-full">
               <LocalizedLink
                 href={c.href}
-                className="group relative flex h-full flex-col items-center gap-2.5 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-5 text-center transition-all duration-300 hover:-translate-y-1.5 hover:border-transparent hover:shadow-card-hover"
+                className="group relative flex h-full flex-col items-center gap-2 rounded-card border border-sv-ink/[0.06] bg-sv-surface px-2 py-4 text-center sm:gap-2.5 sm:p-5 transition-all duration-300 hover:-translate-y-1.5 hover:border-transparent hover:shadow-card-hover"
               >
                 <span
-                  className="grid h-12 w-12 place-items-center rounded-module transition-transform duration-300 group-hover:scale-110"
+                  className="grid h-11 w-11 place-items-center rounded-module transition-transform sm:h-12 sm:w-12 duration-300 group-hover:scale-110"
                   style={{ backgroundColor: c.brand.chipVar, color: c.brand.hue }}
                 >
                   <c.icon className="h-5.5 w-5.5" />
                 </span>
-                <span className="line-clamp-2 min-h-[2.6em] text-[13.5px] font-extrabold leading-[1.25] text-sv-ink">{labels[i]}</span>
+                <span className="line-clamp-2 min-h-[2.5em] text-[12.5px] font-extrabold sm:text-[13.5px] leading-[1.25] text-sv-ink">{labels[i]}</span>
                 <span className="mt-auto text-[11.5px] font-bold text-sv-ink/60">{formatCount(counts[c.key], explore)}</span>
-                <ArrowUpRight className="absolute right-3 top-3 h-3.5 w-3.5 text-sv-ink/0 transition-all duration-300 group-hover:text-sv-ink/60" />
+                <ArrowUpRight className="absolute right-3 top-3 hidden h-3.5 w-3.5 sm:block text-sv-ink/0 transition-all duration-300 group-hover:text-sv-ink/60" />
               </LocalizedLink>
             </Reveal>
           ))}

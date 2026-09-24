@@ -1,13 +1,12 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { motion } from 'framer-motion'
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import dynamic from 'next/dynamic'
 import LocalizedLink from '@/components/LocalizedLink'
 import { useRouter } from 'next/navigation'
 import { ChevronDown, History, MapPin, Search } from 'lucide-react'
 import { PartyHouseIcon } from '@/components/PartyHouseIcon'
 import SearchSuggest, { type Suggestion, resolveExactPlace } from '@/components/search/SearchSuggest'
-import LocationPicker, { locationLabel, type LocationValue } from '@/components/search/LocationPicker'
 import PropertyTypePicker from '@/components/search/PropertyTypePicker'
 import { useI18n, localizedHref } from '@/lib/i18n/context'
 import { CATEGORY_BRAND } from '@/lib/category-brand'
@@ -27,10 +26,15 @@ import {
   type RecentSearch,
 } from './hero-search-mode'
 import { isExactLookupQuery } from '@/lib/listing-public-id'
-import { searchHref, suggestionToFilters } from '@/lib/search-location'
+import { locationLabel, searchHref, suggestionToFilters, type LocationValue } from '@/lib/search-location'
 import { aiParseQuery, nlHasStructure, nlToSearchPatch, parseNlQuery } from '@/lib/nl-search'
 import { QUICK, type HeroQuickChip } from '@/lib/hero-quick'
 import { GEO_CITIES } from '@/data/georgia-locations'
+
+// ponytail: the picker (framer-motion + world city catalog, ~60 KB gz) loads on
+// first open — warmed on hover/focus — instead of riding the hero island.
+const loadPicker = () => import('@/components/search/LocationPicker')
+const LocationPicker = dynamic(loadPicker, { ssr: false })
 
 const fieldBtn =
   'flex h-12 w-full items-center gap-2 rounded-full px-3.5 text-left text-sv-ink transition-colors hover:bg-sv-ink/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue/30 dark:text-white'
@@ -61,6 +65,7 @@ export default function HeroSearch({ quick = QUICK, country }: { quick?: HeroQui
   const [recent, setRecent] = useState<RecentSearch | null>(null)
   const [loc, setLoc] = useState<LocationValue>({ city: '', district: '', street: '' })
   const [locOpen, setLocOpen] = useState(false)
+  const [locMounted, setLocMounted] = useState(false)
   const [propType, setPropType] = useState<PropType | undefined>(undefined)
   const [exIdx, setExIdx] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -369,11 +374,7 @@ export default function HeroSearch({ quick = QUICK, country }: { quick?: HeroQui
             }`}
           >
             {tab === i && (
-              <motion.span
-                layoutId="hero-tab"
-                className="absolute inset-0 rounded-full bg-white shadow-card"
-                transition={{ type: 'spring', bounce: 0.18, duration: 0.55 }}
-              />
+              <span aria-hidden className="absolute inset-0 rounded-full bg-white shadow-card" />
             )}
             <span className="relative z-10 flex items-center justify-center gap-1.5">
               <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: item.hue }} aria-hidden />
@@ -407,8 +408,10 @@ export default function HeroSearch({ quick = QUICK, country }: { quick?: HeroQui
           )}
           <button
             type="button"
-            onClick={() => { setMenu(null); setLocOpen(true) }}
-            className={`${fieldBtn} lg:w-[216px] lg:max-w-[216px] lg:shrink-0`}
+            onClick={() => { setMenu(null); setLocMounted(true); setLocOpen(true) }}
+            onPointerEnter={() => void loadPicker()}
+            onFocus={() => void loadPicker()}
+            className={`${fieldBtn} lg:w-[184px] lg:max-w-[184px] lg:shrink-0`}
           >
             <MapPin className={`h-4 w-4 shrink-0 ${loc.city ? 'text-sv-blue' : 'text-sv-ink/35 dark:text-white/40'}`} />
             <span className="min-w-0 flex-1">
@@ -416,14 +419,16 @@ export default function HeroSearch({ quick = QUICK, country }: { quick?: HeroQui
               <span className={fieldVal}>{locationLabel(loc, t('search.allGeorgia'))}</span>
             </span>
           </button>
-          <LocationPicker
-            open={locOpen}
-            value={loc}
-            multi
-            showMetro
-            onClose={() => setLocOpen(false)}
-            onApply={(v) => { setLoc(v); setLocOpen(false) }}
-          />
+          {locMounted && (
+            <LocationPicker
+              open={locOpen}
+              value={loc}
+              multi
+              showMetro
+              onClose={() => setLocOpen(false)}
+              onApply={(v) => { setLoc(v); setLocOpen(false) }}
+            />
+          )}
           {!isProjects && (
             <>
               <span className="hidden h-7 w-px shrink-0 bg-sv-ink/10 dark:bg-white/15 lg:block" aria-hidden />
@@ -435,7 +440,7 @@ export default function HeroSearch({ quick = QUICK, country }: { quick?: HeroQui
                       aria-haspopup="dialog"
                       aria-expanded={menu === 'size'}
                       onClick={() => setMenu((m) => (m === 'size' ? null : 'size'))}
-                      className={`${fieldBtn} lg:w-[128px] lg:max-w-[128px]`}
+                      className={`${fieldBtn} lg:w-[144px] lg:max-w-[144px]`}
                     >
                       <span className="min-w-0 flex-1">
                         <span className={fieldCap}>{sizeCaption}</span>
@@ -457,7 +462,7 @@ export default function HeroSearch({ quick = QUICK, country }: { quick?: HeroQui
                       aria-haspopup="dialog"
                       aria-expanded={menu === 'price'}
                       onClick={() => setMenu((m) => (m === 'price' ? null : 'price'))}
-                      className={`${fieldBtn} lg:w-[128px] lg:max-w-[128px]`}
+                      className={`${fieldBtn} lg:w-[144px] lg:max-w-[144px]`}
                     >
                       <span className="min-w-0 flex-1">
                         <span className={fieldCap}>{t('search.price')}</span>
@@ -533,15 +538,15 @@ export default function HeroSearch({ quick = QUICK, country }: { quick?: HeroQui
             <Search className="h-[18px] w-[18px]" />
             {t('nav.search')}
             {hits !== null && (
-              <motion.span
-                initial={{ opacity: 0, y: 3 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, ease: 'easeOut' }}
+              <span
+                data-reveal
+                data-in
+                style={{ '--reveal-y': '3px' } as CSSProperties}
                 aria-live="polite"
                 className="tabular-nums"
               >
                 <span aria-hidden className="px-0.5">·</span> {new Intl.NumberFormat(lang).format(hits)}
-              </motion.span>
+              </span>
             )}
           </button>
         </div>

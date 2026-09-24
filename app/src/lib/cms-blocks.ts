@@ -18,7 +18,7 @@ export const CMS_BLOCKS = {
   'home.hero.subtitle':
     'ბინები, სახლები და აგარაკები — იყიდება, ქირავდება ან გაიცემა დღიურად, დამოუკიდებელი განცხადებებით.',
   'home.hero.trust1': 'ვერიფიცირებული განცხადებები',
-  'home.hero.trust2': 'უსაფრთხო გარიგებები',
+  'home.hero.trust2': 'თაღლითობის შემოწმება',
   'home.hero.trust3': 'AI ფასის შეფასება',
 
   // ——— Stats (1–4 values come from getHomeStats; CMS keeps label/sub + 5–6 SLAs) ———
@@ -110,7 +110,6 @@ export const CMS_BLOCKS = {
   'home.map.f4.text': 'გადართე ჩვეულებრივ რუკასა და 3D ხედს შორის ერთი შეხებით — ნებისმიერ მოწყობილობაზე.',
   'home.map.openCta': 'გახსენი 3D რუკა',
   'home.map.openBadge': 'გახსენი ინტერაქტიული 3D რუკა',
-  'home.map.demoUnits': '{n} ბინა იყიდება',
   'home.perM2': '/მ²-დან',
 
   // ——— Projects rail ———

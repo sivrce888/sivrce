@@ -5,7 +5,7 @@
  */
 import Link from 'next/link'
 import Image from 'next/image'
-import { Building2, CalendarCheck, CheckCircle2, ChevronLeft, ChevronRight, MapPin, Star } from 'lucide-react'
+import { Building2, CalendarCheck, CheckCircle2, ChevronLeft, ChevronRight, MapPin } from 'lucide-react'
 import { MICRO, MICRO_DE, finishLabel, hasPriceFrom, priceFromLabel, unitsLabel, type DirLoc } from '@/lib/directory-seo-lite'
 import type { ProjectCard } from './card'
 
@@ -52,10 +52,6 @@ export function ProjectsGrid({ projects, loc }: { projects: ProjectCard[]; loc: 
                     {dev && (
                       <p className="text-[13px] font-bold text-white/80">{dev}</p>
                     )}
-                  </div>
-                  <div className="flex items-center gap-1 rounded-control bg-white/95 px-3 py-1.5 text-[14px] font-black text-sv-ink">
-                    <Star className="h-3.5 w-3.5 fill-sv-orange text-sv-orange" aria-hidden />
-                    {p.rating}
                   </div>
                 </div>
                 {delivered ? (

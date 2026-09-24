@@ -1,8 +1,9 @@
 'use client'
 
+import { useEffect, useRef, type ReactNode } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Building2, Lock, Mail, MapPin, MessageCircle, Phone, ShieldCheck, Zap } from 'lucide-react'
+import { Building2, ChevronDown, Lock, Mail, MapPin, MessageCircle, Phone, ShieldCheck, Zap } from 'lucide-react'
 import { Logo } from '@/components/Logo'
 import HScroll from '@/components/HScroll'
 import { setConsent } from '@/lib/consent'
@@ -144,6 +145,20 @@ function regionName(iso: string, lang: string): string {
   }
 }
 
+/** Link column — an accordion under md (a phone footer stays one screen, like
+ *  Apple's), a plain open list from md up. Links stay in the DOM either way. */
+function FooterCol({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <details className="group border-b border-white/[0.07] md:border-0">
+      <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 text-[13px] font-black uppercase tracking-wider text-white/60 md:pointer-events-none md:min-h-0 [&::-webkit-details-marker]:hidden">
+        {title}
+        <ChevronDown className="h-4 w-4 shrink-0 transition-transform duration-300 group-open:rotate-180 md:hidden" aria-hidden />
+      </summary>
+      {children}
+    </details>
+  )
+}
+
 export default function Footer({
   marketIso,
   marketCity,
@@ -153,6 +168,15 @@ export default function Footer({
 } = {}) {
   const { t, lang } = useI18n()
   const pathname = usePathname()
+  const rootRef = useRef<HTMLElement>(null)
+  // SSR ships the columns closed (phone-first); md+ opens them all.
+  useEffect(() => {
+    const mq = matchMedia('(min-width: 768px)')
+    const sync = () => rootRef.current?.querySelectorAll('details').forEach((d) => { d.open = mq.matches })
+    sync()
+    mq.addEventListener('change', sync)
+    return () => mq.removeEventListener('change', sync)
+  }, [])
   // ponytail: the copyright year was frozen at 2026 in 10 dictionaries — derive it.
   const year = new Date().getFullYear()
   const loc: SeoLoc = lang === 'en' || lang === 'ru' ? lang : 'ka'
@@ -246,12 +270,12 @@ export default function Footer({
   const homeHref = pathId ? countryBasePath(pathId, pathname) : '/'
 
   return (
-    <footer data-cms-section="footer" className="relative overflow-hidden border-t border-white/[0.07] bg-sv-navy">
+    <footer ref={rootRef} data-cms-section="footer" className="relative overflow-hidden border-t border-white/[0.07] bg-sv-navy">
       <div aria-hidden className="absolute inset-0 bg-grid-dark opacity-50" />
       <div aria-hidden className="absolute -top-40 left-1/3 h-[360px] w-[560px] rounded-full bg-sv-blue/10 blur-[160px]" />
       <div className="relative mx-auto max-w-[1440px] px-5 py-16 md:px-10 md:py-20">
-        <div className="grid gap-12 lg:grid-cols-[minmax(0,1.3fr)_repeat(3,minmax(0,1fr))]">
-          <div>
+        <div className="grid md:gap-12 lg:grid-cols-[minmax(0,1.3fr)_repeat(3,minmax(0,1fr))]">
+          <div className="mb-8 md:mb-0">
             <Logo light href={localizedHref(homeHref, lang)} />
             <p data-cms-key="footer.tagline" className="mt-5 max-w-[320px] text-[14px] font-medium leading-relaxed text-white/50">
               {isDe && lang === 'de'
@@ -279,9 +303,8 @@ export default function Footer({
           </div>
 
           {cols.map((c) => (
-            <div key={c.title}>
-              <p className="text-[13px] font-black uppercase tracking-wider text-white/60">{c.title}</p>
-              <ul className="mt-5 space-y-3">
+            <FooterCol key={c.title} title={c.title}>
+              <ul className="space-y-3 pb-5 md:mt-5 md:pb-0">
                 {c.links.map((l) => (
                   <li key={'key' in l && l.key ? l.key : l.href}>
                     <Link
@@ -294,7 +317,7 @@ export default function Footer({
                   </li>
                 ))}
               </ul>
-            </div>
+            </FooterCol>
           ))}
         </div>
 
@@ -302,13 +325,12 @@ export default function Footer({
         {isDe && (
           <nav
             aria-label="Immobilien in Deutschland und Berlin"
-            className="mt-14 border-t border-white/[0.07] pt-10"
+            className="mt-8 md:mt-14 md:border-t md:border-white/[0.07] md:pt-10"
           >
-            <div className="sv-link-grid">
+            <div className="sv-link-grid max-md:!block">
               {DE_GRID_COLS.map((c) => (
-                <div key={c.title.de}>
-                  <p className="text-[13px] font-black uppercase tracking-wider text-white/45">{c.title[deLoc]}</p>
-                  <ul className="mt-4 space-y-2">
+                <FooterCol key={c.title.de} title={c.title[deLoc]}>
+                  <ul className="space-y-2 pb-5 md:mt-4 md:pb-0">
                     {c.links.map((l) => (
                       <li key={l.href}>
                         <Link
@@ -320,7 +342,7 @@ export default function Footer({
                       </li>
                     ))}
                   </ul>
-                </div>
+                </FooterCol>
               ))}
             </div>
 
@@ -372,13 +394,12 @@ export default function Footer({
         {!offGe && (
           <nav
             aria-label={t('footer.popularSearches')}
-            className="mt-14 border-t border-white/[0.07] pt-10"
+            className="mt-8 md:mt-14 md:border-t md:border-white/[0.07] md:pt-10"
           >
-            <div className="sv-link-grid">
+            <div className="sv-link-grid max-md:!block">
               {GRID_COLS.map((c) => (
-                <div key={c.id}>
-                  <p className="text-[13px] font-black uppercase tracking-wider text-white/45">{c.title[loc]}</p>
-                  <ul className="mt-4 space-y-2">
+                <FooterCol key={c.id} title={c.title[loc]}>
+                  <ul className="space-y-2 pb-5 md:mt-4 md:pb-0">
                     {c.links.map((l) => (
                       <li key={l.href}>
                         <Link
@@ -390,7 +411,7 @@ export default function Footer({
                       </li>
                     ))}
                   </ul>
-                </div>
+                </FooterCol>
               ))}
             </div>
             {CITY_COL && (

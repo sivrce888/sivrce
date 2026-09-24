@@ -685,7 +685,7 @@ export function cityBySlug(slug: string): MapCity | null {
   return cityBySlugIn(MAP_CITIES, slug)
 }
 
-const CITY_ALIASES: Record<string, string> = {
+export const CITY_ALIASES: Record<string, string> = {
   tiflis: 'tbilisi',
   batoum: 'batumi',
   koeln: 'cologne',
@@ -845,4 +845,15 @@ export function initialMapCenter(
   const saved = readSavedPlace()
   if (saved && (!allow || allow.has(saved.slug))) return saved
   return fallback ?? MAP_CENTER
+}
+
+/** Map boot camera for a market (moved from geo-market so that client/edge module stays catalog-free). */
+export function marketCenter(market: MarketId): { lat: number; lng: number; slug: string } {
+  if (market === 'ge' || market === 'global') {
+    return { lat: FREEDOM_SQUARE.lat, lng: FREEDOM_SQUARE.lng, slug: 'tbilisi' }
+  }
+  const slug = MARKETS[market].defaultCitySlug
+  const pin = cityBySlug(slug)
+  if (pin) return { lat: pin.lat, lng: pin.lng, slug }
+  return { lat: FREEDOM_SQUARE.lat, lng: FREEDOM_SQUARE.lng, slug }
 }

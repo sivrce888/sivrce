@@ -40,22 +40,23 @@ export default async function Services({ lang = 'ka' }: { lang?: Lang }) {
           </p>
         </Reveal>
 
-        <div className="sv-card-grid-3">
+        {/* 6 cards: 3×2 / 2×3 — an auto-fill 4-col grid strands an orphan row of 2. */}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
           {SERVICES.map((s, i) => (
             <Reveal key={s.titleKey} delay={i * 0.08} className="h-full">
               <LocalizedLink
                 href={s.href}
-                className="group relative flex h-full flex-col overflow-hidden rounded-card border border-sv-ink/[0.06] bg-gradient-to-b from-sv-cloud to-sv-surface p-7 transition-all duration-500 hover:-translate-y-2 hover:border-transparent hover:shadow-card-hover"
+                className="group relative flex h-full flex-col overflow-hidden rounded-card border border-sv-ink/[0.06] bg-gradient-to-b from-sv-cloud to-sv-surface p-5 transition-all duration-500 hover:-translate-y-2 hover:border-transparent hover:shadow-card-hover sm:p-7"
               >
                 <span
-                  className="grid h-14 w-14 place-items-center rounded-module transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3"
+                  className="grid h-12 w-12 sm:h-14 sm:w-14 place-items-center rounded-module transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3"
                   style={{ backgroundColor: s.brand.chipVar, color: s.brand.hue }}
                 >
                   <s.icon className="h-6 w-6" />
                 </span>
-                <h3 className="mt-6 text-[18px] font-extrabold leading-snug text-sv-ink">{cards[i * 2]}</h3>
+                <h3 className="mt-4 text-[17px] sm:mt-6 sm:text-[18px] font-extrabold leading-snug text-sv-ink">{cards[i * 2]}</h3>
                 <p className="mt-2.5 flex-1 text-[14px] font-medium leading-relaxed text-sv-ink/60">{cards[i * 2 + 1]}</p>
-                <span className="mt-6 flex items-center gap-1.5 text-[14px] font-extrabold" style={{ color: s.brand.hue }}>
+                <span className="mt-4 flex items-center gap-1.5 sm:mt-6 text-[14px] font-extrabold" style={{ color: s.brand.hue }}>
                   {cta}
                   <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                 </span>

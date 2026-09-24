@@ -43,7 +43,7 @@ export const ru: Dict = {
 
   // ——— Search page chrome ———
   'search.title': 'Поиск',
-  'search.allGeorgia': 'Весь мир',
+  'search.allGeorgia': 'Везде',
   'search.dealType': 'Тип сделки',
   'search.all': 'Все',
   'search.sale': 'Продажа',

@@ -50,7 +50,7 @@ export default function Stats({ live }: { live: HomeStats }) {
   return (
     <section className="relative bg-sv-cloud py-20 md:py-28">
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           {STATS.map((s, i) => {
             const label = b(`home.stats.${s.n}.label` as CmsBlockKey)
             const target = live[s.live]
@@ -58,14 +58,14 @@ export default function Stats({ live }: { live: HomeStats }) {
             const suffix = '+'
             return (
               <Reveal key={s.n} delay={i * 0.02} className="h-full">
-                <div className="group relative h-full overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 transition-all duration-500 hover:-translate-y-1.5 hover:border-sv-blue/25 hover:shadow-card-hover">
+                <div className="group relative h-full overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface p-4 transition-all sm:p-6 duration-500 hover:-translate-y-1.5 hover:border-sv-blue/25 hover:shadow-card-hover">
                   <div className="mb-5 grid h-11 w-11 place-items-center rounded-module bg-sv-blue/10 text-sv-blue-deep dark:text-sv-blue-light transition-all duration-500 group-hover:scale-110 group-hover:bg-sv-blue group-hover:text-white">
                     <s.icon className="h-5 w-5" />
                   </div>
                   <div className="text-[34px] font-black tracking-tight text-sv-ink md:text-[38px]">
                     <CountUp target={target} suffix={suffix} />
                   </div>
-                  <div className="mt-1 text-[14px] font-extrabold text-sv-ink/85">{label}</div>
+                  <div className="mt-1 text-[13px] font-extrabold text-sv-ink/85 sm:text-[14px]">{label}</div>
                   <div className="mt-0.5 text-[12px] font-semibold text-sv-ink/65">
                     {b(`home.stats.${s.n}.sub` as CmsBlockKey)}
                   </div>

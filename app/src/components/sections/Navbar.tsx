@@ -20,6 +20,9 @@ import { toOrganicKaUrl } from '@/lib/directory-seo-lite'
 export default function Navbar({ marketIso }: { marketIso?: string } = {}) {
   const [scrolled, setScrolled] = useState(false)
   const [open, setOpen] = useState(false)
+  // Closed menu stays mounted (and 'visible' to IntersectionObserver) — without
+  // this, every phone load prefetched ~15 hidden routes. Prefetch once opened.
+  const menuPrefetch = open ? undefined : false
   const { count } = useFavorites()
   const { t, lang } = useI18n()
   const pathname = usePathname()
@@ -279,6 +282,7 @@ export default function Navbar({ marketIso }: { marketIso?: string } = {}) {
                 </a>
               ) : (
                 <Link
+                  prefetch={menuPrefetch}
                   key={l.key}
                   href={navHref(l.to)}
                   data-cms-key={l.key}
@@ -324,6 +328,7 @@ export default function Navbar({ marketIso }: { marketIso?: string } = {}) {
               </span>
             </a>
             <Link
+              prefetch={menuPrefetch}
               href={localizedHref("/favorites", lang)}
               onClick={() => setOpen(false)}
               className="mt-2 flex items-center justify-between rounded-control bg-sv-ink/[0.04] px-4 py-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
@@ -342,6 +347,7 @@ export default function Navbar({ marketIso }: { marketIso?: string } = {}) {
             </Link>
             <AccountMenu light variant="panel" onNavigate={() => setOpen(false)} />
             <Link
+              prefetch={menuPrefetch}
               href={localizedHref("/add-listing", lang)}
               onClick={() => setOpen(false)}
               className="mt-2 flex items-center justify-center gap-2 rounded-full bg-sv-orange px-4 py-3.5 text-[15px] font-black text-sv-ink shadow-glow-orange focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-[0.98]"

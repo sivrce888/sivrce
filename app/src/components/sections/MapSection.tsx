@@ -1,9 +1,8 @@
 'use client'
 
-import type { CSSProperties } from 'react'
 import LocalizedLink from '@/components/LocalizedLink'
 import { MousePointerClick, Building2, BarChart3, Layers, ArrowRight, MapPin } from 'lucide-react'
-import { Reveal, useInViewOnce } from '@/components/Reveal'
+import { Reveal } from '@/components/Reveal'
 import { STATUS_BRAND } from '@/lib/category-brand'
 import { BRAND } from '@/lib/brand'
 import { useI18n } from '@/lib/i18n/context'
@@ -72,7 +71,6 @@ function MapPreviewCard({ badge }: { badge: string }) {
 
 export default function MapSection({ href = '/map' }: { href?: string }) {
   const { b } = useI18n()
-  const { ref: chipRef, inView: chipInView } = useInViewOnce<HTMLDivElement>()
   return (
     <section className="relative overflow-hidden bg-sv-navy py-20 md:py-28">
       <div className="absolute inset-0 bg-grid-dark" />
@@ -129,27 +127,6 @@ export default function MapSection({ href = '/map' }: { href?: string }) {
               <div className="pointer-events-none absolute inset-0 rounded-card ring-1 ring-inset ring-white/10" />
             </div>
 
-            <div
-              ref={chipRef}
-              data-reveal
-              data-in={chipInView || undefined}
-              style={{ '--reveal-delay': '0.6s' } as CSSProperties}
-              className="absolute bottom-3 left-3 rounded-tile glass p-4 shadow-soft md:-bottom-6 md:-left-8"
-            >
-              <div className="flex items-center gap-3">
-                <span className="grid h-10 w-10 place-items-center rounded-control bg-sv-blue/20 text-sv-blue-light">
-                  <Building2 className="h-5 w-5" />
-                </span>
-                <div>
-                  <div className="text-[13px] font-extrabold text-white">North Avenue Tower</div>
-                  <div className="flex items-center text-[12px] font-bold text-white/55">
-                    {b('home.map.demoUnits', { n: 14 })}
-                    <span aria-hidden className="mx-1.5 inline-block h-1 w-1 rounded-full bg-white/30" />
-                    $2,400{b('home.perM2')}
-                  </div>
-                </div>
-              </div>
-            </div>
           </Reveal>
         </div>
       </div>

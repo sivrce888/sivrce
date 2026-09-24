@@ -2,7 +2,7 @@
 
 import type { CSSProperties } from 'react'
 import LocalizedLink from '@/components/LocalizedLink'
-import { MapPin, ArrowRight, BadgeCheck, Building2, CalendarCheck, Sparkles, Star } from 'lucide-react'
+import { MapPin, ArrowRight, BadgeCheck, Building2, CalendarCheck, Sparkles } from 'lucide-react'
 import { Reveal, useInViewOnce } from '@/components/Reveal'
 import HScroll from '@/components/HScroll'
 import { useI18n } from '@/lib/i18n/context'
@@ -93,9 +93,6 @@ export default function Projects({
                       <p className="flex items-center gap-1.5 text-[13px] font-bold text-white/80">
                         <BadgeCheck className="h-4 w-4 shrink-0 text-sv-success" /> {devName}
                       </p>
-                    </div>
-                    <div className="flex shrink-0 items-center gap-1 rounded-control bg-white/95 px-3 py-1.5 text-[14px] font-black text-sv-ink">
-                      <Star className="h-3.5 w-3.5 fill-sv-orange text-sv-orange" /> {p.rating}
                     </div>
                   </div>
                   <div className="absolute left-5 top-4 rounded-full bg-sv-navy/55 px-3.5 py-1.5 text-[12px] font-extrabold text-white backdrop-blur">

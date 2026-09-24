@@ -410,10 +410,12 @@ export default async function ProjectPage({ params }: PageProps) {
                   </a>
                 )}
               </div>
-              {project.rating > 0 && (
+              {/* Real reviews only — the catalog's seed `rating` has no source. */}
+              {aggregate && (
                 <div className="flex items-center gap-1 rounded-control bg-white/95 px-3.5 py-2 text-[15px] font-black text-sv-ink">
                   <Star className="h-4 w-4 fill-sv-orange text-sv-orange" aria-hidden />
-                  {project.rating}
+                  {aggregate.average.toFixed(1)}
+                  <span className="text-[12px] font-bold text-sv-ink/60">({aggregate.count})</span>
                 </div>
               )}
             </div>

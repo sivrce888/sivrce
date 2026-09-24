@@ -129,6 +129,31 @@ const BANNED: { entry: string; forbidden: string; why: string }[] = [
     forbidden: "lib/map/user-place.ts",
     why: "same ~208 routes as the navbar — the footer address line uses the market-city-label leaf (74 rows, drift-locked by market-city-label.check.ts)",
   },
+  {
+    entry: "components/sections/HeroSearch.tsx",
+    forbidden: "components/search/LocationPicker.tsx",
+    why: "the homepage hero island loads the picker (framer-motion + world city catalog) via dynamic import on first open — a static import puts it back on every home visit",
+  },
+  {
+    entry: "components/ListingCard.tsx",
+    forbidden: "lib/map/user-place.ts",
+    why: "place-label shipped data/world-places (~36 KB gz) to every card page for a ka↔en city label; it reads lib/city-names.gen.ts (names-only leaf, drift-locked by place-label.check.ts)",
+  },
+  {
+    entry: "components/country/GeoGate.tsx",
+    forbidden: "lib/map/user-place.ts",
+    why: "[lang]/page.tsx imports GlobalHome statically, so GeoGate rides the .ge home's client entry too — geo-market resolves cities from lib/city-names.gen.ts",
+  },
+  {
+    entry: "proxy.ts",
+    forbidden: "lib/map/user-place.ts",
+    why: "edge middleware runs on every request; geo-market must stay catalog-free (marketCenter lives in map/user-place for server callers)",
+  },
+  {
+    entry: "components/sections/HeroSearch.tsx",
+    forbidden: "lib/map/user-place.ts",
+    why: "the hero island must not reach data/world-places; locationLabel comes from lib/search-location (leaf)",
+  },
 ]
 
 for (const { entry, forbidden, why } of BANNED) {
@@ -167,4 +192,11 @@ assert.deepEqual(
   "bundle-leak: lib/countries/de-geg.ts must stay a leaf (de-expose only)",
 )
 
-console.log(`bundle-leak: ${BANNED.length} entry/catalog locks + 3 leaf locks ✓`)
+// framer-motion is a bare package, invisible to the graph walk above. The hero
+// island dropped it (~41 KB gz on every home visit) for CSS — keep it out.
+assert.ok(
+  !/from\s+["']framer-motion["']/.test(readFileSync(join(SRC, "components/sections/HeroSearch.tsx"), "utf8")),
+  "bundle-leak: components/sections/HeroSearch.tsx must not import framer-motion (CSS only)",
+)
+
+console.log(`bundle-leak: ${BANNED.length} entry/catalog locks + 3 leaf locks + hero framer lock ✓`)

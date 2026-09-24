@@ -25,7 +25,11 @@ import { MAP_CITIES, nearestMapCity } from '@/lib/map/user-place'
 export type { LocationValue }
 export { locationLabel }
 
-const POPULAR = GEO_CITIES.slice(0, 10)
+// Demand order, not catalog order — GEO_CITIES went alphabetical in the gazetteer
+// audit, which turned slice(0, 10) into აბასთუმანი…ახალციხე with no Tbilisi.
+const POPULAR = ['თბილისი', 'ბათუმი', 'ქუთაისი', 'რუსთავი', 'ქობულეთი', 'ბაკურიანი', 'გუდაური', 'ბორჯომი', 'თელავი', 'გორი'].filter(
+  (c) => GEO_CITIES.includes(c),
+)
 const ease = [0.21, 0.65, 0.2, 1] as const
 
 const noopSubscribe = () => () => {}
