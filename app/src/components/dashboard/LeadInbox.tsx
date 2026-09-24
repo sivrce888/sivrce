@@ -5,6 +5,7 @@ import { setProLeadStatus } from "@/components/dashboard/lead-actions"
 import { INQUIRY_STATUSES, isInquiryStatus, leadWaText } from "@/lib/pro-leads"
 import { inquiryStatusLabel } from "@/components/agent-dashboard/format"
 import { telHref, waHref } from "@/lib/inquiries/phone"
+import { panelLang } from "@/lib/i18n/core"
 
 export type InboxLead = {
   id: string
@@ -158,7 +159,7 @@ export default function LeadInbox({
   layout?: "list" | "board"
   lang?: string
 }) {
-  const t = L[lang === "en" ? "en" : lang === "de" ? "de" : "ka"]
+  const t = L[panelLang(lang)]
   const statusLabel = inquiryStatusLabel(lang)
 
   if (layout === "board") {

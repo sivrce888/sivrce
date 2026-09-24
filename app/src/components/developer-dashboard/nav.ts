@@ -1,4 +1,5 @@
 import type { DashboardNavItem } from "@/components/dashboard/DashboardShell"
+import { panelLang } from "@/lib/i18n/core"
 
 const L = {
   ka: {
@@ -36,7 +37,7 @@ const L = {
 type Loc = keyof typeof L
 
 export function developerNav(lang: string): DashboardNavItem[] {
-  const loc: Loc = lang === "en" ? "en" : lang === "de" ? "de" : "ka"
+  const loc: Loc = panelLang(lang)
   const s = L[loc]
   return [
     { href: "/developer", label: s.overview },

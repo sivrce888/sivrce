@@ -1,4 +1,5 @@
 import type { DashboardNavItem } from "@/components/dashboard/DashboardShell"
+import { panelLang } from "@/lib/i18n/core"
 
 const L = {
   ka: {
@@ -34,7 +35,7 @@ type Loc = keyof typeof L
 
 /** Shared sidebar nav for every /agent page. */
 export function agentNav(lang: string): DashboardNavItem[] {
-  const loc: Loc = lang === "en" ? "en" : lang === "de" ? "de" : "ka"
+  const loc: Loc = panelLang(lang)
   const s = L[loc]
   return [
     { href: "/agent", label: s.overview },

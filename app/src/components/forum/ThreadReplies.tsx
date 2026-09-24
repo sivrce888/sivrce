@@ -6,6 +6,7 @@ import type { ForumReply } from '@/data/forum'
 import { ReplyForm } from '@/components/forum/ReplyForm'
 import { useI18n } from '@/lib/i18n/context'
 import { cn } from '@/lib/utils'
+import { panelLang } from '@/lib/i18n/core'
 
 const L = {
   ka: {
@@ -112,7 +113,7 @@ function ReplyCard({
 
 export function ThreadReplies({ slug, replies }: { slug: string; replies: ForumReply[] }) {
   const { lang } = useI18n()
-  const s = L[lang === 'en' ? 'en' : lang === 'de' ? 'de' : 'ka']
+  const s = L[panelLang(lang)]
   const [replyTo, setReplyTo] = useState<string | null>(null)
   const tops = replies.filter((r) => !r.parentId)
   const kids = (parentId: string) => replies.filter((r) => r.parentId === parentId)

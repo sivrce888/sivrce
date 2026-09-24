@@ -10,7 +10,7 @@ import { getForumThread, listForumThreads, relatedForumThreads } from '@/lib/for
 import { jsonLd } from '@/lib/utils'
 import { requestOrigin } from '@/lib/request-market'
 import {kaOnlyAlternates,  } from '@/lib/i18n/server'
-import { isValidLang, type Lang } from '@/lib/i18n/core'
+import { isValidLang, type Lang, panelLang } from '@/lib/i18n/core'
 
 export const revalidate = 60
 
@@ -62,7 +62,7 @@ const L = {
 } as const
 
 function forumThreadStrings(lang: Lang): (typeof L)[keyof typeof L] {
-  return L[lang === 'en' ? 'en' : lang === 'de' ? 'de' : 'ka']
+  return L[panelLang(lang)]
 }
 
 export function generateStaticParams() {

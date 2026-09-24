@@ -36,18 +36,18 @@ export default async function FavoritesPage({
       ? {
           kicker: 'შენახული',
           title: 'ფავორიტები',
-          subtitle: 'განცხადებები, რომლებიც გულის ნიშნით მონიშნე — ინახება მხოლოდ შენს მოწყობილობაზე.',
+          subtitle: 'განცხადებები, რომლებიც გულის ნიშნით მონიშნე — შესვლისას ყველა მოწყობილობაზე სინქრონდება.',
         }
       : lang === 'ru'
         ? {
             kicker: 'Сохранённое',
             title: 'Избранное',
-            subtitle: 'Объявления, которые ты отметил сердечком — хранятся только на твоём устройстве.',
+            subtitle: 'Объявления, отмеченные сердечком — после входа синхронизируются на всех устройствах.',
           }
         : {
             kicker: 'Saved',
             title: 'Favorites',
-            subtitle: 'Listings you hearted — stored only on your device.',
+            subtitle: 'Listings you hearted — synced across your devices when you sign in.',
           }
   return (
     <div className="min-h-screen bg-sv-cloud">

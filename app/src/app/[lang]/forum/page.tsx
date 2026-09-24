@@ -9,7 +9,7 @@ import { listForumThreads } from '@/lib/forum-live'
 import { requestOrigin } from '@/lib/request-market'
 import { jsonLd } from '@/lib/utils'
 import { pageMeta, OG_LOCALE } from '@/lib/i18n/server'
-import { isValidLang, type Lang } from '@/lib/i18n/core'
+import { isValidLang, type Lang, panelLang } from '@/lib/i18n/core'
 
 export const revalidate = 60
 
@@ -61,7 +61,7 @@ const L = {
 
 type ForumLoc = keyof typeof L
 function forumStrings(lang: Lang): (typeof L)[ForumLoc] {
-  return L[lang === 'en' ? 'en' : lang === 'de' ? 'de' : 'ka']
+  return L[panelLang(lang)]
 }
 
 export async function generateMetadata({

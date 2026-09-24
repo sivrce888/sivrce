@@ -3,7 +3,7 @@ import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import { PageHero } from '@/components/PageHero'
 import { Reveal } from '@/components/Reveal'
-import { isValidLang } from '@/lib/i18n/core'
+import { isValidLang, panelLang } from '@/lib/i18n/core'
 import { kaOnlyAlternates, pageMeta } from '@/lib/i18n/server'
 import { jsonLd } from '@/lib/utils'
 import { requestOrigin } from '@/lib/request-market'
@@ -164,7 +164,7 @@ export default async function TermsPage({ params }: { params: Promise<{ lang: st
   const origin = await requestOrigin()
   const { lang: raw } = await params
   const lang = isValidLang(raw) ? raw : 'ka'
-  const ui = UI[lang === 'en' ? 'en' : lang === 'de' ? 'de' : 'ka']
+  const ui = UI[panelLang(lang)]
   const termsLd = {
     '@context': 'https://schema.org',
     '@graph': [
@@ -204,7 +204,7 @@ export default async function TermsPage({ params }: { params: Promise<{ lang: st
             </p>
           ) : null}
           <div className="space-y-10">
-            {(SECTIONS_BY_LANG[lang === 'en' ? 'en' : lang === 'de' ? 'de' : 'ka'] ?? SECTIONS_BY_LANG.ka).map((s, i) => (
+            {(SECTIONS_BY_LANG[panelLang(lang)] ?? SECTIONS_BY_LANG.ka).map((s, i) => (
               <Reveal key={s.title} delay={Math.min(i * 0.04, 0.2)}>
                 <section>
                   <h2 className="text-xl font-black tracking-[-0.02em] text-sv-ink">{s.title}</h2>

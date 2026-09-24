@@ -13,6 +13,7 @@ import { useTheme } from 'next-themes'
 import { statusPaint, type CadastreParcel, type CadastreStatus } from '@/lib/map/cadastre'
 import { CadastreMapLazy } from '@/components/map/CadastreMapLazy'
 import { useI18n } from '@/lib/i18n/context'
+import { panelLang } from '@/lib/i18n/core'
 
 export type MyListingPin = {
   slug: string
@@ -98,7 +99,7 @@ const L = {
 } as const
 
 function priceLabel(price: number, currency: string, lang: string): string {
-  const locale = lang === 'en' ? 'en-US' : lang === 'de' ? 'de-DE' : 'ka-GE'
+  const locale = ({ ka: 'ka-GE', en: 'en-US', de: 'de-DE' } as const)[panelLang(lang)]
   return new Intl.NumberFormat(locale, {
     style: 'currency',
     currency,
@@ -109,7 +110,7 @@ function priceLabel(price: number, currency: string, lang: string): string {
 export default function MyCadastreView({ pins, name }: { pins: MyListingPin[]; name?: string | null }) {
   const { resolvedTheme } = useTheme()
   const { lang } = useI18n()
-  const c = L[lang === 'en' ? 'en' : lang === 'de' ? 'de' : 'ka']
+  const c = L[panelLang(lang)]
   const isDark = resolvedTheme === 'dark'
   const [rings, setRings] = useState<Map<string, [number, number][]>>(new Map())
   const [settled, setSettled] = useState(false)

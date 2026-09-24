@@ -6,6 +6,7 @@ import {
   PROJECT_STATUSES,
   PROJECT_STATUS_KA,
 } from "@/lib/developer-project"
+import { panelLang } from "@/lib/i18n/core"
 
 const field =
   "h-11 rounded-control border border-sv-ink/12 bg-sv-cloud/40 px-4 text-[14px] font-semibold text-sv-ink outline-none focus:border-sv-blue focus:ring-2 focus:ring-sv-blue/20"
@@ -109,7 +110,7 @@ export default function ProjectForm({
   /** URL locale — server component, so lang is passed in (no useI18n here). */
   lang?: string
 }) {
-  const loc = lang === "en" ? "en" : lang === "de" ? "de" : "ka"
+  const loc = panelLang(lang)
   const T = L[loc]
   return (
     <section className="rounded-card border border-sv-ink/6 bg-sv-surface p-6 shadow-card">

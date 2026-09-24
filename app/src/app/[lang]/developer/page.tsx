@@ -11,7 +11,7 @@ import { db } from "@/lib/db"
 import { isProjectStatus } from "@/lib/developer-project"
 import { requireRole, safeQuery } from "@/lib/guards"
 import { inquiryWhere } from "@/lib/pro-leads"
-import { isValidLang } from "@/lib/i18n/core"
+import { isValidLang, panelLang } from "@/lib/i18n/core"
 
 export const dynamic = "force-dynamic"
 
@@ -107,14 +107,14 @@ export async function generateMetadata({
   params: Promise<{ lang: string }>
 }): Promise<Metadata> {
   const { lang: raw } = await params
-  const loc: Loc = raw === "en" ? "en" : raw === "de" ? "de" : "ka"
+  const loc: Loc = panelLang(raw)
   return { title: L[loc].metaTitle, robots: { index: false } }
 }
 
 export default async function DeveloperOverviewPage({ params }: { params: Promise<{ lang: string }> }) {
   const { lang: raw } = await params
   const lang = isValidLang(raw) ? raw : "ka"
-  const loc = lang === "en" ? "en" : lang === "de" ? "de" : "ka"
+  const loc = panelLang(lang)
   const T = L[loc]
   const user = await requireRole("developer", "/developer")
 

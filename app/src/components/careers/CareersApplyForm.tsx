@@ -4,6 +4,7 @@ import { useState, type FormEvent } from 'react'
 import { Send, CheckCircle2, Loader2, AlertCircle, FileUp, X } from 'lucide-react'
 import { formatPhone, PHONE_RE } from '@/lib/inquiries/phone'
 import { useI18n } from '@/lib/i18n/context'
+import { panelLang } from '@/lib/i18n/core'
 
 const CITIES = ['თბილისი', 'ბათუმი'] as const
 const MAX_CV_BYTES = 5 * 1024 * 1024
@@ -94,7 +95,7 @@ const L = {
 
 export default function CareersApplyForm() {
   const { lang } = useI18n()
-  const loc = lang === 'en' ? 'en' : lang === 'de' ? 'de' : 'ka'
+  const loc = panelLang(lang)
   const T = L[loc]
   const [sent, setSent] = useState(false)
   const [sending, setSending] = useState(false)

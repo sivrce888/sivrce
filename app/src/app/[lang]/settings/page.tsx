@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import Link from "next/link"
+import LocalizedLink from "@/components/LocalizedLink"
 import {
   ArrowLeftRight,
   Bell,
@@ -18,7 +18,7 @@ import { PushToggle } from "@/components/push/PushToggle"
 import { AccountForms } from "@/components/settings/AccountForms"
 import { LiteModeToggle } from "@/components/settings/LiteModeToggle"
 import { RolePicker } from "@/components/settings/RolePicker"
-import { isValidLang } from "@/lib/i18n/core"
+import { isValidLang, panelLang } from "@/lib/i18n/core"
 import { getServerT } from "@/lib/i18n/server"
 import {
   dashboardPathFor,
@@ -93,7 +93,7 @@ export default async function SettingsPage({
   const { intent: rawIntent } = await searchParams
   const intent = parsePersonaIntent(rawIntent)
   const t = getServerT(lang)
-  const c = lang === "de" ? C.de : lang === "en" ? C.en : C.ka
+  const c = C[panelLang(lang)]
   const user = await requireUser("/settings")
   const persona = await readPersona(user.role)
   const home = dashboardPathFor(user.role)
@@ -212,32 +212,32 @@ export default async function SettingsPage({
                 {c.spaceDesc}
               </p>
               <div className="mt-4 flex flex-wrap gap-2">
-                <Link
+                <LocalizedLink
                   href="/account"
                   className="inline-flex items-center gap-1.5 rounded-full border border-sv-ink/12 px-4 py-2 text-[12.5px] font-bold text-sv-ink/70 transition hover:border-sv-blue hover:text-sv-blue"
                 >
                   {c.account}
-                </Link>
-                <Link
+                </LocalizedLink>
+                <LocalizedLink
                   href="/favorites"
                   className="inline-flex items-center gap-1.5 rounded-full border border-sv-ink/12 px-4 py-2 text-[12.5px] font-bold text-sv-ink/70 transition hover:border-sv-blue hover:text-sv-blue"
                 >
                   <Heart size={13} aria-hidden />
                   {c.favorites}
-                </Link>
-                <Link
+                </LocalizedLink>
+                <LocalizedLink
                   href="/compare"
                   className="inline-flex items-center gap-1.5 rounded-full border border-sv-ink/12 px-4 py-2 text-[12.5px] font-bold text-sv-ink/70 transition hover:border-sv-blue hover:text-sv-blue"
                 >
                   <ArrowLeftRight size={13} aria-hidden />
                   {c.compare}
-                </Link>
-                <Link
+                </LocalizedLink>
+                <LocalizedLink
                   href={home}
                   className="inline-flex items-center gap-1.5 rounded-full bg-sv-blue px-4 py-2 text-[12.5px] font-bold text-white transition hover:bg-sv-blue-deep"
                 >
                   {c.panel}
-                </Link>
+                </LocalizedLink>
               </div>
             </div>
           </div>

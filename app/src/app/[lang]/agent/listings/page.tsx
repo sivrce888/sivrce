@@ -7,9 +7,10 @@ import MyListingsManager, {
 import { agentNav } from "@/components/agent-dashboard/nav"
 import { db } from "@/lib/db"
 import { requireRole, safeQuery } from "@/lib/guards"
+import { savedCounts } from "@/lib/saved-listings"
 import { phoneRevealsOf } from "@/lib/inquiries/phone"
 import { effectiveTierKey } from "@/lib/promo-pricing"
-import { isValidLang } from "@/lib/i18n/core"
+import { isValidLang, panelLang } from "@/lib/i18n/core"
 
 export const dynamic = "force-dynamic"
 
@@ -38,14 +39,14 @@ export async function generateMetadata({
   params: Promise<{ lang: string }>
 }): Promise<Metadata> {
   const { lang: raw } = await params
-  const loc: Loc = raw === "en" ? "en" : raw === "de" ? "de" : "ka"
+  const loc: Loc = panelLang(raw)
   return { title: L[loc].metaTitle, robots: { index: false } }
 }
 
 export default async function AgentListingsPage({ params }: { params: Promise<{ lang: string }> }) {
   const { lang: raw } = await params
   const lang = isValidLang(raw) ? raw : "ka"
-  const loc = lang === "en" ? "en" : lang === "de" ? "de" : "ka"
+  const loc = panelLang(lang)
   const T = L[loc]
   const user = await requireRole("agent", "/agent")
 
@@ -59,6 +60,7 @@ export default async function AgentListingsPage({ params }: { params: Promise<{ 
   )
 
   const ids = listings.map((l) => l.id)
+  const savesP = safeQuery(() => savedCounts(ids), new Map<string, number>())
   const leadGroups = await safeQuery(
     () =>
       ids.length === 0
@@ -71,6 +73,7 @@ export default async function AgentListingsPage({ params }: { params: Promise<{ 
     [],
   )
   const leadsById = new Map(leadGroups.map((g) => [g.listingId, g._count._all]))
+  const savesById = await savesP
 
   const managed: ManagedListing[] = listings.map((l) => ({
     id: l.id,
@@ -85,6 +88,7 @@ export default async function AgentListingsPage({ params }: { params: Promise<{ 
     tierExpiresAt: l.tierExpiresAt?.toISOString() ?? null,
     views: l.views,
     leads: leadsById.get(l.id) ?? 0,
+    saves: savesById.get(l.id) ?? 0,
     phoneReveals: phoneRevealsOf(l.extendedFields),
     image: l.images[0] ?? "/images/p1.webp",
     createdAt: l.createdAt.toISOString(),

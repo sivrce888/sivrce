@@ -6,6 +6,7 @@ import { sellerNav } from "@/components/seller-dashboard/nav"
 import { dashboardPathFor } from "@/lib/guards"
 import { panelTitle, type Persona } from "@/lib/workspace"
 import type { UserRole } from "@/generated/prisma/client"
+import { panelLang } from "@/lib/i18n/core"
 
 const BUYER_L = {
   ka: ["მიმოხილვა", "ფავორიტები", "შედარება", "პარამეტრები"],
@@ -14,7 +15,7 @@ const BUYER_L = {
 } as const
 
 export function buyerNav(lang = "ka"): DashboardNavItem[] {
-  const t = BUYER_L[lang === "en" ? "en" : lang === "de" ? "de" : "ka"]
+  const t = BUYER_L[panelLang(lang)]
   return [
     { href: "/account", label: t[0] },
     { href: "/favorites", label: t[1] },
@@ -26,7 +27,7 @@ export function buyerNav(lang = "ka"): DashboardNavItem[] {
 const ADMIN_L = { ka: ["ადმინი", "პარამეტრები"], en: ["Admin", "Settings"], de: ["Admin", "Einstellungen"] } as const
 
 function adminNav(lang = "ka"): DashboardNavItem[] {
-  const t = ADMIN_L[lang === "en" ? "en" : lang === "de" ? "de" : "ka"]
+  const t = ADMIN_L[panelLang(lang)]
   return [
     { href: "/admin", label: t[0] },
     { href: "/settings", label: t[1] },

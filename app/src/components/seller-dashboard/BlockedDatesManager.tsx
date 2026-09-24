@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react"
 import { toast } from "sonner"
 
 import { useI18n } from "@/lib/i18n/context"
+import { panelLang } from "@/lib/i18n/core"
 
 /**
  * Host calendar: tap a date to block/unblock it. Writes go straight to
@@ -58,7 +59,7 @@ export function BlockedDatesManager({
   initialBlocked: string[]
 }) {
   const { lang } = useI18n()
-  const c = L[lang === "en" ? "en" : lang === "de" ? "de" : "ka"]
+  const c = L[panelLang(lang)]
   const [blocked, setBlocked] = useState<Set<string>>(() => new Set(initialBlocked))
   const [cursor, setCursor] = useState(0)
   const todayIso = localTodayIso()

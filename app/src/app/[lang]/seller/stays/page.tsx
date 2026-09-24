@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import Link from "next/link"
+import LocalizedLink from "@/components/LocalizedLink"
 import { MessageCircle, Phone } from "lucide-react"
 
 import { sellerSetStayStatus } from "./actions"
@@ -17,7 +17,7 @@ import { db } from "@/lib/db"
 import { requireRole, safeQuery } from "@/lib/guards"
 import { panelTitle } from "@/lib/workspace"
 import { readPersona } from "@/lib/workspace-cookie"
-import { isValidLang } from "@/lib/i18n/core"
+import { isValidLang, panelLang } from "@/lib/i18n/core"
 
 export const dynamic = "force-dynamic"
 
@@ -147,12 +147,12 @@ function StayCard({
     <li className="rounded-card border border-sv-ink/[0.06] bg-sv-surface p-5 shadow-card">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <Link
+          <LocalizedLink
             href={`/listing/${booking.listing.id}`}
             className="block truncate text-[15px] font-extrabold text-sv-ink hover:text-sv-blue"
           >
             {booking.listing.title}
-          </Link>
+          </LocalizedLink>
           <p className="mt-0.5 text-[12.5px] font-medium text-sv-ink/60">
             {booking.listing.city} · {booking.listing.district}
           </p>
@@ -233,7 +233,7 @@ function StayCard({
 export default async function SellerStaysPage({ params }: { params: Promise<{ lang: string }> }) {
   const { lang: raw } = await params
   const lang = isValidLang(raw) ? raw : "ka"
-  const c = L[lang === "en" ? "en" : lang === "de" ? "de" : "ka"]
+  const c = L[panelLang(lang)]
   const user = await requireRole("seller", "/seller")
   const persona = await readPersona(user.role)
 

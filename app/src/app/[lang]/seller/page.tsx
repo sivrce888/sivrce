@@ -16,7 +16,7 @@ import {
   panelTitle,
 } from "@/lib/workspace"
 import { readPersona } from "@/lib/workspace-cookie"
-import { isValidLang } from "@/lib/i18n/core"
+import { isValidLang, panelLang } from "@/lib/i18n/core"
 
 export const dynamic = "force-dynamic"
 
@@ -112,7 +112,7 @@ const L = {
 export default async function SellerOverviewPage({ params }: { params: Promise<{ lang: string }> }) {
   const { lang: raw } = await params
   const lang = isValidLang(raw) ? raw : "ka"
-  const c = L[lang === "en" ? "en" : lang === "de" ? "de" : "ka"]
+  const c = L[panelLang(lang)]
   const user = await requireRole("seller", "/seller")
   const persona = await readPersona(user.role)
   const rent = isRentFocus(persona)

@@ -1,3 +1,4 @@
+import { panelLang } from "@/lib/i18n/core"
 export type BadgeTone = "green" | "blue" | "orange" | "red" | "neutral"
 
 const L = {
@@ -141,7 +142,7 @@ const L = {
 type Loc = keyof typeof L
 
 function locOf(lang: string): Loc {
-  return lang === "en" ? "en" : lang === "de" ? "de" : "ka"
+  return panelLang(lang)
 }
 
 const DATE_FMTS: Record<Loc, Intl.DateTimeFormat> = {

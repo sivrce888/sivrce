@@ -1,7 +1,7 @@
 import type { ReactNode } from "react"
 
 import { signOutToHome } from "@/app/auth/actions"
-import DashboardNav from "@/components/dashboard/DashboardNav"
+import DashboardNav, { SignOutLabel } from "@/components/dashboard/DashboardNav"
 import { Logo } from "@/components/Logo"
 
 export interface DashboardNavItem {
@@ -12,7 +12,7 @@ export interface DashboardNavItem {
 interface DashboardShellProps {
   /** Sidebar/nav links for this role area. */
   nav: DashboardNavItem[]
-  /** Georgian area title, e.g. "აგენტის პანელი". */
+  /** Localized area title, e.g. panelTitle(persona, lang). */
   title: string
   subtitle?: string
   userLabel: string
@@ -51,7 +51,7 @@ export default function DashboardShell({
                 type="submit"
                 className="rounded-full border border-sv-ink/12 px-4 py-2 text-[12px] font-bold text-sv-ink/70 transition hover:border-sv-blue hover:text-sv-blue"
               >
-                გასვლა
+                <SignOutLabel />
               </button>
             </form>
           </div>

@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import Link from "next/link"
+import LocalizedLink from "@/components/LocalizedLink"
 import { Building2, ExternalLink, MapPin, Star } from "lucide-react"
 
 import { saveDeveloperProfile } from "@/app/[lang]/developer/profile/actions"
@@ -10,7 +10,7 @@ import { RequestVerification } from "@/components/dashboard/RequestVerification"
 import { developerNav } from "@/components/developer-dashboard/nav"
 import { db } from "@/lib/db"
 import { requireRole, safeQuery } from "@/lib/guards"
-import { isValidLang } from "@/lib/i18n/core"
+import { isValidLang, panelLang } from "@/lib/i18n/core"
 
 export const dynamic = "force-dynamic"
 
@@ -90,14 +90,14 @@ export async function generateMetadata({
   params: Promise<{ lang: string }>
 }): Promise<Metadata> {
   const { lang: raw } = await params
-  const loc: Loc = raw === "en" ? "en" : raw === "de" ? "de" : "ka"
+  const loc: Loc = panelLang(raw)
   return { title: L[loc].metaTitle, robots: { index: false } }
 }
 
 export default async function DeveloperProfilePage({ params }: { params: Promise<{ lang: string }> }) {
   const { lang: raw } = await params
   const lang = isValidLang(raw) ? raw : "ka"
-  const loc = lang === "en" ? "en" : lang === "de" ? "de" : "ka"
+  const loc = panelLang(lang)
   const T = L[loc]
   const user = await requireRole("developer", "/developer")
 
@@ -116,13 +116,13 @@ export default async function DeveloperProfilePage({ params }: { params: Promise
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-[22px] font-black tracking-tight text-sv-ink">{T.h1}</h1>
         {profile ? (
-          <Link
+          <LocalizedLink
             href={`/developers/${profile.slug}`}
             className="inline-flex items-center gap-1.5 rounded-full border border-sv-ink/12 px-4 py-2 text-[12.5px] font-bold text-sv-ink/70 transition hover:border-sv-blue hover:text-sv-blue"
           >
             {T.publicPage}
             <ExternalLink size={13} aria-hidden />
-          </Link>
+          </LocalizedLink>
         ) : null}
       </div>
 
@@ -217,7 +217,7 @@ export default async function DeveloperProfilePage({ params }: { params: Promise
       </section>
 
       {profile ? (
-        <RequestVerification subjectType="developer" subjectId={profile.id} verified={!!profile.ownerId} />
+        <RequestVerification subjectType="developer" subjectId={profile.id} lang={lang} />
       ) : null}
     </DashboardShell>
   )

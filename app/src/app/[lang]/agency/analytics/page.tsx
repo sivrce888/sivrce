@@ -10,7 +10,7 @@ import StatCard from "@/components/dashboard/StatCard"
 import { db } from "@/lib/db"
 import { requireRole, safeQuery } from "@/lib/guards"
 import { inquiryStatusLabel } from "@/components/agent-dashboard/format"
-import { isValidLang } from "@/lib/i18n/core"
+import { isValidLang, panelLang } from "@/lib/i18n/core"
 import {
   INQUIRY_STATUSES,
   inquiryWhere,
@@ -78,7 +78,7 @@ export async function generateMetadata({
   params: Promise<{ lang: string }>
 }): Promise<Metadata> {
   const { lang: raw } = await params
-  const loc: Loc = raw === "en" ? "en" : raw === "de" ? "de" : "ka"
+  const loc: Loc = panelLang(raw)
   return { title: L[loc].metaTitle, robots: { index: false } }
 }
 
@@ -87,7 +87,7 @@ const LISTING_STATUS_ORDER: ListingStatus[] = ["active", "pending", "sold", "exp
 export default async function AgencyAnalyticsPage({ params }: { params: Promise<{ lang: string }> }) {
   const { lang: raw } = await params
   const lang = isValidLang(raw) ? raw : "ka"
-  const loc = lang === "en" ? "en" : lang === "de" ? "de" : "ka"
+  const loc = panelLang(lang)
   const T = L[loc]
   const user = await requireRole("agency", "/agency")
   const { ownerIds } = await getAgencyContext(user)

@@ -7,7 +7,7 @@ import EmptyState from "@/components/dashboard/EmptyState"
 import TourCard, { tourListingInclude } from "@/components/dashboard/TourCard"
 import { db } from "@/lib/db"
 import { requireRole, safeQuery } from "@/lib/guards"
-import { isValidLang } from "@/lib/i18n/core"
+import { isValidLang, panelLang } from "@/lib/i18n/core"
 
 export const dynamic = "force-dynamic"
 
@@ -51,14 +51,14 @@ export async function generateMetadata({
   params: Promise<{ lang: string }>
 }): Promise<Metadata> {
   const { lang: raw } = await params
-  const loc: Loc = raw === "en" ? "en" : raw === "de" ? "de" : "ka"
+  const loc: Loc = panelLang(raw)
   return { title: L[loc].metaTitle, robots: { index: false } }
 }
 
 export default async function AgencyToursPage({ params }: { params: Promise<{ lang: string }> }) {
   const { lang: raw } = await params
   const lang = isValidLang(raw) ? raw : "ka"
-  const loc = lang === "en" ? "en" : lang === "de" ? "de" : "ka"
+  const loc = panelLang(lang)
   const T = L[loc]
   const user = await requireRole("agency", "/agency")
   const { ownerIds } = await getAgencyContext(user)

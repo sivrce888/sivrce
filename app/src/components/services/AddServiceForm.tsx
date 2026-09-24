@@ -7,6 +7,7 @@ import { formatPhone } from '@/lib/inquiries/phone'
 import LocalizedLink from '@/components/LocalizedLink'
 import { SERVICE_CATEGORIES, SERVICE_CITIES, pickLocText } from '@/lib/services'
 import { useI18n } from '@/lib/i18n/context'
+import { panelLang } from '@/lib/i18n/core'
 
 const input =
   'w-full rounded-control border border-sv-ink/[0.08] bg-sv-cloud px-4 py-3.5 text-[15px] font-semibold text-sv-ink placeholder:text-sv-ink/35 outline-none transition-all focus:border-sv-blue focus:ring-4 focus:ring-sv-blue/10'
@@ -70,7 +71,7 @@ const CITY_L10N: Record<string, { en: string; de: string }> = {
 
 export function AddServiceForm() {
   const { lang } = useI18n()
-  const loc = lang === 'en' ? 'en' : lang === 'de' ? 'de' : 'ka'
+  const loc = panelLang(lang)
   const T = L[loc]
   const [state, action, pending] = useActionState(createServiceListing, { error: null })
 

@@ -1,4 +1,5 @@
 import type { DashboardNavItem } from "@/components/dashboard/DashboardShell"
+import { panelLang } from "@/lib/i18n/core"
 
 const L = {
   ka: ["მიმოხილვა", "განცხადებები", "ლიდები", "ვიზიტები", "ღამეული", "პარამეტრები"],
@@ -7,7 +8,7 @@ const L = {
 } as const
 
 export function sellerNav(lang = "ka"): DashboardNavItem[] {
-  const t = L[lang === "en" ? "en" : lang === "de" ? "de" : "ka"]
+  const t = L[panelLang(lang)]
   return [
     { href: "/seller", label: t[0] },
     { href: "/seller/listings", label: t[1] },

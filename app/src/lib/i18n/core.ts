@@ -27,6 +27,19 @@ export function isValidLang(seg: string): seg is Lang {
   return (LANGS as readonly string[]).includes(seg)
 }
 
+/** Locale of surfaces whose copy tables ship ka/en/de only (dashboards, settings, forms). */
+export type PanelLang = 'ka' | 'en' | 'de'
+
+/**
+ * ka and de read their own table; every other valid locale reads English.
+ * A ru/uk/tr/he/ar/hy/az reader chose not to see Georgian, so Georgian is the
+ * worst fallback for them. Unknown segments stay on the ka default.
+ */
+export function panelLang(lang: string): PanelLang {
+  if (lang === 'de') return 'de'
+  return isValidLang(lang) && lang !== DEFAULT_LANG ? 'en' : 'ka'
+}
+
 /** Russian plural rule: n%10==1 && n%100!=11 → one; n%10 in 2..4 && n%100 not in 12..14 → few; else many. */
 export function ruPlural(n: number, one: string, few: string, many: string): string {
   const mod100 = Math.abs(n) % 100

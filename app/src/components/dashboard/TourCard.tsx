@@ -1,4 +1,4 @@
-import Link from "next/link"
+import LocalizedLink from "@/components/LocalizedLink"
 import { MessageCircle, Phone } from "lucide-react"
 
 import Badge from "@/components/agent-dashboard/Badge"
@@ -27,12 +27,12 @@ export default function TourCard({
     <li className="rounded-card border border-sv-ink/[0.06] bg-sv-surface p-5 shadow-card">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <Link
+          <LocalizedLink
             href={`/listing/${tour.listing.id}`}
             className="block truncate text-[15px] font-extrabold text-sv-ink hover:text-sv-blue"
           >
             {tour.listing.title}
-          </Link>
+          </LocalizedLink>
           <p className="mt-0.5 text-[12.5px] font-medium text-sv-ink/60">
             {tour.listing.city} · {tour.listing.district}
           </p>

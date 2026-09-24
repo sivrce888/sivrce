@@ -19,7 +19,7 @@ import { inquiryWhere, listingOwnerWhere } from "@/lib/pro-leads"
 import { phoneRevealsOf } from "@/lib/inquiries/phone"
 import { db } from "@/lib/db"
 import { requireRole, safeQuery } from "@/lib/guards"
-import { isValidLang } from "@/lib/i18n/core"
+import { isValidLang, panelLang } from "@/lib/i18n/core"
 import type { Prisma } from "@/generated/prisma/client"
 
 export const dynamic = "force-dynamic"
@@ -117,14 +117,14 @@ export async function generateMetadata({
   params: Promise<{ lang: string }>
 }): Promise<Metadata> {
   const { lang: raw } = await params
-  const loc: Loc = raw === "en" ? "en" : raw === "de" ? "de" : "ka"
+  const loc: Loc = panelLang(raw)
   return { title: L[loc].metaTitle, robots: { index: false } }
 }
 
 export default async function AgentOverviewPage({ params }: { params: Promise<{ lang: string }> }) {
   const { lang: raw } = await params
   const lang = isValidLang(raw) ? raw : "ka"
-  const loc: Loc = lang === "en" ? "en" : lang === "de" ? "de" : "ka"
+  const loc: Loc = panelLang(lang)
   const T = L[loc]
   const user = await requireRole("agent", "/agent")
 

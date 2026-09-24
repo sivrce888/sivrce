@@ -11,6 +11,7 @@ import { avatarInitials, avatarVisual, GRADIENTS, ICONS, isPlaceholderImage } fr
 import { useI18n } from "@/lib/i18n/context"
 import type { AvatarIcon } from "@/lib/avatar"
 import type { LucideIcon } from "lucide-react"
+import { panelLang } from "@/lib/i18n/core"
 
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/avif"])
 const MAX_SIZE = 10 * 1024 * 1024 // mirrors /api/upload
@@ -180,7 +181,7 @@ export default function AvatarStudio({
   const { update } = useSession()
   const router = useRouter()
   const { lang } = useI18n()
-  const loc = lang === "en" ? "en" : lang === "de" ? "de" : "ka"
+  const loc = panelLang(lang)
   const t = L[loc]
   const [style, setStyle] = useState<number | null>(style0)
   const [color, setColor] = useState<string | null>(color0 ?? null)

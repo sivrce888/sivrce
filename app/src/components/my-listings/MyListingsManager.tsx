@@ -11,6 +11,7 @@ import {
   BarChart3,
   Crown,
   Eye,
+  Heart,
   Flame,
   Loader2,
   MessagesSquare,
@@ -51,6 +52,7 @@ import {
   tierRankOf,
   type CheckoutAddon,
 } from "@/lib/promo-pricing"
+import { panelLang } from "@/lib/i18n/core"
 
 export type ManagedListing = {
   id: string
@@ -65,6 +67,8 @@ export type ManagedListing = {
   tierExpiresAt: string | null
   views: number
   leads: number
+  /** Signed-in users who hearted it (saved_listings). */
+  saves: number
   phoneReveals: number
     image: string
     createdAt: string
@@ -125,6 +129,7 @@ const L = {
     statViews: "ნახვა",
     statLeads: "ლიდი",
     statCalls: "ნომერი",
+    statSaves: "შენახვა",
     statusTab: {
       active: "აქტიური",
       pending: "მოლოდინში",
@@ -190,6 +195,7 @@ const L = {
     statViews: "Views",
     statLeads: "Leads",
     statCalls: "Calls",
+    statSaves: "Saves",
     statusTab: {
       active: "Active",
       pending: "Pending",
@@ -255,6 +261,7 @@ const L = {
     statViews: "Aufrufe",
     statLeads: "Leads",
     statCalls: "Anrufe",
+    statSaves: "Gemerkt",
     statusTab: {
       active: "Aktiv",
       pending: "Ausstehend",
@@ -295,7 +302,7 @@ type Loc = keyof typeof L
 type Strings = (typeof L)[Loc]
 
 function stringsFor(lang: string): Strings {
-  const loc: Loc = lang === "en" ? "en" : lang === "de" ? "de" : "ka"
+  const loc: Loc = panelLang(lang)
   return L[loc]
 }
 
@@ -311,7 +318,7 @@ const DT_FMT = {
   }),
 }
 function dateTimeFmt(lang: string) {
-  return DT_FMT[lang === "en" ? "en" : lang === "de" ? "de" : "ka"]
+  return DT_FMT[panelLang(lang)]
 }
 
 const BOOST_PILLS: Array<{
@@ -920,8 +927,9 @@ function ListingManageCard({
       </div>
 
       {analyticsOpen ? (
-        <div className="grid grid-cols-3 gap-2 border-t border-sv-ink/5 px-3 py-3 sm:px-4">
+        <div className="grid grid-cols-2 gap-2 border-t border-sv-ink/5 px-3 py-3 sm:grid-cols-4 sm:px-4">
           <Stat icon={Eye} label={str.statViews} value={l.views} tone="blue" />
+          <Stat icon={Heart} label={str.statSaves} value={l.saves} tone="orange" />
           <Stat icon={MessagesSquare} label={str.statLeads} value={l.leads} tone="blue" />
           <Stat icon={Phone} label={str.statCalls} value={l.phoneReveals} tone="orange" />
         </div>

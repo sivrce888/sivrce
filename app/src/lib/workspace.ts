@@ -5,6 +5,7 @@
  * ponytail: no Prisma enum for landlord/tenant; add DB roles if CRM must diverge.
  */
 import type { UserRole } from "@/generated/prisma/client"
+import { panelLang } from "@/lib/i18n/core"
 
 export const PERSONA_COOKIE = "sv-persona"
 
@@ -66,7 +67,7 @@ export function panelTitle(persona: Persona, lang = "ka"): string {
     admin: { ka: "ადმინ პანელი", en: "Admin panel", de: "Admin-Panel" },
   }
   const t = T[persona]
-  return lang === "en" ? t.en : lang === "de" ? t.de : t.ka
+  return t[panelLang(lang)]
 }
 
 export function isRentFocus(persona: Persona): boolean {

@@ -3,6 +3,7 @@
 import LocalizedLink from "@/components/LocalizedLink"
 import { usePathname } from "next/navigation"
 import { stripLangPrefix } from "@/lib/i18n/core"
+import { useI18n } from "@/lib/i18n/context"
 
 import type { DashboardNavItem } from "@/components/dashboard/DashboardShell"
 
@@ -70,4 +71,9 @@ export default function DashboardNav({
       })}
     </nav>
   )
+}
+
+/** Shell sign-out label in the reader's locale (the shell itself is a server component). */
+export function SignOutLabel() {
+  return <>{useI18n().t("account.signOut")}</>
 }

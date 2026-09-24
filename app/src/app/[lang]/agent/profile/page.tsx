@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import Link from "next/link"
+import LocalizedLink from "@/components/LocalizedLink"
 import { BadgeCheck, ExternalLink, Star } from "lucide-react"
 
 import { saveAgentProfile } from "@/app/[lang]/agent/profile/actions"
@@ -12,7 +12,7 @@ import UserAvatar from "@/components/UserAvatar"
 import { agentNav } from "@/components/agent-dashboard/nav"
 import { db } from "@/lib/db"
 import { requireRole, safeQuery } from "@/lib/guards"
-import { isValidLang } from "@/lib/i18n/core"
+import { isValidLang, panelLang } from "@/lib/i18n/core"
 
 export const dynamic = "force-dynamic"
 
@@ -22,7 +22,7 @@ export async function generateMetadata({
   params: Promise<{ lang: string }>
 }): Promise<Metadata> {
   const { lang: raw } = await params
-  const c = L[raw === "en" ? "en" : raw === "de" ? "de" : "ka"]
+  const c = L[panelLang(raw)]
   return { title: `${c.shellSubtitle} — ${c.shellTitle}`, robots: { index: false } }
 }
 
@@ -105,7 +105,7 @@ const L = {
 export default async function AgentProfilePage({ params }: { params: Promise<{ lang: string }> }) {
   const { lang: raw } = await params
   const lang = isValidLang(raw) ? raw : "ka"
-  const c = L[lang === "en" ? "en" : lang === "de" ? "de" : "ka"]
+  const c = L[panelLang(lang)]
   const user = await requireRole("agent", "/agent")
 
   const profile = await safeQuery(
@@ -123,13 +123,13 @@ export default async function AgentProfilePage({ params }: { params: Promise<{ l
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-[22px] font-black tracking-tight text-sv-ink">{c.title}</h1>
         {profile ? (
-          <Link
+          <LocalizedLink
             href={`/agents/${profile.slug}`}
             className="inline-flex items-center gap-1.5 rounded-full border border-sv-ink/12 px-4 py-2 text-[12.5px] font-bold text-sv-ink/70 transition hover:border-sv-blue hover:text-sv-blue"
           >
             {c.publicPage}
             <ExternalLink size={13} aria-hidden />
-          </Link>
+          </LocalizedLink>
         ) : null}
       </div>
 
@@ -217,7 +217,7 @@ export default async function AgentProfilePage({ params }: { params: Promise<{ l
       </section>
 
       {profile ? (
-        <RequestVerification subjectType="agent" subjectId={profile.id} verified={profile.verified} />
+        <RequestVerification subjectType="agent" subjectId={profile.id} verified={profile.verified} lang={lang} />
       ) : null}
 
       {profile ? (

@@ -15,6 +15,7 @@ import {
 import { AuthInput } from "@/components/auth/AuthInput"
 import { DELETE_CONFIRM } from "@/lib/account-profile"
 import { useI18n } from "@/lib/i18n/context"
+import { panelLang } from "@/lib/i18n/core"
 
 const L = {
   ka: {
@@ -162,7 +163,7 @@ export function AccountForms({
   const router = useRouter()
   const { update } = useSession()
   const { lang } = useI18n()
-  const loc = lang === "en" ? "en" : lang === "de" ? "de" : "ka"
+  const loc = panelLang(lang)
   const t = L[loc]
   const [profile, saveProfile, savingProfile] = useActionState<AccountActionState, FormData>(
     updateProfile,

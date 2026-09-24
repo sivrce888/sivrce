@@ -1,5 +1,6 @@
 import type { DashboardNavItem } from "@/components/dashboard/DashboardShell"
 import type { CrmLeadStatus, ListingStatus } from "@/generated/prisma/client"
+import { panelLang } from "@/lib/i18n/core"
 
 const NAV_L = {
   ka: {
@@ -37,7 +38,7 @@ const NAV_L = {
 type Loc = keyof typeof NAV_L
 
 function locOf(lang: string): Loc {
-  return lang === "en" ? "en" : lang === "de" ? "de" : "ka"
+  return panelLang(lang)
 }
 
 /** Shared sidebar nav for every /agency page. */

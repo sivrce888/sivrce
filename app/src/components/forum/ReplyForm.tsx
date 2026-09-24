@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useSession } from 'next-auth/react'
 import { useI18n } from '@/lib/i18n/context'
 import { cn } from '@/lib/utils'
+import { panelLang } from '@/lib/i18n/core'
 
 const MIN_BODY = 10
 
@@ -77,7 +78,7 @@ export function ReplyForm({
   compact?: boolean
 }) {
   const { lang } = useI18n()
-  const T = L[lang === 'en' ? 'en' : lang === 'de' ? 'de' : 'ka']
+  const T = L[panelLang(lang)]
   const { data: session, status } = useSession()
   const pathname = usePathname()
   const router = useRouter()

@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import Link from "next/link"
+import LocalizedLink from "@/components/LocalizedLink"
 import { Building2, ExternalLink, MapPin, Star, Users } from "lucide-react"
 
 import { saveAgencyProfile } from "@/app/[lang]/agency/profile/actions"
@@ -10,7 +10,7 @@ import StatCard from "@/components/dashboard/StatCard"
 import { RequestVerification } from "@/components/dashboard/RequestVerification"
 import { db } from "@/lib/db"
 import { requireRole, safeQuery } from "@/lib/guards"
-import { isValidLang } from "@/lib/i18n/core"
+import { isValidLang, panelLang } from "@/lib/i18n/core"
 
 export const dynamic = "force-dynamic"
 
@@ -87,14 +87,14 @@ export async function generateMetadata({
   params: Promise<{ lang: string }>
 }): Promise<Metadata> {
   const { lang: raw } = await params
-  const loc: Loc = raw === "en" ? "en" : raw === "de" ? "de" : "ka"
+  const loc: Loc = panelLang(raw)
   return { title: L[loc].metaTitle, robots: { index: false } }
 }
 
 export default async function AgencyProfilePage({ params }: { params: Promise<{ lang: string }> }) {
   const { lang: raw } = await params
   const lang = isValidLang(raw) ? raw : "ka"
-  const loc = lang === "en" ? "en" : lang === "de" ? "de" : "ka"
+  const loc = panelLang(lang)
   const T = L[loc]
   const user = await requireRole("agency", "/agency")
 
@@ -112,13 +112,13 @@ export default async function AgencyProfilePage({ params }: { params: Promise<{ 
     >
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-[22px] font-black tracking-tight text-sv-ink">{T.h1}</h1>
-        <Link
+        <LocalizedLink
           href={`/u/${user.id}`}
           className="inline-flex items-center gap-1.5 rounded-full border border-sv-ink/12 px-4 py-2 text-[12.5px] font-bold text-sv-ink/70 transition hover:border-sv-blue hover:text-sv-blue"
         >
           {T.publicPage}
           <ExternalLink size={13} aria-hidden />
-        </Link>
+        </LocalizedLink>
       </div>
 
       {profile ? (
@@ -201,7 +201,7 @@ export default async function AgencyProfilePage({ params }: { params: Promise<{ 
       </section>
 
       {profile ? (
-        <RequestVerification subjectType="agency" subjectId={profile.id} verified={profile.verified} />
+        <RequestVerification subjectType="agency" subjectId={profile.id} verified={profile.verified} lang={lang} />
       ) : null}
     </DashboardShell>
   )

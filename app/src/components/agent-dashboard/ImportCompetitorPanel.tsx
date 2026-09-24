@@ -11,6 +11,7 @@ import {
   type ImportedListing,
 } from '@/lib/competitor-import'
 import { useI18n } from '@/lib/i18n/context'
+import { panelLang } from '@/lib/i18n/core'
 
 function parseUrls(raw: string): string[] {
   return raw.split(/[\s,]+/).map((u) => u.trim()).filter((u) => /^https?:\/\//i.test(u))
@@ -63,7 +64,7 @@ const L = {
 
 export default function ImportCompetitorPanel() {
   const { lang } = useI18n()
-  const T = L[lang === 'en' ? 'en' : lang === 'de' ? 'de' : 'ka']
+  const T = L[panelLang(lang)]
   const router = useRouter()
   const [urls, setUrls] = useState('')
   const [busy, setBusy] = useState(false)

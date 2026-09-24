@@ -7,6 +7,7 @@ import { useSession } from 'next-auth/react'
 import { FORUM_CATEGORIES } from '@/data/forum'
 import { useI18n } from '@/lib/i18n/context'
 import { cn } from '@/lib/utils'
+import { panelLang } from '@/lib/i18n/core'
 
 const MIN_TITLE = 8
 const MIN_BODY = 20
@@ -76,7 +77,7 @@ const L = {
 
 export function NewThreadForm({ className }: { className?: string }) {
   const { lang, t } = useI18n()
-  const T = L[lang === 'en' ? 'en' : lang === 'de' ? 'de' : 'ka']
+  const T = L[panelLang(lang)]
   const { data: session, status } = useSession()
   const pathname = usePathname()
   const router = useRouter()

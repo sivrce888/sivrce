@@ -11,9 +11,11 @@ import { useEffect, useRef, type ReactNode } from 'react'
 import { SessionProvider, useSession } from 'next-auth/react'
 import { usePathname } from 'next/navigation'
 import { ThemeProvider as NextThemesProvider } from 'next-themes'
+import { syncFavorites } from '@/lib/favorites'
 
 function SessionSync() {
-  const { update } = useSession()
+  const { data, update } = useSession()
+  const userId = data?.user?.id ?? null
   const pathname = usePathname()
   const booted = useRef(false)
   // `update`'s identity changes with the session — keep a latest-ref so the
@@ -50,6 +52,11 @@ function SessionSync() {
     }
     void updateRef.current()
   }, [pathname])
+
+  // Hearts follow the signed-in user across devices (saved_listings).
+  useEffect(() => {
+    void syncFavorites(userId)
+  }, [userId])
 
   return null
 }
