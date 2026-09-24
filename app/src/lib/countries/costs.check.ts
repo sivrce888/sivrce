@@ -12,6 +12,7 @@ import {
   cityFact,
   cityRateRows,
   countryFacts,
+  geBuyerCosts,
   marketCosts,
   marketMoney,
   marketTrust,
@@ -118,6 +119,25 @@ const tr = buyerCosts('tr', 'istanbul')
 assert.equal(tr?.percentOnly, true, 'TRY renders percentages only')
 assert.equal(tr?.price, 100, 'percent-only base is 100')
 assert.equal(cityFact('tr', 'bodrum').pct, 4, 'national tapu fee')
+
+// Georgia — the home market — charges no purchase tax; the cost story is a
+// fixed fee schedule, so the listing card prices exact flat amounts
+// (geBuyerCosts), never the percent view a fee cap would distort.
+assert.equal(cityFact('ge').pct, 0, 'georgia charges no transfer tax')
+assert.ok(
+  !buyerCosts('ge')?.lines.some((l) => l.label.startsWith('Transfer tax')),
+  'no phantom georgian transfer-tax line',
+)
+assert.equal(buyerCosts('ge')?.lines.length, 2, 'two fixed-fee lines: NAPR + optional notary')
+const geFlat = geBuyerCosts(150_000)
+assert.ok(
+  geFlat && geFlat.napr === 50 && geFlat.notary === 500 && geFlat.total === 550,
+  `ge flat fees: ${JSON.stringify(geFlat)}`,
+)
+assert.equal(geFlat?.totalPct, 0.4, 'ge surcharge at the ₾150k sample')
+assert.equal(geBuyerCosts(0), null, 'ge breakdown refuses a zero price')
+assert.equal(geBuyerCosts(Number.NaN), null, 'ge breakdown refuses NaN')
+assert.equal(cityFact('ge', 'tbilisi').pct, 0, 'ge falls back to the national rule')
 
 // A banded market still produces a usable worked example.
 const gb = buyerCosts('gb', 'london', 500_000)

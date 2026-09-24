@@ -65,6 +65,7 @@ import { WalkScore } from '@/components/listing/WalkScore'
 import { useCurrency, formatListingPrice, listingToggleCurrencies } from '@/lib/currency'
 import { formatEur, parseDeExpose } from '@/lib/countries/de-expose'
 import type { BuyerCostBreakdown } from '@/lib/countries/de'
+import type { GeBuyerCosts } from '@/lib/countries/costs'
 import { pushRecent, useRecentIds } from '@/lib/recent'
 import { useListingsByIds } from '@/lib/use-listings-by-ids'
 import { useI18n, type DictKey } from '@/lib/i18n/context'
@@ -603,6 +604,7 @@ export default function ListingDetailClient({
   nearbyProjects = [],
   hubLink = null,
   deCosts = null,
+  geCosts = null,
 }: {
   listing: Listing
   similar: Listing[]
@@ -626,6 +628,8 @@ export default function ListingDetailClient({
   nearbyProjects?: NearbyProject[]
   /** DE sale Kaufnebenkosten — server-computed so de.ts stays off this client. */
   deCosts?: BuyerCostBreakdown | null
+  /** GE sale closing fees — server-computed so costs.ts stays off this client. */
+  geCosts?: GeBuyerCosts | null
 }) {
   const { data: session, status: authStatus } = useSession()
   const isOwner = Boolean(ownerId && session?.user?.id === ownerId)
@@ -1428,6 +1432,35 @@ export default function ListingDetailClient({
                   {lang === 'de'
                     ? `≈ +${deCosts.totalPct} % auf den Kaufpreis. Provisionsfrei streicht die Maklerzeile.`
                     : `≈ +${deCosts.totalPct}% over price. Provisionsfrei listings drop the agent line.`}
+                </p>
+              </div>
+            ) : null}
+
+            {geCosts ? (
+              <div className="mt-3 rounded-card border border-sv-ink/[0.06] bg-sv-surface px-5 py-4 shadow-card">
+                <div className="text-[11px] font-black uppercase tracking-wider text-sv-ink/60">
+                  {lang === 'ka' ? 'ხარჯები რეგისტრაციისას' : lang === 'ru' ? 'Расходы при регистрации' : 'Buyer closing costs'}
+                </div>
+                <dl className="mt-3 space-y-1.5 text-[13px] font-bold">
+                  <div className="flex justify-between text-sv-ink/70">
+                    <dt>{lang === 'ka' ? 'NAPR რეგისტრაცია (სტანდარტი, 1 დღე)' : lang === 'ru' ? 'Регистрация в NAPR (стандарт, 1 день)' : 'NAPR registration (standard, 1 day)'}</dt>
+                    <dd className="tabular-nums">{formatGEL(geCosts.napr)}</dd>
+                  </div>
+                  <div className="flex justify-between text-sv-ink/70">
+                    <dt>{lang === 'ka' ? 'ნოტარიუსი და თარგმანი (სურვილისამებრ)' : lang === 'ru' ? 'Нотариус и перевод (по желанию)' : 'Notary & translation (optional)'}</dt>
+                    <dd className="tabular-nums">{formatGEL(geCosts.notary)}</dd>
+                  </div>
+                  <div className="flex justify-between border-t border-sv-ink/[0.08] pt-2 text-[15px] font-black text-sv-ink">
+                    <dt>{lang === 'ka' ? 'ლიკვიდობა რეგისტრაციაზე' : lang === 'ru' ? 'Денежные средства при регистрации' : 'Cash at NAPR'}</dt>
+                    <dd className="tabular-nums">{formatGEL(geCosts.total)}</dd>
+                  </div>
+                </dl>
+                <p className="mt-2 text-[12px] font-semibold text-sv-ink/55">
+                  {lang === 'ka'
+                    ? `≈ +${geCosts.totalPct}% ფასზე. ყიდვის გადასახადი არ არის — მხოლოდ ფიქსირებული მოსაკრებლები.`
+                    : lang === 'ru'
+                      ? `≈ +${geCosts.totalPct}% к цене. Налога при покупке нет — только фиксированные сборы.`
+                      : `≈ +${geCosts.totalPct}% over price. No purchase tax — fixed registry fees only.`}
                 </p>
               </div>
             ) : null}

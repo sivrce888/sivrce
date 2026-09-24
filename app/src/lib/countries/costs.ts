@@ -20,7 +20,7 @@ import {
   DE_NOTARY_PCT,
   DE_REGISTER_PCT,
 } from '@/lib/countries/de'
-import { MARKETS, type PathCountryId } from '@/lib/markets'
+import { MARKETS, type CountryId, type PathCountryId } from '@/lib/markets'
 
 export const COSTS_AS_OF = '2026'
 
@@ -2930,7 +2930,47 @@ const si: CountryCosts = {
   },
 }
 
-export const MARKET_COSTS = { de, ae, fr, es, it, gb, us, ca, tr, gr, cy, nl, pt, ch, jp, cn, kr, hk, sg, th, id, ph, vn, my, mm, in: in_, pk, bd, lk, np, kh, la, uz, kz, am, az, sa, eg, ng, za, ke, ma, au, nz, br, mx, co, cl, ar, pe, ec, pl, cz, hu, ro, bg, rs, hr, ua, se, no, dk, fi, is: is_, at, be, ie, lu, ee, lt, lv, mt, sk, si } as Record<string, CountryCosts>
+const ge: CountryCosts = {
+  sample: 150_000,
+  closer: 'NAPR — Public Registry (notary optional)',
+  cashLabel: 'Cash needed at NAPR',
+  taxLabel: 'Transfer tax',
+  extras: [
+    // The fee schedule is fixed GEL, not a levy — these are its effective rates
+    // at the ₾150k sample price (the CA convention). Listings price the exact
+    // flat amounts via geBuyerCosts below.
+    { label: 'NAPR registration — ₾50 standard, ₾150–350 express (fixed fee)', pct: 0.033 },
+    { label: 'Notary & translation, optional — ≈₾500–1,300 (fixed fee)', pct: 0.33 },
+  ],
+  buyerAgentPct: 0,
+  buyerAgentLabel: 'Agency — the seller pays commission in Georgia',
+  note:
+    'Georgia charges no transfer or stamp duty on residential purchases — buyer-side costs are small and almost entirely fixed: NAPR registration ₾50 standard (4 working days; ₾150–350 express) plus optional notary and translation, typically well under 1% of the price. On the sell side, the gain is taxed 20% unless the home was held for more than 24 months, which makes it tax-free. New builds from VAT-registered developers carry 18% VAT inside the price, and foreigners buy apartments freely — only agricultural land is restricted.',
+  rentTitle: 'The rent side, in three lines',
+  rentRules: [
+    'Rents are set freely — no rent control and no statutory deposit cap; one month is customary.',
+    'Registered individual landlords pay a flat 5% on rental income — no brackets, no deduction regime.',
+    'The season swings the real yield: Batumi sea apartments sit empty most of the year, Tbilisi does not.',
+  ],
+  rentNote:
+    'Gross yields look high until the empty season and the fit-out are priced in — check the building’s actual occupancy, not the brochure’s.',
+  facts: [
+    { n: '0%', label: 'transfer or stamp duty on residential purchases' },
+    { n: '₾50', label: 'standard NAPR registration, 4 working days (₾350 same-day)' },
+    { n: '24 mo', label: 'of ownership that makes resale gain tax-free (0% vs 20%)' },
+    { n: '5%', label: 'flat tax on individual rental income' },
+  ],
+  trust: ['NAPR titled in 1–4 days', 'No transfer tax', '3D map'],
+  citiesTitle: 'One national rulebook, Vake to Batumi',
+  citiesSub:
+    'Unlike Spain or Canada, Georgian transaction rules do not change at the city line: registration fees and taxes are national, so the same price closes for the same money in Tbilisi, Batumi or Kutaisi.',
+  defaultCity: worldCity('None', 0, 'Georgia — national', 'No transfer or stamp duty on residential purchases'),
+  cities: {
+    tbilisi: worldCity('None', 0, 'Georgia — national', 'No transfer or stamp duty on residential purchases'),
+  },
+}
+
+export const MARKET_COSTS = { ge, de, ae, fr, es, it, gb, us, ca, tr, gr, cy, nl, pt, ch, jp, cn, kr, hk, sg, th, id, ph, vn, my, mm, in: in_, pk, bd, lk, np, kh, la, uz, kz, am, az, sa, eg, ng, za, ke, ma, au, nz, br, mx, co, cl, ar, pe, ec, pl, cz, hu, ro, bg, rs, hr, ua, se, no, dk, fi, is: is_, at, be, ie, lu, ee, lt, lv, mt, sk, si } as Record<string, CountryCosts>
 
 /**
  * Generic model for markets whose local table is pending — percent-only,
@@ -2967,8 +3007,28 @@ const GENERIC: CountryCosts = {
 }
 
 /** Cost model for a market; GENERIC until the local table is verified. */
-export function marketCosts(country: PathCountryId): CountryCosts {
+export function marketCosts(country: CountryId): CountryCosts {
   return MARKET_COSTS[country] ?? GENERIC
+}
+
+/** Flat buyer-side fees for a Georgian sale listing — exact GEL amounts, not
+ *  pct-of-price: the fee schedule is fixed, so a percent model would lie at
+ *  every price other than the sample. Notary/translation is the customary
+ *  ≈₾500 budget; sign at NAPR without one and only ₾50 is mandatory. */
+export interface GeBuyerCosts {
+  napr: number
+  notary: number
+  total: number
+  /** Surcharge over the price, %, one decimal. */
+  totalPct: number
+}
+
+export function geBuyerCosts(priceGEL: number): GeBuyerCosts | null {
+  if (!Number.isFinite(priceGEL) || priceGEL <= 0) return null
+  const napr = 50
+  const notary = 500
+  const total = napr + notary
+  return { napr, notary, total, totalPct: Math.round((total / priceGEL) * 1000) / 10 }
 }
 
 /** Progressive slice tax — the UK model. Returns absolute currency. */
@@ -2984,7 +3044,7 @@ export function bandedTax(price: number, bands: Band[]): number {
   return Math.round(owed)
 }
 
-export function cityFact(country: PathCountryId, citySlug?: string): CityFact {
+export function cityFact(country: CountryId, citySlug?: string): CityFact {
   const m = marketCosts(country)
   return (citySlug && m.cities[citySlug]) || m.defaultCity
 }
@@ -3015,7 +3075,7 @@ export interface BuyerCosts {
  * stable nominal anchor (TRY) fall back to 100 so every line reads as a percent.
  */
 export function buyerCosts(
-  country: PathCountryId,
+  country: CountryId,
   citySlug?: string,
   price?: number,
 ): BuyerCosts | null {

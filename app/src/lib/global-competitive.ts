@@ -49,6 +49,12 @@ export type GlobalPlayerId =
   | 'domain-com-au'
   | 'housing-com'
   | 'magicbricks'
+  | 'airbnb'
+  | 'cian-ru'
+  | 'avito'
+  | 'apartments-com'
+  | 'homes-com'
+  | 'yandex-realty'
   | 'ss-ge'
   | 'myhome-ge'
 
@@ -169,8 +175,8 @@ export const GLOBAL_PLAYERS: readonly GlobalPlayer[] = [
       },
       institutionalValuation: {
         score: 100,
-        noteEn: 'Bear/Base/Bull cashflows, NOI, Cap Rate, 10-yr IRR, and statutory closing costs in 74 markets.',
-        noteKa: '3 სცენარიანი ფულადი ნაკადები, NOI, Cap Rate და შეძენის ხარჯები 74 ბაზარზე.',
+        noteEn: 'Bear/Base/Bull cashflows, NOI, Cap Rate, 10-yr IRR, and statutory closing costs in 75 markets.',
+        noteKa: '3 სცენარიანი ფულადი ნაკადები, NOI, Cap Rate და შეძენის ხარჯები 75 ბაზარზე.',
         evidence: 'src/lib/countries/de-proptech-os.ts',
       },
       truthAndScamRadar: {
@@ -741,6 +747,116 @@ export const GLOBAL_PLAYERS: readonly GlobalPlayer[] = [
       deepLocalization: { score: 62, noteEn: 'RERA and state registration display.', noteKa: 'RERA ჩვენება.' },
       zeroJankPerformance: { score: 55, noteEn: 'Heavy promotional banner network.', noteKa: 'სარეკლამო ბანერები.' },
       unifiedTransactions: { score: 44, noteEn: 'Direct broker contacts.', noteKa: 'ბროკერის კონტაქტები.' },
+    },
+  },
+
+  // ── Global classifieds & stays giants
+  {
+    id: 'airbnb',
+    name: 'Airbnb',
+    region: 'Global stays',
+    tier: 'global-leader',
+    cells: {
+      globalEntityGraph: { score: 30, noteEn: 'Global stays graph across 220+ countries — but stays only: no sale or long-term boards.', noteKa: 'მხოლოდ დასაქირავებელი, გაყიდვების გარეშე.' },
+      institutionalValuation: { score: 15, noteEn: 'Host pricing tips only; zero purchase valuation or cashflow modeling.', noteKa: 'მხოლოდ მასპინძლის ფასის რჩევები.' },
+      truthAndScamRadar: { score: 65, noteEn: 'Reviews, verified photos and secure payments; rental scams still surface.', noteKa: 'განხილვები და გადახდები; თაღლითობა შემორჩენილია.' },
+      spatialCadastrePhysics: { score: 45, noteEn: 'Polished map UX; no 3D massing, sun physics or cadastre.', noteKa: 'კარგი რუკა, 3D-სა და კადასტრის გარეშე.' },
+      transitConnectivity: { score: 40, noteEn: 'Neighborhood blur for privacy — exact transit distance hidden.', noteKa: 'ზუსტი მანძილები დამალულია.' },
+      dualCurrencySettlement: { score: 75, noteEn: 'Multi-currency booking and payouts across dozens of currencies.', noteKa: 'მრავალვალუტიანი ჯავშანი და გადახდა.' },
+      fullLifecycleOS: { score: 55, noteEn: 'Mature host tools; nothing for agents, developers or deal pipelines.', noteKa: 'მასპინძლის ხელსაწყოები, CRM-ის გარეშე.' },
+      deepLocalization: { score: 70, noteEn: 'Massive locale breadth; Georgian-script places left untranslated.', noteKa: 'ბევრი ენა, ქართული ტოპონიმები უთარგმნელოდ.' },
+      zeroJankPerformance: { score: 70, noteEn: 'Polished apps; heavy web client bundles.', noteKa: 'მოხდენილი აპი, მძიმე ვები.' },
+      unifiedTransactions: { score: 90, noteEn: 'The stays benchmark — payments, calendars and reviews at global scale.', noteKa: 'დასაქირავებლობის ეტალონი — გადახდები და კალენდარი.' },
+    },
+  },
+  {
+    id: 'cian-ru',
+    name: 'Cian.ru',
+    region: 'Russia',
+    tier: 'global-leader',
+    cells: {
+      globalEntityGraph: { score: 35, noteEn: 'Russia-only depth; no cross-border graph.', noteKa: 'მხოლოდ რუსეთი.' },
+      institutionalValuation: { score: 55, noteEn: 'CIAN estimator and analytics reports for Moscow/SPb.', noteKa: 'შეფასების ხელსაწყო დიდ ქალაქებში.' },
+      truthAndScamRadar: { score: 60, noteEn: 'Partner verification and moderation; duplicates persist.', noteKa: 'მოდერაცია; დუბლიკატები ჩნდება.' },
+      spatialCadastrePhysics: { score: 55, noteEn: '2D maps with some 3D tours; no sun or cadastre physics.', noteKa: '2D რუკა, ზოგი 3D ტური.' },
+      transitConnectivity: { score: 65, noteEn: 'Metro proximity is a first-class filter in Moscow/SPb.', noteKa: 'მეტროს სიახლოვე მთავარი ფილტრია.' },
+      dualCurrencySettlement: { score: 25, noteEn: 'RUB only.', noteKa: 'მხოლოდ RUB.' },
+      fullLifecycleOS: { score: 60, noteEn: 'Agent tools and CRM integrations for agencies.', noteKa: 'აგენტის ხელსაწყოები და CRM ინტეგრაცია.' },
+      deepLocalization: { score: 55, noteEn: 'RU-first; limited EN surface.', noteKa: 'ძირითადად რუსული.' },
+      zeroJankPerformance: { score: 60, noteEn: 'Ad-supported, heavy pages.', noteKa: 'მძიმე გვერდები რეკლამით.' },
+      unifiedTransactions: { score: 45, noteEn: 'Online-deal e-closing pilot; mostly lead forms.', noteKa: 'ელექტრონული გარიგების პილოტი, ძირითადად ფორმები.' },
+    },
+  },
+  {
+    id: 'avito',
+    name: 'Avito',
+    region: 'Russia (classifieds)',
+    tier: 'global-leader',
+    cells: {
+      globalEntityGraph: { score: 28, noteEn: 'General classifieds graph; property is one vertical.', noteKa: 'ზოგადი კლასიფიცირებული დაფა.' },
+      institutionalValuation: { score: 30, noteEn: 'No purchase valuation; price filters only.', noteKa: 'შეფასების გარეშე.' },
+      truthAndScamRadar: { score: 45, noteEn: 'Large scam exposure with minimal vetting on P2P ads.', noteKa: 'მაღალი თაღლითობის რისკი.' },
+      spatialCadastrePhysics: { score: 40, noteEn: 'Basic map pins on an embedded Yandex map.', noteKa: 'მარტივი რუკის მარკერები.' },
+      transitConnectivity: { score: 42, noteEn: 'District filter; no transit distance math.', noteKa: 'უბნის ფილტრი, ტრანზიტის გარეშე.' },
+      dualCurrencySettlement: { score: 25, noteEn: 'RUB only.', noteKa: 'მხოლოდ RUB.' },
+      fullLifecycleOS: { score: 40, noteEn: 'Pro seller accounts; no real-estate CRM.', noteKa: 'პრო ანგარიშები, CRM-ის გარეშე.' },
+      deepLocalization: { score: 55, noteEn: 'RU-first.', noteKa: 'რუსულენოვანი.' },
+      zeroJankPerformance: { score: 60, noteEn: 'Fast classifieds UX, ad-heavy.', noteKa: 'სწრაფი, მაგრამ რეკლამით დატვირთული.' },
+      unifiedTransactions: { score: 45, noteEn: 'Calls and chat close property deals; no transaction engine.', noteKa: 'ზარები და ჩატი, ტრანზაქციის გარეშე.' },
+    },
+  },
+  {
+    id: 'apartments-com',
+    name: 'Apartments.com',
+    region: 'United States (rentals)',
+    tier: 'global-leader',
+    cells: {
+      globalEntityGraph: { score: 32, noteEn: 'US rentals only.', noteKa: 'მხოლოდ აშშ ქირაობა.' },
+      institutionalValuation: { score: 45, noteEn: 'Rent benchmarks by building; no purchase models.', noteKa: 'ქირის ბენჩმარკები, შეფასების გარეშე.' },
+      truthAndScamRadar: { score: 65, noteEn: 'Listing fraud screening program.', noteKa: 'განცხადებების შემოწმების პროგრამა.' },
+      spatialCadastrePhysics: { score: 50, noteEn: '2D maps with walk/transit scores.', noteKa: '2D რუკა walk/transit ქულებით.' },
+      transitConnectivity: { score: 55, noteEn: 'Transit score integration.', noteKa: 'ტრანზიტის ქულები.' },
+      dualCurrencySettlement: { score: 20, noteEn: 'USD only.', noteKa: 'მხოლოდ USD.' },
+      fullLifecycleOS: { score: 60, noteEn: 'Property-manager syndication and screening tools.', noteKa: 'მენეჯერის სინდიკაცია და სკრინინგი.' },
+      deepLocalization: { score: 35, noteEn: 'EN/ES.', noteKa: 'ინგლისური/ესპანური.' },
+      zeroJankPerformance: { score: 65, noteEn: 'Modern web, moderate ad load.', noteKa: 'თანამედროვე ვები, ზომიერი რეკლამა.' },
+      unifiedTransactions: { score: 50, noteEn: 'Online rent payments and applications in partner buildings.', noteKa: 'ონლაინ ქირის გადახდა პარტნიორ შენობებში.' },
+    },
+  },
+  {
+    id: 'homes-com',
+    name: 'Homes.com',
+    region: 'United States',
+    tier: 'global-leader',
+    cells: {
+      globalEntityGraph: { score: 34, noteEn: 'US only.', noteKa: 'მხოლოდ აშშ.' },
+      institutionalValuation: { score: 55, noteEn: 'Home value estimates from listing data.', noteKa: 'შეფასება განცხადების მონაცემებით.' },
+      truthAndScamRadar: { score: 68, noteEn: 'MLS-sourced data with standard US verification.', noteKa: 'MLS მონაცემები, სტანდარტული შემოწმება.' },
+      spatialCadastrePhysics: { score: 52, noteEn: '2D maps with school and amenity overlays.', noteKa: '2D რუკა სკოლებითა და ინფრასტრუქტურით.' },
+      transitConnectivity: { score: 58, noteEn: 'Commute times via third party.', noteKa: 'მარშრუტის დრო მესამე მხარისგან.' },
+      dualCurrencySettlement: { score: 20, noteEn: 'USD only.', noteKa: 'მხოლოდ USD.' },
+      fullLifecycleOS: { score: 58, noteEn: 'Agent connection and lead products.', noteKa: 'აგენტთან კავშირი და ლიდ-პროდუქტები.' },
+      deepLocalization: { score: 32, noteEn: 'EN/ES.', noteKa: 'ინგლისური/ესპანური.' },
+      zeroJankPerformance: { score: 62, noteEn: 'Standard portal performance.', noteKa: 'სტანდარტული სისწრაფე.' },
+      unifiedTransactions: { score: 45, noteEn: 'Lead forms; no transaction engine.', noteKa: 'მხოლოდ ფორმები.' },
+    },
+  },
+  {
+    id: 'yandex-realty',
+    name: 'Yandex Realty',
+    region: 'Russia & CIS',
+    tier: 'global-leader',
+    cells: {
+      globalEntityGraph: { score: 40, noteEn: 'RU + CIS reach on Yandex infrastructure; not a global property graph.', noteKa: 'რუსეთი და დსთ, გლობალური გრაფის გარეშე.' },
+      institutionalValuation: { score: 55, noteEn: 'Price estimates from Yandex data.', noteKa: 'შეფასება Yandex-ის მონაცემებით.' },
+      truthAndScamRadar: { score: 65, noteEn: 'Platform moderation plus a verified-listings program.', noteKa: 'მოდერაცია და გადამოწმებული განცხადებები.' },
+      spatialCadastrePhysics: { score: 65, noteEn: 'Strong Yandex maps and panoramas; no sun or cadastre physics.', noteKa: 'ძლიერი რუკა პანორამებით, ფიზიკის გარეშე.' },
+      transitConnectivity: { score: 70, noteEn: 'Best-in-class transit data via Yandex Maps.', noteKa: 'საუკეთესო ტრანზიტული მონაცემები.' },
+      dualCurrencySettlement: { score: 25, noteEn: 'RUB only.', noteKa: 'მხოლოდ RUB.' },
+      fullLifecycleOS: { score: 55, noteEn: 'Agent tooling; partial CRM.', noteKa: 'აგენტის ხელსაწყოები, ნაწილობრივ CRM.' },
+      deepLocalization: { score: 60, noteEn: 'RU plus several CIS languages.', noteKa: 'რუსული და რამდენიმე დსთ ენა.' },
+      zeroJankPerformance: { score: 68, noteEn: 'Solid engineering, moderate weight.', noteKa: 'მყარი ინჟინერია, ზომიერი წონა.' },
+      unifiedTransactions: { score: 48, noteEn: 'Safe-deal pilots; lead-first.', noteKa: 'უსაფრთხო გარიგების პილოტები.' },
     },
   },
 

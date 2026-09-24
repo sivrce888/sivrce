@@ -29,6 +29,7 @@ import { COM_ORIGIN, GE_ORIGIN, listingCanonicalPath, listingOrigin } from '@/li
 import { georgiaListingAlternates, surfacePathPrefix, type DomainId } from '@/lib/domain-scope'
 import { requestDomain, requestHostKind } from '@/lib/request-market'
 import { buyerCostBreakdownByCityName } from '@/lib/countries/de'
+import { geBuyerCosts } from '@/lib/countries/costs'
 import { parseDeExpose } from '@/lib/countries/de-expose'
 
 /**
@@ -218,6 +219,10 @@ export default async function ListingPage({ params }: PageProps) {
     listing.country === 'DE' && listing.dealType === 'sale' && (listing.priceOriginal ?? 0) > 0
       ? buyerCostBreakdownByCityName(listing.priceOriginal!, listing.city)
       : null
+  const geCosts =
+    listing.country === 'GE' && listing.dealType === 'sale'
+      ? geBuyerCosts(listing.priceGEL)
+      : null
 
   // Offer validity: 30 days after posting (matches the 30-day listing lifetime)
   const priceValidUntil = new Date(
@@ -377,6 +382,7 @@ export default async function ListingPage({ params }: PageProps) {
         nearbyProjects={nearbyProjects}
         hubLink={hubPath && hubAnchor ? { href: hubPath, anchor: hubAnchor } : null}
         deCosts={deCosts}
+        geCosts={geCosts}
       />
       <script
         type="application/ld+json"
