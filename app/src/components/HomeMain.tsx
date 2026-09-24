@@ -200,7 +200,7 @@ async function HomeBelowFold({ lang, scope }: { lang: Lang; scope: HomeScope | n
       />
     ) : null,
     ad_after_projects: <AdSlot slot="home_after_projects" lang={lang} />,
-    agents: ge ? <AgentSlider agents={topAgents} total={AGENT_PROFILES.length} /> : null,
+    agents: ge && topAgents.length > 0 ? <AgentSlider agents={topAgents} total={AGENT_PROFILES.length} /> : null,
     developers: topDevelopers.length > 0 ? <DeveloperSlider developers={topDevelopers} total={developers.length} /> : null,
     services: <Services lang={lang} />,
     stats: <Stats live={stats} />,

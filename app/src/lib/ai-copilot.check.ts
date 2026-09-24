@@ -58,4 +58,20 @@ if (!/risk|caution|suspicious|unverified/i.test(scammy.headlineEn + scammy.bodyE
   throw new Error(`scam phrase did not raise the trust answer: ${scammy.headlineEn}`)
 }
 
+// No real comps → the valuation answer must say so, never benchmark the
+// listing against its own $/m² (circular "FACT").
+const noComps = answerPropertyQuestion('Is the price fair?', {
+  id: 'prop-2',
+  title: 'Rural plot',
+  priceUSD: 52500,
+  areaSqm: 1500,
+  district: 'ზემო ნიჩბისი',
+  city: 'ზემო ნიჩბისი',
+  sellerPhoneVerified: true,
+  photosCount: 8,
+})
+if (!/not enough local comps/i.test(noComps.headlineEn) || noComps.factState !== 'ESTIMATE') {
+  throw new Error(`missing-comps answer must be an honest ESTIMATE: ${noComps.headlineEn}`)
+}
+
 console.log('ai-copilot.check: OK ✓')

@@ -46,6 +46,7 @@ import {
 } from "@/lib/listing-public-id"
 import { HOME_RAIL_BADGE, pickHomeRail, type HomeRailTier } from "@/lib/listings-home-rail"
 import { homeScopeWhere, type HomeScope } from "@/lib/home-scope"
+import { requestCountryLock } from "@/lib/request-market"
 
 // Re-export types that consumers expect (same shape as data/listings.ts)
 export type DealType = "sale" | "rent" | "daily" | "pledge"
@@ -613,8 +614,14 @@ export async function getListingsByOwner(ownerId: string | string[]): Promise<Li
   const ids = (Array.isArray(ownerId) ? ownerId : [ownerId]).filter(Boolean)
   if (!ids.length) return []
   return safeQuery(async () => {
+    const lock = await requestCountryLock()
     const rows = await db.listing.findMany({
-      where: { ownerId: { in: ids }, deletedAt: null, status: "active" },
+      where: {
+        ownerId: { in: ids },
+        deletedAt: null,
+        status: "active",
+        ...(lock ? { country: lock } : {}),
+      },
       orderBy: { createdAt: "desc" },
       take: 48,
     })
@@ -631,13 +638,19 @@ export async function getListingsForAgentProfile(
   kaName: string,
 ): Promise<Listing[]> {
   return safeQuery(async () => {
+    const lock = await requestCountryLock()
     const profile = await db.agentProfile.findFirst({
       where: { deletedAt: null, OR: [{ slug }, { name: kaName }] },
       select: { ownerId: true },
     })
     if (profile?.ownerId) {
       const rows = await db.listing.findMany({
-        where: { ownerId: profile.ownerId, deletedAt: null, status: "active" },
+        where: {
+          ownerId: profile.ownerId,
+          deletedAt: null,
+          status: "active",
+          ...(lock ? { country: lock } : {}),
+        },
         orderBy: { createdAt: "desc" },
         take: 48,
       })
@@ -647,6 +660,7 @@ export async function getListingsForAgentProfile(
       where: {
         deletedAt: null,
         status: "active",
+        ...(lock ? { country: lock } : {}),
         agent: { path: ["name"], equals: kaName },
       },
       orderBy: { createdAt: "desc" },
@@ -658,11 +672,13 @@ export async function getListingsForAgentProfile(
 
 /** Counts for /agents index cards — keyed by Georgian agent name. */
 const readAgentListingCounts = unstable_cache(
-  async (): Promise<Record<string, number>> =>
+  // ponytail: country arg joins the unstable_cache key, so .ge and world get
+  // separate entries — never bake one host's clamp into the other's cache.
+  async (country?: string): Promise<Record<string, number>> =>
     safeQuery(async () => {
       const [rows, profiles] = await Promise.all([
         db.listing.findMany({
-          where: { deletedAt: null, status: "active" },
+          where: { deletedAt: null, status: "active", ...(country ? { country } : {}) },
           select: { agent: true, ownerId: true },
           take: 2500,
         }),
@@ -690,7 +706,7 @@ const readAgentListingCounts = unstable_cache(
 )
 
 export async function getAgentListingCountsByKaName(): Promise<Record<string, number>> {
-  return readAgentListingCounts()
+  return readAgentListingCounts(await requestCountryLock())
 }
 
 /**
@@ -729,10 +745,12 @@ export async function getListingsForProjectSlug(
 ): Promise<Listing[]> {
   if (!slug) return []
   return safeQuery(async () => {
+    const lock = await requestCountryLock()
     const rows = await db.listing.findMany({
       where: {
         deletedAt: null,
         status: "active",
+        ...(lock ? { country: lock } : {}),
         OR: [
           { extendedFields: { path: ["projectSlug"], equals: slug } },
           { id: { startsWith: `proj-${slug}` } },
@@ -755,6 +773,7 @@ export async function getListingsForDeveloper(
   limit = 6,
 ): Promise<Listing[]> {
   return safeQuery(async () => {
+    const lock = await requestCountryLock()
     const profile = await db.developerProfile.findFirst({
       where: { slug, deletedAt: null },
       select: { ownerId: true },
@@ -767,7 +786,12 @@ export async function getListingsForDeveloper(
     }
     if (or.length === 0) return []
     const rows = await db.listing.findMany({
-      where: { deletedAt: null, status: "active", OR: or },
+      where: {
+        deletedAt: null,
+        status: "active",
+        ...(lock ? { country: lock } : {}),
+        OR: or,
+      },
       orderBy: { createdAt: "desc" },
       take: limit,
     })

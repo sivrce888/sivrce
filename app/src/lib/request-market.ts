@@ -46,6 +46,11 @@ export async function requestMarket(): Promise<MarketId> {
   return 'ge'
 }
 
+/** Constitution clamp: `'GE'` on production sivrce.ge, else `undefined` — spread into listing wheres. */
+export async function requestCountryLock(): Promise<string | undefined> {
+  return (await requestHostKind()) === 'ge' ? 'GE' : undefined
+}
+
 export async function requestDomain(): Promise<DomainId> {
   try {
     const h = await headers()

@@ -8,7 +8,6 @@
  * scripts/sync-tbilisi-streets-osm.py to refresh from live OSM.
  */
 
-import { LISTINGS, type Listing } from '@/data/listings'
 import { canonicalizeDistrict } from '@/lib/district-canon'
 
 export interface TbilisiStreet {
@@ -4777,36 +4776,6 @@ export function districtKaForStreet(raw: string): string | undefined {
     }
   }
   return best?.district ? canonicalizeDistrict(best.district) || undefined : undefined
-}
-
-function includesWord(hay: string, needle: string): boolean {
-  let i = hay.indexOf(needle)
-  while (i !== -1) {
-    const before = hay[i - 1] ?? ''
-    const after = hay[i + needle.length] ?? ''
-    if (!/[ა-ჿ]/.test(before) && !/[ა-ჿ]/.test(after)) return true
-    i = hay.indexOf(needle, i + 1)
-  }
-  return false
-}
-
-function coreVariants(core: string): string[] {
-  const out = new Set([core])
-  const chars = [...core]
-  chars.forEach((c, i) => {
-    if (c !== 'ჭ' && c !== 'ჩ') return
-    for (const v of [...out]) {
-      out.add(v.slice(0, i) + (v[i] === 'ჭ' ? 'ჩ' : 'ჭ') + v.slice(i + 1))
-    }
-  })
-  return [...out]
-}
-
-export function listingsOfStreet(street: TbilisiStreet): Listing[] {
-  const variants = coreVariants(streetCore(street.ka))
-  return LISTINGS.filter(
-    (l) => l.city === 'თბილისი' && variants.some((v) => includesWord(l.address, v)),
-  )
 }
 
 export function streetLocative(ka: string): string {

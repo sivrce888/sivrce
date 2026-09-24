@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import { headers } from 'next/headers'
 import HomeMain from '@/components/HomeMain'
 import GlobalHome, { metadata as globalMeta } from '@/components/GlobalHome'
-import { LISTINGS, type Listing } from '@/data/listings'
+import type { Listing } from '@/data/listings'
 import { getAllListings } from '@/lib/listings-db'
 import { listingPath } from '@/lib/listing-slug'
 import { isValidLang } from '@/lib/i18n/core'
@@ -26,11 +26,11 @@ export const revalidate = 60
 // + citable prices for AI engines. Swap for curated rails if home grows one.
 async function homeItemListLd(market: MarketId) {
   const scope = homeScopeFor(market)
-  let rows: Listing[] = LISTINGS.slice(0, 10)
+  let rows: Listing[] = []
   try {
-    const live = await getAllListings(10, scope)
-    if (live.length > 0) rows = live
-  } catch { /* DB unavailable at build — static URLs */ }
+    rows = await getAllListings(10, scope)
+  } catch { /* DB unavailable — no ItemList beats mock offers */ }
+  if (rows.length === 0) return null
   // Worldwide hub: world listings live on sivrce.com; every market keeps its own origin.
   const origin = market === 'global' ? COM_ORIGIN : canonicalOrigin(market)
   const abs = (src: string) => (src.startsWith('http') ? src : `${origin}${src}`)
@@ -61,10 +61,9 @@ export default async function Home({ params }: { params: Promise<{ lang: string 
     return (
       <>
         <GlobalHome cc={cc} lang={isValidLang(raw) ? raw : 'en'} />
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: jsonLd(itemListLd) }}
-        />
+        {itemListLd && (
+          <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(itemListLd) }} />
+        )}
       </>
     )
   }
@@ -72,10 +71,9 @@ export default async function Home({ params }: { params: Promise<{ lang: string 
   return (
     <>
       <HomeMain lang={isValidLang(raw) ? raw : 'ka'} market={market} />
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: jsonLd(itemListLd) }}
-      />
+      {itemListLd && (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(itemListLd) }} />
+      )}
     </>
   )
 }

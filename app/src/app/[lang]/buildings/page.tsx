@@ -6,7 +6,7 @@ import { PageHero } from '@/components/PageHero'
 import { BuildingsCatalog } from '@/components/buildings/BuildingsCatalog'
 import { FaqSection } from '@/components/seo/FaqSection'
 import { BUILDINGS } from '@/data/buildings'
-import { buildingDealCounts } from '@/data/buildings-listings'
+import type { DealType } from '@/data/listings'
 import { getDeveloper } from '@/data/professionals'
 import { getBuildingDealCountsBySlug } from '@/lib/map/db-buildings'
 import { faqPageLd, pickLoc, type DirLoc } from '@/lib/directory-seo'
@@ -163,13 +163,11 @@ export default async function BuildingsPage({ params }: { params: Promise<{ lang
   const loc: DirLoc | 'de' = lang === 'ka' || lang === 'ru' || lang === 'de' ? lang : 'en'
   const c = COPY[loc]
   const liveCounts = await getBuildingDealCountsBySlug()
-  const countsBySlug: Record<string, ReturnType<typeof buildingDealCounts>> = {}
+  const countsBySlug: Record<string, Record<DealType, number>> = {}
   const developerNames: Record<string, string> = {}
   for (const b of BUILDINGS) {
-    countsBySlug[b.slug] =
-      Object.keys(liveCounts).length > 0
-        ? (liveCounts[b.slug] ?? { sale: 0, rent: 0, daily: 0, pledge: 0 })
-        : buildingDealCounts(b.slug)
+    // Live counts only — the mock catalog fallback advertised listings that don't exist.
+    countsBySlug[b.slug] = liveCounts[b.slug] ?? { sale: 0, rent: 0, daily: 0, pledge: 0 }
     if (b.developerSlug && !developerNames[b.developerSlug]) {
       const name = getDeveloper(b.developerSlug)?.name
       if (name) developerNames[b.developerSlug] = pickLoc(name, loc)

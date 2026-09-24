@@ -24,6 +24,7 @@ import {
 } from "@/lib/map/building-inventory"
 import { closeRing, parseFootprintRing } from "@/lib/map/pick-building"
 import { activeColorUntil, activePriceDropUntil, activeStoryUntil, activeUrgentUntil, effectiveTierKey, tierKeyToBadge, tierRankOf } from "@/lib/promo-pricing"
+import { requestCountryLock } from "@/lib/request-market"
 
 export const MAP_BUILDINGS_TAG = "map-buildings"
 export const MAP_LISTINGS_TAG = "map-listings"
@@ -389,6 +390,8 @@ export async function getBuildingDealCountsBySlug(): Promise<
 
 /** Active attributed listings for one building slug. */
 export async function getListingsForBuildingSlug(slug: string): Promise<MapListing[]> {
+  const lock = await requestCountryLock()
   const all = await getMapListings()
-  return all.filter((l) => l.buildingSlug === slug)
+  // getMapListings is one worldwide host-shared cache — clamp after, never inside it.
+  return all.filter((l) => l.buildingSlug === slug && (!lock || l.country === lock))
 }

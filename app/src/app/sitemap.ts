@@ -1,5 +1,5 @@
 import type { MetadataRoute } from 'next'
-import { LISTINGS, type Listing } from '@/data/listings'
+import type { Listing } from '@/data/listings'
 import { getAllListings, getWorldListings } from '@/lib/listings-db'
 import { BUILDINGS } from '@/data/buildings'
 import { generateAllSeoParams } from '@/lib/seo-pages'
@@ -87,11 +87,11 @@ export default async function sitemap({ id }: { id: string | Promise<string> }):
 async function georgiaSitemap(): Promise<MetadataRoute.Sitemap> {
   // One inventory, two shards: the ge sitemap lists only GE listings — world
   // listings publish (and canonicalize) on sivrce.com in countrySitemap().
-  let listings: Listing[] = LISTINGS
+  // Live rows only — listing pages are DB-only, so mock catalog URLs would 404.
+  let listings: Listing[] = []
   try {
-    const rows = await getAllListings(5000, { country: 'GE' })
-    if (rows.length > 0) listings = rows
-  } catch { /* DB unavailable at build — keep static URLs */ }
+    listings = await getAllListings(5000, { country: 'GE' })
+  } catch { /* DB unavailable at build — no listing URLs beats dead ones */ }
 
   const entries: Entry[] = [
     { path: '', changeFrequency: 'hourly', priority: 1 },

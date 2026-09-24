@@ -89,9 +89,50 @@ assert.ok(
   'sitemap ge shard must be locked to GE listings',
 )
 
+// —— 3b. Publish ingestion: the wizard POST cannot mint non-GE rows on prod .ge ——
+const publishApiSrc = readFileSync(
+  new URL('../app/api/listings/route.ts', import.meta.url),
+  'utf8',
+)
+assert.ok(
+  publishApiSrc.includes('(await requestHostKind()) === "ge"') &&
+    publishApiSrc.includes('body.country = "GE"'),
+  'POST /api/listings must clamp body.country to GE on production sivrce.ge before parsePublishBody',
+)
+
+// —— 3c. Entity rails (agency/agent/developer/project profiles, buildings, u/*)
+// clamp to GE on prod .ge via requestCountryLock — owner- and slug-scoped
+// queries are inventory too. libSrc is read in the world-leak scan below. ——
+const libSrc = readFileSync(new URL('./listings-db.ts', import.meta.url), 'utf8')
+for (const call of [
+  'getListingsByOwner',
+  'getListingsForAgentProfile',
+  'getListingsForProjectSlug',
+  'getListingsForDeveloper',
+]) {
+  const fn = libSrc.slice(
+    libSrc.indexOf(`async function ${call}`),
+    libSrc.indexOf('export', libSrc.indexOf(`async function ${call}`)),
+  )
+  assert.ok(
+    fn.includes('requestCountryLock'),
+    `listings-db ${call} must clamp to GE on production sivrce.ge (requestCountryLock)`,
+  )
+}
+assert.ok(
+  (libSrc.match(/requestCountryLock/g) ?? []).length >= 5,
+  'agent listing counts must clamp via requestCountryLock too (arg feeds the unstable_cache key)',
+)
+const dbBuildingsSrc = readFileSync(new URL('./map/db-buildings.ts', import.meta.url), 'utf8')
+assert.ok(
+  /getListingsForBuildingSlug[\s\S]*?requestCountryLock[\s\S]*?l\.country === lock/.test(
+    dbBuildingsSrc,
+  ),
+  'buildings page rail must clamp the worldwide cached map listings to GE on prod .ge',
+)
+
 // getWorldListings is the only world-inventory query; the worldwide surface's
 // sitemap is its sole legitimate consumer. Anything else importing it is a leak.
-const libSrc = readFileSync(new URL('./listings-db.ts', import.meta.url), 'utf8')
 const worldImporters: string[] = []
 for (const rel of readdirSync(new URL('../app', import.meta.url), {
   recursive: true,
@@ -120,7 +161,7 @@ assert.ok(
 // transactional allowlist. New listing routes must import the host authority
 // (enforcedCountry / requestKind / hostKind) or they fail this build. ——
 const apiDir = new URL('../app/api', import.meta.url)
-const HOST_AUTHORITY = /from ['"]@\/lib\/(domain-scope|site-host)['"]/
+const HOST_AUTHORITY = /from ['"]@\/lib\/(domain-scope|site-host|request-market)['"]/
 const TOUCHES_LISTINGS = /db\.listing|@\/lib\/listings-db|@\/data\/listings['"]/
 
 /** Routes that touch single listing rows for a user action — not inventory. */

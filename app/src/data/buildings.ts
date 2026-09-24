@@ -745,10 +745,6 @@ export function getBuildingByCode(code: string): BuildingCatalogEntry | undefine
   return BUILDINGS.find((b) => b.code.toUpperCase() === code.toUpperCase())
 }
 
-// listingsForBuilding / buildingDealCounts moved to buildings-listings.ts —
-// they were the only reason this client-reachable module imported the
-// ~1.1 MB LISTINGS catalog (map components pull buildings.ts).
-
 export function buildingDeveloperName(slug: string): string | undefined {
   const b = getBuilding(slug)
   if (!b) return undefined

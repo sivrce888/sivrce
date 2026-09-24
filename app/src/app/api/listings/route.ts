@@ -20,6 +20,7 @@ import { EUR_GEL } from "@/lib/listing-format"
 import { metroMeters } from "@/lib/map/pois"
 import { linkListingMedia } from "@/lib/media/link-listing-media"
 import { parsePublishBody, persistRoomCounts } from "@/lib/listings-publish"
+import { requestHostKind } from "@/lib/request-market"
 import { runSavedSearchAlerts } from "@/lib/saved-search-alerts"
 import { indexListing } from "@/lib/search"
 import { listingIndexUrl, notifyIndexNow } from "@/lib/indexnow"
@@ -45,6 +46,10 @@ export async function POST(req: NextRequest) {
   } catch {
     return NextResponse.json({ ok: false, error: "bad_json" }, { status: 400 })
   }
+
+  // Constitution: production sivrce.ge publishes Georgian listings only.
+  // Clamp before parse so phone regex, currency and GE validation all key off GE.
+  if ((await requestHostKind()) === "ge") body.country = "GE"
 
   const parsed = parsePublishBody(body)
   if (!parsed.ok) {

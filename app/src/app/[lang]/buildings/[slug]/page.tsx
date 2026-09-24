@@ -32,7 +32,6 @@ import { FaqSection } from '@/components/seo/FaqSection'
 import HScroll from '@/components/HScroll'
 import MapEmbed from '@/components/MapEmbed'
 import { getBuilding, relatedBuildings } from '@/data/buildings'
-import { buildingDealCounts } from '@/data/buildings-listings'
 import { getDeveloper, type Developer } from '@/data/professionals'
 import {
   clusterListingsToBuildings,
@@ -249,7 +248,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const { building: b } = await resolveBuilding(slug)
   if (!b) return {}
   const live = (await getBuildingDealCountsBySlug())[slug]
-  const counts = live ?? buildingDealCounts(slug)
+  const counts = live ?? { sale: 0, rent: 0, daily: 0, pledge: 0 }
   const bName = loc === 'ka' ? b.name : b.nameEn
   const place = [b.ubani, b.district, b.city].filter((n): n is string => Boolean(n)).map((n) => geoName(n, loc)).join(', ')
   const description = `${b.description[loc] ?? b.description.en} ${place}. ${counts.sale} ${t.sale}, ${counts.rent} ${t.rent}.`.slice(0, 160)
