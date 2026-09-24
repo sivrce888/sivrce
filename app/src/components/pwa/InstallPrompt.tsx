@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { isNative } from '@/lib/native'
 import { useI18n } from '@/lib/i18n/context'
@@ -26,6 +26,7 @@ export function InstallPrompt() {
   const [evt, setEvt] = useState<InstallEvent | null>(null)
   const [ios, setIos] = useState(false)
   const [show, setShow] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     if (isNative()) return
@@ -65,6 +66,16 @@ export function InstallPrompt() {
     return () => clearTimeout(id)
   }, [evt])
 
+  // Publishes the banner's height so the chat launcher (same bottom corner on
+  // phones) lifts above it instead of covering the dismiss button.
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const root = document.documentElement.style
+    root.setProperty('--sv-install', `${el.offsetHeight}px`)
+    return () => root.removeProperty('--sv-install')
+  }, [show, ios, evt])
+
   if (!show || (!evt && !ios)) return null
 
   const dismiss = () => {
@@ -83,20 +94,21 @@ export function InstallPrompt() {
 
   return (
     <div
+      ref={ref}
       role="dialog"
       aria-label={t('app.install.title')}
-      className="fixed inset-x-3 bottom-[calc(var(--sv-dock,0px)+0.75rem)] z-[44] mx-auto flex max-w-md items-center gap-3 rounded-tile border border-white/10 bg-sv-navy p-3.5 shadow-card sm:inset-x-auto sm:right-5"
+      className="fixed inset-x-3 bottom-[calc(var(--sv-dock,0px)+0.75rem)] z-[44] mx-auto flex max-w-md items-center gap-3 rounded-tile border border-white/10 bg-sv-navy p-3.5 shadow-card sm:inset-x-auto sm:start-5"
     >
-      <svg viewBox="0 0 48 48" fill="none" className="h-9 w-9 shrink-0" aria-hidden>
-        <circle cx="24" cy="24" r="22" stroke="#2A5FEF" strokeWidth="2" />
-        <path
-          d="M16 28l8-16 8 16"
-          stroke="#FF6A2D"
-          strokeWidth="2.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
+      {/* The exact icon the OS installs (navy tile + spark) — a preview, not decoration. */}
+      {/* eslint-disable-next-line @next/next/no-img-element -- 1.4 KB static icon, no optimizer round-trip */}
+      <img
+        src="/icons/icon-96.webp"
+        alt=""
+        width={40}
+        height={40}
+        className="h-10 w-10 shrink-0 rounded-control ring-1 ring-white/15"
+        decoding="async"
+      />
       <div className="min-w-0 flex-1">
         <p className="text-[13px] font-bold leading-snug text-white">{t('app.install.title')}</p>
         {ios ? (
