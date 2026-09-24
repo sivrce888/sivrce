@@ -8,7 +8,7 @@ import { Prisma } from "@/generated/prisma/client"
 import { db } from "@/lib/db"
 import { syncProfileRating } from "@/lib/reviews/aggregate"
 import { REVIEW_LIST_TAG, listReviews, parseSort, toDto } from "@/lib/reviews/list"
-import { clientIp, rateLimitOk } from "@/lib/reviews/rate-limit"
+import { clientIp, rateLimitOk } from "@/lib/rate-limit"
 import { isSameOrigin } from "@/lib/security/origin"
 import { parseReviewFields } from "@/lib/reviews/validate"
 

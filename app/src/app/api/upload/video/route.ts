@@ -11,32 +11,11 @@ import {
   looksLikeVideoBytes,
   mimeOfVideoFile,
 } from "@/lib/listing-video"
+import { rateLimitOk } from "@/lib/rate-limit"
 import { isSameOrigin } from "@/lib/security/origin"
 import { uploadFile } from "@/lib/storage"
 
 export const maxDuration = 60
-
-const WINDOW_MS = 10 * 60 * 1000
-const MAX_PER_WINDOW = 8
-
-interface Bucket {
-  count: number
-  resetAt: number
-}
-
-const buckets = new Map<string, Bucket>()
-
-function checkRateLimit(key: string): boolean {
-  const now = Date.now()
-  const bucket = buckets.get(key)
-  if (!bucket || bucket.resetAt <= now) {
-    buckets.set(key, { count: 1, resetAt: now + WINDOW_MS })
-    return true
-  }
-  if (bucket.count >= MAX_PER_WINDOW) return false
-  bucket.count += 1
-  return true
-}
 
 export async function POST(req: Request) {
   if (!isSameOrigin(req)) {
@@ -48,7 +27,7 @@ export async function POST(req: Request) {
     return Response.json({ ok: false, error: "unauthorized" }, { status: 401 })
   }
 
-  if (!checkRateLimit(`upload-video:${session.user.id}`)) {
+  if (!rateLimitOk(`upload-video:${session.user.id}`, { max: 8 })) {
     return Response.json({ ok: false, error: "rate_limited" }, { status: 429 })
   }
 

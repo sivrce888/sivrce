@@ -16,7 +16,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { db } from "@/lib/db"
 import { getFx } from "@/lib/fx-server"
-import { checkRateLimit } from "@/lib/inquiries/rate-limit"
+import { clientIp, rateLimit } from "@/lib/rate-limit"
 import { isSameOrigin } from "@/lib/security/origin"
 import {
   ACTIVE_BOOKING_STATUSES,
@@ -124,8 +124,8 @@ export async function POST(req: NextRequest) {
   if (!isSameOrigin(req)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown"
-  if (!checkRateLimit(`bookings:${ip}`).ok) {
+  const ip = clientIp(req.headers)
+  if (!rateLimit(`bookings:${ip}`).ok) {
     return NextResponse.json({ error: "rate_limited" }, { status: 429 })
   }
 

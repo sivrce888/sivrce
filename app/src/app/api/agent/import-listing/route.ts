@@ -5,7 +5,7 @@ import {
   formatImportedListing,
   importCompetitorListings,
 } from '@/lib/competitor-import'
-import { checkRateLimit } from '@/lib/inquiries/rate-limit'
+import { rateLimit } from '@/lib/rate-limit'
 import { isSameOrigin } from '@/lib/security/origin'
 
 export const runtime = 'nodejs'
@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
   if (!session?.user?.id) {
     return NextResponse.json({ ok: false, error: 'unauthorized' }, { status: 401 })
   }
-  const limit = checkRateLimit(`import-listing:${session.user.id}`)
+  const limit = rateLimit(`import-listing:${session.user.id}`)
   if (!limit.ok) {
     return NextResponse.json(
       { ok: false, error: 'rate_limited' },

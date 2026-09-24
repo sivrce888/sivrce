@@ -8,7 +8,7 @@
 import { auth } from "@/auth"
 import { NextResponse } from "next/server"
 import { isChatParticipant, unsendMessage } from "@/lib/chat"
-import { rateLimitOk } from "@/lib/reviews/rate-limit"
+import { rateLimitOk } from "@/lib/rate-limit"
 
 interface RouteParams {
   params: Promise<{ roomId: string }>

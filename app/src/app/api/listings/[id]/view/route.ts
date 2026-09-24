@@ -4,7 +4,7 @@
  * rate-limits by IP so refresh spam doesn't inflate analytics.
  */
 import { db } from '@/lib/db'
-import { clientIp, rateLimitOk } from '@/lib/reviews/rate-limit'
+import { clientIp, rateLimitOk } from '@/lib/rate-limit'
 import { isSameOrigin } from '@/lib/security/origin'
 
 export async function POST(

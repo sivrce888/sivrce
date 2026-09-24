@@ -43,7 +43,7 @@ async function main() {
   assert.equal(parseReviewFields("junk").ok, false)
 
   // Rate limiter: default budget + per-endpoint overrides (payments checkout).
-  const { rateLimitOk } = await import("./rate-limit")
+  const { rateLimitOk } = await import("../rate-limit")
   assert.equal(rateLimitOk("t:default"), true)
   for (let i = 1; i < 10; i++) assert.equal(rateLimitOk("t:default"), true)
   assert.equal(rateLimitOk("t:default"), false)
@@ -53,6 +53,17 @@ async function main() {
   assert.equal(rateLimitOk("t:window", { windowMs: 50 }), true)
   await new Promise((r) => setTimeout(r, 60))
   assert.equal(rateLimitOk("t:window", { windowMs: 50 }), true) // window reset
+
+  // Retry-After math, and the RAM ceiling under key-spraying abuse.
+  const { rateLimit, trackedKeys, clientIp } = await import("../rate-limit")
+  const t0 = 1_000_000
+  assert.deepEqual(rateLimit("t:retry", { max: 1, windowMs: 30_000 }, t0), { ok: true, retryAfterSec: 0 })
+  assert.deepEqual(rateLimit("t:retry", { max: 1, windowMs: 30_000 }, t0 + 10_500), { ok: false, retryAfterSec: 20 })
+  for (let i = 0; i < 6000; i++) rateLimit(`t:spray:${i}`, { windowMs: 1e9 })
+  assert.ok(trackedKeys() <= 5000, `limiter must cap tracked keys, has ${trackedKeys()}`)
+  assert.equal(clientIp(new Headers({ "x-forwarded-for": "1.2.3.4, 10.0.0.1" })), "1.2.3.4")
+  assert.equal(clientIp(new Headers({ "x-forwarded-for": "", "x-real-ip": "5.6.7.8" })), "5.6.7.8")
+  assert.equal(clientIp(new Headers()), "unknown")
 
   console.log("reviews.check: all assertions passed")
 }

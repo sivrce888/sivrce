@@ -6,13 +6,14 @@
 
 import { NextRequest, NextResponse } from "next/server"
 import { getBookableSlots, resolveListingAgentId } from "@/lib/tours"
-import { checkRateLimit } from "@/lib/inquiries/rate-limit"
+import { clientIp, rateLimit } from "@/lib/rate-limit"
 
 export const dynamic = "force-dynamic"
 
 export async function GET(req: NextRequest) {
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown"
-  if (!checkRateLimit(`tour-avail:${ip}`).ok) {
+  // Read budget, not the 10/10min write default: the date input fires per edit,
+  // and Georgian mobile carriers put many users behind one CGNAT IP.
+  if (!rateLimit(`tour-avail:${clientIp(req.headers)}`, { max: 120 }).ok) {
     return NextResponse.json({ error: "rate_limited" }, { status: 429 })
   }
 

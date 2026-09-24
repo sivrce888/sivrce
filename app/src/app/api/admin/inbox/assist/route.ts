@@ -6,7 +6,7 @@
 import { NextResponse } from "next/server"
 import { requireAdminAction } from "@/lib/admin/guard"
 
-import { rateLimitOk } from "@/lib/reviews/rate-limit"
+import { rateLimitOk } from "@/lib/rate-limit"
 import { db } from "@/lib/db"
 import { summarizeConversationAi } from "@/lib/ai"
 

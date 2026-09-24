@@ -8,7 +8,7 @@ import { auth } from "@/auth"
 import { getBookableSlots, getToursByUser, resolveListingAgentId } from "@/lib/tours"
 import { tourDateISO, tourSlotLockKey, tourSlotScope } from "@/lib/tour-slots"
 import { db } from "@/lib/db"
-import { checkRateLimit } from "@/lib/inquiries/rate-limit"
+import { clientIp, rateLimit } from "@/lib/rate-limit"
 import { isSameOrigin } from "@/lib/security/origin"
 
 export async function GET() {
@@ -24,8 +24,8 @@ export async function POST(req: NextRequest) {
   if (!isSameOrigin(req)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown"
-  if (!checkRateLimit(`tours:${ip}`).ok) {
+  const ip = clientIp(req.headers)
+  if (!rateLimit(`tours:${ip}`).ok) {
     return NextResponse.json({ error: "rate_limited" }, { status: 429 })
   }
 

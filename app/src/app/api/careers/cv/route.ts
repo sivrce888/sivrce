@@ -6,19 +6,11 @@
 import { checkBotId } from 'botid/server'
 
 import { cvContentType, detectCvKind } from '@/lib/careers-cv'
-import { checkRateLimit } from '@/lib/inquiries/rate-limit'
+import { clientIp, rateLimit } from '@/lib/rate-limit'
 import { isSameOrigin } from '@/lib/security/origin'
 import { uploadFile } from '@/lib/storage'
 
 const MAX_BYTES = 5 * 1024 * 1024 // 5 MB
-
-function clientIp(req: Request): string {
-  return (
-    req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ||
-    req.headers.get('x-real-ip') ||
-    'unknown'
-  )
-}
 
 export async function POST(req: Request) {
   if (!isSameOrigin(req)) {
@@ -30,7 +22,7 @@ export async function POST(req: Request) {
     return Response.json({ ok: false, error: 'bot_denied' }, { status: 403 })
   }
 
-  const limit = checkRateLimit(`careers-cv:${clientIp(req)}`)
+  const limit = rateLimit(`careers-cv:${clientIp(req.headers)}`)
   if (!limit.ok) {
     return Response.json(
       { ok: false, error: 'rate_limited' },

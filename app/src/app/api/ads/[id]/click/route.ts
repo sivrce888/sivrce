@@ -1,4 +1,4 @@
-import { clientIp, rateLimitOk } from "@/lib/reviews/rate-limit"
+import { clientIp, rateLimitOk } from "@/lib/rate-limit"
 import { isSameOrigin } from "@/lib/security/origin"
 import { db, dbAvailable } from "@/lib/db"
 

@@ -10,7 +10,7 @@ import { NextResponse } from "next/server"
 import { db } from "@/lib/db"
 import { ComplaintKind } from "@/generated/prisma/enums"
 import { isChatParticipant } from "@/lib/chat"
-import { rateLimitOk } from "@/lib/reviews/rate-limit"
+import { rateLimitOk } from "@/lib/rate-limit"
 
 interface RouteParams {
   params: Promise<{ roomId: string }>

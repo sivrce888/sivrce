@@ -12,7 +12,7 @@ import { auth } from "@/auth"
 import { getOrCreateSupportRoom, sendMessage } from "@/lib/chat"
 import { getConfig } from "@/lib/config"
 import { sendEmail } from "@/lib/email"
-import { checkRateLimit } from "@/lib/inquiries/rate-limit"
+import { clientIp, rateLimit } from "@/lib/rate-limit"
 import { isSameOrigin } from "@/lib/security/origin"
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -31,8 +31,8 @@ export async function POST(req: NextRequest) {
   if (!isSameOrigin(req)) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 })
   }
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown"
-  if (!checkRateLimit(`contact:${ip}`).ok) {
+  const ip = clientIp(req.headers)
+  if (!rateLimit(`contact:${ip}`).ok) {
     return NextResponse.json({ error: "rate_limited" }, { status: 429 })
   }
 

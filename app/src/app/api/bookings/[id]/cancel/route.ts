@@ -11,7 +11,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { db } from "@/lib/db"
 import { BookingStatus } from "@/generated/prisma/enums"
-import { checkRateLimit } from "@/lib/inquiries/rate-limit"
+import { clientIp, rateLimit } from "@/lib/rate-limit"
 import { isSameOrigin } from "@/lib/security/origin"
 import { transitionStayBooking } from "@/lib/stay-create"
 import { verifyStayCancelToken } from "@/lib/stay-token"
@@ -20,8 +20,8 @@ export async function POST(req: NextRequest, ctx: { params: Promise<{ id: string
   if (!isSameOrigin(req)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 })
   }
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown"
-  if (!checkRateLimit(`stay-cancel:${ip}`).ok) {
+  const ip = clientIp(req.headers)
+  if (!rateLimit(`stay-cancel:${ip}`).ok) {
     return NextResponse.json({ error: "rate_limited" }, { status: 429 })
   }
   const { id } = await ctx.params

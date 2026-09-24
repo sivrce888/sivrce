@@ -6,7 +6,7 @@ import { createHash, randomInt, timingSafeEqual } from "node:crypto"
 
 import { OTP_LEN, OTP_TTL_MS, normalizePhone, phoneEmail } from "@/lib/auth-phone"
 import { db, dbAvailable } from "@/lib/db"
-import { clientIp, rateLimitOk } from "@/lib/reviews/rate-limit"
+import { clientIp, rateLimitOk } from "@/lib/rate-limit"
 import { checkVerifySms, sendVerifySms, smsReady, toE164 } from "@/lib/sms/twilio-verify"
 
 export type OtpResult = { ok: true; phone: string } | { ok: false; error: string }

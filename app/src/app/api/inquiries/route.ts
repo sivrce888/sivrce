@@ -5,7 +5,7 @@ import type { DealType } from "@/data/listings"
 import { getConfig } from "@/lib/config"
 import { db } from "@/lib/db"
 import { sendInquiryNotification } from "@/lib/email"
-import { checkRateLimit } from "@/lib/inquiries/rate-limit"
+import { clientIp, rateLimit } from "@/lib/rate-limit"
 import { hasHoneypot, validateInquiry } from "@/lib/inquiries/validate"
 import { getListing as getDbListing } from "@/lib/listings-db"
 import { resolveListingPhone } from "@/lib/listings/phone-vault"
@@ -18,14 +18,6 @@ const DEAL_MAP: Record<DealType, string> = {
   rent: "rent",
   daily: "daily",
   pledge: "pledge",
-}
-
-function clientIp(req: Request): string {
-  return (
-    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    req.headers.get("x-real-ip") ||
-    "unknown"
-  )
 }
 
 /** LeadForm targetTypes whose lead belongs to a profile owner, not the site. */
@@ -90,7 +82,7 @@ export async function POST(req: Request) {
     return Response.json({ ok: false, error: "bot_denied" }, { status: 403 })
   }
 
-  const limit = checkRateLimit(clientIp(req))
+  const limit = rateLimit(`inquiry:${clientIp(req.headers)}`)
   if (!limit.ok) {
     return Response.json(
       { ok: false, error: "rate_limited" },

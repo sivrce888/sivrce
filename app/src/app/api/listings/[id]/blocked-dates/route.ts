@@ -11,7 +11,7 @@ import { type NextRequest, NextResponse } from "next/server"
 
 import { auth } from "@/auth"
 import { db } from "@/lib/db"
-import { checkRateLimit } from "@/lib/inquiries/rate-limit"
+import { clientIp, rateLimit } from "@/lib/rate-limit"
 import { canManageListing } from "@/lib/listing-access"
 import { tbilisiTodayUtc } from "@/lib/bookings"
 import { isSameOrigin } from "@/lib/security/origin"
@@ -43,8 +43,8 @@ async function gate(req: NextRequest, id: string) {
   if (!isSameOrigin(req)) return { error: "Forbidden", status: 403 } as const
   const session = await auth()
   if (!session?.user?.id) return { error: "Unauthorized", status: 401 } as const
-  const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown"
-  if (!checkRateLimit(`blocked-dates:${ip}`).ok) {
+  const ip = clientIp(req.headers)
+  if (!rateLimit(`blocked-dates:${ip}`).ok) {
     return { error: "rate_limited", status: 429 } as const
   }
   const listing = await ownedListing(id)

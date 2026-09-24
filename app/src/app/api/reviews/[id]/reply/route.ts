@@ -5,7 +5,7 @@ import { auth } from "@/auth"
 import { db } from "@/lib/db"
 import { REVIEW_LIST_TAG } from "@/lib/reviews/list"
 import { getTargetOwnerId } from "@/lib/reviews/owner"
-import { clientIp, rateLimitOk } from "@/lib/reviews/rate-limit"
+import { clientIp, rateLimitOk } from "@/lib/rate-limit"
 import { isSameOrigin } from "@/lib/security/origin"
 
 export const dynamic = "force-dynamic"

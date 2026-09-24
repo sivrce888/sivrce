@@ -14,46 +14,9 @@
 
 import sharp from "sharp"
 import { auth } from "@/auth"
+import { rateLimitOk } from "@/lib/rate-limit"
 import { isSameOrigin } from "@/lib/security/origin"
 import { uploadFile } from "@/lib/storage"
-
-/* ------------------------------------------------------------------ */
-/*  Rate limiter (in-memory, per-user)                                */
-/* ------------------------------------------------------------------ */
-
-const WINDOW_MS = 10 * 60 * 1000 // 10 minutes
-// 16-photo listings upload in parallel + leave room for retries / re-picks.
-const MAX_PER_WINDOW = 40
-
-interface Bucket {
-  count: number
-  resetAt: number
-}
-
-const buckets = new Map<string, Bucket>()
-let lastSweep = 0
-
-function sweep(now: number) {
-  if (now - lastSweep < WINDOW_MS) return
-  lastSweep = now
-  for (const [key, bucket] of buckets) {
-    if (bucket.resetAt <= now) buckets.delete(key)
-  }
-}
-
-function checkRateLimit(key: string): boolean {
-  const now = Date.now()
-  sweep(now)
-
-  const bucket = buckets.get(key)
-  if (!bucket || bucket.resetAt <= now) {
-    buckets.set(key, { count: 1, resetAt: now + WINDOW_MS })
-    return true
-  }
-  if (bucket.count >= MAX_PER_WINDOW) return false
-  bucket.count += 1
-  return true
-}
 
 /* ------------------------------------------------------------------ */
 /*  Validation                                                        */
@@ -82,7 +45,8 @@ export async function POST(req: Request) {
     return Response.json({ ok: false, error: "unauthorized" }, { status: 401 })
   }
 
-  if (!checkRateLimit(`upload:${session.user.id}`)) {
+  // 16-photo listings upload in parallel + leave room for retries / re-picks.
+  if (!rateLimitOk(`upload:${session.user.id}`, { max: 40 })) {
     return Response.json({ ok: false, error: "rate_limited" }, { status: 429 })
   }
 

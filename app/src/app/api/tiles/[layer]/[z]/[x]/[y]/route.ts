@@ -11,7 +11,7 @@ import {
   mvtForTile,
   parseTileXYZ,
 } from '@/lib/geo/mvt'
-import { clientIp, rateLimitOk } from '@/lib/reviews/rate-limit'
+import { clientIp, rateLimitOk } from '@/lib/rate-limit'
 
 export const runtime = 'nodejs'
 export const maxDuration = 8

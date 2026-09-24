@@ -2,7 +2,7 @@ import { NextResponse } from "next/server"
 
 import { auth } from "@/auth"
 import { normalizePhone } from "@/lib/auth-phone"
-import { clientIp, rateLimitOk } from "@/lib/reviews/rate-limit"
+import { clientIp, rateLimitOk } from "@/lib/rate-limit"
 import { isSameOrigin } from "@/lib/security/origin"
 import { sendVerifySms, toE164 } from "@/lib/sms/twilio-verify"
 

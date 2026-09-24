@@ -3,7 +3,7 @@ import { type NextRequest, NextResponse } from "next/server"
 
 import { auth } from "@/auth"
 import { createForumReply } from "@/lib/forum-live"
-import { clientIp, rateLimitOk } from "@/lib/reviews/rate-limit"
+import { clientIp, rateLimitOk } from "@/lib/rate-limit"
 import { isSameOrigin } from "@/lib/security/origin"
 
 export const dynamic = "force-dynamic"

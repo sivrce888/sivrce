@@ -24,7 +24,7 @@ import {
   tierRankOf,
   type CheckoutAddon,
 } from "@/lib/promo-pricing"
-import { rateLimitOk } from "@/lib/reviews/rate-limit"
+import { rateLimitOk } from "@/lib/rate-limit"
 
 const VALID_TIERS = ["vip", "super_vip", "diamond"] as const
 const TIER_RANK: Record<string, number> = { standard: 0, vip: 1, super_vip: 2, diamond: 3 }

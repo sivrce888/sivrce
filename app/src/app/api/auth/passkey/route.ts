@@ -7,7 +7,7 @@ import {
   registrationOptions,
 } from "@/lib/auth-passkey"
 import { db } from "@/lib/db"
-import { clientIp, rateLimitOk } from "@/lib/reviews/rate-limit"
+import { clientIp, rateLimitOk } from "@/lib/rate-limit"
 import { isSameOrigin } from "@/lib/security/origin"
 
 export const dynamic = "force-dynamic"

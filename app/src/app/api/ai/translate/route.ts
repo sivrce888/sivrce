@@ -1,46 +1,11 @@
 import { translateText } from "@/lib/ai"
+import { clientIp, rateLimit } from "@/lib/rate-limit"
 
 /** Per-IP rate limiter: 15 translations per 5 minutes — Gemini cost lock. */
 export const maxDuration = 15
 
-const WINDOW_MS = 5 * 60 * 1000
-const MAX_PER_WINDOW = 15
-const buckets = new Map<string, { count: number; resetAt: number }>()
-let lastSweep = 0
-
-function sweep(now: number) {
-  if (now - lastSweep < WINDOW_MS) return
-  lastSweep = now
-  for (const [key, b] of buckets) {
-    if (b.resetAt <= now) buckets.delete(key)
-  }
-}
-
-function checkRateLimit(key: string): { ok: boolean; retryAfterSec: number } {
-  const now = Date.now()
-  sweep(now)
-  const b = buckets.get(key)
-  if (!b || b.resetAt <= now) {
-    buckets.set(key, { count: 1, resetAt: now + WINDOW_MS })
-    return { ok: true, retryAfterSec: 0 }
-  }
-  if (b.count >= MAX_PER_WINDOW) {
-    return { ok: false, retryAfterSec: Math.ceil((b.resetAt - now) / 1000) }
-  }
-  b.count += 1
-  return { ok: true, retryAfterSec: 0 }
-}
-
-function clientIp(req: Request): string {
-  return (
-    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    req.headers.get("x-real-ip") ??
-    "unknown"
-  )
-}
-
 export async function POST(req: Request) {
-  const limit = checkRateLimit(clientIp(req))
+  const limit = rateLimit(`ai-translate:${clientIp(req.headers)}`, { windowMs: 5 * 60_000, max: 15 })
   if (!limit.ok) {
     return Response.json(
       { ok: false, error: "rate_limited" },

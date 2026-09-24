@@ -6,7 +6,7 @@
 
 import { NextResponse } from 'next/server'
 import { getDepartures, isStopId } from '@/lib/de-live'
-import { clientIp, rateLimitOk } from '@/lib/reviews/rate-limit'
+import { clientIp, rateLimitOk } from '@/lib/rate-limit'
 
 export const runtime = 'nodejs'
 export const maxDuration = 8

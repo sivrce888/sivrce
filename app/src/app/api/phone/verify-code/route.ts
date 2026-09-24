@@ -3,9 +3,9 @@ import { NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { db } from "@/lib/db"
 import { normalizePhone } from "@/lib/auth-phone"
-import { clientIp, rateLimitOk } from "@/lib/reviews/rate-limit"
+import { clientIp, rateLimitOk } from "@/lib/rate-limit"
 import { isSameOrigin } from "@/lib/security/origin"
-import { checkVerifySms } from "@/lib/sms/twilio-verify"
+import { checkVerifySms, toE164 } from "@/lib/sms/twilio-verify"
 
 export const dynamic = "force-dynamic"
 
@@ -28,9 +28,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: "bad_json" }, { status: 400 })
   }
   // Each guess stamps a trust badge if it lands — tighter budget than send-code.
+  // Key the phone budget on E.164 so "+995 5…" vs "5…" can't reset it.
+  const raw = body.phone ?? ""
+  const phoneKey = toE164(normalizePhone(raw) ?? raw) ?? raw
   if (
     !rateLimitOk(`otp-verify-ip:${clientIp(req.headers)}`, { max: 5 }) ||
-    !rateLimitOk(`otp-verify-phone:${body.phone ?? ""}`, { max: 5 })
+    !rateLimitOk(`otp-verify-user:${session.user.id}`, { max: 5 }) ||
+    !rateLimitOk(`otp-verify-phone:${phoneKey}`, { max: 5 })
   ) {
     return NextResponse.json({ ok: false, error: "rate_limited" }, { status: 429 })
   }

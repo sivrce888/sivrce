@@ -4,6 +4,7 @@
  */
 
 import { auth } from "@/auth"
+import { rateLimitOk } from "@/lib/rate-limit"
 import { isSameOrigin } from "@/lib/security/origin"
 import { streamState } from "@/lib/stream"
 import { streamEmbedUrl } from "@/lib/listing-video"
@@ -20,7 +21,8 @@ export async function GET(req: Request) {
     return Response.json({ ok: false, error: "unauthorized" }, { status: 401 })
   }
 
-  if (!checkRateLimit(`upload-video-status:${session.user.id}`)) {
+  // Poller hits this every few seconds while Stream encodes.
+  if (!rateLimitOk(`upload-video-status:${session.user.id}`, { max: 120 })) {
     return Response.json({ ok: false, error: "rate_limited" }, { status: 429 })
   }
 
@@ -50,26 +52,4 @@ export async function GET(req: Request) {
     }
     return Response.json({ ok: false, error: "upload_failed" }, { status: 500 })
   }
-}
-
-const WINDOW_MS = 10 * 60 * 1000
-const MAX_PER_WINDOW = 120
-
-interface Bucket {
-  count: number
-  resetAt: number
-}
-
-const buckets = new Map<string, Bucket>()
-
-function checkRateLimit(key: string): boolean {
-  const now = Date.now()
-  const bucket = buckets.get(key)
-  if (!bucket || bucket.resetAt <= now) {
-    buckets.set(key, { count: 1, resetAt: now + WINDOW_MS })
-    return true
-  }
-  if (bucket.count >= MAX_PER_WINDOW) return false
-  bucket.count += 1
-  return true
 }

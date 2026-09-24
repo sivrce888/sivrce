@@ -86,7 +86,7 @@ assert(
 
 // Wiring: transport armor lives in the route, semantic armor in the core.
 const route = readFileSync(join(root, "app/api/bookings/route.ts"), "utf8")
-for (const needle of ["isSameOrigin", "checkRateLimit", "createStayBooking"]) {
+for (const needle of ["isSameOrigin", "rateLimit(", "createStayBooking"]) {
   assert(route.includes(needle), `api/bookings/route.ts missing ${needle}`)
 }
 const core = readFileSync(join(root, "lib/stay-create.ts"), "utf8")
@@ -107,7 +107,7 @@ const avail = readFileSync(join(root, "app/api/listings/[id]/blocked-dates/route
 for (const needle of [
   "canManageListing",
   "isSameOrigin",
-  "checkRateLimit",
+  "rateLimit(",
   "skipDuplicates",
   "MAX_BATCH",
 ]) {
@@ -326,7 +326,7 @@ const cancelRoute = readFileSync(
 )
 for (const needle of [
   "isSameOrigin",
-  "checkRateLimit",
+  "rateLimit(",
   "transitionStayBooking",
   "verifyStayCancelToken",
   "cancelled_by_guest",

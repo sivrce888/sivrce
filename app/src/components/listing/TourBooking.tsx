@@ -14,6 +14,7 @@ type Slots =
   | { status: "idle" }
   | { status: "loading" }
   | { status: "ready"; times: string[] }
+  | { status: "error" }
 
 /** Tour booking form on listing detail — slots come from the agent's real availability. */
 export function TourBooking({ listingId, listingTitle }: TourBookingProps) {
@@ -53,8 +54,9 @@ export function TourBooking({ listingId, listingTitle }: TourBookingProps) {
           : []
         if (req === reqRef.current) setSlots({ status: "ready", times })
       })
+      // A failed lookup is not "no free slots" — saying so would turn the guest away.
       .catch(() => {
-        if (req === reqRef.current) setSlots({ status: "ready", times: [] })
+        if (req === reqRef.current) setSlots({ status: "error" })
       })
   }
 
@@ -132,6 +134,9 @@ export function TourBooking({ listingId, listingTitle }: TourBookingProps) {
                       ))}
                   </select>
                 </div>
+                {slots.status === "error" && (
+                  <p role="alert" className="mt-1 text-xs font-semibold text-sv-ink/60">{t("tour.error")}</p>
+                )}
                 {noSlots && (
                   <p className="mt-1 text-xs font-semibold text-sv-ink/60">{t("tour.noSlots")}</p>
                 )}

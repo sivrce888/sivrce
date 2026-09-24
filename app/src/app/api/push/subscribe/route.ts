@@ -1,6 +1,6 @@
 import { auth } from "@/auth"
 import { db } from "@/lib/db"
-import { rateLimitOk } from "@/lib/reviews/rate-limit"
+import { rateLimitOk } from "@/lib/rate-limit"
 import { isSameOrigin } from "@/lib/security/origin"
 
 /**
