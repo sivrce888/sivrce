@@ -1,12 +1,12 @@
 /** Pure building inventory helpers (no DB) — used by db-buildings + check. */
-import type { DealType, Listing } from '@/data/listings'
+import type { DealType, MapListing } from '@/data/listings'
 
 export function emptyDealCounts(): Record<DealType, number> {
   return { sale: 0, rent: 0, daily: 0, pledge: 0 }
 }
 
 export function aggregateBuildingDealCounts(
-  listings: Listing[],
+  listings: MapListing[],
 ): Record<string, Record<DealType, number>> {
   const out: Record<string, Record<DealType, number>> = {}
   for (const l of listings) {

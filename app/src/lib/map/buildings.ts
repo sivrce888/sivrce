@@ -11,7 +11,7 @@
  * Ceiling: O(n) cluster. Upgrade → PostGIS ST_DWithin when DB-backed.
  */
 
-import type { DealType, Listing, PropType } from '@/data/listings'
+import type { DealType, MapListing, PropType } from '@/data/listings'
 import { BUILDINGS, type BuildingCatalogEntry } from '@/data/buildings'
 import { DEAL_BRAND, SERVICE_BRAND, STATUS_BRAND } from '@/lib/category-brand'
 // ponytail: this is the last client edge into the ~310 KB professionals catalog
@@ -203,7 +203,7 @@ export type MapBuildingCluster = {
   buildingNumber: string
   district: string
   city: string
-  listings: Listing[]
+  listings: MapListing[]
   counts: BuildingDealCounts
   dominant: DealType | 'construction'
   color: string
@@ -355,7 +355,7 @@ export function parseStreet(address: string): string {
   return stripped.trim().toLowerCase()
 }
 
-export function listingBuildingNumber(l: Listing): string {
+export function listingBuildingNumber(l: MapListing): string {
   return l.buildingNumber?.trim() || parseBuildingNumber(l.address)
 }
 
@@ -395,7 +395,7 @@ function isValidCoords(lat: number, lng: number): boolean {
   return Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180
 }
 
-function countDeals(items: Listing[]): BuildingDealCounts {
+function countDeals(items: MapListing[]): BuildingDealCounts {
   const counts = emptyCounts()
   for (const l of items) counts[l.dealType]++
   return counts
@@ -435,7 +435,7 @@ function enrichFromCatalog(
   }
 }
 
-export function catalogToCluster(cat: BuildingCatalogEntry, listings: Listing[]): MapBuildingCluster {
+export function catalogToCluster(cat: BuildingCatalogEntry, listings: MapListing[]): MapBuildingCluster {
   const counts = countDeals(listings)
   const dominant = listings.length ? dominantDeal(counts) : ('sale' as DealType)
   const pin = catalogCoords(cat)
@@ -467,9 +467,9 @@ export function catalogToCluster(cat: BuildingCatalogEntry, listings: Listing[])
 }
 
 /** Group listings by address+building# (primary) or ~60m grid (fallback). */
-export function clusterListingsToBuildings(listings: Listing[]): MapBuildingCluster[] {
-  const bySlug = new Map<string, Listing[]>()
-  const rest: Listing[] = []
+export function clusterListingsToBuildings(listings: MapListing[]): MapBuildingCluster[] {
+  const bySlug = new Map<string, MapListing[]>()
+  const rest: MapListing[] = []
 
   for (const l of listings) {
     if (!isValidCoords(l.coords.lat, l.coords.lng)) continue
@@ -516,7 +516,7 @@ export function clusterListingsToBuildings(listings: Listing[]): MapBuildingClus
     })
   }
 
-  const buckets = new Map<string, Listing[]>()
+  const buckets = new Map<string, MapListing[]>()
   for (const l of rest) {
     const bn = listingBuildingNumber(l)
     const street = parseStreet(l.address)

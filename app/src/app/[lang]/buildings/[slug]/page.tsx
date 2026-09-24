@@ -64,7 +64,7 @@ import {
   POI_LABELS,
   type PoiCategory,
 } from '@/lib/map/pois'
-import { getDistrictPeerPerM2 } from '@/lib/listings-db'
+import { getDistrictPeerPerM2, getListingsByIds } from '@/lib/listings-db'
 import { type DirLoc } from '@/lib/directory-seo'
 import { DISTRICTS } from '@/lib/seo-pages'
 import { priceScaleOf } from '@/lib/price-scale'
@@ -281,8 +281,10 @@ export default async function BuildingPage({ params }: PageProps) {
   const fpPin = footprintPin({ slug }, building.coords)
 
   const dev = getDeveloper(building.developerSlug) ?? dbDeveloper
-  const liveListings = await getListingsForBuildingSlug(slug)
-  const listings = liveListings
+  // Pins drive clustering/stats; cards need full rows (gallery, AI score).
+  const listings = await getListingsForBuildingSlug(slug)
+  const cardListings = await getListingsByIds(listings.map((l) => l.id))
+  const pinFloor = new Map(listings.map((l) => [l.id, l.floor]))
   const liveCounts = (await getBuildingDealCountsBySlug())[slug]
   const counts = liveCounts ?? { sale: 0, rent: 0, daily: 0, pledge: 0 }
   const aggregate = await getReviewAggregate('building', slug)
@@ -815,8 +817,8 @@ export default async function BuildingPage({ params }: PageProps) {
             (() => {
               const grid = (
                 <div className="sv-card-grid-3">
-                  {listings.map((l, i) => (
-                    <div key={l.id} className="relative" data-card-floor={listingFloor(l.floor, floorCount)}>
+                  {cardListings.map((l, i) => (
+                    <div key={l.id} className="relative" data-card-floor={listingFloor(pinFloor.get(l.id) ?? l.floor, floorCount)}>
                       <span
                         className="absolute left-3 top-3 z-10 rounded-full px-2.5 py-1 text-[10px] font-extrabold text-white"
                         style={{ background: DEAL_BRAND[l.dealType] }}

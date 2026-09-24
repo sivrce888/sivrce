@@ -118,6 +118,11 @@ export interface Listing {
   isNew: boolean
 }
 
+/** Public + CDN-cached map pin: only what the map draws or links to. Gallery,
+ *  features, views, AI score, body and agent stay on the listing page — they
+ *  were bytes on every phone, and the agent block published phones in bulk. */
+export type MapListing = Omit<Listing, 'agent' | 'images' | 'features' | 'views' | 'ai' | 'description'>
+
 /** USD → GEL rate used across the platform (display only) */
 export { USD_GEL, formatUSD, formatGEL, formatPerM2, formatViews, stayCount, stayLine, formatFloor, postedDaysAgo, postedAgoLabel } from '@/lib/listing-format'
 

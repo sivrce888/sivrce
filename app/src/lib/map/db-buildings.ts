@@ -13,7 +13,7 @@
 import { unstable_cache } from "next/cache"
 
 import type { BuildingCatalogEntry } from "@/data/buildings"
-import type { DealType, Listing } from "@/data/listings"
+import type { DealType, Listing, MapListing } from "@/data/listings"
 import { SERVICE_BRAND } from "@/lib/category-brand"
 import { streetHrefForListing } from "@/lib/street-href"
 import { db, dbAvailable } from "@/lib/db"
@@ -24,6 +24,7 @@ import {
 } from "@/lib/map/building-inventory"
 import { closeRing, parseFootprintRing } from "@/lib/map/pick-building"
 import { activeColorUntil, activePriceDropUntil, activeStoryUntil, activeUrgentUntil, effectiveTierKey, tierKeyToBadge, tierRankOf } from "@/lib/promo-pricing"
+import { requestCountryLock } from "@/lib/request-market"
 
 export const MAP_BUILDINGS_TAG = "map-buildings"
 export const MAP_LISTINGS_TAG = "map-listings"
@@ -39,8 +40,12 @@ function dealToMap(d: string): DealType {
   return "daily"
 }
 
+export type { MapListing }
+
 export function rowToMapListing(row: {
   id: string
+  publicId: number | null
+  country: string
   title: string
   dealType: string
   propertyType: string
@@ -59,35 +64,29 @@ export function rowToMapListing(row: {
   lat: number
   lng: number
   images: string[]
-  features: string[]
-  views: number
-  trustScore: number
   tier: string
   tierExpiresAt: Date | null
   extendedFields: unknown
-  agent: unknown
   createdAt: Date
   listingLocation: {
     floorNumber: number | null
     building3D: { mapBuilding: { slug: string } | null } | null
   } | null
-}): Listing {
+}): MapListing {
   const usd = row.currency === "USD"
   const priceGEL = usd ? Math.round(row.price * USD_GEL) : row.price
   const perM2GEL = usd
     ? Math.round((row.pricePerSqm ?? 0) * USD_GEL)
     : (row.pricePerSqm ?? 0)
-  const agentRaw = (row.agent as { name?: string; agency?: string }) ?? {}
   const buildingSlug = row.listingLocation?.building3D?.mapBuilding?.slug
   const floor = row.listingLocation?.floorNumber ?? row.floor ?? 0
   const tierKey = effectiveTierKey(row.tier, row.tierExpiresAt)
   return {
     id: row.id,
-    // ponytail: map rows skip the body copy (2500-row cap) — cards never render it
-    description: "",
+    ...(row.publicId ? { publicId: row.publicId } : {}),
+    country: row.country,
     streetHref: streetHrefForListing(row.address, row.district, row.city),
     img: row.images[0] ?? "/images/p1.webp",
-    images: row.images,
     priceUSD: Math.round(priceGEL / USD_GEL),
     priceGEL,
     perM2USD: Math.round(perM2GEL / USD_GEL),
@@ -103,7 +102,6 @@ export function rowToMapListing(row: {
     area: row.area,
     floor,
     totalFloors: row.totalFloors ?? 0,
-    views: row.views,
     badge: tierKeyToBadge(tierKey),
     highlighted: Boolean(
       activeColorUntil(row.extendedFields as { colorUntil?: string } | null),
@@ -119,24 +117,14 @@ export function rowToMapListing(row: {
     ),
     isExclusive: (row.extendedFields as { exclusive?: boolean } | null)?.exclusive === true,
     isSivrceExclusive: (row.extendedFields as { sivrceExclusive?: boolean } | null)?.sivrceExclusive === true,
-    ai: { score: row.trustScore, label: "" },
-    features: row.features,
     coords: { lat: row.lat, lng: row.lng },
     buildingSlug,
     postedAt: row.createdAt.toISOString().slice(0, 10),
-    // ponytail: phone blanked — this payload is public + CDN-cached, so a number
-    // here is scrapeable in bulk. Contact goes through the listing page. Full
-    // slim pin type (map-payload.check.ts) is the upgrade path.
-    agent: {
-      name: agentRaw.name ?? "სივრცე",
-      phone: "",
-      agency: agentRaw.agency ?? "",
-    },
     isNew: Date.now() - row.createdAt.getTime() < 7 * 86400000,
   }
 }
 
-async function fetchMapListings(country?: string): Promise<Listing[]> {
+async function fetchMapListings(country?: string): Promise<MapListing[]> {
   try {
     if (!(await dbAvailable())) return []
     const rows = await db.listing.findMany({
@@ -149,6 +137,8 @@ async function fetchMapListings(country?: string): Promise<Listing[]> {
       },
       select: {
         id: true,
+        publicId: true,
+        country: true,
         title: true,
         dealType: true,
         propertyType: true,
@@ -167,13 +157,9 @@ async function fetchMapListings(country?: string): Promise<Listing[]> {
         lat: true,
         lng: true,
         images: true,
-        features: true,
-        views: true,
-        trustScore: true,
         tier: true,
         tierExpiresAt: true,
         extendedFields: true,
-        agent: true,
         createdAt: true,
         listingLocation: {
           select: {
@@ -214,7 +200,7 @@ const getMapListingsCached = unstable_cache(
 )
 
 /** Active listings for /map. Empty cache is treated as miss — never pin a blank map for 60s. */
-export async function getMapListings(): Promise<Listing[]> {
+export async function getMapListings(): Promise<MapListing[]> {
   const cached = await getMapListingsCached()
   if (cached.length > 0) return cached
   return fetchMapListings()
@@ -222,7 +208,7 @@ export async function getMapListings(): Promise<Listing[]> {
 
 /** Uncached snapshot for map refresh button — bypasses unstable_cache. `country` unset = worldwide. */
 export async function loadMapDataFresh(country?: string): Promise<{
-  listings: Listing[]
+  listings: MapListing[]
   buildings: MapBuildingCluster[]
 }> {
   const [listings, rows] = await Promise.all([fetchMapListings(country), fetchRows()])
@@ -347,34 +333,48 @@ export function rowToCluster(row: DbBuildingRow): MapBuildingCluster {
   return c
 }
 
+/** Throws on DB trouble so unstable_cache never stores an outage as "no buildings". */
+async function queryRows(): Promise<DbBuildingRow[]> {
+  if (!(await dbAvailable())) throw new Error("db unavailable")
+  return (await db.mapBuilding.findMany({
+    where: { status: { not: "hidden" } },
+    select: SELECT,
+    orderBy: [{ popular: "desc" }, { createdAt: "desc" }],
+  })) as unknown as DbBuildingRow[]
+}
+
 async function fetchRows(): Promise<DbBuildingRow[]> {
   try {
-    if (!(await dbAvailable())) return []
-    return (await db.mapBuilding.findMany({
-      where: { status: { not: "hidden" } },
-      select: SELECT,
-      orderBy: [{ popular: "desc" }, { createdAt: "desc" }],
-    })) as unknown as DbBuildingRow[]
+    return await queryRows()
   } catch {
     // Map must render even when the DB is unreachable — static catalog still shows.
     return []
   }
 }
 
-/** All visible DB buildings as map clusters (cached; admin actions revalidate the tag). */
-export const getDbBuildingClusters = unstable_cache(
-  async (): Promise<MapBuildingCluster[]> => (await fetchRows()).map(rowToCluster),
-  ["db-building-clusters"],
+// No revalidate on these (admin actions bust the tag), so a cached empty result
+// from one DB blip used to 404 every DB building page until the next admin edit.
+const dbBuildingClusters = unstable_cache(
+  async (): Promise<MapBuildingCluster[]> => (await queryRows()).map(rowToCluster),
+  ["db-building-clusters-v2"],
+  { tags: [MAP_BUILDINGS_TAG] },
+)
+const dbBuildingEntries = unstable_cache(
+  async (): Promise<Array<{ entry: BuildingCatalogEntry; developer: { slug: string; name: string } | null }>> =>
+    (await queryRows()).map((row) => ({ entry: rowToCatalogEntry(row), developer: row.developer })),
+  ["db-building-entries-v2"],
   { tags: [MAP_BUILDINGS_TAG] },
 )
 
+/** All visible DB buildings as map clusters (cached; admin actions revalidate the tag). */
+export async function getDbBuildingClusters(): Promise<MapBuildingCluster[]> {
+  return dbBuildingClusters().catch(() => [])
+}
+
 /** All visible DB buildings as catalog entries (for /buildings/[slug] fallback). */
-export const getDbBuildingEntries = unstable_cache(
-  async (): Promise<Array<{ entry: BuildingCatalogEntry; developer: { slug: string; name: string } | null }>> =>
-    (await fetchRows()).map((row) => ({ entry: rowToCatalogEntry(row), developer: row.developer })),
-  ["db-building-entries"],
-  { tags: [MAP_BUILDINGS_TAG] },
-)
+export async function getDbBuildingEntries() {
+  return dbBuildingEntries().catch(() => [])
+}
 
 export { aggregateBuildingDealCounts } from "@/lib/map/building-inventory"
 
@@ -389,7 +389,9 @@ export async function getBuildingDealCountsBySlug(): Promise<
 }
 
 /** Active attributed listings for one building slug. */
-export async function getListingsForBuildingSlug(slug: string): Promise<Listing[]> {
+export async function getListingsForBuildingSlug(slug: string): Promise<MapListing[]> {
+  const lock = await requestCountryLock()
   const all = await getMapListings()
-  return all.filter((l) => l.buildingSlug === slug)
+  // getMapListings is one worldwide host-shared cache — clamp after, never inside it.
+  return all.filter((l) => l.buildingSlug === slug && (!lock || l.country === lock))
 }

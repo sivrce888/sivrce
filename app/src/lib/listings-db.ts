@@ -599,6 +599,16 @@ export async function getListingPriceEvents(listingId: string): Promise<PriceEve
     )
   }, [])
 }
+/** Full card rows for known ids, in the given order (e.g. a building's map pins). */
+export async function getListingsByIds(ids: string[]): Promise<Listing[]> {
+  if (!ids.length) return []
+  return safeQuery(async () => {
+    const rows = await db.listing.findMany({ where: { id: { in: ids }, deletedAt: null, status: "active" } })
+    const byId = new Map(rows.map((r) => [r.id, rowToListing(r as unknown as Record<string, unknown>)]))
+    return ids.flatMap((id) => byId.get(id) ?? [])
+  }, [])
+}
+
 export async function getListingsByOwner(ownerId: string | string[]): Promise<Listing[]> {
   const ids = (Array.isArray(ownerId) ? ownerId : [ownerId]).filter(Boolean)
   if (!ids.length) return []
