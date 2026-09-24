@@ -48,6 +48,7 @@ import { canUnsend, presenceOf } from "@/lib/chat-policy"
 import { listingPriceLabel } from "@/lib/listing-share"
 import { useAutoGrow } from "./useAutoGrow"
 import { useMessageTranslation } from "./translate"
+import PushNudge from "./PushNudge"
 import { isValidLang } from "@/lib/i18n/core"
 import {
   clockLabel,
@@ -1240,13 +1241,16 @@ function MessageThread({
           )}
         </div>
       ) : (
-        /* Composer — owns the draft, so typing never re-renders the log */
+        <>
+        {messages.some(isOwn) && <PushNudge />}
+        {/* Composer — owns the draft, so typing never re-renders the log */}
         <Composer
           roomId={roomId}
           listingId={listingId}
           initialValue={seed}
           sendText={sendText}
         />
+        </>
       )}
     </div>
   )

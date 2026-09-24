@@ -36,22 +36,43 @@ async function postJSON(url: string, payload: unknown): Promise<boolean> {
   }
 }
 
+const VAPID_KEY = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
+
+/** Browser can do Web Push and the server has a VAPID key. */
+export function pushSupported(): boolean {
+  return (
+    'serviceWorker' in navigator &&
+    'PushManager' in window &&
+    'Notification' in window &&
+    Boolean(VAPID_KEY)
+  )
+}
+
+/**
+ * Ask permission, subscribe, register with the server. Returns the
+ * resulting status — 'on' only when the server stored the subscription.
+ * Must run inside a user gesture (iOS requires it for the permission prompt).
+ */
+export async function subscribePush(): Promise<'on' | 'off' | 'denied'> {
+  if (!VAPID_KEY) return 'off'
+  const perm = await Notification.requestPermission()
+  if (perm !== 'granted') return perm === 'denied' ? 'denied' : 'off'
+  const reg = await navigator.serviceWorker.ready
+  const sub = await reg.pushManager.subscribe({
+    userVisibleOnly: true,
+    applicationServerKey: urlBase64ToUint8Array(VAPID_KEY) as BufferSource,
+  })
+  if (!(await postJSON('/api/push/subscribe', sub.toJSON()))) throw new Error('subscribe api failed')
+  return 'on'
+}
+
 export function PushToggle({ labels }: { labels: PushToggleLabels }) {
   const [status, setStatus] = useState<Status>('loading')
   const [busy, setBusy] = useState(false)
-  const vapidKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY
-
   useEffect(() => {
     let cancelled = false
     const detect = async (): Promise<Status> => {
-      if (
-        !('serviceWorker' in navigator) ||
-        !('PushManager' in window) ||
-        !('Notification' in window) ||
-        !vapidKey
-      ) {
-        return 'unsupported'
-      }
+      if (!pushSupported()) return 'unsupported'
       if (Notification.permission === 'denied') return 'denied'
       try {
         const reg = await navigator.serviceWorker.ready
@@ -67,25 +88,12 @@ export function PushToggle({ labels }: { labels: PushToggleLabels }) {
     return () => {
       cancelled = true
     }
-  }, [vapidKey])
+  }, [])
 
   async function subscribe() {
-    if (!vapidKey) return
     setBusy(true)
     try {
-      const perm = await Notification.requestPermission()
-      if (perm !== 'granted') {
-        setStatus(perm === 'denied' ? 'denied' : 'off')
-        return
-      }
-      const reg = await navigator.serviceWorker.ready
-      const sub = await reg.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(vapidKey) as BufferSource,
-      })
-      const ok = await postJSON('/api/push/subscribe', sub.toJSON())
-      if (!ok) throw new Error('subscribe api failed')
-      setStatus('on')
+      setStatus(await subscribePush())
     } catch (err) {
       console.error('[push] subscribe failed', err)
     } finally {
