@@ -39,7 +39,7 @@ function dealToMap(d: string): DealType {
   return "daily"
 }
 
-function rowToMapListing(row: {
+export function rowToMapListing(row: {
   id: string
   title: string
   dealType: string
@@ -77,7 +77,7 @@ function rowToMapListing(row: {
   const perM2GEL = usd
     ? Math.round((row.pricePerSqm ?? 0) * USD_GEL)
     : (row.pricePerSqm ?? 0)
-  const agentRaw = (row.agent as { name?: string; phone?: string; agency?: string }) ?? {}
+  const agentRaw = (row.agent as { name?: string; agency?: string }) ?? {}
   const buildingSlug = row.listingLocation?.building3D?.mapBuilding?.slug
   const floor = row.listingLocation?.floorNumber ?? row.floor ?? 0
   const tierKey = effectiveTierKey(row.tier, row.tierExpiresAt)
@@ -124,9 +124,12 @@ function rowToMapListing(row: {
     coords: { lat: row.lat, lng: row.lng },
     buildingSlug,
     postedAt: row.createdAt.toISOString().slice(0, 10),
+    // ponytail: phone blanked — this payload is public + CDN-cached, so a number
+    // here is scrapeable in bulk. Contact goes through the listing page. Full
+    // slim pin type (map-payload.check.ts) is the upgrade path.
     agent: {
       name: agentRaw.name ?? "სივრცე",
-      phone: agentRaw.phone ?? "",
+      phone: "",
       agency: agentRaw.agency ?? "",
     },
     isNew: Date.now() - row.createdAt.getTime() < 7 * 86400000,
