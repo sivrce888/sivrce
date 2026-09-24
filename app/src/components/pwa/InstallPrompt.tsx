@@ -73,7 +73,9 @@ export function InstallPrompt() {
     if (!el) return
     const root = document.documentElement.style
     root.setProperty('--sv-install', `${el.offsetHeight}px`)
-    return () => root.removeProperty('--sv-install')
+    return () => {
+      root.removeProperty('--sv-install')
+    }
   }, [show, ios, evt])
 
   if (!show || (!evt && !ios)) return null
