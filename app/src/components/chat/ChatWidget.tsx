@@ -47,6 +47,8 @@ import GuestMessageView from "./GuestMessageView"
 import { canUnsend, presenceOf } from "@/lib/chat-policy"
 import { listingPriceLabel } from "@/lib/listing-share"
 import { useAutoGrow } from "./useAutoGrow"
+import { useMessageTranslation } from "./translate"
+import { isValidLang } from "@/lib/i18n/core"
 import {
   clockLabel,
   clearChatDraft,
@@ -290,6 +292,10 @@ const MessageBubble = memo(function MessageBubble({
     del: string
     delConfirm: string
     deleted: string
+    translate: string
+    showOriginal: string
+    translating: string
+    translateFailed: string
   }
   reported: boolean
   onCopy: (m: ChatMessage) => void
@@ -299,6 +305,12 @@ const MessageBubble = memo(function MessageBubble({
   const [menuOpen, setMenuOpen] = useState(false)
   const [copied, setCopied] = useState(false)
   const [armDelete, setArmDelete] = useState(false)
+  const tr = useMessageTranslation(
+    msg.id,
+    msg.content,
+    isValidLang(lang) ? lang : "ka",
+    !own && !msg.deletedAt && msg.status !== "pending",
+  )
   const armTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   useEffect(() => () => clearTimeout(armTimer.current), [])
 
@@ -363,7 +375,7 @@ const MessageBubble = memo(function MessageBubble({
         } ${msg.status === "pending" ? "opacity-70" : ""} ${animate ? "sv-chat-msg-in" : ""}`}
       >
         <p className="whitespace-pre-wrap break-words" dir="auto">
-          {splitLinks(msg.content).map((seg, i) =>
+          {splitLinks(tr.text).map((seg, i) =>
             seg.href ? (
               <a
                 key={i}
@@ -383,6 +395,23 @@ const MessageBubble = memo(function MessageBubble({
             ),
           )}
         </p>
+        {(tr.offer || tr.shown) && (
+          <button
+            type="button"
+            onClick={tr.toggle}
+            disabled={tr.busy}
+            aria-live="polite"
+            className="mt-1 text-[11.5px] font-bold text-sv-blue transition-colors hover:text-sv-blue-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue disabled:opacity-60"
+          >
+            {tr.busy
+              ? menu.translating
+              : tr.shown
+                ? menu.showOriginal
+                : tr.failed
+                  ? menu.translateFailed
+                  : menu.translate}
+          </button>
+        )}
         {lastOfGroup && (
           <div
             className={`mt-1 flex items-center justify-end gap-1 text-[10px] font-bold ${
@@ -973,6 +1002,10 @@ function MessageThread({
       del: t("chat.delete"),
       delConfirm: t("chat.deleteConfirm"),
       deleted: t("chat.deleted"),
+      translate: t("chat.translate"),
+      showOriginal: t("chat.showOriginal"),
+      translating: t("chat.translating"),
+      translateFailed: t("chat.translateFailed"),
     }),
     [t],
   )
