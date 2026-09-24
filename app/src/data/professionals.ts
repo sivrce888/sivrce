@@ -17,6 +17,8 @@ import { NEW_DEVELOPERS_BERLIN, NEW_PROJECTS_BERLIN } from './projects-new-berli
 import { NEW_DEVELOPERS_GERMANY, NEW_PROJECTS_GERMANY } from './projects-new-germany'
 import { NEW_DEVELOPERS_UAE, NEW_PROJECTS_UAE } from './projects-new-uae'
 import { NEW_DEVELOPERS_SEP_2026, NEW_PROJECTS_SEP_2026 } from './projects-new-sep-2026'
+import DISTRICT_OVERRIDES from './project-districts.gen.json'
+import PROJECT_SOURCES from './project-sources.gen.json'
 import { WORLD_PROJECTS, type WorldProject } from './world-projects'
 import { worldDevelopers, type WorldDeveloperEntry } from './world-developers'
 import { PROJECT_GALLERIES } from './project-galleries'
@@ -61,6 +63,45 @@ const WORLD_LOCAL_HEROES = new Set([
   'vancouver-house-big',
   'wallich-residence-singapore',
   'wardian-london',
+  // 2026-09 batch: R2 covers 404'd (images.sivrce.ge never populated) — heroes mirrored locally.
+  'allegheny-zavrtnica',
+  'almaty-ibd',
+  'armani-beach-residences-palm',
+  'barcelo-residences',
+  'bioma-costa-del-este',
+  'bugatti-residences-binghatti',
+  'cancun-scenic-tower',
+  'carthage-thalassa',
+  'connection-hamm',
+  'diriyah-gate-residences',
+  'dlf-the-dahlias',
+  'edge-suedkreuz-berlin',
+  'gato-tower-bkk1',
+  'gothenburg-friggaleden',
+  'hessah-district',
+  'ipanema-costa-del-este',
+  'larimar-city-resort',
+  'launagiai-vilnius',
+  'le-conde-bkk1',
+  'mina-al-arab-marbella',
+  'moma-tel-aviv',
+  'neom-the-line',
+  'new-murabba',
+  'oslo-spektrum-high-rise',
+  'phuket-andara',
+  'puerto-marina-residences',
+  'red-sea-project',
+  'rothschild-10',
+  'shenzhen-bay-super-hq',
+  'singapore-guangxi',
+  'sobha-hartland-ii',
+  'southbank-melbourne',
+  'stockholm-norra-elemasten',
+  'sultan-haitham-city',
+  'sydney-western-hub',
+  'tornakalna-terases',
+  'volta-skai-tallinn',
+  'vancouver-burry',
 ])
 
 /**
@@ -233,6 +274,18 @@ const CURRENT_YEAR = new Date().getFullYear()
  * massing study from floors/flats, progress card from done/finish, location
  * card from coords — same first-party pipeline, no hotlinked binaries.
  */
+/** Derived catalog districts (scripts/derive-project-districts.ts) win over missing/junk ingest values. */
+function withDistrictOverride(p: Project): Project {
+  const d = (DISTRICT_OVERRIDES as Record<string, string>)[p.slug]
+  return d === undefined ? p : { ...p, district: d }
+}
+
+/** Portal-source provenance (scripts/derive-project-sources.ts) — fills only rows without their own sourceUrl. */
+function withProjectSource(p: Project): Project {
+  const url = (PROJECT_SOURCES as Record<string, string>)[p.slug]
+  return !url || p.sourceUrl ? p : { ...p, sourceUrl: url }
+}
+
 function withRenderTrio(p: Project): Project {
   if (!p.img.startsWith('/images/') || !(p.slug in PROJECT_FLOORPLANS)) return p
   const base = p.img.replace(/\.webp$/, '')
@@ -4897,9 +4950,11 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
 ]
   // ponytail: first-wins slug dedupe — WORLD_PROJECTS may re-list GE/DE base projects.
   .filter((p, i, all) => all.findIndex((x) => x.slug === p.slug) === i)
+  .map(withDistrictOverride)
   .map(freshenFinish)
   .map(withRenderTrio)
   .map(withRealGallery)
+  .map(withProjectSource)
 
 export function getDeveloper(slug?: string): Developer | undefined {
   return DEVELOPERS.find((d) => d.slug === slug)
