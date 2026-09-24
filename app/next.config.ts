@@ -3,6 +3,13 @@ import { withBotId } from "botid/next/config";
 
 const isDev = process.env.NODE_ENV === "development";
 
+// Freeze lock: a raw `next build` on a Mac skips scripts/build-guard.mjs (one
+// build at a time + memory watchdog) and Turbopack can eat 30 GB+. Use
+// `npm run build` (NEXT_DIST_DIR=.next-prod npm run build beside a dev server).
+if (process.platform === "darwin" && process.argv.includes("build") && !process.env.SIVRCE_BUILD_GUARD && !process.env.CI) {
+  throw new Error("Run `npm run build`, not `next build` — build-guard keeps the Mac from freezing.");
+}
+
 /* ponytail: Capacitor origins — capacitor:// for iOS, http://localhost for Android WebView.
    No 192.168.* wildcard — invalid CSP syntax (silently ignored); LAN browses are same-origin. */
 const capacitorOrigins = isDev

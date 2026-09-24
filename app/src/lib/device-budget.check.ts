@@ -159,6 +159,16 @@ const heap = /max-old-space-size=(\d+)/.exec(JSON.parse(read("package.json")).sc
 assert.ok(heap && Number(heap[1]) <= 768, "next start heap must stay ≤768 MB")
 lock("package.json", ['"postbuild": "node ../scripts/check-repo-weight.mjs --build --verbose"'])
 lock("next.config.ts", ["serverSourceMaps: false", "serverMinification: true", '"**/*.map"'])
+// Freeze lock: local builds go through build-guard (serial + memory watchdog);
+// next.config refuses a raw `next build` on macOS.
+assert.match(JSON.parse(read("package.json")).scripts.build, /node scripts\/build-guard\.mjs$/, "build must run via scripts/build-guard.mjs")
+lock("next.config.ts", ["!process.env.SIVRCE_BUILD_GUARD"])
+void import("../../scripts/build-guard.mjs").then(({ treeRssMb }: { treeRssMb: (root: number, ps: string) => number }) => {
+  // root 10 → 11 → 12 counted; sibling 20 not.
+  const ps = "10 1 1048576\n11 10 1048576\n12 11 1024\n20 1 9999999\n"
+  assert.equal(treeRssMb(10, ps), 2049)
+  assert.equal(treeRssMb(99, ps), 0)
+})
 
 for (const f of [
   "src/app/favicon.ico",
