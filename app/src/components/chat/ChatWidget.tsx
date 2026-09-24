@@ -1590,6 +1590,7 @@ export default function ChatWidget() {
       {/* Launcher */}
       <button
         ref={launcherRef}
+        data-sv-chat-launcher
         onClick={() => {
           if (open) close()
           else {

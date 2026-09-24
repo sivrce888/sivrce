@@ -2821,7 +2821,7 @@ export default function AddListingClient() {
                     </div>
                 </section>
 
-            <div className="fixed inset-x-0 bottom-0 z-30 flex items-center justify-between gap-3 border-t border-sv-ink/[0.06] bg-sv-surface/92 px-5 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-card backdrop-blur-xl md:px-10">
+            <div data-sv-form-bar className="fixed inset-x-0 bottom-0 z-30 flex items-center justify-between gap-3 border-t border-sv-ink/[0.06] bg-sv-surface/92 px-5 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] shadow-card backdrop-blur-xl md:px-10">
               <span className="flex min-w-0 items-center gap-2 text-[12px] font-bold text-sv-ink/60">
                 {draftSavedAt > 0 && <><Check className="h-3.5 w-3.5 shrink-0 text-sv-blue" /> <span className="truncate">{t('add.draftSaved')}</span></>}
                 <span className="hidden tabular-nums sm:inline">

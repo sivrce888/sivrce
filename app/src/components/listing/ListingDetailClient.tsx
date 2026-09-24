@@ -2037,7 +2037,7 @@ export default function ListingDetailClient({
       <Footer />
 
       {/* ————— Mobile conversion bar (call / message / favorite) ————— */}
-      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-sv-ink/10 bg-sv-surface/95 pb-[env(safe-area-inset-bottom)] shadow-card backdrop-blur lg:hidden">
+      <div data-sv-contact-bar className="fixed inset-x-0 bottom-0 z-40 border-t border-sv-ink/10 bg-sv-surface/95 pb-[env(safe-area-inset-bottom)] shadow-card backdrop-blur lg:hidden">
         {/* Labelled actions split the row; the icon-only favourite takes only its own
             width — an equal third truncated "Show number" to "Show nu…" at 375px. */}
         <div className="flex gap-2 px-3 py-2.5">

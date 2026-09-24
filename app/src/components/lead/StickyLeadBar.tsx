@@ -65,6 +65,7 @@ export function StickyLeadBar({ targetType, targetId, phone, recipientName, clas
       {!open && (
         <div
           role="group"
+          data-sv-contact-bar
           aria-label={s.barLabel}
           className={cn('fixed inset-x-0 bottom-0 z-40 px-4 md:hidden', className)}
           style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}

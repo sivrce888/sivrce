@@ -527,6 +527,19 @@ html.sv-has-dock body {
   padding-bottom: var(--sv-dock);
 }
 
+/* Chat launcher vs page-owned bottom bars. A contact bar (listing, project)
+   already owns "message" on phones — one affordance, not two stacked icons.
+   A form bar (add-listing) keeps chat for help, but the launcher must clear
+   its Publish button at every width. Unlayered so it beats the utilities. */
+@media (width < 48rem) {
+  html:has([data-sv-contact-bar]) [data-sv-chat-launcher] {
+    display: none;
+  }
+}
+html:has([data-sv-form-bar]) [data-sv-chat-launcher] {
+  bottom: calc(6rem + env(safe-area-inset-bottom, 0px));
+}
+
 /* ————— Brand utilities (BRAND.md §5, §3) ————— */
 @layer utilities {
   .font-geo {
