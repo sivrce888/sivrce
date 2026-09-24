@@ -6,6 +6,7 @@ export const PROJECT_GALLERIES: Record<string, string[]> = {
   '30-hudson-yards': ['/images/projects/30-hudson-yards-g1.webp'],
   '432-park': ['/images/projects/432-park-g1.webp', '/images/projects/432-park-g2.webp'],
   '70-vestry': ['/images/projects/70-vestry-g1.webp'],
+  'abu-dhabi-al-reem': ['/images/projects/abu-dhabi-al-reem-g1.webp'],
   'ain-dubai': ['/images/projects/ain-dubai-g1.webp'],
   'alazani-valley-residence': ['/images/projects/alazani-valley-residence-g1.webp', '/images/projects/alazani-valley-residence-g2.webp'],
   'aljada': ['/images/projects/aljada-g1.webp', '/images/projects/aljada-g2.webp'],
@@ -14,6 +15,7 @@ export const PROJECT_GALLERIES: Record<string, string[]> = {
   'alliance-palace': ['/images/projects/alliance-palace-g1.webp', '/images/projects/alliance-palace-g2.webp'],
   'alliance-privilege': ['/images/projects/alliance-privilege-g1.webp', '/images/projects/alliance-privilege-g2.webp'],
   'alliance-renaissance': ['/images/projects/alliance-renaissance-g1.webp', '/images/projects/alliance-renaissance-g2.webp'],
+  'alliance-residence-batumi': ['/images/projects/alliance-residence-batumi-g1.webp'],
   'alliance-samgori': ['/images/projects/alliance-samgori-g1.webp', '/images/projects/alliance-samgori-g2.webp'],
   'alpha-home-gldani': ['/images/projects/alpha-home-gldani-g1.webp', '/images/projects/alpha-home-gldani-g2.webp'],
   'altergeo-makhata-tower': ['/images/projects/altergeo-makhata-tower-g1.webp', '/images/projects/altergeo-makhata-tower-g2.webp'],
@@ -50,6 +52,7 @@ export const PROJECT_GALLERIES: Record<string, string[]> = {
   'archi-rustavi': ['/images/projects/archi-rustavi-g1.webp', '/images/projects/archi-rustavi-g2.webp'],
   'archi-universe': ['/images/projects/archi-universe-g1.webp', '/images/projects/archi-universe-g2.webp'],
   'arcon-elegance': ['/images/projects/arcon-elegance-g1.webp', '/images/projects/arcon-elegance-g2.webp'],
+  'armani-beach-residences-palm': ['/images/projects/armani-beach-residences-palm-g1.webp'],
   'art-invest-macherei': ['/images/projects/art-invest-macherei-g1.webp', '/images/projects/art-invest-macherei-g2.webp'],
   'artex': ['/images/projects/artex-g1.webp', '/images/projects/artex-g2.webp'],
   'as-group-park-boulevard': ['/images/projects/as-group-park-boulevard-g1.webp', '/images/projects/as-group-park-boulevard-g2.webp'],
@@ -109,6 +112,7 @@ export const PROJECT_GALLERIES: Record<string, string[]> = {
   'devart-green-gardens': ['/images/projects/devart-green-gardens-g1.webp', '/images/projects/devart-green-gardens-g2.webp'],
   'dighomi-gardens': ['/images/projects/dighomi-gardens-g1.webp', '/images/projects/dighomi-gardens-g2.webp'],
   'domus-avlabari': ['/images/projects/domus-avlabari-g1.webp', '/images/projects/domus-avlabari-g2.webp'],
+  'domus-chavchavadze-31': ['/images/projects/domus-chavchavadze-31-g1.webp', '/images/projects/domus-chavchavadze-31-g2.webp'],
   'domus-chavchavadze-49': ['/images/projects/domus-chavchavadze-49-g1.webp', '/images/projects/domus-chavchavadze-49-g2.webp'],
   'domus-gazapkhuli': ['/images/projects/domus-gazapkhuli-g1.webp', '/images/projects/domus-gazapkhuli-g2.webp'],
   'domus-nea': ['/images/projects/domus-nea-g1.webp', '/images/projects/domus-nea-g2.webp'],
@@ -154,6 +158,7 @@ export const PROJECT_GALLERIES: Record<string, string[]> = {
   'green-side-gonio': ['/images/projects/green-side-gonio-g1.webp', '/images/projects/green-side-gonio-g2.webp'],
   'grg-orientiri-lisi': ['/images/projects/grg-orientiri-lisi-g1.webp'],
   'gtb-didi-digomi': ['/images/projects/gtb-didi-digomi-g1.webp'],
+  'gumbati-boulevard-point': ['/images/projects/gumbati-boulevard-point-g1.webp', '/images/projects/gumbati-boulevard-point-g2.webp'],
   'gumbati-midtown': ['/images/projects/gumbati-midtown-g1.webp'],
   'gumbati-montemar': ['/images/projects/gumbati-montemar-g1.webp'],
   'gumbati-residence-gonio': ['/images/projects/gumbati-residence-gonio-g1.webp'],
@@ -199,6 +204,7 @@ export const PROJECT_GALLERIES: Record<string, string[]> = {
   'jeddah-tower': ['/images/projects/jeddah-tower-g1.webp'],
   'jumeirah-beach-residence': ['/images/projects/jumeirah-beach-residence-g1.webp'],
   'jumeirah-islands': ['/images/projects/jumeirah-islands-g1.webp'],
+  'king-david': ['/images/projects/king-david-g1.webp', '/images/projects/king-david-g2.webp'],
   'king-david-residences': ['/images/projects/king-david-residences-g1.webp', '/images/projects/king-david-residences-g2.webp'],
   'kings-garden': ['/images/projects/kings-garden-g1.webp', '/images/projects/kings-garden-g2.webp'],
   'kobuleti-wellness-residence': ['/images/projects/kobuleti-wellness-residence-g1.webp'],
@@ -207,6 +213,7 @@ export const PROJECT_GALLERIES: Record<string, string[]> = {
   'kura-rustavi': ['/images/projects/kura-rustavi-g1.webp'],
   'kvirike-residence': ['/images/projects/kvirike-residence-g1.webp'],
   'lagoon-resort': ['/images/projects/lagoon-resort-g1.webp'],
+  'larimar-city-resort': ['/images/projects/larimar-city-resort-g1.webp'],
   'leipzig-city-tunnel': ['/images/projects/leipzig-city-tunnel-g1.webp'],
   'like-house-azure-tower': ['/images/projects/like-house-azure-tower-g1.webp'],
   'like-house-prime-residence': ['/images/projects/like-house-prime-residence-g1.webp'],
@@ -231,6 +238,7 @@ export const PROJECT_GALLERIES: Record<string, string[]> = {
   'mega-gldani': ['/images/projects/mega-gldani-g1.webp'],
   'megobroba-saakadze': ['/images/projects/megobroba-saakadze-g1.webp'],
   'megobroba-sanapiroze': ['/images/projects/megobroba-sanapiroze-g1.webp', '/images/projects/megobroba-sanapiroze-g2.webp'],
+  'metropol-bagebi': ['/images/projects/metropol-bagebi-g1.webp', '/images/projects/metropol-bagebi-g2.webp'],
   'metropol-cube': ['/images/projects/metropol-cube-g1.webp'],
   'metropol-kavtaradze': ['/images/projects/metropol-kavtaradze-g1.webp', '/images/projects/metropol-kavtaradze-g2.webp'],
   'metropol-ortachala': ['/images/projects/metropol-ortachala-g1.webp', '/images/projects/metropol-ortachala-g2.webp'],
@@ -261,6 +269,7 @@ export const PROJECT_GALLERIES: Record<string, string[]> = {
   'new-gudauri-resort-residence': ['/images/projects/new-gudauri-resort-residence-g1.webp', '/images/projects/new-gudauri-resort-residence-g2.webp'],
   'new-gudauri-twins': ['/images/projects/new-gudauri-twins-g1.webp'],
   'next-address': ['/images/projects/next-address-g1.webp', '/images/projects/next-address-g2.webp'],
+  'next-address-batumi': ['/images/projects/next-address-batumi-g1.webp', '/images/projects/next-address-batumi-g2.webp'],
   'next-cinema-city': ['/images/projects/next-cinema-city-g1.webp'],
   'next-collection': ['/images/projects/next-collection-g1.webp', '/images/projects/next-collection-g2.webp'],
   'next-door-gelovani': ['/images/projects/next-door-gelovani-g1.webp', '/images/projects/next-door-gelovani-g2.webp'],
@@ -353,9 +362,10 @@ export const PROJECT_GALLERIES: Record<string, string[]> = {
   'simetria-jikia': ['/images/projects/simetria-jikia-g1.webp'],
   'simetria-park': ['/images/projects/simetria-park-g1.webp'],
   'six-senses-palm': ['/images/projects/six-senses-palm-g1.webp', '/images/projects/six-senses-palm-g2.webp'],
+  'six-senses-residences-palm': ['/images/projects/six-senses-residences-palm-g1.webp', '/images/projects/six-senses-residences-palm-g2.webp'],
   'smichov-city': ['/images/projects/smichov-city-g1.webp'],
   'sobha-hartland': ['/images/projects/sobha-hartland-g1.webp', '/images/projects/sobha-hartland-g2.webp'],
-  'sobha-hartland-ii': ['/images/projects/sobha-hartland-ii-g1.webp', '/images/projects/sobha-hartland-ii-g2.webp'],
+  'sobha-hartland-ii': ['/images/projects/sobha-hartland-ii-g1.webp'],
   'solana-grand-residences': ['/images/projects/solana-grand-residences-g1.webp', '/images/projects/solana-grand-residences-g2.webp'],
   'solum-ponichala': ['/images/projects/solum-ponichala-g1.webp'],
   'sport-city-batumi': ['/images/projects/sport-city-batumi-g1.webp'],
@@ -388,6 +398,7 @@ export const PROJECT_GALLERIES: Record<string, string[]> = {
   'tempo-serenade': ['/images/projects/tempo-serenade-g1.webp'],
   'terracon-kheivani': ['/images/projects/terracon-kheivani-g1.webp'],
   'terrametric-krtsanisi': ['/images/projects/terrametric-krtsanisi-g1.webp'],
+  'terrassa-ortachala': ['/images/projects/terrassa-ortachala-g1.webp', '/images/projects/terrassa-ortachala-g2.webp'],
   'tetra-residential-complex': ['/images/projects/tetra-residential-complex-g1.webp'],
   'the-abdali': ['/images/projects/the-abdali-g1.webp'],
   'the-opus': ['/images/projects/the-opus-g1.webp', '/images/projects/the-opus-g2.webp'],
@@ -424,17 +435,4 @@ export const PROJECT_GALLERIES: Record<string, string[]> = {
   'york-vista-garden': ['/images/projects/york-vista-garden-g1.webp'],
   'zenari-kutaisi': ['/images/projects/zenari-kutaisi-g1.webp'],
   'zygma': ['/images/projects/zygma-g1.webp', '/images/projects/zygma-g2.webp'],
-
-  
-  
-
-  
-
-  
-
-  
-
-  // ═══ WORLD PROJECTS — auto-generated ═══
-  'alliance-residence-batumi': ['/images/projects/alliance-residence-batumi-g1.webp'],
-  'abu-dhabi-al-reem': ['/images/projects/abu-dhabi-al-reem-g1.webp'],
 }

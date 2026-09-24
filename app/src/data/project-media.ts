@@ -2542,9 +2542,7 @@ export const DEVELOPER_GALLERIES: Record<string, string[]> = {
     "/images/projects/sobha-hartland-massing.webp",
     "/images/projects/sobha-hartland-timeline.webp",
     "/images/projects/sobha-hartland-lage.webp",
-    "/images/projects/sobha-hartland-ii.webp",
-    "/images/projects/sobha-hartland-ii-g1.webp",
-    "/images/projects/sobha-hartland-ii-g2.webp"
+    "/images/projects/sobha-hartland-ii-g1.webp"
   ],
   "meraas": [
     "/images/projects/ain-dubai.webp",
