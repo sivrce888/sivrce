@@ -5,7 +5,7 @@
  */
 
 import Image from 'next/image'
-import Link from 'next/link'
+import Link from '@/components/LocalizedLink'
 import { X, Building2, MapPin, HardHat, Navigation, Star, BadgeCheck } from 'lucide-react'
 import type { DealType } from '@/data/listings'
 import { stayCount, stayLine } from '@/lib/listing-format'
@@ -18,6 +18,7 @@ import { buildingFloorCount, listingFloor } from '@/lib/map/floors'
 import { MetroLine } from '@/components/MetroLine'
 import { listingPath } from '@/lib/listing-slug'
 import { cardOf } from '@/lib/media'
+import { readableName } from '@/lib/ka-latin'
 
 const DEAL_KEYS: Record<DealType, DictKey> = {
   sale: 'search.sale',
@@ -47,6 +48,7 @@ interface BuildingPanelProps {
 export default function BuildingPanel({ building, tab, onTab, floor, highlightId, onFloorClear, onClose }: BuildingPanelProps) {
   const { t, lang } = useI18n()
   const { format } = useCurrency()
+  const read = (s: string) => readableName(s, lang)
   const isConstruction = building.status === 'construction' && building.listings.length === 0
   const byTab =
     tab === 'all' ? building.listings : building.listings.filter((l) => l.dealType === tab)
@@ -58,7 +60,7 @@ export default function BuildingPanel({ building, tab, onTab, floor, highlightId
     <aside
       className="flex h-full w-full flex-col border-l border-sv-ink/8 bg-sv-surface shadow-panel-dark md:w-[400px]"
       role="dialog"
-      aria-label={building.label}
+      aria-label={read(building.label)}
     >
       <div className="mx-auto mt-2 h-1 w-10 shrink-0 rounded-full bg-sv-ink/15 md:hidden" aria-hidden />
       <header className="shrink-0 border-b border-sv-ink/6">
@@ -99,14 +101,14 @@ export default function BuildingPanel({ building, tab, onTab, floor, highlightId
             ) : null}
             <div className="min-w-0">
               <h2 className="text-[17px] font-black tracking-[-0.02em] text-sv-ink">
-                {building.label}
+                {read(building.label)}
               </h2>
               {building.code && (
                 <p className="mt-0.5 text-[11px] font-bold text-sv-ink/60">{building.code}</p>
               )}
               <p className="mt-0.5 flex items-center gap-1 text-[13px] font-semibold text-sv-ink/60">
                 <MapPin className="h-3.5 w-3.5 shrink-0" />
-                <span className="truncate">{building.address}</span>
+                <span className="truncate">{read(building.address)}</span>
               </p>
               <MetroLine
                 lat={building.lat}
@@ -145,10 +147,10 @@ export default function BuildingPanel({ building, tab, onTab, floor, highlightId
                     href={`/developers/${building.developerSlug}`}
                     className="text-sv-ink hover:text-sv-blue"
                   >
-                    {building.developerName}
+                    {read(building.developerName)}
                   </Link>
                 ) : (
-                  building.developerName
+                  read(building.developerName)
                 )}
               </span>
             )}
@@ -295,7 +297,7 @@ export default function BuildingPanel({ building, tab, onTab, floor, highlightId
               const stay = stayCount(l)
               const perM2 =
                 l.dealType === 'sale' && l.area > 0
-                  ? ` · ${Math.round(l.priceGEL / l.area).toLocaleString('en-US')} ₾/${t('add.areaUnit.m2')}`
+                  ? ` · ${format(Math.round(l.priceGEL / l.area))}/${t('add.areaUnit.m2')}`
                   : ''
               return (
                 <li key={l.id}>
@@ -333,7 +335,7 @@ export default function BuildingPanel({ building, tab, onTab, floor, highlightId
                         <span className="text-[11px] font-bold text-sv-ink/60">{perM2}</span>
                       </div>
                       <div className="truncate text-[11px] font-semibold text-sv-ink/60">
-                        {l.address}
+                        {read(l.address)}
                         {bn ? ` · #${bn}` : ''}
                       </div>
                       <div className="text-[11px] font-semibold text-sv-ink/35">

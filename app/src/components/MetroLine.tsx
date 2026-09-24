@@ -6,6 +6,8 @@
  */
 import { TrainFront } from 'lucide-react'
 import { formatMetroDist } from '@/lib/map/metro-format'
+import { useI18n } from '@/lib/i18n/context'
+import { readableName } from '@/lib/ka-latin'
 import { useNearestMetro, type MetroChip } from './use-nearest-metro'
 
 export function MetroLine({
@@ -21,9 +23,10 @@ export function MetroLine({
   className?: string
   truncate?: boolean
 }) {
+  const { lang } = useI18n()
   const metro = useNearestMetro(chip, lat, lng)
   if (!metro) return null
-  const text = `${metro.name} · ${formatMetroDist(metro)}`
+  const text = `${readableName(metro.name, lang)} · ${formatMetroDist(metro)}`
   return (
     <p className={className}>
       <TrainFront className="h-3.5 w-3.5 shrink-0" aria-hidden />

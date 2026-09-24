@@ -5,6 +5,7 @@ import { Search, Building2, MapPin, Route, X, Briefcase, Hammer, Landmark, Globe
 import { useI18n } from '@/lib/i18n/context'
 import { exactSuggestHit } from '@/lib/search-location'
 import { isExactLookupQuery, lookupKind } from '@/lib/listing-public-id'
+import { readableName } from '@/lib/ka-latin'
 
 /** Keyword input with city / district / street / developer / project / building autocomplete. Keyboard: ↑↓ Enter Esc. */
 
@@ -15,6 +16,10 @@ export interface Suggestion {
   city?: string
   district?: string
   slug?: string
+  /** Geocoder hits carry their own point — re-geocoding the bare street name
+   *  drops district/city and lands on a namesake in another city. */
+  lat?: number
+  lng?: number
 }
 
 const KIND_ORDER: Suggestion['kind'][] = [
@@ -28,6 +33,9 @@ const KIND_ORDER: Suggestion['kind'][] = [
   'poi',
   'metro',
 ]
+
+/** Kinds whose `en` is the entity's own Latin name (elsewhere it is a subtitle). */
+const EN_IS_NAME = new Set<Suggestion['kind']>(['city', 'metro', 'building', 'developer'])
 
 const KIND_ICON = {
   city: Building2,
@@ -102,14 +110,14 @@ export default function SearchSuggest({
         if (live) {
           const jd = (await live) as {
             ok?: boolean
-            hits?: { street?: string; houseNo?: string; district?: string; city?: string; label: string }[]
+            hits?: { lat: number; lng: number; street?: string; houseNo?: string; district?: string; city?: string; label: string }[]
           } | null
           for (const h of jd?.ok ? (jd.hits ?? []).slice(0, 5) : []) {
             const ka = [h.street, h.houseNo].filter(Boolean).join(' ').trim() || h.label
             const key = `street:${h.city ?? ''}:${ka}`.toLowerCase()
             if (!ka || seen.has(key)) continue
             seen.add(key)
-            next.push({ kind: 'street', ka, city: h.city, district: h.district })
+            next.push({ kind: 'street', ka, city: h.city, district: h.district, lat: h.lat, lng: h.lng })
             if (next.length >= 10) break
           }
         }
@@ -262,6 +270,16 @@ export default function SearchSuggest({
                 <ul role="group" aria-label={label}>
                   {g.rows.map(({ s, i }) => {
                     const Icon = KIND_ICON[s.kind]
+                    // Non-ka readers never get bare Mkhedruli: the curated English
+                    // name where the row has one, national romanization otherwise.
+                    const name =
+                      lang !== 'ka' && s.en && EN_IS_NAME.has(s.kind) ? s.en : readableName(s.ka, lang)
+                    const meta = [...new Set(
+                      [s.district, s.city, s.en]
+                        .filter((x): x is string => !!x)
+                        .map((x) => readableName(x, lang))
+                        .filter((x) => x.toLowerCase() !== name.toLowerCase()),
+                    )].join(' · ')
                     return (
                       <li
                         id={`${listId}-${i}`}
@@ -281,10 +299,10 @@ export default function SearchSuggest({
                         >
                           <Icon className={`h-4 w-4 shrink-0 ${auto ? 'text-sv-blue dark:text-sv-blue-light' : dark ? 'text-sv-blue-light' : 'text-sv-blue'}`} />
                           <span className={`min-w-0 flex-1 truncate text-[13px] font-bold ${auto ? 'text-sv-ink dark:text-white' : dark ? 'text-white' : 'text-sv-ink'}`}>
-                            {s.ka}
-                            {(s.city || s.district || s.en) && (
+                            {name}
+                            {meta && (
                               <span className={`ml-1.5 font-semibold ${auto ? 'text-sv-ink/60 dark:text-white/40' : dark ? 'text-white/40' : 'text-sv-ink/60'}`}>
-                                {[s.district, s.city, s.en].filter(Boolean).join(' · ')}
+                                {meta}
                               </span>
                             )}
                           </span>

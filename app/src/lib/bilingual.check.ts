@@ -6,6 +6,7 @@ import assert from 'node:assert/strict'
 
 import { PROJECTS } from '../data/professionals'
 import { altName, altNameList, toGeorgian, toLatin } from './bilingual'
+import { readableName } from './ka-latin'
 
 // Known brand adaptations (search-engine grade, not academic translit)
 assert.equal(toGeorgian('Archi Universe'), 'არჩი უნივერსი')
@@ -68,3 +69,9 @@ assert.deepEqual(altNameList('Nino Beridze', ['ნინო ბერიძე',
 ])
 
 console.log(`bilingual.check: OK (${PROJECTS.length} projects swept)`)
+
+// Reader-facing romanization: metro names match the official signage.
+assert.equal(readableName('ვაჟა-ფშაველა', 'en'), 'Vazha-Pshavela')
+assert.equal(readableName('ნუცუბიძის 77, საბურთალო, თბილისი', 'de'), 'Nutsubidzis 77, Saburtalo, Tbilisi')
+assert.equal(readableName('ვაკე', 'ka'), 'ვაკე')
+assert.equal(readableName('Axis Towers', 'en'), 'Axis Towers')

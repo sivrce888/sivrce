@@ -9,18 +9,14 @@
  * 'თბილისი', 'City' → 'სითი'). ka→Latin is the unambiguous national system.
  */
 
+import { toLatin } from './ka-latin'
+
+export { toLatin }
+
 const LATIN_VOWEL = new Set('aeiou')
 const GEORGIAN_VOWEL = new Set(['ა', 'ე', 'ი', 'ო', 'უ'])
 const HAS_KA = /[\u10d0-\u10ff]/
 const KA_CONSONANT = /[ბგდვზთკლმნპჟრსტფქღყშჩცძწჭხჯჰ]/
-
-/** Georgian → Latin, national system (one-to-one, unambiguous). */
-const KA_TO_LATIN: Record<string, string> = {
-  ა: 'a', ბ: 'b', გ: 'g', დ: 'd', ე: 'e', ვ: 'v', ზ: 'z', თ: 't', ი: 'i',
-  კ: 'k', ლ: 'l', მ: 'm', ნ: 'n', ო: 'o', პ: 'p', ჟ: 'zh', რ: 'r', ს: 's',
-  ტ: 't', უ: 'u', ფ: 'p', ქ: 'q', ღ: 'gh', ყ: 'k', შ: 'sh', ჩ: 'ch', ც: 'ts',
-  ძ: 'dz', წ: 'ts', ჭ: 'ch', ხ: 'kh', ჯ: 'j', ჰ: 'h',
-}
 
 /** Latin → Georgian singles (b-p series for loans: t→ტ, p→პ, k→კ…). */
 const LATIN_TO_KA: Record<string, string> = {
@@ -119,17 +115,6 @@ export function toGeorgian(name: string): string {
       else if (isLatinConsonant(last)) out += 'ი'
     }
     return out
-  })
-}
-
-/** 'არჩი უნივერსი' → 'Archi Universe' (Latin tokens pass through). */
-export function toLatin(name: string): string {
-  return name.replace(/[\u10d0-\u10ff]+/g, (word) => {
-    const lat = word
-      .split('')
-      .map((c) => KA_TO_LATIN[c] ?? c)
-      .join('')
-    return lat.charAt(0).toUpperCase() + lat.slice(1)
   })
 }
 

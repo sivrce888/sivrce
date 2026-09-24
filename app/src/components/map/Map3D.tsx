@@ -167,6 +167,7 @@ import {
 } from '@/lib/map/user-place'
 import { countryIsoForMarket, type MarketId } from '@/lib/markets'
 import { formatGeocodeAddress, type GeocodeHit } from '@/lib/map/geocode'
+import { readableName } from '@/lib/ka-latin'
 import { ChromeSearch, type Suggestion } from '@/components/search/SearchSuggest'
 // ponytail: construction photo-wrap retired — MapLibre TAS massing only.
 // Restore from git history (bc43637) if a GLB/façade path returns.
@@ -1273,6 +1274,8 @@ function Map3DInner({
   const dealRef = useRef<MapDealFilter>(dealFilter)
   const floorRef = useRef<(n: number) => void>(() => {})
   const popupRef = useRef<maplibregl.Popup | null>(null)
+  /** Tap-address / search-landing card — one popup, owned by the map init. */
+  const addrPopupRef = useRef<maplibregl.Popup | null>(null)
   const userDotRef = useRef<maplibregl.Marker | null>(null)
   const selFsRef = useRef<string | null>(null)
   const hoverFsRef = useRef<string | null>(null)
@@ -2319,6 +2322,7 @@ function Map3DInner({
         offset: 18,
         maxWidth: '260px',
       })
+      addrPopupRef.current = nbhPopup
 
       const onNeighborhoodClick = (e: MapLayerMouseEvent) => {
         e.originalEvent.stopPropagation()
@@ -2922,6 +2926,19 @@ function Map3DInner({
   const flyToQuery = useCallback(async (q: string, s?: Suggestion) => {
     const needle = (s?.ka ?? q).trim()
     if (!needle) return
+    // Catalog building / project → open its card, exactly like tapping its pin.
+    const b = !s?.slug
+      ? null
+      : s.kind === 'building'
+        ? findBuildingBySlug(s.slug, allRef.current)
+        : s.kind === 'project'
+          ? (allRef.current.find((x) => x.projectSlug === s.slug) ?? null)
+          : null
+    if (b) {
+      selectBuilding(b)
+      flyToPlace(b.lat, b.lng, 16)
+      return
+    }
     const known = MAP_CITIES.find(
       (c) => c.ka === needle || c.en === needle || c.slug === needle.toLowerCase(),
     )
@@ -2929,16 +2946,48 @@ function Map3DInner({
       flyToPlace(known.lat, known.lng, 12)
       return
     }
-    try {
-      const res = await fetch(`/api/geocode?q=${encodeURIComponent(needle)}`)
-      const json = (await res.json()) as { ok?: boolean; lat?: number; lng?: number }
-      if (json.ok && json.lat != null && json.lng != null) {
-        flyToPlace(json.lat, json.lng, s?.kind === 'street' ? 16 : 14)
+    // The picked row's own point wins; else geocode with its district + city.
+    // A bare 'ილია ჭავჭავაძის გამზირი 37' resolved to the Kutaisi namesake,
+    // 200 km from the Vake address the user picked.
+    let at: GeocodeHit | null =
+      s?.lat != null && s.lng != null
+        ? { lat: s.lat, lng: s.lng, label: needle, district: s.district, city: s.city }
+        : null
+    if (!at) {
+      try {
+        const full = [needle, s?.district, s?.city].filter(Boolean).join(', ')
+        const res = await fetch(`/api/geocode?q=${encodeURIComponent(full)}`)
+        const json = (await res.json()) as Partial<GeocodeHit> & { ok?: boolean }
+        if (json.ok && Number.isFinite(json.lat) && Number.isFinite(json.lng)) at = json as GeocodeHit
+      } catch {
+        /* offline — handled below */
       }
-    } catch {
-      /* offline — map stays put */
     }
-  }, [flyToPlace])
+    if (!at) {
+      flashRefreshNote(tRef.current('search.emptyTitle'))
+      return
+    }
+    const address = !s || s.kind === 'street' || s.kind === 'poi'
+    flyToPlace(at.lat, at.lng, address ? 16.5 : 14)
+    const map = mapRef.current
+    if (!address || !map) return
+    // Apple-style landing: the address the user asked for, pinned where it is.
+    const root = document.createElement('div')
+    const title = document.createElement('div')
+    title.className = 'sivrce-nbh-pop-title'
+    title.textContent = readableName(
+      s ? needle : formatGeocodeAddress({ ...at, district: undefined, city: undefined }),
+      langRef.current,
+    )
+    const sub = document.createElement('div')
+    sub.className = 'sivrce-nbh-pop-city'
+    sub.textContent = [at.district, at.city]
+      .filter((x): x is string => !!x)
+      .map((x) => readableName(x, langRef.current))
+      .join(' · ')
+    root.append(title, sub)
+    addrPopupRef.current?.setLngLat([at.lng, at.lat]).setDOMContent(root).addTo(map)
+  }, [flyToPlace, flashRefreshNote, selectBuilding])
 
   const acceptIpSuggest = () => {
     if (!ipSuggest) return
