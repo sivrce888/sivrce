@@ -174,7 +174,9 @@ export default function SunPath({ lat, lng }: { lat: number; lng: number }) {
         </div>
       </div>
 
-      <svg viewBox={`0 0 ${W} ${H}`} className="mt-5 h-auto w-full" aria-hidden="true">
+      {/* overflow-visible: the 11px scrub halo clips at the viewBox edge when
+          the sun sits at sunrise/sunset — let it bleed into the card padding */}
+      <svg viewBox={`0 0 ${W} ${H}`} className="mt-5 h-auto w-full overflow-visible" aria-hidden="true">
         <defs>
           <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor="var(--sv-orange-light)" stopOpacity="0.25" />

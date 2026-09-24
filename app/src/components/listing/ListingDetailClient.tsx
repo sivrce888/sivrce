@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useEffectEvent, useId, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import dynamic from 'next/dynamic'
 import LocalizedLink from '@/components/LocalizedLink'
 import Image from 'next/image'
@@ -9,7 +9,7 @@ import { useSession } from 'next-auth/react'
 import { toast } from 'sonner'
 import {
   Heart, Share2, MapPin, Eye, Calendar, BedDouble, Bath, Ruler,
-  Building2, DoorOpen, Layers, ChevronLeft, ChevronRight, X, Crown, Flame,
+  Building2, DoorOpen, Layers, ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut, Crown, Flame,
   MessageCircle, BadgeCheck, Calculator, TrendingDown, TrendingUp, TrainFront, TramFront, Bus, Columns2, Copy,
   Play, Camera, GraduationCap, Trees, Hospital, ShoppingBag, Landmark, Castle, Dumbbell, Pill, Leaf,
   type LucideIcon,
@@ -175,42 +175,144 @@ const PROP_TYPE_KEY: Record<PropType, DictKey> = {
   hotel: 'prop.hotel',
 }
 
+/** 800px card twin + 2560px master; undefined for static/demo photos. */
+const photoSrcSet = (src: string) => {
+  const card = cardOf(src)
+  return card ? `${card} 800w, ${src} 2560w` : undefined
+}
+
+/** Warm the cache with the exact candidate the viewer will pick (same srcset + sizes). */
+function preloadPhoto(src: string | undefined, sizes: string) {
+  if (!src) return
+  const img = new window.Image()
+  img.fetchPriority = 'low'
+  img.sizes = sizes
+  const set = photoSrcSet(src)
+  if (set) img.srcset = set
+  img.src = cardOf(src) ?? src
+}
+
+/** Tab stays inside an open modal — no lib, no sentinel divs. */
+function trapTab(e: KeyboardEvent, box: HTMLElement | null) {
+  if (e.key !== 'Tab' || !box) return
+  const f = Array.from(box.querySelectorAll<HTMLElement>('button, iframe, video')).filter((el) => el.tabIndex >= 0)
+  const first = f[0]
+  const last = f[f.length - 1]
+  if (!first || !last) return
+  if (e.shiftKey && document.activeElement === first) {
+    e.preventDefault()
+    last.focus()
+  } else if (!e.shiftKey && document.activeElement === last) {
+    e.preventDefault()
+    first.focus()
+  }
+}
+
+/** System Back closes the overlay instead of leaving the page. The history pop
+ *  on close is deferred a tick so StrictMode's dev re-mount doesn't undo itself. */
+function useBackToClose(onClose: () => void, push = true) {
+  const close = useEffectEvent(onClose)
+  const pushed = useRef(false)
+  const live = useRef(false)
+  useEffect(() => {
+    live.current = true
+    if (push && !pushed.current) {
+      try {
+        window.history.pushState({ svOverlay: 1 }, '')
+        pushed.current = true
+      } catch {
+        /* private mode — Back just leaves the page */
+      }
+    }
+    const onPop = () => {
+      pushed.current = false
+      close()
+    }
+    window.addEventListener('popstate', onPop)
+    return () => {
+      live.current = false
+      window.removeEventListener('popstate', onPop)
+      window.setTimeout(() => {
+        if (live.current || !pushed.current) return
+        pushed.current = false
+        window.history.back()
+      })
+    }
+  }, [push])
+}
+
+/** Maps a pointer position to the same relative scroll offset — hover-pan a zoomed photo. */
+const panTo = (s: HTMLElement, x: number, y: number) => {
+  s.scrollLeft = (x / s.clientWidth) * (s.scrollWidth - s.clientWidth)
+  s.scrollTop = (y / s.clientHeight) * (s.scrollHeight - s.clientHeight)
+}
+const ZOOM = 2.5
+const HERO_SIZES = '(max-width:1024px) 100vw, 850px'
+// 800px AVIF card (~30KB) wherever it's sharp enough: phones (LCP) and 1× desktops.
+// Only retina desktops fall through to the srcset's 2560px master (~500KB).
+const HERO_AVIF_MEDIA = '(max-width: 1023px), (max-resolution: 1.5dppx)'
+
 function Lightbox({
-  images, index, onClose, onNav, onJump,
-}: { images: string[]; index: number; onClose: () => void; onNav: (dir: number) => void; onJump: (i: number) => void }) {
+  images, title, index, onClose, onNav, onJump,
+}: { images: string[]; title: string; index: number; onClose: () => void; onNav: (dir: number) => void; onJump: (i: number) => void }) {
   const { t } = useI18n()
+  const boxRef = useRef<HTMLDivElement>(null)
   const closeRef = useRef<HTMLButtonElement>(null)
   const stripRef = useRef<HTMLDivElement>(null)
+  const imgRef = useRef<HTMLImageElement>(null)
+  const zoomRef = useRef<HTMLDivElement>(null)
+  const dragged = useRef(false)
+  // Zoom belongs to the photo it opened on — navigating resets it without an effect.
+  const [zoomAt, setZoomAt] = useState<{ i: number; w: number; h: number; x: number; y: number; low: string } | null>(null)
+  const zoom = zoomAt?.i === index ? zoomAt : null
+  const src = images[index] ?? ''
+  const alt = `${title} — ${t('detail.photo', { n: index + 1 })}`
 
+  const zoomIn = (x: number, y: number) => {
+    const img = imgRef.current
+    if (!img) return
+    const r = img.getBoundingClientRect()
+    if (!r.width || !r.height) return // photo not decoded yet — nothing to scale
+    setZoomAt({ i: index, w: r.width * ZOOM, h: r.height * ZOOM, x, y, low: img.currentSrc })
+  }
+
+  const onKey = useEffectEvent((e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      if (zoom) setZoomAt(null)
+      else onClose()
+    }
+    if (e.key === 'ArrowRight') onNav(1)
+    if (e.key === 'ArrowLeft') onNav(-1)
+    trapTab(e, boxRef.current)
+  })
   useEffect(() => {
     const trigger = document.activeElement instanceof HTMLElement ? document.activeElement : null
     closeRef.current?.focus()
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose()
-      if (e.key === 'ArrowRight') onNav(1)
-      if (e.key === 'ArrowLeft') onNav(-1)
-    }
-    window.addEventListener('keydown', onKey)
+    const h = (e: KeyboardEvent) => onKey(e)
+    window.addEventListener('keydown', h)
     document.body.style.overflow = 'hidden'
     return () => {
-      window.removeEventListener('keydown', onKey)
+      window.removeEventListener('keydown', h)
       document.body.style.overflow = ''
       trigger?.focus()
     }
-  }, [onClose, onNav])
+  }, [])
+  useBackToClose(onClose)
 
   // Preload neighbours so arrow / filmstrip navigation feels instant.
   useEffect(() => {
-    for (const d of [-1, 1]) {
-      const img = new window.Image()
-      img.src = images[(index + d + images.length) % images.length]
-    }
+    for (const d of [-1, 1]) preloadPhoto(images[(index + d + images.length) % images.length], '100vw')
     const active = stripRef.current?.querySelector<HTMLElement>('[aria-pressed="true"]')
     active?.scrollIntoView({ inline: 'center', block: 'nearest', behavior: 'smooth' })
   }, [index, images])
 
+  useLayoutEffect(() => {
+    if (zoom && zoomRef.current) panTo(zoomRef.current, zoom.x, zoom.y)
+  }, [zoom])
+
   return (
     <motion.div
+      ref={boxRef}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -220,58 +322,116 @@ function Lightbox({
       aria-modal="true"
       aria-label={t('detail.photoViewer')}
     >
-      <button
-        ref={closeRef}
-        onClick={onClose}
-        aria-label={t('detail.close')}
-        className="absolute right-5 top-5 z-10 grid h-11 w-11 place-items-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
-      >
-        <X className="h-5 w-5" />
-      </button>
-      <button
-        onClick={(e) => { e.stopPropagation(); onNav(-1) }}
-        aria-label={t('detail.prevPhoto')}
-        className="absolute left-4 top-1/2 z-10 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
-      >
-        <ChevronLeft className="h-5 w-5" />
-      </button>
+      <div className="absolute right-5 top-5 z-10 flex gap-2">
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation()
+            if (zoom) setZoomAt(null)
+            else zoomIn(window.innerWidth / 2, window.innerHeight / 2)
+          }}
+          aria-label={t('detail.zoomPhoto')}
+          aria-pressed={Boolean(zoom)}
+          className="grid h-11 w-11 place-items-center rounded-full bg-sv-navy/60 text-white ring-1 ring-white/15 backdrop-blur-sm transition-colors hover:bg-sv-navy/80"
+        >
+          {zoom ? <ZoomOut className="h-5 w-5" /> : <ZoomIn className="h-5 w-5" />}
+        </button>
+        <button
+          ref={closeRef}
+          type="button"
+          onClick={onClose}
+          aria-label={t('detail.close')}
+          className="grid h-11 w-11 place-items-center rounded-full bg-sv-navy/60 text-white ring-1 ring-white/15 backdrop-blur-sm transition-colors hover:bg-sv-navy/80"
+        >
+          <X className="h-5 w-5" />
+        </button>
+      </div>
+      {images.length > 1 && (
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); onNav(-1) }}
+          aria-label={t('detail.prevPhoto')}
+          className="absolute left-4 top-1/2 z-10 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-sv-navy/60 text-white ring-1 ring-white/15 backdrop-blur-sm transition-colors hover:bg-sv-navy/80"
+        >
+          <ChevronLeft className="h-5 w-5" />
+        </button>
+      )}
       <motion.img
+        ref={imgRef}
         key={index}
         initial={{ opacity: 0, scale: 0.96 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ duration: 0.35, ease }}
-        src={images[index]}
-        alt={t('detail.photo', { n: index + 1 })}
+        src={cardOf(src) ?? src}
+        srcSet={photoSrcSet(src)}
+        sizes="100vw"
+        alt={alt}
+        draggable={false}
         drag={images.length > 1 ? 'x' : false}
         dragConstraints={{ left: 0, right: 0 }}
         dragElastic={0.15}
+        onDragStart={() => { dragged.current = true }}
         onDragEnd={(_, info) => {
           if (info.offset.x <= -60) onNav(1)
           else if (info.offset.x >= 60) onNav(-1)
         }}
-        className="max-h-[78vh] max-w-full rounded-module object-contain shadow-panel-dark"
-        onClick={(e) => e.stopPropagation()}
+        className="max-h-[78dvh] max-w-full cursor-zoom-in rounded-module object-contain shadow-panel-dark"
+        onClick={(e) => {
+          e.stopPropagation()
+          // A swipe ends with a click on the same image — don't read it as "zoom".
+          if (dragged.current) dragged.current = false
+          else zoomIn(e.clientX, e.clientY)
+        }}
       />
-      <button
-        onClick={(e) => { e.stopPropagation(); onNav(1) }}
-        aria-label={t('detail.nextPhoto')}
-        className="absolute right-4 top-1/2 z-10 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-white/10 text-white transition-colors hover:bg-white/20"
+      {/* ponytail: zoom = native scroll box at 2.5× (touch pans + pinches natively,
+          mouse hover-pans). Upgrade to a gesture lib only if users ask for fling/inertia. */}
+      {zoom && (
+        <div
+          ref={zoomRef}
+          className="absolute inset-0 z-[5] cursor-zoom-out overflow-auto overscroll-contain bg-sv-navy"
+          onClick={(e) => { e.stopPropagation(); setZoomAt(null) }}
+          onPointerMove={(e) => { if (e.pointerType === 'mouse') panTo(e.currentTarget, e.clientX, e.clientY) }}
+        >
+          <div className="grid min-h-full min-w-full w-max place-items-center">
+            {/* eslint-disable-next-line @next/next/no-img-element -- zoom needs the raw 2560px master at a computed size */}
+            <img
+              src={src}
+              alt={alt}
+              width={Math.round(zoom.w)}
+              height={Math.round(zoom.h)}
+              draggable={false}
+              style={{ width: zoom.w, height: zoom.h, maxWidth: 'none', backgroundImage: `url(${zoom.low})`, backgroundSize: 'cover' }}
+            />
+          </div>
+        </div>
+      )}
+      {images.length > 1 && (
+        <button
+          type="button"
+          onClick={(e) => { e.stopPropagation(); onNav(1) }}
+          aria-label={t('detail.nextPhoto')}
+          className="absolute right-4 top-1/2 z-10 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-sv-navy/60 text-white ring-1 ring-white/15 backdrop-blur-sm transition-colors hover:bg-sv-navy/80"
+        >
+          <ChevronRight className="h-5 w-5" />
+        </button>
+      )}
+      <span
+        aria-live="polite"
+        className="absolute left-5 top-5 z-10 rounded-full bg-sv-navy/60 px-4 py-1.5 text-[13px] font-bold tabular-nums text-white/90 ring-1 ring-white/15 backdrop-blur-sm"
       >
-        <ChevronRight className="h-5 w-5" />
-      </button>
-      <span className="absolute left-5 top-5 rounded-full bg-white/10 px-4 py-1.5 text-[13px] font-bold text-white/85">
         {index + 1} / {images.length}
       </span>
       {/* Filmstrip */}
-      {images.length > 1 && (
+      {images.length > 1 && !zoom && (
         <div
           ref={stripRef}
-          className="absolute inset-x-0 bottom-5 flex justify-start gap-2 overflow-x-auto px-5 py-1 scrollbar-hide md:justify-center"
+          className="absolute inset-x-0 bottom-5 z-10 flex justify-start gap-2 overflow-x-auto px-5 py-1 scrollbar-hide md:justify-center"
           onClick={(e) => e.stopPropagation()}
         >
-          {images.map((src, i) => (
+          {images.map((s, i) => (
             <button
-              key={src + i}
+              key={s + i}
+              type="button"
               onClick={() => onJump(i)}
               aria-label={t('detail.photo', { n: i + 1 })}
               aria-pressed={i === index}
@@ -279,7 +439,7 @@ function Lightbox({
                 i === index ? 'ring-2 ring-white' : 'opacity-50 hover:opacity-90'
               }`}
             >
-              <Image src={cardOf(src) ?? src} alt="" fill sizes="84px" unoptimized={isCdnMedia(src)} className="object-cover" {...blurProps(src)} />
+              <Image src={cardOf(s) ?? s} alt="" fill sizes="84px" unoptimized={isCdnMedia(s)} className="object-cover" {...blurProps(s)} />
             </button>
           ))}
         </div>
@@ -300,106 +460,57 @@ function ListingVideoPlayer({
   const boxRef = useRef<HTMLDivElement>(null)
   const videoElemRef = useRef<HTMLVideoElement>(null)
 
+  const onKey = useEffectEvent((e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      onClose()
+      return
+    }
+    const v = videoElemRef.current
+    // Space on a focused button (Close) must still activate it.
+    if (v && (e.key === 'k' || (e.code === 'Space' && !(e.target instanceof HTMLButtonElement)))) {
+      e.preventDefault()
+      if (v.paused) void v.play()
+      else v.pause()
+    }
+    if (v && (e.key === 'm' || e.key === 'M')) {
+      e.preventDefault()
+      v.muted = !v.muted
+    }
+    if (v && (e.key === 'f' || e.key === 'F') && document.fullscreenEnabled) {
+      e.preventDefault()
+      if (!document.fullscreenElement) void v.requestFullscreen?.()
+      else void document.exitFullscreen?.()
+    }
+    trapTab(e, boxRef.current)
+  })
   useEffect(() => {
     const prev = document.activeElement as HTMLElement | null
     closeRef.current?.focus()
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose()
-        return
-      }
-      if (e.code === 'Space' || e.key === 'k') {
-        if (videoElemRef.current) {
-          e.preventDefault()
-          if (videoElemRef.current.paused) {
-            void videoElemRef.current.play()
-          } else {
-            videoElemRef.current.pause()
-          }
-        }
-      }
-      if (e.key === 'm' || e.key === 'M') {
-        if (videoElemRef.current) {
-          e.preventDefault()
-          videoElemRef.current.muted = !videoElemRef.current.muted
-        }
-      }
-      if (e.key === 'f' || e.key === 'F') {
-        if (videoElemRef.current && document.fullscreenEnabled) {
-          e.preventDefault()
-          if (!document.fullscreenElement) {
-            void videoElemRef.current.requestFullscreen?.()
-          } else {
-            void document.exitFullscreen?.()
-          }
-        }
-      }
-      // ponytail: 2-focusable trap (close + player) — no lib, no sentinel divs.
-      if (e.key !== 'Tab' || !boxRef.current) return
-      const f = Array.from(
-        boxRef.current.querySelectorAll<HTMLElement>('button, iframe, video'),
-      ).filter((el) => el.tabIndex >= 0)
-      if (f.length === 0) return
-      const first = f[0]!
-      const last = f[f.length - 1]!
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault()
-        last.focus()
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault()
-        first.focus()
-      }
-    }
-    window.addEventListener('keydown', onKey)
+    const h = (e: KeyboardEvent) => onKey(e)
+    window.addEventListener('keydown', h)
     document.body.style.overflow = 'hidden'
     return () => {
-      window.removeEventListener('keydown', onKey)
+      window.removeEventListener('keydown', h)
       document.body.style.overflow = ''
       prev?.focus?.()
     }
-  }, [onClose])
+  }, [])
 
-  // ponytail: system Back closes video (not page). Cleans ?play=1 deep link on X-close.
-  const pushed = useRef(false)
-  const popped = useRef(false)
-  const fromLink = useRef(false)
-  useEffect(() => {
-    try {
-      fromLink.current = new URLSearchParams(window.location.search).get('play') === '1'
-    } catch {
-      fromLink.current = false
-    }
-    const onPop = () => {
-      popped.current = true
-      onClose()
-    }
-    if (!fromLink.current) {
-      try {
-        window.history.pushState({ svVideo: 1 }, '')
-        pushed.current = true
-      } catch {
-        /* private mode — Back just leaves the page */
-      }
-    }
-    window.addEventListener('popstate', onPop)
-    return () => {
-      window.removeEventListener('popstate', onPop)
-      try {
-        if (pushed.current && !popped.current) window.history.back()
-        if (fromLink.current) {
-          const u = new URL(window.location.href)
-          u.searchParams.delete('play')
-          const q = u.searchParams.toString()
-          window.history.replaceState(null, '', q ? `${u.pathname}?${q}` : u.pathname)
-        }
-      } catch {
-        /* ignore */
-      }
-    }
-  }, [onClose])
+  // ?play=1 deep link: page load already owns this history entry — don't push,
+  // just strip the param on close so a refresh doesn't reopen the player.
+  const [fromLink] = useState(() => new URLSearchParams(window.location.search).get('play') === '1')
+  useBackToClose(onClose, !fromLink)
+  useEffect(() => () => {
+    if (!fromLink) return
+    const u = new URL(window.location.href)
+    u.searchParams.delete('play')
+    const q = u.searchParams.toString()
+    window.history.replaceState(window.history.state, '', q ? `${u.pathname}?${q}` : u.pathname)
+  }, [fromLink])
 
   return (
     <motion.div
+      ref={boxRef}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -419,7 +530,6 @@ function ListingVideoPlayer({
         <X className="h-5 w-5" />
       </button>
       <div
-        ref={boxRef}
         className="relative aspect-video w-full max-w-4xl overflow-hidden rounded-card bg-sv-navy shadow-panel-dark ring-1 ring-white/10"
         onClick={(e) => e.stopPropagation()}
       >
@@ -580,8 +690,31 @@ export default function ListingDetailClient({
       avif,
       // ponytail: LQIP (~1KB) as button backdrop — hero never flashes white on slow CDN.
       blur: lqipOf(src),
-      set: card ? `${card} 800w, ${src} 2560w` : undefined,
+      set: photoSrcSet(src),
     }
+  }, [l.images, photo])
+
+  // Warm both neighbours once the browser is idle — the first swipe lands on a
+  // decoded photo, not the LQIP. Low priority, so it never races the LCP.
+  useEffect(() => {
+    const n = l.images.length
+    if (n < 2) return
+    const warm = () => {
+      // Match the <picture>: same media query picks AVIF card vs srcset.
+      const card = window.matchMedia(HERO_AVIF_MEDIA).matches
+      for (const d of [-1, 1]) {
+        const src = l.images[(photo + d + n) % n]
+        const avif = card && src ? avifCardOf(src) : undefined
+        if (avif) new window.Image().src = avif
+        else preloadPhoto(src, HERO_SIZES)
+      }
+    }
+    if (typeof window.requestIdleCallback === 'function') {
+      const id = window.requestIdleCallback(warm, { timeout: 3000 })
+      return () => window.cancelIdleCallback(id)
+    }
+    const id = window.setTimeout(warm, 1500)
+    return () => window.clearTimeout(id)
   }, [l.images, photo])
 
   // Mortgage state
@@ -951,11 +1084,11 @@ export default function ListingDetailClient({
                     unoptimized (R2 ships card/master twins) and would ship the
                     2560px master (~1MB) as the mobile LCP; card twin is 800px. */}
                 <picture className="block h-full w-full">
-                  {heroSrc.avif ? <source type="image/avif" srcSet={heroSrc.avif} /> : null}
+                  {heroSrc.avif ? <source type="image/avif" media={HERO_AVIF_MEDIA} srcSet={heroSrc.avif} /> : null}
                   <img
                     src={heroSrc.card ?? heroSrc.master}
                     srcSet={heroSrc.set}
-                    sizes="(max-width:1024px) 100vw, 850px"
+                    sizes={HERO_SIZES}
                     alt={`${l.title} — ${t('detail.photo', { n: String(photo + 1) })}`}
                     width={2560}
                     height={1600}
@@ -1317,11 +1450,7 @@ export default function ListingDetailClient({
 
             {/* Honest scale: hidden until ≥2 real district comps back it */}
             {isSale && hasPeers && l.perM2USD > 0 ? (
-              <PriceScale
-                scale={priceScale}
-                priceLabel={`${perM2Label}/${areaSym(lang)}`}
-                lang={lang}
-              />
+              <PriceScale scale={priceScale} priceLabel={`${perM2Label}/${areaSym(lang)}`} />
             ) : null}
 
             {fairPrice ? (
@@ -2076,6 +2205,7 @@ export default function ListingDetailClient({
         {lightbox && (
           <Lightbox
             images={l.images}
+            title={title}
             index={photo}
             onClose={() => setLightbox(false)}
             onNav={navPhoto}

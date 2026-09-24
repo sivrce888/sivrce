@@ -4,6 +4,7 @@
 
 import type { Lang } from "@/lib/i18n/core"
 import type { PriceScaleBand, PriceScaleResult } from "@/lib/price-scale"
+import { useI18n } from "@/lib/i18n/context"
 
 const LABELS: Record<Lang, Record<PriceScaleBand, string> & { heading: string; ticks: [string, string, string, string, string] }> = {
   ka: {
@@ -109,12 +110,13 @@ const BAND_CHIP: Record<PriceScaleBand, string> = {
 export default function PriceScale({
   scale,
   priceLabel,
-  lang,
 }: {
   scale: PriceScaleResult
   priceLabel: string
-  lang: Lang
 }) {
+  // Locale straight from the provider — a passed-down `lang` prop kept SSR on
+  // the default locale while sibling components hydrated to the URL locale.
+  const { lang } = useI18n()
   const L = LABELS[lang]
   return (
     <section
