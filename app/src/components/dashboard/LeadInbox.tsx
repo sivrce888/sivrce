@@ -182,7 +182,7 @@ export default function LeadInbox({
               </header>
               <div className="flex flex-col gap-2">
                 {bucket.length === 0 ? (
-                  <p className="rounded-xl border border-dashed border-sv-ink/10 px-3 py-6 text-center text-[11.5px] font-medium text-sv-ink/35">
+                  <p className="rounded-control border border-dashed border-sv-ink/10 px-3 py-6 text-center text-[11.5px] font-medium text-sv-ink/35">
                     {t.empty}
                   </p>
                 ) : (

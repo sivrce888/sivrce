@@ -235,7 +235,7 @@ export function DeveloperMediaGallery({
                     <button
                       type="button"
                       aria-label={t.watchVideo}
-                      className="flex h-16 w-16 items-center justify-center rounded-full bg-sv-orange text-white shadow-lg transition-transform duration-300 hover:scale-110 md:h-20 md:w-20"
+                      className="flex h-16 w-16 items-center justify-center rounded-full bg-sv-orange text-white shadow-glow-orange-lg transition-transform duration-300 hover:scale-110 md:h-20 md:w-20"
                     >
                       <Play className="ml-1 h-8 w-8 fill-current md:h-10 md:w-10" />
                     </button>

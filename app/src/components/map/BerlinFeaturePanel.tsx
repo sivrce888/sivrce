@@ -94,7 +94,7 @@ export default function BerlinFeaturePanel({
       <div className="mx-auto mt-3 h-1.5 w-12 shrink-0 rounded-full bg-sv-ink/20 md:hidden" aria-hidden />
       <header className="flex items-start justify-between gap-3 border-b border-sv-ink/6 p-5">
         <div className="flex min-w-0 gap-3.5">
-          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-sv-blue/10 text-sv-blue shadow-sm">
+          <span className="grid h-12 w-12 shrink-0 place-items-center rounded-module bg-sv-blue/10 text-sv-blue shadow-sm">
             <Icon className="h-6 w-6" aria-hidden />
           </span>
           <div className="min-w-0">
@@ -113,7 +113,7 @@ export default function BerlinFeaturePanel({
       </header>
 
       <div className="flex-1 space-y-5 overflow-y-auto overscroll-contain p-5 pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))]">
-        <div className="flex items-center gap-2.5 rounded-xl bg-sv-blue/8 px-3.5 py-2.5 text-xs font-bold text-sv-blue-deep dark:text-sv-blue-light border border-sv-blue/15">
+        <div className="flex items-center gap-2.5 rounded-control bg-sv-blue/8 px-3.5 py-2.5 text-xs font-bold text-sv-blue-deep dark:text-sv-blue-light border border-sv-blue/15">
           <BadgeCheck className="h-4 w-4 shrink-0 text-sv-blue" aria-hidden />
           <span>
             {de ? 'Amtliche Geometrie · Regierungsquelle' : 'Official geometry · government source'}
@@ -167,14 +167,14 @@ export default function BerlinFeaturePanel({
             href={pdf}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center justify-center gap-2 rounded-xl bg-sv-navy px-4 py-3 text-xs font-black text-white shadow-sm transition hover:bg-sv-blue hover:shadow active:scale-98"
+            className="flex items-center justify-center gap-2 rounded-control bg-sv-navy px-4 py-3 text-xs font-black text-white shadow-sm transition hover:bg-sv-blue hover:shadow active:scale-98"
           >
             <ExternalLink className="h-4 w-4" aria-hidden />
             {de ? 'Amtlichen B-Plan öffnen (PDF)' : 'Open official plan (PDF)'}
           </a>
         ) : null}
 
-        <section className="rounded-2xl border border-sv-ink/8 bg-sv-cloud/50 p-4">
+        <section className="rounded-module border border-sv-ink/8 bg-sv-cloud/50 p-4">
           <h3 className="text-[11px] font-bold uppercase tracking-wider text-sv-ink/45">
             {de ? 'Herkunft & Integrität' : 'Provenance & Integrity'}
           </h3>

@@ -57,7 +57,7 @@ export default async function LegalIndexPage({
                   <Reveal delay={Math.min(i * 0.03, 0.18)}>
                     <a
                       href={`/${lang}/legal/${d.slug}`}
-                      className="block h-full rounded-2xl border border-sv-ink/10 bg-sv-surface p-5 transition-colors hover:border-sv-blue/40"
+                      className="block h-full rounded-module border border-sv-ink/10 bg-sv-surface p-5 transition-colors hover:border-sv-blue/40"
                     >
                       <span className="block text-[15px] font-black tracking-[-0.01em] text-sv-ink">
                         {loc.title}

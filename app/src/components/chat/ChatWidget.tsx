@@ -356,7 +356,7 @@ const MessageBubble = memo(function MessageBubble({
       <div
         className={`flex ${own ? "justify-end" : "justify-start"} ${firstOfGroup ? "mt-3" : "mt-0.5"}`}
       >
-        <div className="inline-flex max-w-[82%] items-center gap-1.5 rounded-2xl border border-dashed border-sv-ink/15 px-3 py-1.5 text-[13px] font-medium italic text-sv-ink/45">
+        <div className="inline-flex max-w-[82%] items-center gap-1.5 rounded-module border border-dashed border-sv-ink/15 px-3 py-1.5 text-[13px] font-medium italic text-sv-ink/45">
           <Ban className="h-3.5 w-3.5 shrink-0" aria-hidden />
           {menu.deleted}
         </div>
@@ -369,7 +369,7 @@ const MessageBubble = memo(function MessageBubble({
       className={`group flex ${own ? "justify-end" : "justify-start"} ${firstOfGroup ? "mt-3" : "mt-0.5"}`}
     >
       <div
-        className={`relative max-w-[82%] rounded-2xl px-3.5 py-2 text-[14px] font-medium leading-relaxed ${
+        className={`relative max-w-[82%] rounded-module px-3.5 py-2 text-[14px] font-medium leading-relaxed ${
           own ? "bg-sv-blue text-white" : "bg-sv-ink/[0.06] text-sv-ink"
         } ${own && lastOfGroup ? "rounded-br-md" : ""} ${!own && firstOfGroup ? "rounded-bl-md" : ""} ${
           msg.status === "failed" ? "ring-1 ring-sv-orange/60" : ""
@@ -1163,7 +1163,7 @@ function MessageThread({
           })}
           {peerTyping && (
             <div className="mt-1 flex justify-start">
-              <div className="rounded-2xl rounded-bl-md bg-sv-ink/[0.06] px-3.5 py-2.5" aria-label={t("chat.typing")}>
+              <div className="rounded-module rounded-bl-md bg-sv-ink/[0.06] px-3.5 py-2.5" aria-label={t("chat.typing")}>
                 <TypingDots />
               </div>
             </div>

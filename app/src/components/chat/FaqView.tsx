@@ -103,7 +103,7 @@ export default function FaqView({ onContactSupport }: { onContactSupport: () => 
             }`}
           >
             <div
-              className={`max-w-[82%] rounded-2xl px-3.5 py-2 text-[14px] font-medium leading-relaxed ${
+              className={`max-w-[82%] rounded-module px-3.5 py-2 text-[14px] font-medium leading-relaxed ${
                 entry.role === "user" ? "bg-sv-blue text-white" : "bg-sv-ink/[0.06] text-sv-ink"
               }`}
             >

@@ -108,7 +108,7 @@ export function LangSwitcher({ light = false }: { light?: boolean }) {
         aria-label={t('nav.language')}
         inert={!open}
         data-open={open || undefined}
-        className="sv-pop glass-light absolute end-0 top-full z-50 mt-2 w-44 origin-top-right rounded-2xl p-1.5 shadow-card"
+        className="sv-pop glass-light absolute end-0 top-full z-50 mt-2 w-44 origin-top-right rounded-module p-1.5 shadow-card"
       >
             {LANGS.map((code) => {
               const active = lang === code
@@ -119,7 +119,7 @@ export function LangSwitcher({ light = false }: { light?: boolean }) {
                   role="menuitemradio"
                   aria-checked={active}
                   onClick={() => switchTo(code)}
-                  className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2.5 text-start text-[14px] font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue ${
+                  className={`flex w-full items-center gap-2.5 rounded-control px-3 py-2.5 text-start text-[14px] font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue ${
                     active ? 'text-sv-blue' : 'text-sv-ink hover:bg-sv-ink/5'
                   }`}
                 >

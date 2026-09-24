@@ -107,7 +107,7 @@ export default function ValuationTerminal({
       </div>
 
       {/* Scenario Selector Tabs */}
-      <div className="mt-5 flex items-center gap-2 rounded-xl bg-sv-ink/[0.03] p-1 border border-sv-ink/[0.04]">
+      <div className="mt-5 flex items-center gap-2 rounded-control bg-sv-ink/[0.03] p-1 border border-sv-ink/[0.04]">
         {(['BEAR', 'BASE', 'BULL'] as const).map((s) => {
           const active = selectedScenario === s
           const label = isKa
@@ -147,7 +147,7 @@ export default function ValuationTerminal({
 
       {/* Key Metrics Grid */}
       <div className="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="rounded-xl border border-sv-ink/[0.05] bg-sv-ink/[0.01] p-3.5">
+        <div className="rounded-control border border-sv-ink/[0.05] bg-sv-ink/[0.01] p-3.5">
           <span className="text-[11px] font-medium text-sv-ink-soft uppercase tracking-wider block">
             {T('5-წლიანი საპროგნოზო IRR', '5-Jahres-Prognose-IRR', '5-Year Forecast IRR')}
           </span>
@@ -159,7 +159,7 @@ export default function ValuationTerminal({
           </span>
         </div>
 
-        <div className="rounded-xl border border-sv-ink/[0.05] bg-sv-ink/[0.01] p-3.5">
+        <div className="rounded-control border border-sv-ink/[0.05] bg-sv-ink/[0.01] p-3.5">
           <span className="text-[11px] font-medium text-sv-ink-soft uppercase tracking-wider block">
             {T('Net Cap Rate (წმინდა)', 'Net Cap Rate (netto)', 'Net Cap Rate')}
           </span>
@@ -171,7 +171,7 @@ export default function ValuationTerminal({
           </span>
         </div>
 
-        <div className="rounded-xl border border-sv-ink/[0.05] bg-sv-ink/[0.01] p-3.5">
+        <div className="rounded-control border border-sv-ink/[0.05] bg-sv-ink/[0.01] p-3.5">
           <span className="text-[11px] font-medium text-sv-ink-soft uppercase tracking-wider block">
             {T('5 წლის ღირებულება', 'Immobilienwert nach 5 Jahren', '5-Yr Property Value')}
           </span>
@@ -183,7 +183,7 @@ export default function ValuationTerminal({
           </span>
         </div>
 
-        <div className="rounded-xl border border-sv-ink/[0.05] bg-sv-ink/[0.01] p-3.5">
+        <div className="rounded-control border border-sv-ink/[0.05] bg-sv-ink/[0.01] p-3.5">
           <span className="text-[11px] font-medium text-sv-ink-soft uppercase tracking-wider block">
             {T('5-წლ. წმინდა იჯარა', '5-Jahres-Nettomietzahlung', '5-Yr Net Cash Flow')}
           </span>
@@ -200,7 +200,7 @@ export default function ValuationTerminal({
 
       {/* Why Sivrce Recommends & Risk Factors */}
       <div className="mt-5 grid sm:grid-cols-2 gap-3 pt-3 border-t border-sv-ink/[0.04]">
-        <div className="rounded-xl bg-emerald-500/[0.03] border border-emerald-500/10 p-3.5">
+        <div className="rounded-control bg-emerald-500/[0.03] border border-emerald-500/10 p-3.5">
           <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
             <ShieldCheck className="h-4 w-4" />
             <span>{T('რატომ გვირჩევს სივრცე', 'Warum SIVRCE empfiehlt', 'Why SIVRCE Recommends')}</span>
@@ -220,7 +220,7 @@ export default function ValuationTerminal({
           </ul>
         </div>
 
-        <div className="rounded-xl bg-amber-500/[0.03] border border-amber-500/10 p-3.5">
+        <div className="rounded-control bg-amber-500/[0.03] border border-amber-500/10 p-3.5">
           <div className="flex items-center gap-1.5 text-xs font-semibold text-amber-700 dark:text-amber-400">
             <AlertTriangle className="h-4 w-4" />
             <span>{T('რისკ-ფაქტორები და შენიშვნები', 'Risikofaktoren & Sorgfaltspflicht', 'Risk Factors & Diligence')}</span>

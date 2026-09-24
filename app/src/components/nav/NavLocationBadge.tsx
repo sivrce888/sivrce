@@ -221,7 +221,7 @@ export function NavLocationBadge({
         aria-label={T('მდებარეობა და ბაზარი', 'Standort & Markt', 'Location & Market')}
         inert={!open}
         data-open={open || undefined}
-        className="sv-pop glass-light absolute start-0 top-full z-50 mt-2 max-h-[min(24rem,70vh)] w-[min(16rem,calc(100vw-2.5rem))] origin-top-start overflow-hidden rounded-2xl border border-sv-ink/10 p-2 shadow-card"
+        className="sv-pop glass-light absolute start-0 top-full z-50 mt-2 max-h-[min(24rem,70vh)] w-[min(16rem,calc(100vw-2.5rem))] origin-top-start overflow-hidden rounded-module border border-sv-ink/10 p-2 shadow-card"
       >
         <div className="mb-2 px-1">
           <input
@@ -231,7 +231,7 @@ export function NavLocationBadge({
             onChange={(e) => setSearch(e.target.value)}
             placeholder={T('ქვეყნის ძიება…', 'Land suchen…', 'Search country…')}
             aria-label={T('ქვეყნის ძიება', 'Land suchen', 'Search country')}
-            className="w-full rounded-xl border border-sv-ink/10 bg-sv-surface px-3 py-1.5 text-[12px] font-semibold text-sv-ink placeholder:text-sv-ink/40 focus:border-sv-blue focus:outline-none focus:ring-2 focus:ring-sv-blue/20"
+            className="w-full rounded-control border border-sv-ink/10 bg-sv-surface px-3 py-1.5 text-[12px] font-semibold text-sv-ink placeholder:text-sv-ink/40 focus:border-sv-blue focus:outline-none focus:ring-2 focus:ring-sv-blue/20"
             autoFocus={open}
           />
         </div>
@@ -249,7 +249,7 @@ export function NavLocationBadge({
                   document.cookie = `sv-geo-v2=${encodeURIComponent(m.id)}; path=/; max-age=31536000; SameSite=Lax`
                   setOpen(false)
                 }}
-                className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-start text-[13px] font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue ${
+                className={`flex w-full items-center gap-2.5 rounded-control px-3 py-2 text-start text-[13px] font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue ${
                   on ? 'bg-sv-blue/10 text-sv-blue' : 'text-sv-ink hover:bg-sv-ink/5'
                 }`}
               >

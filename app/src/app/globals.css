@@ -632,11 +632,14 @@ html:has([data-sv-form-bar]) [data-sv-chat-launcher] {
   }
   .sv-card-grid {
     display: grid;
+    /* Natural heights — stretched rows + mt-auto specs left mid-card dead zones */
+    align-items: start;
     grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--sv-card-min)), 1fr));
     gap: clamp(1rem, 0.7rem + 1.2vw, 1.5rem);
   }
   .sv-card-grid-3 {
     display: grid;
+    align-items: start;
     grid-template-columns: repeat(auto-fill, minmax(min(100%, 18.75rem), 1fr));
     gap: clamp(1rem, 0.7rem + 1.2vw, 1.5rem);
   }

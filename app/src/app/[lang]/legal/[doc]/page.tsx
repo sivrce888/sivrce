@@ -59,7 +59,7 @@ export default async function LegalDocPage({
           {d.legalReviewRequired && (
             <p
               role="note"
-              className="mb-10 rounded-2xl border border-sv-ink/15 bg-sv-surface px-5 py-4 text-[13px] font-semibold leading-relaxed text-sv-ink/70"
+              className="mb-10 rounded-module border border-sv-ink/15 bg-sv-surface px-5 py-4 text-[13px] font-semibold leading-relaxed text-sv-ink/70"
             >
               {lang === 'de'
                 ? 'Entwurf — dieser Text befindet sich in rechtlicher Prüfung (LEGAL_REVIEW_REQUIRED) und ist noch nicht rechtsverbindlich. Es handelt sich nicht um Rechtsberatung.'

@@ -400,7 +400,7 @@ export default function GermanIntelligenceCockpit({
       {tab === 'scenarios' && isSale && (
         <div className="mt-5 space-y-4">
           {/* Scenario Selector */}
-          <div className="flex items-center gap-2 rounded-xl bg-sv-ink/[0.03] p-1 border border-sv-ink/[0.04]">
+          <div className="flex items-center gap-2 rounded-control bg-sv-ink/[0.03] p-1 border border-sv-ink/[0.04]">
             {(['BEAR', 'BASE', 'BULL'] as const).map((s) => {
               const active = scenarioKey === s
               const label =

@@ -738,7 +738,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
             {postedAgoLabel(days, lang)}
           </span>
           <span className="min-w-0 truncate font-mono text-[10px] font-black tabular-nums text-sv-ink/60">
-            ID {publicId}
+            #{publicId}
           </span>
         </div>
       </div>
@@ -747,10 +747,10 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
 
   const sizeClass =
     layout === 'grid'
-      ? 'w-[clamp(16.5rem,82%,23.75rem)] shrink-0'
+      ? 'w-[clamp(16.5rem,82%,23.75rem)] shrink-0 self-stretch'
       : layout === 'list'
-        ? 'w-full min-w-0 flex-col sm:flex-row'
-        : 'h-full min-w-0 w-full'
+        ? 'w-full min-w-0 flex-col self-start sm:flex-row'
+        : 'min-w-0 w-full self-start'
 
   return (
     <article
@@ -765,7 +765,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
       onTouchStart={onImgTouchStart}
       onTouchMove={onImgTouchMove}
       onTouchEnd={onImgTouchEnd}
-      className={`group @container relative flex min-h-0 flex-col self-stretch overflow-hidden rounded-card border bg-sv-surface shadow-card transition-[transform,box-shadow] duration-500 [@media(hover:hover)]:hover:-translate-y-1.5 [@media(hover:hover)]:hover:shadow-card-hover ${sizeClass} ${
+      className={`group @container relative flex min-h-0 flex-col overflow-hidden rounded-card border bg-sv-surface shadow-card transition-[transform,box-shadow] duration-500 [@media(hover:hover)]:hover:-translate-y-1.5 [@media(hover:hover)]:hover:shadow-card-hover ${sizeClass} ${
         l.highlighted
           ? 'border-sv-blue/45 ring-2 ring-sv-blue/25'
           : 'border-sv-ink/[0.06]'
