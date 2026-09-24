@@ -75,6 +75,16 @@ function kaAltName(p: { name: string; nameKa?: string; city: string }, lang: str
   return p.nameKa || altName(p.name)
 }
 
+/** Portal source links name the portal — only developer/official pages are "official". */
+function sourceLabel(url: string, lang: string, isDe: boolean): string {
+  try {
+    const h = new URL(url).host
+    const portal = h.endsWith('korter.ge') ? 'Korter' : h.endsWith('myhome.ge') ? 'MyHome' : h.endsWith('ss.ge') ? 'SS.ge' : undefined
+    if (portal) return lang === 'ka' ? `წყარო: ${portal}` : lang === 'ru' ? `Источник: ${portal}` : `Source: ${portal}`
+  } catch { /* not a URL — treat as official */ }
+  return isDe ? 'Offizielle Quelle' : 'Official source'
+}
+
 function absImg(src: string, com = false) {
   return src.startsWith('http') ? src : com ? `https://sivrce.com${src}` : `https://sivrce.ge${src}`
 }
@@ -405,7 +415,7 @@ export default async function ProjectPage({ params }: PageProps) {
                     className="mt-1 inline-flex min-h-11 items-center gap-1.5 text-[13px] font-bold text-white/70 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                   >
                     <Landmark className="h-4 w-4 text-white/50" aria-hidden />
-                    {isDe ? 'Offizielle Quelle' : 'Official source'}
+                    {sourceLabel(project.sourceUrl, lang, isDe)}
                     <ArrowUpRight className="h-3.5 w-3.5" aria-hidden />
                   </a>
                 )}
