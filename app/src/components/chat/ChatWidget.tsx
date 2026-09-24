@@ -1558,7 +1558,7 @@ export default function ChatWidget() {
         aria-label={open ? t("chat.close") : t("chat.open")}
         aria-expanded={open}
         aria-controls="sv-chat-panel"
-        className={`fixed bottom-24 end-4 z-50 grid h-14 w-14 place-items-center rounded-full bg-sv-blue text-white shadow-glow-blue transition duration-300 hover:-translate-y-0.5 hover:bg-sv-blue-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-95 motion-reduce:transition-none touch-manipulation lg:bottom-6 lg:end-6 ${
+        className={`fixed bottom-[max(6rem,calc(var(--sv-dock)+var(--sv-install,0px)+1.5rem))] end-4 z-50 grid h-14 w-14 place-items-center rounded-full bg-sv-blue text-white shadow-glow-blue transition duration-300 hover:-translate-y-0.5 hover:bg-sv-blue-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-95 motion-reduce:transition-none touch-manipulation lg:bottom-6 lg:end-6 ${
           // ponytail: /map's right control rail runs to the FAB on short phones —
           // flip the launcher to the free left corner there (max-lg only).
           onMapRoute ? "max-lg:end-auto max-lg:start-3" : ""
