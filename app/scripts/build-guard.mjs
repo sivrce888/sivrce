@@ -17,7 +17,7 @@ const MAX_RSS_SHARE = 0.5
 // macOS "memory free %" (kern.memorystatus_level) floor; below this swap
 // thrash starts and the UI hangs — kill the build first.
 const MIN_FREE_PCT = 8
-const POLL_MS = 2000
+const POLL_MS = 1000
 const LOCK = join(tmpdir(), "sivrce-next-build.lock")
 
 /** Sum RSS (MiB) of `root` and all descendants from `ps -A -o pid=,ppid=,rss=`. */
@@ -97,7 +97,7 @@ function main() {
       killedFor = why
       console.error(`\n[build-guard] ${why} — stopping build to keep the Mac responsive.`)
       try { process.kill(-child.pid, "SIGTERM") } catch {}
-      setTimeout(() => { try { process.kill(-child.pid, "SIGKILL") } catch {} }, 5000).unref()
+      setTimeout(() => { try { process.kill(-child.pid, "SIGKILL") } catch {} }, 2000).unref()
     }
     const timer = setInterval(() => {
       try {
