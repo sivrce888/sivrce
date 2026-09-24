@@ -21,6 +21,10 @@ import {
 } from "./market-stats-core"
 
 export type { DistrictStats, StatRow } from "./market-stats-core"
+/** $/m² stats are sale prices. Rent (monthly $/m²), daily and pledge (loan
+ *  amount) rows are different units — mixing them made the average meaningless. */
+const SALE = { dealType: "buy" as const }
+
 export { MIN_SAMPLE, medianOf, momDeltaPct, periodKey, statsFromRows } from "./market-stats-core"
 
 const ROW_CAP = 10_000
@@ -48,7 +52,7 @@ export async function getMarketOverview(usdGel: number): Promise<MarketOverview>
         async () =>
           db.listing.findMany({
             // Georgia-branded market page: global listings would skew the board.
-            where: { status: "active", deletedAt: null, country: "GE" },
+            where: { ...SALE, status: "active", deletedAt: null, country: "GE" },
             select: {
               district: true,
               pricePerSqm: true,
@@ -143,7 +147,7 @@ export async function getNeighborhoodMarketStats(
       const rows = await safeQuery(
         async () =>
           db.listing.findMany({
-            where: { city, district: { in: districts }, status: "active", deletedAt: null },
+            where: { ...SALE, city, district: { in: districts }, status: "active", deletedAt: null },
             select: { pricePerSqm: true, currency: true, price: true, createdAt: true },
             take: ROW_CAP,
           }),
@@ -167,7 +171,7 @@ export async function getNeighborhoodMarketStats(
  */
 export async function writeMonthlySnapshots(): Promise<{ districts: number; written: number }> {
   const pairs = await db.listing.findMany({
-    where: { status: "active", deletedAt: null, pricePerSqm: { gt: 0 } },
+    where: { ...SALE, status: "active", deletedAt: null, pricePerSqm: { gt: 0 } },
     select: { city: true, district: true },
     distinct: ["city", "district"],
   })
@@ -178,7 +182,7 @@ export async function writeMonthlySnapshots(): Promise<{ districts: number; writ
     const rows = await safeQuery(
       async () =>
         db.listing.findMany({
-          where: { city, district, status: "active", deletedAt: null },
+          where: { ...SALE, city, district, status: "active", deletedAt: null },
           select: { pricePerSqm: true, currency: true, price: true, createdAt: true },
           take: ROW_CAP,
         }),

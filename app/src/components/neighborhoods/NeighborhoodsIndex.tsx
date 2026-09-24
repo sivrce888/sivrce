@@ -1,6 +1,7 @@
 'use client'
 
-import { NEIGHBORHOODS } from '@/data/neighborhoods'
+import { NEIGHBORHOODS, overallScore, pick } from '@/data/neighborhoods'
+import { useI18n } from '@/lib/i18n/context'
 import { Reveal } from '@/components/Reveal'
 import { PageHero } from '@/components/PageHero'
 import NeighborhoodCard from './NeighborhoodCard'
@@ -16,6 +17,7 @@ export default function NeighborhoodsIndex({
   liveAvg?: Record<string, number>
 }) {
   const s = useNb()
+  const { lang } = useI18n()
   return (
     <>
       <PageHero tone="light" kicker={s.badge} title={s.indexTitle} subtitle={s.indexSub} />
@@ -26,7 +28,17 @@ export default function NeighborhoodsIndex({
               const count = n.districts.reduce((sum, d) => sum + (counts[d] ?? 0), 0)
               return (
                 <Reveal key={n.slug} delay={(i % 3) * 0.1}>
-                  <NeighborhoodCard n={n} count={count} liveAvg={liveAvg[n.slug]} />
+                  <NeighborhoodCard
+                    n={{
+                      slug: n.slug,
+                      name: pick(n.name, lang),
+                      city: pick(n.city, lang),
+                      img: n.img,
+                      score: overallScore(n),
+                      avgPriceM2USD: liveAvg[n.slug] ?? n.avgPriceM2USD,
+                    }}
+                    count={count}
+                  />
                 </Reveal>
               )
             })}

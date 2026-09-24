@@ -4,31 +4,16 @@ import LocalizedLink from '@/components/LocalizedLink'
 import { ArrowRight, MapPin } from 'lucide-react'
 import { Reveal } from '@/components/Reveal'
 import HScroll from '@/components/HScroll'
-import NeighborhoodCard from '@/components/neighborhoods/NeighborhoodCard'
-import { NEIGHBORHOODS } from '@/data/neighborhoods'
+import NeighborhoodCard, { type NeighborhoodCardData } from '@/components/neighborhoods/NeighborhoodCard'
 import { useI18n } from '@/lib/i18n/context'
 
-const FEATURED = [
-  'vake',
-  'saburtalo',
-  'old-tbilisi',
-  'mtatsminda',
-  'vera',
-  'lisi',
-  'batumi',
-  'kutaisi',
-] as const
-
-/** Homepage neighborhoods rail — real photos, live from the static catalog. */
+/** Homepage neighborhoods rail — items resolved server-side (HomeMain). */
 export default function NeighborhoodsRail({
-  counts = {},
+  items,
 }: {
-  counts?: Record<string, number>
+  items: (NeighborhoodCardData & { count: number })[]
 }) {
   const { b } = useI18n()
-  const items = FEATURED.map((slug) => NEIGHBORHOODS.find((n) => n.slug === slug)).filter(
-    (n): n is NonNullable<typeof n> => !!n,
-  )
   if (items.length === 0) return null
 
   return (
@@ -57,10 +42,7 @@ export default function NeighborhoodsRail({
         <HScroll aria-label={b('home.nb.title')} step={420} className="gap-6 pb-2 pt-2">
           {items.map((n) => (
             <div key={n.slug} className="w-[min(85%,380px)] shrink-0">
-              <NeighborhoodCard
-                n={n}
-                count={n.districts.reduce((sum, d) => sum + (counts[d] ?? 0), 0)}
-              />
+              <NeighborhoodCard n={n} count={n.count} />
             </div>
           ))}
         </HScroll>

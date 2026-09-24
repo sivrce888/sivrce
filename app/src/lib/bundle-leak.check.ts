@@ -140,6 +140,11 @@ const BANNED: { entry: string; forbidden: string; why: string }[] = [
     why: "place-label shipped data/world-places (~36 KB gz) to every card page for a ka↔en city label; it reads lib/city-names.gen.ts (names-only leaf, drift-locked by place-label.check.ts)",
   },
   {
+    entry: "components/sections/NeighborhoodsRail.tsx",
+    forbidden: "data/neighborhoods.ts",
+    why: "eight homepage cards shipped the 67 KB guide corpus (15 KB gz); HomeMain resolves NeighborhoodCardData server-side",
+  },
+  {
     entry: "components/country/GeoGate.tsx",
     forbidden: "lib/map/user-place.ts",
     why: "[lang]/page.tsx imports GlobalHome statically, so GeoGate rides the .ge home's client entry too — geo-market resolves cities from lib/city-names.gen.ts",

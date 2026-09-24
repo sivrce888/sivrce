@@ -28,6 +28,9 @@ import {
 } from '@/lib/listings-db'
 import { developersLive, projectsLive } from '@/lib/directory-live'
 import { getHomeStats } from '@/lib/home-stats'
+import { NEIGHBORHOODS, overallScore, pick } from '@/data/neighborhoods'
+import { getNeighborhoodMarketStats } from '@/lib/market-stats'
+import { USD_GEL } from '@/lib/listings-db'
 import { AdSlot } from '@/components/ads/AdSlot'
 import { CmsSection } from '@/components/cms/CmsPreviewBridge'
 import { getHomeLayout } from '@/lib/cms'
@@ -63,6 +66,28 @@ function countryDevelopers(country: string): Developer[] {
     const pin = cityByName(typeof d.city === 'string' ? d.city : (d.city as Record<string, string>)?.ka ?? '')
     return pin?.cc === country
   })
+}
+
+const FEATURED_NEIGHBORHOODS = ['vake', 'saburtalo', 'old-tbilisi', 'mtatsminda', 'vera', 'lisi', 'batumi', 'kutaisi']
+
+/** Rail cards resolved here so the 67 KB guide corpus stays on the server. Live
+ *  $/m² from the same cached source as /neighborhoods — home and index agree. */
+async function featuredNeighborhoods(lang: Lang, counts: Record<string, number>) {
+  const rows = NEIGHBORHOODS.filter((n) => FEATURED_NEIGHBORHOODS.includes(n.slug)).sort(
+    (a, b) => FEATURED_NEIGHBORHOODS.indexOf(a.slug) - FEATURED_NEIGHBORHOODS.indexOf(b.slug),
+  )
+  const live = await Promise.all(
+    rows.map((n) => getNeighborhoodMarketStats(n.cityKey, n.districts, USD_GEL).catch(() => null)),
+  )
+  return rows.map((n, i) => ({
+    slug: n.slug,
+    name: pick(n.name, lang),
+    city: pick(n.city, lang),
+    img: n.img,
+    score: overallScore(n),
+    avgPriceM2USD: live[i]?.stats?.avgPerM2USD || n.avgPriceM2USD,
+    count: n.districts.reduce((sum, d) => sum + (counts[d] ?? 0), 0),
+  }))
 }
 
 /** Below-fold: await DB here so Hero paints without waiting on Prisma. */
@@ -119,7 +144,10 @@ async function HomeBelowFold({ lang, scope }: { lang: Lang; scope: HomeScope | n
     .sort((a, b) => b.listingsCount - a.listingsCount)
     .slice(0, 12)
 
-  const layout = await getHomeLayout()
+  const [layout, nbItems] = await Promise.all([
+    getHomeLayout(),
+    ge ? featuredNeighborhoods(lang, districtCounts) : Promise.resolve([]),
+  ])
   // '*' = worldwide: plain /map (the map has its own country picker), not a bogus ?country=*.
   const mapHref = scope && scope.country !== '*' ? `/map?country=${scope.country}` : '/map'
   // Slim cards hoisted so PersonalizedRail reuses the same object refs —
@@ -156,7 +184,7 @@ async function HomeBelowFold({ lang, scope }: { lang: Lang; scope: HomeScope | n
     ),
     personalized: railCatalog.length > 0 ? <PersonalizedRail catalog={railCatalog} /> : null,
     ad_mid: <AdSlot slot="home_mid" lang={lang} />,
-    neighborhoods: ge ? <NeighborhoodsRail counts={districtCounts} /> : null,
+    neighborhoods: nbItems.length > 0 ? <NeighborhoodsRail items={nbItems} /> : null,
     map: <MapSection href={mapHref} />,
     projects: homeProjects.length > 0 ? (
       // ponytail: dev names resolved server-side — a client getDeveloper() would drag the whole catalog into the bundle.

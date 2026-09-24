@@ -3,25 +3,24 @@
 import Image from 'next/image'
 import LocalizedLink from '@/components/LocalizedLink'
 import { MapPin, ArrowRight } from 'lucide-react'
-import type { Neighborhood } from '@/data/neighborhoods'
-import { pick, overallScore } from '@/data/neighborhoods'
-import { useI18n } from '@/lib/i18n/context'
 import { useNb } from './i18n'
 
+/** Card props, resolved by the caller — importing data/neighborhoods here put
+ *  the whole 67 KB guide corpus on the homepage for eight cards. */
+export type NeighborhoodCardData = {
+  slug: string
+  name: string
+  city: string
+  img: string
+  score: number
+  /** live avg $/m² when known, else the static guide price */
+  avgPriceM2USD: number
+}
+
 /** Index card: hero image, livability score badge, avg price per m². */
-export default function NeighborhoodCard({
-  n,
-  count,
-  liveAvg,
-}: {
-  n: Neighborhood
-  count: number
-  /** live avg $/m² — falls back to the static guide price */
-  liveAvg?: number
-}) {
-  const { lang } = useI18n()
+export default function NeighborhoodCard({ n, count }: { n: NeighborhoodCardData; count: number }) {
   const s = useNb()
-  const score = overallScore(n)
+  const score = n.score
 
   return (
     <LocalizedLink
@@ -32,7 +31,7 @@ export default function NeighborhoodCard({
         <div className="relative aspect-[16/9] overflow-hidden">
           <Image
             src={n.img}
-            alt={pick(n.name, lang)}
+            alt={n.name}
             fill
             sizes="(max-width:768px) 100vw, (max-width:1280px) 50vw, 33vw"
             className="object-cover transition-transform duration-700 group-hover:scale-[1.05]"
@@ -50,10 +49,10 @@ export default function NeighborhoodCard({
           </div>
           <div className="absolute bottom-4 left-5 right-5">
             <h3 className="text-[22px] font-black text-white [text-shadow:0_2px_10px_rgba(5,11,38,0.55)]">
-              {pick(n.name, lang)}
+              {n.name}
             </h3>
             <p className="flex items-center gap-1.5 text-[13px] font-bold text-white/80">
-              <MapPin className="h-4 w-4" /> {pick(n.city, lang)}
+              <MapPin className="h-4 w-4" /> {n.city}
               {count > 0 && <> · {count} {s.listingsHere}</>}
             </p>
           </div>
@@ -62,7 +61,7 @@ export default function NeighborhoodCard({
           <div>
             <p className="text-[12px] font-bold uppercase tracking-wider text-sv-ink/60">{s.avgPrice}</p>
             <p className="text-[17px] font-black text-sv-blue dark:text-sv-blue-light">
-              ${(liveAvg ?? n.avgPriceM2USD).toLocaleString('en-US')}
+              ${n.avgPriceM2USD.toLocaleString('en-US')}
               <span className="text-[12px] font-bold text-sv-ink/60">{s.perM2}</span>
             </p>
           </div>

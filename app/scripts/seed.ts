@@ -69,11 +69,17 @@ function mapCurrency(l: (typeof LISTINGS)[number]): "USD" | "GEL" | "EUR" {
   return "USD"
 }
 
+/** Amount + $/m² in the currency mapCurrency() tags. This used to return the GEL
+ *  figures under a USD tag, so every seeded GE price read 2.7× the market
+ *  (repair: scripts/repair-seed-currency.ts). */
 function seedPrice(l: (typeof LISTINGS)[number]): { price: number; pricePerSqm: number } {
-  if (l.currencyOriginal === "EUR" && l.priceOriginal) {
-    return { price: l.priceOriginal, pricePerSqm: l.area > 0 ? Math.round(l.priceOriginal / l.area) : 0 }
+  const perM2 = (price: number) => (l.area > 0 ? Math.round(price / l.area) : 0)
+  if (l.currencyOriginal === "EUR" && l.priceOriginal) return { price: l.priceOriginal, pricePerSqm: perM2(l.priceOriginal) }
+  if (l.currencyOriginal === "GEL") {
+    const price = l.priceOriginal ?? l.priceGEL
+    return { price, pricePerSqm: perM2(price) }
   }
-  return { price: l.priceGEL, pricePerSqm: Math.round(l.perM2USD * 2.7) }
+  return { price: l.priceUSD, pricePerSqm: l.perM2USD }
 }
 
 async function main() {
