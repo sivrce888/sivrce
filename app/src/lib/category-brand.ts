@@ -39,6 +39,8 @@ export const CATEGORY_BRAND = {
   workspace:   { hue: '#2a5fef', chip: '#EFF3FF', chipVar: 'var(--chip-workspace)' }, // სამუშაო ადგილით — brand blue
   penthouses:  { hue: '#7C3AED', chip: '#F5F0FE', chipVar: 'var(--chip-penthouses)' }, // პენტჰაუსები — royal violet
   cabins:      { hue: '#B45309', chip: '#FEF3C7', chipVar: 'var(--chip-cabins)' }, // ხის კოტეჯები — timber amber
+  // Luxury segment (v1.21, owner request 2026-09-26) — reuses the locked cabins amber pair (gold read), no new hex
+  luxury:      { hue: '#B45309', chip: '#FEF3C7', chipVar: 'var(--chip-cabins)' }, // ლუქს ქონება — prime amber
 } as const satisfies Record<string, CategoryBrand>
 
 export const SERVICE_BRAND = {

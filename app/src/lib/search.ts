@@ -18,6 +18,7 @@ import { districtSearchValues } from "@/lib/district-canon"
 import { cityCatalogName, citySearchValues } from "@/lib/home-scope"
 import { METRO_NEAR_M, nearestMetro } from "@/lib/map/pois"
 import { worldMetroChip } from "@/lib/countries/world-metro-all"
+import { LUXURY_PROPERTY_TYPES, luxuryRules } from "@/lib/luxury"
 
 // ---------------------------------------------------------------------------
 // Client singleton
@@ -96,6 +97,8 @@ export interface SearchFilters {
   currency?: "USD" | "GEL" | "EUR"
   /** Paid listing tier (diamond SUPER VIP · super_vip VIP+ · vip VIP). */
   tier?: "diamond" | "super_vip" | "vip"
+  /** Derived luxury segment (src/lib/luxury.ts) — URL `life=luxury`. */
+  luxury?: boolean
   sort?: "date" | "price-asc" | "price-desc" | "area" | "ai" | "m2asc" | "m2desc"
   page?: number
   pageSize?: number
@@ -378,6 +381,14 @@ function buildMeiliFilter(filters: SearchFilters): string {
   if (filters.sellerType) parts.push(`sellerType = ${esc(filters.sellerType)}`)
   if (filters.nearMetro) parts.push(`metroM <= ${METRO_NEAR_M}`)
   if (filters.tier) parts.push(`tier = ${esc(filters.tier)}`)
+  if (filters.luxury) {
+    parts.push(`propertyType IN [${LUXURY_PROPERTY_TYPES.map(esc).join(", ")}]`)
+    const rules = luxuryRules(filters.country, filters.dealType).map(
+      (r) =>
+        `(${r.ge ? meiliCountryClause("GE") : '(country EXISTS AND country != "GE")'} AND dealType IN [${r.deals.map(esc).join(", ")}] AND priceUSD >= ${r.minUsd})`,
+    )
+    parts.push(`(${rules.join(" OR ")})`)
+  }
   // Catalog cards live on /projects — keep /sale|/rent|/daily unit-only.
   parts.push("projectCatalog = false")
 

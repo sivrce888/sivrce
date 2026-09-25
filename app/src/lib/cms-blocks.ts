@@ -180,6 +180,7 @@ export const CMS_BLOCKS = {
   'home.categories.workspace': 'სამუშაო ადგილით',
   'home.categories.penthouses': 'პენტჰაუსები',
   'home.categories.cabins': 'ხის კოტეჯები',
+  'home.categories.luxury': 'ლუქს ქონება',
   'home.categories.explore': 'ნახე',
 
   // ——— Audience paths ———

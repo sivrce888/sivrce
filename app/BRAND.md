@@ -1,4 +1,4 @@
-# სივრცე — Brand Lock (v1.20) · Liquid Glass material + floating dock capsule 2026-09-19 · WCAG AA text pass 2026-09-11 · dark AA floor + focus ring 2026-09-08 · FROZEN 2026-07-17 · EN tagline “in one place” 2026-08-31 · Logo from owner SVG (2048×508 embed) 2026-07-20 · Status = newProjects sky 2026-07-18 · Hero day/night 2026-08-31
+# სივრცე — Brand Lock (v1.21) · Luxury category (reuses cabins amber) 2026-09-26 · Liquid Glass material + floating dock capsule 2026-09-19 · WCAG AA text pass 2026-09-11 · dark AA floor + focus ring 2026-09-08 · FROZEN 2026-07-17 · EN tagline “in one place” 2026-08-31 · Logo from owner SVG (2048×508 embed) 2026-07-20 · Status = newProjects sky 2026-07-18 · Hero day/night 2026-08-31
 
 **STATUS: LOCKED.** Do not invent colors, radii, fonts, motion, logo geometry,
 or category hues. Owner-approved. Change only with explicit owner approval +
@@ -142,6 +142,7 @@ Never cycle tints, never recolor, never inline new hex values for these items.
 | ახალი პროექტები | `newProjects` | #5B8BFF | #EFF3FF |
 | პენტჰაუსები | `penthouses` | #7C3AED | #F5F0FE |
 | ხის კოტეჯები | `cabins` | #B45309 | #FEF3C7 |
+| ლუქს ქონება | `luxury` | #B45309 | #FEF3C7 | ← v1.21 owner request 2026-09-26; reuses the locked cabins pair, no new hex
 
 Daily-rent & Airbnb collections (locked 2026-07-18, owner request):
 

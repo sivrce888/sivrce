@@ -183,7 +183,7 @@ export default function SearchClient({
 }) {
   const params = useSearchParams()
   const router = useRouter()
-  const { t, lang } = useI18n()
+  const { t, b, lang } = useI18n()
   const s = useSearchStrings()
   // Remember grid/list preference across visits (SSR-safe external store).
   const savedView = useSyncExternalStore(
@@ -461,6 +461,7 @@ export default function SearchClient({
         if (tier) sp.set('tier', tier)
         if (pets) sp.set('pets', '1')
         if (nearMetro) sp.set('metro', '1')
+        if (life === 'luxury') sp.set('life', 'luxury')
         if (seller) sp.set('seller', seller)
         if (from) sp.set('from', from)
         if (to) sp.set('to', to)
@@ -649,7 +650,8 @@ export default function SearchClient({
   if (life === 'quiet' || life === 'family' || life === 'central' || life === 'luxury') {
     chips.push({
       key: 'life',
-      label: life === 'quiet' ? featureLabel('add.f.quiet', t) : life,
+      label: life === 'quiet' ? featureLabel('add.f.quiet', t) : life === 'luxury' ? b('home.categories.luxury') : life,
+      hue: life === 'luxury' ? CATEGORY_BRAND.luxury.hue : undefined,
       clear: () => patchParams({ life: undefined }),
     })
   }
@@ -1449,15 +1451,19 @@ export default function SearchClient({
             currentType={type}
             currentDeal={deal}
             currentFeats={feat}
+            currentLife={life}
             onSelect={(cat) => {
+              // Categories are single-select: leaving luxury clears it; quiet/family/central persist.
+              const keepLife = life === 'luxury' ? undefined : (life ?? undefined)
               if (cat.id === 'all') {
-                patchParams({ type: undefined, feat: undefined })
+                patchParams({ type: undefined, feat: undefined, life: keepLife })
                 return
               }
               patchParams({
                 type: cat.type ?? undefined,
                 deal: cat.deal ?? deal,
                 feat: cat.feat ?? undefined,
+                life: cat.life ?? keepLife,
               })
             }}
             className="mt-2 pt-1 border-t border-sv-ink/[0.05]"

@@ -360,7 +360,7 @@ export function parseNlQuery(query: string): NlFilters {
   // Lifestyle intent detection
   if (/quiet|ruhig|მშვიდ/i.test(q)) out.lifestyleGoal = 'quiet'
   else if (/family|familie|ოჯახ/i.test(q)) out.lifestyleGoal = 'family'
-  else if (/luxury|luxus|ფუფუნ/i.test(q)) out.lifestyleGoal = 'luxury'
+  else if (/luxury|luxus|lüks|ფუფუნ|ლუქს|ელიტ|элит|люкс|prime\s+(?:home|propert)/i.test(q)) out.lifestyleGoal = 'luxury'
   else if (/central|zentrum|ცენტრ/i.test(q)) out.lifestyleGoal = 'central'
 
   if (

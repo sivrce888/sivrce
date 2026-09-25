@@ -38,6 +38,7 @@ const categoryBlockKeys: CmsBlockKey[] = [
   'home.categories.workspace',
   'home.categories.penthouses',
   'home.categories.cabins',
+  'home.categories.luxury',
 ]
 
 for (const key of categoryBlockKeys) {
@@ -56,6 +57,7 @@ assert.ok(allIds.includes('partyHouses'))
 assert.ok(allIds.includes('pools'))
 assert.ok(allIds.includes('seaView'))
 assert.ok(allIds.includes('jacuzzi'))
+assert.ok(allIds.includes('luxury'))
 
 // 4. Every category feat must be real vocabulary — splitCsv drops unknown
 // feats on /search, so a typo here silently shows UNFILTERED results.

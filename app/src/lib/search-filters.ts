@@ -14,6 +14,7 @@ import { cadastralVariants, parseListingNumber, phoneSearchNeedles } from "@/lib
 import { isSearchTier } from "@/lib/listings-home-rail"
 import { cityCatalogName, citySearchValues } from "@/lib/home-scope"
 import type { SearchFilters } from "@/lib/search"
+import { LUXURY_PROPERTY_TYPES, luxuryRules } from "@/lib/luxury"
 
 // ponytail: mirrors EUR_GEL in listing-format (client-safe duplicate; unify if rates move server-side).
 const EUR_GEL = 3.04
@@ -126,6 +127,7 @@ export function parseSearchParams(sp: URLSearchParams): SearchFilters {
     sort: (sp.get("sort") as SearchFilters["sort"]) ?? "date",
     page: num("page") ?? 1,
     pageSize: num("pageSize") ?? 24,
+    luxury: sp.get("life") === "luxury" || undefined,
     tier: isSearchTier(sp.get("tier")) ? (sp.get("tier") as SearchFilters["tier"]) : undefined,
   }
 }
@@ -221,6 +223,22 @@ export function buildDbWhere(filters: SearchFilters): Prisma.ListingWhereInput {
   if (filters.tier) {
     where.tier = filters.tier
     and.push({ OR: [{ tierExpiresAt: null }, { tierExpiresAt: { gt: new Date() } }] })
+  }
+  if (filters.luxury) {
+    // An explicit land/commercial type yields zero rows, never unfiltered.
+    if (!filters.propertyType) where.propertyType = { in: [...LUXURY_PROPERTY_TYPES] }
+    else if (!(LUXURY_PROPERTY_TYPES as readonly string[]).includes(filters.propertyType)) where.id = { in: ["__none__"] }
+    and.push({
+      OR: luxuryRules(filters.country, filters.dealType).map((r) => ({
+        country: r.ge ? "GE" : { not: "GE" },
+        dealType: { in: r.deals },
+        OR: [
+          { currency: "USD" as const, price: { gte: Math.ceil(r.minUsd) } },
+          { currency: "GEL" as const, price: { gte: Math.ceil(r.minUsd * USD_GEL) } },
+          { currency: "EUR" as const, price: { gte: Math.ceil((r.minUsd * USD_GEL) / EUR_GEL) } },
+        ],
+      })),
+    })
   }
   // Join table when warm; static metro boxes so filter works before cron backfill.
   if (filters.nearMetro) and.push(nearMetroFilter())

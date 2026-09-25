@@ -21,6 +21,7 @@ import {
   PawPrint,
   Laptop,
   Crown,
+  Gem,
   Trees,
   Bath,
   Compass,
@@ -37,6 +38,8 @@ export type CategoryBarItem = {
   type?: PropType
   deal?: DealType
   feat?: string
+  /** Derived segment (`life` URL param) — see src/lib/luxury.ts */
+  life?: 'luxury'
 }
 
 export const SEARCH_CATEGORIES: CategoryBarItem[] = [
@@ -66,6 +69,13 @@ export const SEARCH_CATEGORIES: CategoryBarItem[] = [
     icon: TreePalm,
     brand: CATEGORY_BRAND.cottages,
     type: 'villa',
+  },
+  {
+    id: 'luxury',
+    labelKey: 'home.categories.luxury',
+    icon: Gem,
+    brand: CATEGORY_BRAND.luxury,
+    life: 'luxury',
   },
   {
     id: 'dailyRent',
@@ -180,6 +190,7 @@ type Props = {
   currentType?: PropType
   currentDeal?: DealType
   currentFeats?: string[]
+  currentLife?: string | null
   onSelect: (item: CategoryBarItem) => void
   className?: string
 }
@@ -188,6 +199,7 @@ export default function CategoryBar({
   currentType,
   currentDeal,
   currentFeats = [],
+  currentLife,
   onSelect,
   className = '',
 }: Props) {
@@ -196,6 +208,10 @@ export default function CategoryBar({
   const activeId = useMemo(() => {
     for (const item of SEARCH_CATEGORIES) {
       if (item.id === 'all') continue
+      if (item.life) {
+        if (currentLife === item.life) return item.id
+        continue
+      }
       if (item.feat && currentFeats.includes(item.feat)) {
         if (item.deal && currentDeal !== item.deal) continue
         if (item.type && currentType !== item.type) continue
@@ -209,7 +225,7 @@ export default function CategoryBar({
       }
     }
     return 'all'
-  }, [currentType, currentDeal, currentFeats])
+  }, [currentType, currentDeal, currentFeats, currentLife])
 
   return (
     <div className={`w-full ${className}`}>

@@ -15,6 +15,7 @@ import {
   PawPrint,
   Laptop,
   Crown,
+  Gem,
   Trees,
   Bath,
   Compass,
@@ -26,6 +27,7 @@ import { CATEGORY_BRAND } from '@/lib/category-brand'
 import { getCmsBlock } from '@/lib/cms'
 import type { CmsBlockKey } from '@/lib/cms-blocks'
 import { db } from '@/lib/db'
+import { buildDbWhere } from '@/lib/search-filters'
 import { unstable_cache } from 'next/cache'
 import type { Lang } from '@/lib/i18n/core'
 
@@ -51,6 +53,7 @@ type CatKey =
   | 'workspace'
   | 'penthouses'
   | 'cabins'
+  | 'luxury'
 
 const CATS: {
   key: CatKey
@@ -62,6 +65,7 @@ const CATS: {
   { key: 'apartments', icon: Building, labelKey: 'home.categories.apartments', brand: CATEGORY_BRAND.apartments, href: '/sale/apartments' },
   { key: 'houses', icon: Home, labelKey: 'home.categories.houses', brand: CATEGORY_BRAND.houses, href: '/sale/houses' },
   { key: 'cottages', icon: TreePalm, labelKey: 'home.categories.cottages', brand: CATEGORY_BRAND.cottages, href: '/search?type=villa' },
+  { key: 'luxury', icon: Gem, labelKey: 'home.categories.luxury', brand: CATEGORY_BRAND.luxury, href: '/search?life=luxury&sort=price-desc' },
   { key: 'land', icon: Map, labelKey: 'home.categories.land', brand: CATEGORY_BRAND.land, href: '/sale/land' },
   { key: 'commercial', icon: Briefcase, labelKey: 'home.categories.commercial', brand: CATEGORY_BRAND.commercial, href: '/sale/commercial' },
   { key: 'dailyRent', icon: CalendarClock, labelKey: 'home.categories.dailyRent', brand: CATEGORY_BRAND.dailyRent, href: '/daily/apartments' },
@@ -103,6 +107,7 @@ const ZERO: Record<CatKey, number> = {
   workspace: 0,
   penthouses: 0,
   cabins: 0,
+  luxury: 0,
 }
 
 /** Live facet counts — never invent inventory numbers. Scoped to the market
@@ -114,7 +119,7 @@ const readCategoryCounts = unstable_cache(
     const live = { deletedAt: null, status: 'active' as const, ...(country !== '*' ? { country } : {}) }
     const withFeature = (f: string, extra: Record<string, unknown> = {}) =>
       db.listing.count({ where: { ...live, ...extra, features: { has: f } } })
-    const [byProp, daily, partyHouses, selfCheckIn, pools, jacuzzi, seaView, ski, petFriendly, workspace, penthouses, cabins] =
+    const [byProp, daily, partyHouses, selfCheckIn, pools, jacuzzi, seaView, ski, petFriendly, workspace, penthouses, cabins, luxury] =
       await Promise.all([
         db.listing.groupBy({ by: ['propertyType'], where: { ...live, dealType: 'buy' }, _count: { _all: true } }),
         db.listing.count({ where: { ...live, dealType: 'daily' } }),
@@ -128,6 +133,8 @@ const readCategoryCounts = unstable_cache(
         withFeature('add.f.workspace'),
         withFeature('add.f.penthouse'),
         withFeature('add.f.wooden', { propertyType: 'house' }),
+        // Same where as /search?life=luxury — the tile count can't disagree with the results page.
+        db.listing.count({ where: buildDbWhere({ luxury: true, country: country !== '*' ? country : undefined }) }),
       ])
     const byType = Object.fromEntries(byProp.map((r) => [r.propertyType, r._count._all]))
     return {
@@ -150,9 +157,10 @@ const readCategoryCounts = unstable_cache(
       workspace,
       penthouses,
       cabins,
+      luxury,
     }
   },
-  ['home-category-counts-v2'],
+  ['home-category-counts-v3'],
   { revalidate: 300 },
 )
 
