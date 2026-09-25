@@ -1745,8 +1745,10 @@ function Map3DInner({
   // (no React context inside a MapLibre worker), so the formatter is injected and
   // the FCs rebuild when the live FX rate lands. Same helper as /search pins.
   const pinFmt = useCallback(
-    (gel: number) => formatMapPin(gel, currency, rate, eurRate, lang),
-    [currency, rate, eurRate, lang],
+    (gel: number, deal?: DealType) =>
+      formatMapPin(gel, currency, rate, eurRate, lang) +
+      (deal === 'rent' ? t('detail.perMonth') : deal === 'daily' ? t('detail.perDay') : ''),
+    [currency, rate, eurRate, lang, t],
   )
   const pinFmtRef = useRef(pinFmt)
   useEffect(() => { pinFmtRef.current = pinFmt }, [pinFmt])

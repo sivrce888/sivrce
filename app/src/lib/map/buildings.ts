@@ -1076,7 +1076,11 @@ function buildingProps(
   deal: MapDealFilter = 'all',
   fmt: MapPinFormat = formatMapPinGEL,
 ) {
-  const minGel = clusterMinPriceGEL(b, deal)
+  // One deal per pill. The cheapest across *all* deals put a €163/day stay on a
+  // tower selling at €300k — the pill read as a sale price 2000× too low.
+  const pinDeal: DealType | undefined =
+    deal !== 'all' ? deal : b.dominant === 'construction' ? undefined : b.dominant
+  const minGel = clusterMinPriceGEL(b, pinDeal ?? 'all')
   const hue = pinHue(b, deal)
   const ghost = b.status === 'construction' && b.listings.length === 0
   return {
@@ -1097,7 +1101,7 @@ function buildingProps(
     // the currency context). Construction ghosts: progress % — same sky hue.
     priceLabel:
       minGel != null
-        ? fmt(minGel)
+        ? fmt(minGel, pinDeal)
         : ghost
           ? `${b.progress ?? 0}%`
           : '',
@@ -1109,17 +1113,18 @@ function buildingProps(
  * live currency + locale; this GEL default keeps `buildings.ts` React-free (the
  * Node self-checks import it) and is what the ka/GE market sees anyway.
  */
-export type MapPinFormat = (gel: number) => string
+export type MapPinFormat = (gel: number, deal?: DealType) => string
 
-function formatMapPinGEL(gel: number): string {
+function formatMapPinGEL(gel: number, deal?: DealType): string {
   if (!Number.isFinite(gel) || gel <= 0) return ''
+  const per = deal === 'rent' ? '/თვე' : deal === 'daily' ? '/დღე' : ''
   if (gel >= 1_000_000) {
     const m = gel / 1_000_000
     const s = m >= 10 ? String(Math.round(m)) : String(Math.round(m * 10) / 10)
-    return `${s}მლნ₾`
+    return `${s}მლნ₾${per}`
   }
-  if (gel >= 10_000) return `${Math.round(gel / 1000)}კ₾`
-  return `${Math.round(gel)}₾`
+  if (gel >= 10_000) return `${Math.round(gel / 1000)}კ₾${per}`
+  return `${Math.round(gel)}₾${per}`
 }
 
 export function buildingsToGeoJSON(

@@ -576,6 +576,18 @@ async function main() {
   assert.equal(rentTower?.properties?.hue, DEAL_BRAND.rent)
   assert.equal(clusterMinPriceGEL(tower!, 'rent'), fixtures[1]!.priceGEL)
   assert.equal(clusterMinPriceGEL(tower!, 'sale'), fixtures[0]!.priceGEL)
+  // One deal per pill: "all" prices the dominant deal, never the cheapest of
+  // every deal (a €163/day stay once labelled a €300k sale tower).
+  {
+    const echo = (g: number, d?: string) => `${g}|${d ?? ''}`
+    const pillOf = (deal: 'all' | 'rent') =>
+      buildingsToPointsGeoJSON([tower!], deal, echo).features[0]!.properties?.priceLabel
+    const dom = tower!.dominant as 'sale' | 'rent'
+    assert.equal(pillOf('all'), `${clusterMinPriceGEL(tower!, dom)}|${dom}`)
+    assert.equal(pillOf('rent'), `${fixtures[1]!.priceGEL}|rent`)
+    const rentGel = buildingsToPointsGeoJSON([tower!], 'rent').features[0]!.properties?.priceLabel
+    assert.ok(String(rentGel).endsWith('/თვე'), `rent pill carries its period, got ${rentGel}`)
+  }
 
   assert.equal(dealColor('sale'), '#2a5fef')
   assert.equal(dealColor('pledge'), '#16A34A')
