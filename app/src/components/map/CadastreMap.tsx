@@ -21,6 +21,7 @@ import {
   bindMissingImages,
   loadMapBasemap,
   mapStyleUrl,
+  STYLE_SATELLITE,
 } from '@/lib/map/floorLayers'
 import { mapChromeOptions, tightenAttribution } from '@/lib/map/mapChrome'
 import { bindMaplibreWorker } from '@/lib/map/maplibre-worker'
@@ -161,12 +162,20 @@ export default function CadastreMap({
     const dark = latest.current.isDark
 
     ;(async () => {
+      // Streets first; the photo basemap if OFM times out — a parcel map with no
+      // basemap at all would sit on a blank canvas forever.
       let style
+      let startTerrain: 'streets' | 'satellite' = 'streets'
       try {
         style = await loadMapBasemap(mapStyleUrl(dark, 'streets'))
       } catch (err) {
         console.error('[CadastreMap] style', err)
-        return
+        try {
+          style = await loadMapBasemap(STYLE_SATELLITE)
+          startTerrain = 'satellite'
+        } catch {
+          return
+        }
       }
       if (cancelled || mapRef.current) return
 
@@ -188,10 +197,12 @@ export default function CadastreMap({
       const remount = () => {
         mountParcels(map)
         pushData(map, latest.current.parcels, latest.current.selectedCode)
-        applyBrandPaints(map, latest.current.isDark ? 'dark' : 'light', latest.current.terrain)
+        applyBrandPaints(map, latest.current.isDark ? 'dark' : 'light', startTerrain)
         tightenAttribution(map)
       }
-      map.on('load', () => {
+      if (startTerrain === 'satellite') setTerrain('satellite')
+      // Parcels need the style, not the tiles — 'load' waits on every tile.
+      map.once('style.load', () => {
         remount()
         setBooted(true)
       })
