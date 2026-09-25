@@ -6,7 +6,7 @@ import { useInViewOnce } from '@/components/Reveal'
 import {
   Heart, BedDouble, Bath, Ruler, MapPin, Crown, Flame, Share2, Zap, DoorOpen,
   TrendingDown, TrainFront, CircleDot, Columns2, ChevronLeft, ChevronRight, Clock,
-  Layers, BadgeCheck, Play, Camera, Copy,
+  Layers, BadgeCheck, Play, Camera, Copy, Eye,
 } from 'lucide-react'
 import type { Listing } from '@/data/listings'
 import { formatPerM2, formatFloor, postedDaysAgo, postedAgoLabel, stayCount, stayLine, priceOnRequestLabel } from '@/lib/listing-format'
@@ -28,6 +28,8 @@ import { photoIndexFromX } from '@/lib/photo-index-from-x'
 import { cardGalleryTeaser, photoMountIdx } from '@/lib/card-gallery-teaser'
 import { pickDailySignals } from '@/lib/features'
 import { formatMetroDist } from '@/lib/map/metro-format'
+import { useDistrictPpsm } from '@/lib/district-ppsm'
+import { vsDistrict } from '@/lib/price-scale'
 import { useNearestMetro } from '@/components/use-nearest-metro'
 import { SparkMark } from '@/components/SparkMark'
 import { sivrceScore } from '@/lib/sivrce-score'
@@ -221,6 +223,13 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
   const { has, toggle } = useFavorites()
   const { has: inCompare, toggle: toggleCompare, full: compareFull } = useCompare()
   const { t, lang } = useI18n()
+  const districtPpsm = useDistrictPpsm()
+  // SS.ge-style price position: sale listings only, project teasers excluded
+  // ("from" prices aren't comparable), quiet/scam bands hidden inside vsDistrict.
+  const vsAvg =
+    l.dealType === 'sale' && !l.projectCatalog
+      ? vsDistrict(l.perM2USD, districtPpsm?.[l.district] ?? 0)
+      : null
   const cs = useCompareStrings()
   const { currency, rate, eurRate } = useCurrency()
   const fav = has(l.id)
@@ -598,10 +607,19 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
       {/* ponytail: rails reserve the row so mixed sale/rent cards stay even; search/list drop empty air */}
       {showPerM2 || rail ? (
         <p
-          className={`mt-0.5 text-[13px] font-bold tabular-nums text-sv-ink/60 ${rail ? 'min-h-[1.25rem]' : ''} ${showPerM2 ? '' : 'invisible'}`}
+          className={`mt-0.5 flex items-center gap-1.5 text-[13px] font-bold tabular-nums text-sv-ink/60 ${rail ? 'min-h-[1.25rem]' : ''} ${showPerM2 ? '' : 'invisible'}`}
           aria-hidden={!showPerM2}
         >
-          {showPerM2 ? formatPerM2(l, currency, lang) : '\u00a0'}
+          <span className="min-w-0 truncate">{showPerM2 ? formatPerM2(l, currency, lang) : '\u00a0'}</span>
+          {vsAvg !== null && (
+            <span
+              className={`shrink-0 rounded-full px-1.5 py-0.5 text-[11px] font-black leading-tight ${
+                vsAvg < 0 ? 'bg-sv-blue/10 text-sv-blue-deep' : 'bg-sv-ink/[0.06] text-sv-ink/60'
+              }`}
+            >
+              {vsAvg > 0 ? '+' : ''}{vsAvg}% {t('card.vsAvg')}
+            </span>
+          )}
         </p>
       ) : null}
       {/* Lifestyle under price — was photo overlay, covered dots/chevrons */}
@@ -733,9 +751,21 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
         </div>
 
         <div className="mt-2 flex items-center justify-between gap-2 text-[12px] font-semibold text-sv-ink/60">
-          <span className="flex items-center gap-1">
-            <Clock className="h-3 w-3" aria-hidden />
-            {postedAgoLabel(days, lang)}
+          <span className="flex min-w-0 items-center gap-2">
+            <span className="flex shrink-0 items-center gap-1">
+              <Clock className="h-3 w-3" aria-hidden />
+              {postedAgoLabel(days, lang)}
+            </span>
+            {l.views > 0 && (
+              <span
+                className="flex shrink-0 items-center gap-1 tabular-nums"
+                aria-label={t('card.views')}
+                title={t('card.views')}
+              >
+                <Eye className="h-3 w-3" aria-hidden />
+                {new Intl.NumberFormat(lang, { notation: 'compact' }).format(l.views)}
+              </span>
+            )}
           </span>
           <span className="min-w-0 truncate font-mono text-[10px] font-black tabular-nums text-sv-ink/60">
             #{publicId}

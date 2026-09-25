@@ -147,3 +147,15 @@ export function fairPriceOf(
   }
   return { sample: clean.length, rangeMin, rangeMax, deltaPct: 0, position: 'in' }
 }
+
+/** Card chip: % deviation of a listing's $/m² from its district's live
+ *  sale-market average (MarketSnapshot-fed). Returns null outside the honest
+ *  band — inside ±0 of noise (−8..+15) or absurd (−40/+60, scam or bad data),
+ *  a label would misinform more than it helps. */
+export function vsDistrict(perM2USD: number, districtAvgUSD: number): number | null {
+  if (!(perM2USD > 0) || !(districtAvgUSD > 0)) return null
+  const pct = Math.round((perM2USD / districtAvgUSD - 1) * 100)
+  if (pct > -8 && pct < 15) return null
+  if (pct < -40 || pct > 60) return null
+  return pct
+}
