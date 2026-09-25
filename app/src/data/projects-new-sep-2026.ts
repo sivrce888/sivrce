@@ -849,7 +849,7 @@ export const NEW_PROJECTS_SEP_2026: Project[] = [
     nameKa: 'გუმბათი ბულვარ პოინტი',
     developerSlug: 'gumbati-holding',
     img: '/images/projects/gumbati-boulevard-point.webp',
-    location: 'ლეხ და მარია კაჩინსკების ქუჩა 8, ახალი ბულვარი, ბათუმი',
+    location: 'ზღვისპირის ქუჩა 1ბ, ახალი ბულვარი, ბათუმი',
     city: 'ბათუმი',
     district: 'ახალი ბულვარი',
     priceFromM2: '$1,400',
@@ -858,7 +858,7 @@ export const NEW_PROJECTS_SEP_2026: Project[] = [
     flats: 380,
     floors: 28,
     rating: 4.8,
-    coords: { lat: 41.6285, lng: 41.6012 },
+    coords: { lat: 41.621956, lng: 41.596818 },
     description: {
       ka: 'Gumbati Boulevard Point — გუმბათი ჰოლდინგის 28-სართულიანი პრემიუმ საინვესტიციო კომპლექსი ბათუმის ახალ ბულვარში: პირველი ზოლი, ზღვის პანორამა, ღია აუზი სახურავზე და გაქირავების მართვა.',
       en: 'Gumbati Boulevard Point — Gumbati Holding\'s 28-storey premium investment high-rise on Batumi\'s New Boulevard: first sea line, panoramic sea views, rooftop infinity pool and full rental management.',

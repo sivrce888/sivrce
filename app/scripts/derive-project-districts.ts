@@ -11,7 +11,7 @@
  * Re-run after new project ingests: tsx scripts/derive-project-districts.ts
  * Locked by src/data/georgia-locations.check.ts.
  */
-import { writeFileSync } from 'node:fs'
+import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 import { PROJECTS } from '../src/data/professionals'
 import { GEO_CITIES, geoDistrictsOf } from '../src/data/georgia-locations'
 import { canonicalizeDistrict } from '../src/lib/district-canon'
@@ -40,7 +40,13 @@ function tbilisiRaion(lat: number, lng: number): string | undefined {
 const GE_CITIES = new Set(GEO_CITIES)
 const resolves = (d: string, city: string) => geoDistrictsOf(city).includes(d)
 
-const out: Record<string, string> = {}
+const GEN_URL = new URL('../src/data/project-districts.gen.json', import.meta.url)
+// ponytail: PROJECTS already merges this file via withDistrictOverride, so
+// resolved rows skip derivation — start from the previous overrides or a
+// re-run silently wipes them.
+const out: Record<string, string> = existsSync(GEN_URL)
+  ? (JSON.parse(readFileSync(GEN_URL, 'utf8')) as Record<string, string>)
+  : {}
 let derived = 0
 let cleared = 0
 for (const p of PROJECTS) {
@@ -69,10 +75,7 @@ for (const p of PROJECTS) {
   else derived++
 }
 
-writeFileSync(
-  new URL('../src/data/project-districts.gen.json', import.meta.url),
-  JSON.stringify(out, null, 1) + '\n',
-)
+writeFileSync(GEN_URL, JSON.stringify(out, null, 1) + '\n')
 console.log(
   `derive-project-districts: ${derived} derived, ${cleared} cleared, ${Object.keys(out).length} overrides written`,
 )

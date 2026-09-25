@@ -842,9 +842,12 @@ async function main() {
 
   const sakeniP = PROJECTS.find((p) => p.slug === 'biograpi-sakeni')
   assert.ok(sakeniP)
+  // NAPR lot 01.10.14.008.052 centroid (maps.gov.ge live re-check 2026-09-25,
+  // 0.0m from stored override; TAS ARCHITECTURE_LR outline is 5m from it).
+  const sakeniLot = { lat: 41.72736127, lng: 44.76036263 }
   assert.ok(
-    haversineM(sakeniP!.coords.lat, sakeniP!.coords.lng, 41.72737673, 44.76061168) < 25,
-    'sakeni pin must sit on the building, not the avenue geocode',
+    haversineM(sakeniP!.coords.lat, sakeniP!.coords.lng, sakeniLot.lat, sakeniLot.lng) < 25,
+    'sakeni pin must sit inside the legal NAPR lot, not the avenue geocode',
   )
   const sakeniFp = fpData['bldg-biograpi-sakeni'] ?? fpData['dev-biograpi-sakeni']
   assert.ok(sakeniFp?.ring && sakeniFp.ring.length >= 6)
@@ -857,7 +860,7 @@ async function main() {
   assert.ok((sakeniCat.floors ?? 0) >= 35, 'sakeni floors')
   const sakeniCluster = catalogToCluster(sakeniCat!, [])
   assert.ok(
-    haversineM(sakeniCluster.lat, sakeniCluster.lng, 41.72737673, 44.76061168) < 25,
+    haversineM(sakeniCluster.lat, sakeniCluster.lng, sakeniLot.lat, sakeniLot.lng) < 25,
     'sakeni 3D massing pin must match the building centroid',
   )
   assert.ok(

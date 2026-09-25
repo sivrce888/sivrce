@@ -892,7 +892,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     flats: 100,
     floors: 8,
     rating: 4.6,
-    coords: { lat: 41.7087976, lng: 44.7614032 },
+    coords: { lat: 41.70846921, lng: 44.77608959 },
     description: {
       ka: 'Domus Sera — Domus-ის პრემიუმ ახალი პროექტი ვაკეში, ფალიაშვილის ქ. 7-ში. მშენებარე ბინები $4 000/მ²-დან.',
       en: 'Domus Sera is Domus’s premium new project in Vake at 7 Zakaria Paliashvili St — under-construction apartments from $4,000/m².',
@@ -1652,4 +1652,24 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
       ru: 'Lisi Kvarteti — новый проект Бесика Сабашвили в Квемо Лиси у Лисского озера. Строящиеся квартиры от $2 400/м², сдача Q4 2026.',
     },
   },
-]
+  {
+    slug: 'orbi-central-park-towers',
+    name: 'Orbi Central Park Towers',
+    developerSlug: 'orbi-group',
+    img: '/images/projects/orbi-central-park-towers.webp',
+    location: 'ალექსანდრე ყაზბეგის გამზ. 22, საბურთალო, თბილისი',
+    city: 'თბილისი',
+    priceFromM2: 'მოთხოვნით',
+    done: 10,
+    finish: 'TBA',
+    flats: 200,
+    floors: 17,
+    rating: 4.5,
+    coords: { lat: 41.72403322, lng: 44.74931745 },
+    description: {
+      ka: 'Orbi Central Park Towers — ORBI-ის ახალი მრავალფუნქციური კომპლექსი ალ. ყაზბეგის გამზ. 22-ზე, საბურთალოში, თბილისში.',
+      en: 'Orbi Central Park Towers is ORBI’s new mixed-use complex at 22 Alexander Kazbegi Ave, Saburtalo, Tbilisi.',
+      ru: 'Orbi Central Park Towers — новый многофункциональный комплекс ORBI на пр. Александра Казбеги 22, Сабуртало, Тбилиси.',
+    },
+  },
+];
