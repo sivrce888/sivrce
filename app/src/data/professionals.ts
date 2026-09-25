@@ -26,6 +26,7 @@ import { CURATED_GALLERIES } from './project-galleries-curated'
 import { WORLD_PROJECT_MEDIA } from './world-project-media'
 import { PROJECT_VIDEOS, PROJECT_FLOORPLANS, DEVELOPER_GALLERIES } from './project-media'
 import { ON_REQUEST } from '@/lib/directory-seo-lite'
+import { CONTACT_PHONE } from '@/lib/inquiries/phone'
 
 const WORLD_LOCAL_HEROES = new Set([
   '220-central-park-south-nyc',
@@ -1788,6 +1789,10 @@ export const DEVELOPERS: Developer[] = [
     ...d,
     logoUrl: d.logoUrl ?? `/images/developers/${d.slug}.webp`,
     gallery: d.gallery ?? DEVELOPER_GALLERIES[d.slug],
+    // ponytail: seed rows repeat the site switchboard as a stand-in sales line —
+    // a number we can't verify per company must not render as theirs. Re-add
+    // per-developer phones only from a verified source (owner claim / DB sync).
+    phone: d.phone && d.phone !== CONTACT_PHONE ? d.phone : undefined,
   }))
 
 // ——— Agents / agencies ———
@@ -2180,7 +2185,7 @@ export const PROJECTS: Project[] = [
     finish: '2027 Q2',
     flats: 340,
     rating: 4.7,
-    coords: { lat: 41.69229878, lng: 44.79613286 },
+    coords: { lat: 41.68949327, lng: 44.77058799 },
     floors: 18,
     description: {
       ka: 'm² Mtatsminda Park — პრემიუმ კომპლექსი მთაწმინდაზე, ინოვაციების ქუჩაზე, ქალაქისა და მთის ხედებით. ფასები $186 728-იდან, ~$2 250/მ².',
@@ -2649,7 +2654,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     finish: '2027 Q3',
     flats: 180,
     rating: 4.4,
-    coords: { lat: 41.68145642, lng: 44.82435859 },
+    coords: { lat: 41.69629695, lng: 44.81204898 },
     floors: 14,
     description: {
       ka: 'Bare by Biograpi — თანამედროვე საცხოვრებელი კომპლექსი ლომურის ქ. 3-ში, ისანში, Biograpi-ის სრული მომსახურებით ჩაბარების შემდეგ.',
@@ -4001,7 +4006,7 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     flats: 145,
     floors: 12,
     rating: 4.7,
-    coords: { lat: 41.72174, lng: 44.73483 },
+    coords: { lat: 41.72096722, lng: 44.73494972 },
     description: {
       ka: 'Domus Nea — დომუსის ახალი პროექტი ვაკეში, ქავთარაძის ქ. 22ბ-ში. ბინები $1 900/მ²-დან, ჩაბარება 2028-ის ბოლოს.',
       en: 'Domus Nea is Domus’s new project in Vake at 22b Kavtaradze St. From $1,900/m², completion end of 2028.',

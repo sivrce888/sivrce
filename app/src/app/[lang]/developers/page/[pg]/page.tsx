@@ -103,7 +103,7 @@ export default async function DevelopersPageN({ params }: PageProps) {
         <AdSlot slot="developers" lang={raw} />
         <section className="mx-auto max-w-[1440px] px-5 pb-12 md:px-10">
           <div className="sv-card-grid-3">
-            {cards.map(({ d, listingsCount, aggregate }) => (
+            {cards.map(({ d, listingsCount, aggregate, projectsCount, fromPriceM2 }) => (
               <EntityCard
                 key={d.slug}
                 kind="developer"
@@ -115,6 +115,8 @@ export default async function DevelopersPageN({ params }: PageProps) {
                 verified={d.verified}
                 aggregate={aggregate}
                 logoUrl={d.logoUrl}
+                projectsCount={projectsCount}
+                fromPriceM2={fromPriceM2}
               />
             ))}
           </div>

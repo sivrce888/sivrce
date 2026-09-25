@@ -31,7 +31,6 @@ export function toCard(p: Project, loc: DirLoc | 'de'): ProjectCard {
     finish: p.finish,
     year: finishMaxYear(p.finish),
     flats: p.flats,
-    rating: p.rating,
     delivered: isDelivered(p),
   }
 }

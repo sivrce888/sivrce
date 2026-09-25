@@ -24,6 +24,10 @@ export interface EntityCardProps {
   logoUrl?: string
   /** fallback sub-line when city/yearsActive are unknown (e.g. agency name) */
   subtitle?: string
+  /** Catalog projects under this developer (developers hub) — 0/undefined → hidden */
+  projectsCount?: number
+  /** Cheapest $/m² among them; 0 → no price line (don't invent one) */
+  fromPriceM2?: number
 }
 
 function initials(enName: string): string {
@@ -46,6 +50,8 @@ export function EntityCard({
   aggregate,
   logoUrl,
   subtitle,
+  projectsCount,
+  fromPriceM2,
 }: EntityCardProps) {
   const { lang, d } = useEntities()
   const brand = SERVICE_BRAND[kind === 'developer' ? 'developers' : 'agents']
@@ -106,15 +112,23 @@ export function EntityCard({
       </div>
 
       {/* honest zero: no dead "0 listings" row — footer only when there's something to say */}
-      {listingsCount > 0 || aggregate ? (
+      {listingsCount > 0 || aggregate || (projectsCount ?? 0) > 0 ? (
         <div className="mt-auto flex items-center justify-between border-t border-sv-ink/[0.06] pt-4">
-          {listingsCount > 0 ? (
-            <span className="text-[13px] font-bold text-sv-ink/60">
-              {listingsCount} {listingsCount === 1 ? d.listingsShortOne : d.listingsShort}
-            </span>
-          ) : null}
+          <div className="flex min-w-0 flex-col">
+            {projectsCount ? (
+              <span className="truncate text-[13px] font-bold text-sv-ink/60">
+                {projectsCount} {projectsCount === 1 ? d.projectsShortOne : d.projectsShort}
+                {fromPriceM2 ? ` · ${d.fromM2} $${fromPriceM2.toLocaleString('en-US')}/m²` : ''}
+              </span>
+            ) : null}
+            {listingsCount > 0 ? (
+              <span className="text-[13px] font-bold text-sv-ink/60">
+                {listingsCount} {listingsCount === 1 ? d.listingsShortOne : d.listingsShort}
+              </span>
+            ) : null}
+          </div>
           {aggregate ? (
-            <span className={`flex items-center gap-1 text-[14px] font-black text-sv-ink ${listingsCount === 0 ? 'ml-auto' : ''}`}>
+            <span className={`flex shrink-0 items-center gap-1 text-[14px] font-black text-sv-ink ${listingsCount === 0 && !projectsCount ? 'ml-auto' : ''}`}>
               <Star className="h-3.5 w-3.5 fill-sv-orange text-sv-orange" aria-hidden />
               {aggregate.average.toFixed(1)}
               <span className="text-[12px] font-bold text-sv-ink/60">

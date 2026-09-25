@@ -25,7 +25,6 @@ export interface ProjectCard {
   /** Max year parsed from finish ('2027 Q2' → 2027) — null when no year. */
   year: number | null
   flats: number
-  rating: number
   delivered: boolean
 }
 
@@ -51,8 +50,10 @@ export const HANDOVER_BUCKETS = [
   { key: 'late', min: NOW_YEAR + 2, max: Infinity, label: `${NOW_YEAR + 2}+` },
 ] as const
 
-export type Sort = 'rec' | 'price' | 'price-desc' | 'handover' | 'rating' | 'progress'
-export const SORTS: Sort[] = ['rec', 'price', 'price-desc', 'handover', 'rating', 'progress']
+// ponytail: no 'rating' sort — the catalog's seed rating has no review source,
+// ranking on it would advertise fabricated data. Re-add when real aggregates feed ProjectCard.
+export type Sort = 'rec' | 'price' | 'price-desc' | 'handover' | 'progress'
+export const SORTS: Sort[] = ['rec', 'price', 'price-desc', 'handover', 'progress']
 
 export interface Q {
   q: string
@@ -146,7 +147,6 @@ export function sortCards(items: ProjectCard[], sort: Sort): ProjectCard[] {
   const s = [...items]
   if (sort === 'price') s.sort((a, b) => (priceM2(a) || Infinity) - (priceM2(b) || Infinity))
   else if (sort === 'price-desc') s.sort((a, b) => priceM2(b) - priceM2(a))
-  else if (sort === 'rating') s.sort((a, b) => b.rating - a.rating)
   else if (sort === 'progress') s.sort((a, b) => b.done - a.done)
   else s.sort((a, b) => (a.delivered ? Infinity : a.year ?? Infinity) - (b.delivered ? Infinity : b.year ?? Infinity))
   return s

@@ -11,7 +11,7 @@ import { AnchorNav } from '@/components/AnchorNav'
 import { StickyLeadBar } from '@/components/lead/StickyLeadBar'
 import { PlaceContext } from '@/components/entities/PlaceContext'
 import { placeLabels } from '@/lib/place-context'
-import { telHref, waHref, CONTACT_PHONE } from '@/lib/inquiries/phone'
+import { telHref, waHref } from '@/lib/inquiries/phone'
 import { SourcesSection } from '@/components/entities/SourcesSection'
 import { getEntityProfile } from '@/lib/intel/store'
 import { sourcesHeading, toPublicFacts } from '@/lib/intel/public-facts'
@@ -26,7 +26,6 @@ import { DeveloperLogo } from '@/components/entities/DeveloperLogo'
 import { TBILISI_DISTRICT_LABELS } from '@/data/district-labels'
 import { marketPosition, priceM2Currency, priceM2Number, trackRecord } from '@/lib/project-insights'
 import { PROJECT_PAGE } from '@/lib/project-page-copy'
-import { listingVideoObject } from '@/lib/listing-video'
 import { PROJECTS, isDelivered } from '@/data/professionals'
 import {
   getLiveProject,
@@ -190,7 +189,9 @@ export default async function ProjectPage({ params }: PageProps) {
   const track = trackRecord(devProjects)
   const t = PROJECT_PAGE[chromeLoc]
   const delivered = isDelivered(project)
-  const phoneNum = dev?.phone || CONTACT_PHONE
+  // Only a verified developer line rings here — never the site switchboard;
+  // numberless developers convert via the #contact lead form instead.
+  const phoneNum = dev?.phone
   const marketIso = cityByName(project.city)?.cc
   const showMortgage = !com && marketIso === 'GE'
   const devNames = new Map(devs.map((d) => [d.slug, pickLoc(d.name, loc)]))
@@ -329,15 +330,6 @@ export default async function ProjectPage({ params }: PageProps) {
 
   // Visible FAQ + FAQPage JSON-LD come from the same array (stays in sync).
   const faqs = projectFaqs(loc, project, dev)
-
-  const videoLd = project.videoUrl
-    ? listingVideoObject(project.videoUrl, {
-        name: `${displayName} — Video Tour`,
-        description: (pickLoc(project.description, lang === 'de' ? 'de' : loc) || displayName).slice(0, 300),
-        poster: absImg(project.img, com),
-        uploadDate: '2026-01-01',
-      })
-    : null
 
   // Structured facts (crawlable dl) — only rows the data actually supports.
   const detailRows: { label: string; value: string }[] = [
@@ -530,23 +522,27 @@ export default async function ProjectPage({ params }: PageProps) {
                   <PhoneCall className="h-4 w-4" aria-hidden />
                   {t.requestCall}
                 </a>
-                <a
-                  href={telHref(phoneNum)}
-                  aria-label={`${displayName} — ${phoneNum}`}
-                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-control bg-sv-blue px-3 text-[14px] font-extrabold text-white transition-colors duration-200 hover:bg-sv-blue-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
-                >
-                  <Phone className="h-4 w-4 shrink-0" aria-hidden />
-                  <span className="truncate">{phoneNum}</span>
-                </a>
-                <a
-                  href={waHref(phoneNum)}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={`WhatsApp: ${displayName}`}
-                  className="inline-flex min-h-11 items-center justify-center rounded-control border border-sv-blue/25 bg-sv-blue/[0.06] px-3 text-[14px] font-extrabold text-sv-blue-deep transition-colors duration-200 hover:bg-sv-blue/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
-                >
-                  WhatsApp
-                </a>
+                {phoneNum && (
+                  <>
+                    <a
+                      href={telHref(phoneNum)}
+                      aria-label={`${displayName} — ${phoneNum}`}
+                      className="inline-flex min-h-11 items-center justify-center gap-2 rounded-control bg-sv-blue px-3 text-[14px] font-extrabold text-white transition-colors duration-200 hover:bg-sv-blue-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
+                    >
+                      <Phone className="h-4 w-4 shrink-0" aria-hidden />
+                      <span className="truncate">{phoneNum}</span>
+                    </a>
+                    <a
+                      href={waHref(phoneNum)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      aria-label={`WhatsApp: ${displayName}`}
+                      className="inline-flex min-h-11 items-center justify-center rounded-control border border-sv-blue/25 bg-sv-blue/[0.06] px-3 text-[14px] font-extrabold text-sv-blue-deep transition-colors duration-200 hover:bg-sv-blue/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
+                    >
+                      WhatsApp
+                    </a>
+                  </>
+                )}
               </div>
               {(showMortgage || project.sourceUrl) && (
               <p className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] font-bold text-sv-ink/60">
@@ -761,15 +757,12 @@ export default async function ProjectPage({ params }: PageProps) {
           </div>
           <ReviewsSectionServer targetType="project" targetId={project.slug} />
         </section>
-        <StickyLeadBar targetType="project" targetId={project.slug} phone={dev?.phone || CONTACT_PHONE} recipientName={project.name} />
+        <StickyLeadBar targetType="project" targetId={project.slug} phone={dev?.phone} recipientName={project.name} />
       </main>
       <Footer marketIso={marketIso} marketCity={cityByName(project.city)?.en} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(projectLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(faqPageLd(faqs)) }} />
-      {videoLd && (
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(videoLd) }} />
-      )}
     </div>
   )
 }

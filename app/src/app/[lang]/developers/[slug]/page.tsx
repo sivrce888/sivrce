@@ -19,7 +19,6 @@ import { ReportInaccuracy } from '@/components/entities/ReportInaccuracy'
 import { splitPortfolio, trackRecord } from '@/lib/project-insights'
 import { PROJECT_PAGE, type ProjectPageCopy } from '@/lib/project-page-copy'
 import type { DirLoc } from '@/lib/directory-seo-lite'
-import { listingVideoObject } from '@/lib/listing-video'
 import { DEVELOPERS, isDelivered, type Project } from '@/data/professionals'
 import { getLiveDeveloper, projectsLiveByDeveloper } from '@/lib/directory-live'
 import { getListingsForDeveloper } from '@/lib/listings-db'
@@ -261,15 +260,6 @@ export default async function DeveloperPage({ params }: PageProps) {
   // Visible FAQ + FAQPage JSON-LD come from the same array (stays in sync).
   const faqs = devFaqs(loc, dev, projects)
 
-  const videoLd = dev.videoUrl
-    ? listingVideoObject(dev.videoUrl, {
-        name: `${name} — Official Showcase`,
-        description: (pickLoc(dev.description, chromeLoc) || name).slice(0, 300),
-        poster: flagshipImg || (dev.logoUrl ? absImg(dev.logoUrl) : ''),
-        uploadDate: '2026-01-01',
-      })
-    : null
-
   // Every render across the portfolio — developer gallery + project art, deduped, capped.
   const allPhotos = collectPhotos([...(dev.gallery ?? []), ...projects.flatMap((p) => [p.img, ...(p.gallery ?? [])])])
   const areaLabels = placeLabels(chromeLoc)
@@ -479,9 +469,6 @@ export default async function DeveloperPage({ params }: PageProps) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(projectListLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(faqPageLd(faqs)) }} />
-      {videoLd && (
-        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(videoLd) }} />
-      )}
     </div>
   )
 }

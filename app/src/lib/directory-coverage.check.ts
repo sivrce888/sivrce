@@ -35,10 +35,15 @@ assert.equal(new Set(DEVELOPERS.map((d) => d.slug)).size, DEVELOPERS.length, "du
 for (const d of DEVELOPERS) {
   assert.ok(d.slug && d.name.en && d.city, `developer missing identity: ${d.slug}`)
 }
+// Contact coverage is guaranteed by the page template (LeadForm + chat render
+// for every developer, no data required) — phone/website/owner are enrichment.
+// The old 0.85 gate silently counted the shared switchboard placeholder as
+// ~120 developers' "phone": fabricated coverage. The floor below only guards
+// against corpus-wide rot of the enrichment columns; richness printed below.
 const contactable = DEVELOPERS.filter((d) => d.phone || d.website || d.ownerId).length
 assert.ok(
-  contactable / DEVELOPERS.length >= 0.85,
-  `only ${contactable}/${DEVELOPERS.length} developers have a contact path`,
+  contactable / DEVELOPERS.length >= 0.5,
+  `only ${contactable}/${DEVELOPERS.length} developers have an enrichment contact`,
 )
 
 // ── Projects: media + geo + resolvable developer link ──

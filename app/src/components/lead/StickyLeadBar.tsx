@@ -18,8 +18,8 @@ import { leadStrings } from './i18n'
 export interface StickyLeadBarProps {
   targetType: LeadFormProps['targetType']
   targetId: string
-  /** Contact phone (`+995 …`) for the call button. */
-  phone: string
+  /** Verified contact phone for the call button; absent → message button only. */
+  phone?: string
   recipientName?: string
   className?: string
 }
@@ -71,14 +71,16 @@ export function StickyLeadBar({ targetType, targetId, phone, recipientName, clas
           style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
         >
           <div className="flex gap-2.5 rounded-full border border-sv-ink/[0.06] bg-sv-surface/95 p-2 shadow-card-hover backdrop-blur">
-            <a
-              href={telHref(phone)}
-              aria-label={s.call}
-              className="flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-full border border-sv-ink/[0.08] text-[15px] font-extrabold text-sv-ink transition-all hover:border-sv-blue/40 hover:text-sv-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue active:scale-[0.98]"
-            >
-              <Phone className="h-4.5 w-4.5" aria-hidden />
-              {s.call}
-            </a>
+            {phone && (
+              <a
+                href={telHref(phone)}
+                aria-label={s.call}
+                className="flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-full border border-sv-ink/[0.08] text-[15px] font-extrabold text-sv-ink transition-all hover:border-sv-blue/40 hover:text-sv-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue active:scale-[0.98]"
+              >
+                <Phone className="h-4.5 w-4.5" aria-hidden />
+                {s.call}
+              </a>
+            )}
             <button
               id="sticky-lead-message"
               type="button"

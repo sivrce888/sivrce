@@ -8,12 +8,16 @@ import { developersLive, projectsLive } from '@/lib/directory-live'
 import { requestMarket } from '@/lib/request-market'
 import { getDeveloperListingCountsBySlug } from '@/lib/listings-db'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
+import { priceM2 } from '@/app/[lang]/projects/card'
 import type { Developer } from '@/data/professionals'
 
 export interface RankedDeveloperCard {
   d: Developer
   listingsCount: number
   aggregate: Awaited<ReturnType<typeof getReviewAggregate>>
+  /** Catalog projects under this developer + cheapest $/m² among them (0 = unpriced). */
+  projectsCount: number
+  fromPriceM2: number
 }
 
 export async function rankedDevelopers(page = 1): Promise<{ cards: RankedDeveloperCard[]; total: number }> {
@@ -22,6 +26,18 @@ export async function rankedDevelopers(page = 1): Promise<{ cards: RankedDevelop
     projects.filter((p) => p.developerSlug).map((p) => [p.slug, p.developerSlug!]),
   )
   const listingCounts = await getDeveloperListingCountsBySlug(projectToDev)
+
+  // Single pass over the corpus: card density (project count + from-price) for free.
+  const devStats = new Map<string, { count: number; minPrice: number }>()
+  for (const p of projects) {
+    const slug = p.developerSlug
+    if (!slug) continue
+    const hit = devStats.get(slug) ?? { count: 0, minPrice: 0 }
+    hit.count += 1
+    const v = priceM2(p)
+    if (v > 0 && (hit.minPrice === 0 || v < hit.minPrice)) hit.minPrice = v
+    devStats.set(slug, hit)
+  }
 
   // ponytail: GE devs first on sivrce.ge — world devs (US/CN listings) otherwise
   // outrank locals on count. GE = has a project inside Georgia's bbox (cities are
@@ -48,6 +64,8 @@ export async function rankedDevelopers(page = 1): Promise<{ cards: RankedDevelop
       d,
       listingsCount,
       aggregate: await getReviewAggregate('developer', d.slug),
+      projectsCount: devStats.get(d.slug)?.count ?? 0,
+      fromPriceM2: devStats.get(d.slug)?.minPrice ?? 0,
     })),
   )
   return { cards, total: ranked.length }
