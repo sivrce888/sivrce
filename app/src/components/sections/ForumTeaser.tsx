@@ -1,17 +1,16 @@
 'use client'
 
 import LocalizedLink from '@/components/LocalizedLink'
-import { MessageSquare, ArrowRight, Eye, Sparkles } from 'lucide-react'
+import { MessageSquare, ArrowRight } from 'lucide-react'
 import { Reveal } from '@/components/Reveal'
-import { FORUM_THREADS } from '@/data/forum'
 import { useI18n } from '@/lib/i18n/context'
 
-const TOPICS = [...FORUM_THREADS]
-  .sort((a, b) => b.lastActivityAt.localeCompare(a.lastActivityAt))
-  .slice(0, 3)
+/** Card payload picked server-side (HomeMain) — the 19 KB thread corpus stays off the client. */
+export type ForumTopic = { slug: string; title: string; category: string; replies: number }
 
-export default function ForumTeaser() {
+export default function ForumTeaser({ topics }: { topics: ForumTopic[] }) {
   const { b } = useI18n()
+  if (topics.length === 0) return null
   return (
     <section className="relative overflow-hidden bg-sv-surface py-16 md:py-24">
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
@@ -37,33 +36,23 @@ export default function ForumTeaser() {
         </Reveal>
 
         <div className="grid gap-5 md:grid-cols-3">
-          {TOPICS.map((t, i) => (
+          {topics.map((t, i) => (
             <Reveal key={t.slug} delay={i * 0.1} className="h-full">
               <LocalizedLink href={`/forum/${t.slug}`} className="block h-full">
                 <article className="group flex h-full flex-col justify-between rounded-card border border-sv-ink/[0.07] bg-gradient-to-b from-sv-cloud to-sv-surface p-6 transition-all duration-300 hover:-translate-y-1.5 hover:border-sv-blue/30 hover:shadow-card-hover">
-                  <div>
-                    <div className="flex items-center justify-between">
-                      <span className="rounded-full bg-sv-blue/10 px-3 py-1 text-[11px] font-black text-sv-blue-deep dark:text-sv-blue-light">
-                        {t.category}
-                      </span>
-                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-sv-ink">
-                        <Sparkles className="h-3 w-3" /> {t.badge}
-                      </span>
-                    </div>
+                  {/* Threads are Georgian community posts — lang="ka" so screen readers switch voice (WCAG 3.1.2). */}
+                  <div lang="ka">
+                    <span className="inline-block rounded-full bg-sv-blue/10 px-3 py-1 text-[11px] font-black text-sv-blue-deep dark:text-sv-blue-light">
+                      {t.category}
+                    </span>
                     <h3 className="mt-4 text-[16px] font-extrabold leading-snug text-sv-ink transition-colors group-hover:text-sv-blue">
                       {t.title}
                     </h3>
                   </div>
 
-                  <div className="mt-6 flex items-center justify-between border-t border-sv-ink/[0.06] pt-4 text-[12px] font-bold text-sv-ink/60">
-                    <span className="flex items-center gap-1.5">
-                      <MessageSquare className="h-3.5 w-3.5 text-sv-ink/60" />
-                      {b('home.forum.replies', { n: t.replies.length })}
-                    </span>
-                    <span className="flex items-center gap-1.5">
-                      <Eye className="h-3.5 w-3.5 text-sv-ink/60" />
-                      {b('home.forum.views', { n: t.viewsLabel })}
-                    </span>
+                  <div className="mt-6 flex items-center gap-1.5 border-t border-sv-ink/[0.06] pt-4 text-[12px] font-bold text-sv-ink/60">
+                    <MessageSquare className="h-3.5 w-3.5" aria-hidden />
+                    {b('home.forum.replies', { n: t.replies })}
                   </div>
                 </article>
               </LocalizedLink>

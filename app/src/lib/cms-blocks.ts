@@ -151,7 +151,6 @@ export const CMS_BLOCKS = {
   'home.forum.sub': 'გაეცანი ექსპერტებისა და მომხმარებლების გამოცდილებას უძრავი ქონების შესახებ',
   'home.forum.viewAll': 'ყველა თემა',
   'home.forum.replies': '{n} პასუხი',
-  'home.forum.views': '{n} ნახვა',
 
   // ——— Blog / news ———
   'home.blog.kicker': 'ბლოგი და სიახლეები',

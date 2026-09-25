@@ -14,6 +14,7 @@ import AgentSlider from '@/components/sections/AgentSlider'
 import DeveloperSlider from '@/components/sections/DeveloperSlider'
 import Services from '@/components/sections/Services'
 import ForumTeaser from '@/components/sections/ForumTeaser'
+import { FORUM_THREADS } from '@/data/forum'
 import BlogNewsSection from '@/components/sections/BlogNewsSection'
 import CTA from '@/components/sections/CTA'
 import Footer from '@/components/sections/Footer'
@@ -36,6 +37,7 @@ import { CmsSection } from '@/components/cms/CmsPreviewBridge'
 import { getHomeLayout } from '@/lib/cms'
 import type { HomeFlowId } from '@/lib/cms-studio'
 import { listBlogPosts } from '@/lib/blog-live'
+import { blogExcerpt, blogTags, blogTitle } from '@/data/blog'
 import type { Lang } from '@/lib/i18n/core'
 import { cardPhotoPayload } from '@/lib/card-gallery-teaser'
 import { homeScopeFor, homeSearchHref, type HomeScope } from '@/lib/home-scope'
@@ -223,8 +225,27 @@ async function HomeBelowFold({ lang, scope }: { lang: Lang; scope: HomeScope | n
     services: <Services lang={lang} />,
     // Project count = the same scoped catalog the rail links to, not the world total.
     stats: <Stats live={{ ...stats, projects: projects.length }} />,
-    forum: <ForumTeaser />,
-    blog: <BlogNewsSection articles={blogPosts.slice(0, 4)} />,
+    forum: (
+      <ForumTeaser
+        topics={[...FORUM_THREADS]
+          .sort((a, b) => b.lastActivityAt.localeCompare(a.lastActivityAt))
+          .slice(0, 3)
+          .map((t) => ({ slug: t.slug, title: t.title, category: t.category, replies: t.replies.length }))}
+      />
+    ),
+    blog: (
+      <BlogNewsSection
+        articles={blogPosts.slice(0, 4).map((p) => ({
+          slug: p.slug,
+          cover: p.cover,
+          title: blogTitle(p, lang),
+          excerpt: blogExcerpt(p, lang),
+          tag: blogTags(p.tags, lang)[0],
+          publishedAt: p.publishedAt,
+          readingMinutes: p.readingMinutes,
+        }))}
+      />
+    ),
     cta: <CTA lang={lang} />,
   }
 

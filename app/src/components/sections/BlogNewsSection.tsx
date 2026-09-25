@@ -3,9 +3,19 @@
 import LocalizedLink from '@/components/LocalizedLink'
 import { BookOpen, ArrowRight, Calendar, Clock } from 'lucide-react'
 import { Reveal } from '@/components/Reveal'
-import type { BlogPost } from '@/data/blog'
-import { blogTitle, blogExcerpt, blogTags } from '@/data/blog'
 import { useI18n } from '@/lib/i18n/context'
+
+/** Card fields resolved server-side (HomeMain) in the page locale — bodies and
+ *  the 96 KB blog module never reach the client. */
+export type BlogCard = {
+  slug: string
+  cover: string
+  title: string
+  excerpt: string
+  tag?: string
+  publishedAt: string
+  readingMinutes: number
+}
 
 /** Deterministic date — month names come from the home.blog.months block
  * (comma-separated, locale-coded) to avoid Node/Chrome ICU drift (React #418). */
@@ -15,8 +25,9 @@ function formatBlockDate(iso: string, months: string[]): string {
   return `${d.getUTCDate()} ${months[d.getUTCMonth()]} ${d.getUTCFullYear()}`
 }
 
-export default function BlogNewsSection({ articles }: { articles: BlogPost[] }) {
-  const { b, lang } = useI18n()
+export default function BlogNewsSection({ articles }: { articles: BlogCard[] }) {
+  const { b } = useI18n()
+  if (articles.length === 0) return null
   const months = b('home.blog.months').split(',')
   return (
     <section className="relative overflow-hidden bg-sv-cloud py-16 md:py-24">
@@ -51,16 +62,16 @@ export default function BlogNewsSection({ articles }: { articles: BlogPost[] }) 
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={art.cover}
-                      alt={blogTitle(art, lang)}
+                      alt=""
                       loading="lazy"
                       decoding="async"
                       className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
-                    <div className="absolute left-3 top-3">
-                      <span className="rounded-full bg-sv-blue px-3 py-1 text-[11px] font-black text-white">
-                        {blogTags(art.tags, lang)[0]}
-                      </span>
-                    </div>
+                    {art.tag && (
+                      <div className="absolute left-3 top-3">
+                        <span className="rounded-full bg-sv-blue px-3 py-1 text-[11px] font-black text-white">{art.tag}</span>
+                      </div>
+                    )}
                   </div>
 
                   <div className="mt-4 flex flex-1 flex-col justify-between">
@@ -76,10 +87,10 @@ export default function BlogNewsSection({ articles }: { articles: BlogPost[] }) 
                         </span>
                       </div>
                       <h3 className="mt-2 text-[15px] font-extrabold leading-snug text-sv-ink transition-colors line-clamp-2 group-hover:text-sv-blue">
-                        {blogTitle(art, lang)}
+                        {art.title}
                       </h3>
                       <p className="mt-2 text-[13px] font-medium leading-relaxed text-sv-ink/60 line-clamp-3">
-                        {blogExcerpt(art, lang)}
+                        {art.excerpt}
                       </p>
                     </div>
 

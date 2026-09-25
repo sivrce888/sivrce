@@ -10,6 +10,11 @@ const MARK_W = 388
 const MARK_H = 415
 // ponytail: bust year-long immutable CDN cache of the 117KB predecessor
 const LOGO_V = 'v14k'
+// srcset w-descriptors = the files' real pixel widths. They once said 144w
+// (the height), so every ≥1.3× screen fetched the full raster instead.
+const LOCK_SM_W = 443 // lockup-*-144.png (443×144)
+const LOCK_LG_W = 640 // lockup-*.png (640×208)
+const MARK_SM_W = 135 // mark-144.png (135×144)
 
 export function LogoMark({ size = 36 }: { size?: number }) {
   const w = Math.round((size * MARK_W) / MARK_H)
@@ -17,7 +22,7 @@ export function LogoMark({ size = 36 }: { size?: number }) {
     // eslint-disable-next-line @next/next/no-img-element -- ponytail: raw PNG stays crisp; Next Image avif/q75 softens board font
     <img
       src={`/logo/mark-144.png?${LOGO_V}`}
-      srcSet={`/logo/mark-144.png?${LOGO_V} 144w, /logo/mark.png?${LOGO_V} ${MARK_W}w`}
+      srcSet={`/logo/mark-144.png?${LOGO_V} ${MARK_SM_W}w, /logo/mark.png?${LOGO_V} ${MARK_W}w`}
       sizes={`${w}px`}
       alt=""
       width={w}
@@ -61,7 +66,7 @@ export function Logo({
           {/* eslint-disable-next-line @next/next/no-img-element -- ponytail: raw PNG stays crisp; Next Image avif/q75 softens board font */}
           <img
             src={`/logo/lockup-ink-144.png?${LOGO_V}`}
-            srcSet={`/logo/lockup-ink-144.png?${LOGO_V} 144w, /logo/lockup-ink.png?${LOGO_V} ${LOCK_W}w`}
+            srcSet={`/logo/lockup-ink-144.png?${LOGO_V} ${LOCK_SM_W}w, /logo/lockup-ink.png?${LOGO_V} ${LOCK_LG_W}w`}
             sizes={`${lockW}px`}
             alt=""
             width={lockW}
@@ -73,7 +78,7 @@ export function Logo({
           {/* eslint-disable-next-line @next/next/no-img-element -- ponytail: raw PNG stays crisp; Next Image avif/q75 softens board font */}
           <img
             src={`/logo/lockup-white-144.png?${LOGO_V}`}
-            srcSet={`/logo/lockup-white-144.png?${LOGO_V} 144w, /logo/lockup-white.png?${LOGO_V} ${LOCK_W}w`}
+            srcSet={`/logo/lockup-white-144.png?${LOGO_V} ${LOCK_SM_W}w, /logo/lockup-white.png?${LOGO_V} ${LOCK_LG_W}w`}
             sizes={`${lockW}px`}
             alt=""
             width={lockW}
@@ -87,7 +92,7 @@ export function Logo({
         // eslint-disable-next-line @next/next/no-img-element -- ponytail: raw PNG stays crisp; Next Image avif/q75 softens board font
         <img
           src={`${light ? '/logo/lockup-white-144.png' : '/logo/lockup-ink-144.png'}?${LOGO_V}`}
-          srcSet={`${light ? '/logo/lockup-white-144.png' : '/logo/lockup-ink-144.png'}?${LOGO_V} 144w, ${light ? '/logo/lockup-white.png' : '/logo/lockup-ink.png'}?${LOGO_V} ${LOCK_W}w`}
+          srcSet={`${light ? '/logo/lockup-white-144.png' : '/logo/lockup-ink-144.png'}?${LOGO_V} ${LOCK_SM_W}w, ${light ? '/logo/lockup-white.png' : '/logo/lockup-ink.png'}?${LOGO_V} ${LOCK_LG_W}w`}
           sizes={`${lockW}px`}
           alt=""
           width={lockW}

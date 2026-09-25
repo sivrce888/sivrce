@@ -304,13 +304,14 @@ export default function Footer({
 
           {cols.map((c) => (
             <FooterCol key={c.title} title={c.title}>
-              <ul className="space-y-3 pb-5 md:mt-5 md:pb-0">
+              {/* py-1 links + space-y-1: same 30px rhythm, 28px tap targets (WCAG 2.5.8) instead of 18px. */}
+              <ul className="space-y-1 pb-5 md:mt-4 md:pb-0">
                 {c.links.map((l) => (
                   <li key={'key' in l && l.key ? l.key : l.href}>
                     <Link
                       href={localizedHref(l.href, lang)}
                       {...('key' in l && l.key ? { 'data-cms-key': l.key } : {})}
-                      className="text-[14px] font-semibold text-white/65 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy"
+                      className="inline-block py-1 text-[14px] font-semibold text-white/65 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy"
                     >
                       {l.label}
                     </Link>

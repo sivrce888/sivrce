@@ -56,9 +56,10 @@ export default async function Services({ lang = 'ka' }: { lang?: Lang }) {
                 </span>
                 <h3 className="mt-4 text-[17px] sm:mt-6 sm:text-[18px] font-extrabold leading-snug text-sv-ink">{cards[i * 2]}</h3>
                 <p className="mt-2.5 flex-1 text-[14px] font-medium leading-relaxed text-sv-ink/60">{cards[i * 2 + 1]}</p>
-                <span className="mt-4 flex items-center gap-1.5 sm:mt-6 text-[14px] font-extrabold" style={{ color: s.brand.hue }}>
+                {/* Label in ink (hues on white are 2.8–3.3:1 — below AA); the arrow keeps the category hue. */}
+                <span className="mt-4 flex items-center gap-1.5 text-[14px] font-extrabold text-sv-ink sm:mt-6">
                   {cta}
-                  <ArrowUpRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                  <ArrowUpRight aria-hidden style={{ color: s.brand.hue }} className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                 </span>
                 <span
                   className="pointer-events-none absolute -right-10 -top-10 h-32 w-32 rounded-full opacity-0 blur-3xl transition-opacity duration-500 group-hover:opacity-20"
