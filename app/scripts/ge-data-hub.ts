@@ -9,6 +9,7 @@
  *   quality     — data_quality_scores per project/developer + data_coverage_metrics for GE
  *   audit       — stale/missing-data/failed-source report → review_queue
  *   cities      — canonicalize project.city (latin→ka, street text out of city, "null" addresses)
+ *   reverse     — Nominatim reverse-geocode city for pin'd rows missing one (rate-limited)
  *   geocode     — Nominatim street-level coords for projects missing lat/lng (rate-limited)
  *   wiki        — Wikidata CC0 landmarks in Georgia: enrich matches, add missing landmarks
  *   osm         — Overpass full-Georgia discovery: named construction sites → project rows
@@ -547,10 +548,14 @@ async function geocode() {
     take: 700,
     orderBy: { updatedAt: "asc" },
   })
+  // ka street abbreviations Nominatim can't match: "ქ." → ქუჩა; drop "(ისანი)" hints.
+  const expand = (s: string) =>
+    s.replace(/\([^)]*\)/g, " ").replace(/ქ\.\s*/g, "ქუჩა ").replace(/გამზ\.\s*/g, "გამზირი ")
+      .replace(/შეს\.\s*/g, "შესახვევი ").replace(/მოედ\.\s*/g, "მოედანი ").replace(/\s+/g, " ").trim()
   let ok = 0
   let miss = 0
   for (const r of rows) {
-    const q = [r.address!.trim(), r.city.trim() || r.district.trim(), "Georgia"].filter(Boolean).join(", ")
+    const q = [expand(r.address!), r.city.trim() || r.district.trim(), "Georgia"].filter(Boolean).join(", ")
     if (q.length < 8 || r.address!.trim().length < 4) { miss++; continue }
     let hits: { lat: string; lon: string; importance?: number }[] = []
     try {
@@ -581,6 +586,62 @@ async function geocode() {
   }
   await db.dataSource.update({ where: { id: src.id }, data: { lastSuccessAt: new Date() } })
   console.log(`geocode: +${ok} coords, ${miss} unresolved (of ${rows.length} candidates)`)
+}
+
+// ---- reverse: Nominatim reverse-geocode city for pin'd rows missing one ----
+
+async function reverse() {
+  const sources = await db.dataSource.findMany({ where: { country: "GE" }, select: { id: true, slug: true } })
+  const src = sources.find((s) => s.slug === "ge-nominatim")
+  if (!src) { console.log("reverse: run `sources` first"); return }
+  const canon = cityCanonMap()
+
+  const rows = await db.projectDirectory.findMany({
+    where: { deletedAt: null, city: "", lat: { not: null }, lng: { not: null } },
+    select: { id: true, lat: true, lng: true },
+    orderBy: { updatedAt: "asc" },
+  })
+  let ok = 0
+  let miss = 0
+  const unknown = new Map<string, number>()
+  for (const r of rows) {
+    let addr: Record<string, string> | null = null
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=10&accept-language=ka&lat=${r.lat}&lon=${r.lng}`,
+        { headers: { "User-Agent": NOMINATIM_UA }, signal: AbortSignal.timeout(20_000) },
+      )
+      if (res.ok) addr = ((await res.json()) as { address?: Record<string, string> }).address ?? null
+    } catch { /* count as miss, keep going */ }
+    const raw = addr ? (addr.city || addr.town || addr.village || addr.municipality || addr.county || "") : ""
+    // Fallbacks: "დმანისის მუნიციპალიტეტი" → "დმანისი", semicolon composites → head.
+    const hit = raw
+      ? (canon.get(norm(raw))
+        ?? canon.get(norm(toLatin(raw)))
+        ?? canon.get(norm(raw.replace(/\s*მუნიციპალიტეტი$/, "").replace(/ის$/, "ი")))
+        ?? canon.get(norm(raw.split(/[;،]/)[0])))
+      : undefined
+    if (hit) {
+      await db.projectDirectory.update({ where: { id: r.id }, data: { city: hit } })
+      await db.dataProvenance.create({
+        data: {
+          entityType: "project", entityId: r.id, factKey: "city", factValue: hit,
+          sourceId: src.id, sourceUrl: `https://nominatim.openstreetmap.org/reverse?lat=${r.lat}&lon=${r.lng}`,
+          fetchedAt: new Date(), confidence: "unverified", isCurrent: true,
+        },
+      })
+      ok++
+    } else {
+      miss++
+      if (raw) unknown.set(raw, (unknown.get(raw) ?? 0) + 1)
+    }
+    await db.dataSource.update({ where: { id: src.id }, data: { lastFetchedAt: new Date(), fetchCount: { increment: 1 } } })
+    if ((ok + miss) % 50 === 0) console.log(`reverse: ${ok + miss}/${rows.length}… (+${ok})`)
+    await new Promise((r) => setTimeout(r, 1100))
+  }
+  await db.dataSource.update({ where: { id: src.id }, data: { lastSuccessAt: new Date() } })
+  console.log(`reverse: ${ok} cities filled, ${miss} unresolved (of ${rows.length})`)
+  for (const [name, n] of [...unknown.entries()].sort((a, b) => b[1] - a[1]).slice(0, 15)) console.log(`  unmapped: ${name} ×${n}`)
 }
 
 // ---- wiki: Wikidata landmarks -------------------------------------------
@@ -829,6 +890,7 @@ async function main() {
   if (cmd === "quality" || cmd === "all") await quality()
   if (cmd === "audit" || cmd === "all") await audit()
   if (cmd === "cities") await cities()
+  if (cmd === "reverse") await reverse()
   if (cmd === "geocode") await geocode()
   if (cmd === "wiki") await wiki()
   if (cmd === "osm") await osm()
