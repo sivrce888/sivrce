@@ -221,17 +221,30 @@ export default function BuildingFloorsMap({
         }
       }
 
+      // The 1600ms watchdog exists for slow tiles ('load' waits on them); it must
+      // still wait for the style itself, or addSource throws "Style is not done
+      // loading" on a slow style fetch (seen on /projects/m2-hippodrome).
       let booted = false
+      let styleReady = map.isStyleLoaded()
       const boot = () => {
-        if (cancelled || booted) return
+        if (cancelled || booted || !styleReady) return
         booted = true
         if (watchdog) clearTimeout(watchdog)
         map.resize()
         mountOverlays(darkAtInit)
       }
-      map.on('load', boot)
-      if (map.loaded()) boot()
-      watchdog = window.setTimeout(boot, 1600)
+      map.once('style.load', () => {
+        styleReady = true
+        if (!watchdog) boot()
+      })
+      map.on('load', () => {
+        styleReady = true
+        boot()
+      })
+      watchdog = window.setTimeout(() => {
+        watchdog = undefined
+        boot()
+      }, 1600)
       ro = new ResizeObserver(() => map.resize())
       ro.observe(container)
       map.on('mousemove', FLOORS_FILL_ID, onMove)

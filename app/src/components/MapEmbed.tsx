@@ -571,9 +571,12 @@ export default function MapEmbed({
           if (sunOnRef.current) paintSun(map, true, src, sunDateRef.current, lat, lng)
         }
 
+        // Watchdog covers slow tiles ('load' waits on them) but still waits for
+        // the style: painting before it parses throws or silently no-ops.
         let booted = false
+        let styleReady = map.isStyleLoaded()
         const boot = () => {
-          if (cancelled || booted) return
+          if (cancelled || booted || !styleReady) return
           booted = true
           if (watchdog) clearTimeout(watchdog)
           bindMissingImages(map)
@@ -582,18 +585,25 @@ export default function MapEmbed({
           tightenAttribution(map)
           map.resize()
           setStatus('ready')
-          // Watchdog can fire before the style parses — painting then throws
-          // ("Style is not done loading") and wedges the embed; idle repaint covers it.
-          if (map.isStyleLoaded()) paintHighlight()
+          paintHighlight()
           map.once('idle', () => {
             if (!cancelled && mapRef.current && highlightRef.current) {
               paintHighlight()
             }
           })
         }
-        map.once('load', boot)
-        if (map.loaded()) boot()
-        watchdog = window.setTimeout(boot, 1600)
+        map.once('style.load', () => {
+          styleReady = true
+          if (!watchdog) boot()
+        })
+        map.once('load', () => {
+          styleReady = true
+          boot()
+        })
+        watchdog = window.setTimeout(() => {
+          watchdog = undefined
+          boot()
+        }, 1600)
         ro = new ResizeObserver(() => map.resize())
         ro.observe(container)
       } catch (err) {

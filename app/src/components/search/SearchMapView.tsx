@@ -290,18 +290,30 @@ export default function SearchMapView({
           /* official tiles optional */
         }
       }
+      // Watchdog covers slow tiles ('load' waits on them) but still waits for the
+      // style — brand paints applied before it parses silently no-op.
       let booted = false
+      let styleReady = map.isStyleLoaded()
       const reveal = () => {
-        if (cancelled || booted) return
+        if (cancelled || booted || !styleReady) return
         booted = true
         if (watchdog) clearTimeout(watchdog)
         paint()
         setFailed(false)
         setReady(true)
       }
-      map.once('load', reveal)
-      if (map.loaded()) reveal()
-      watchdog = window.setTimeout(reveal, 1600)
+      map.once('style.load', () => {
+        styleReady = true
+        if (!watchdog) reveal()
+      })
+      map.once('load', () => {
+        styleReady = true
+        reveal()
+      })
+      watchdog = window.setTimeout(() => {
+        watchdog = undefined
+        reveal()
+      }, 1600)
       ro = new ResizeObserver(() => map.resize())
       ro.observe(container)
     })()
