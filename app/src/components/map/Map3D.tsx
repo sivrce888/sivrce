@@ -3546,6 +3546,7 @@ function Map3DInner({
                     <button
                       key={opt.id}
                       type="button"
+                      aria-pressed={active}
                       onClick={() => pickTerrain(opt.id)}
                       className={`inline-flex min-h-10 items-center gap-1.5 rounded-full px-3.5 text-[13px] font-extrabold transition ${
                         active ? 'text-white' : chipMuted
@@ -3593,6 +3594,7 @@ function Map3DInner({
                   <button
                     key={opt.id}
                     type="button"
+                    aria-pressed={active}
                     onClick={() => pickTerrain(opt.id)}
                     className={`inline-flex min-h-10 flex-1 items-center justify-center gap-1 rounded-full px-2 text-[11px] font-extrabold transition ${
                       active ? 'text-white' : chipMuted

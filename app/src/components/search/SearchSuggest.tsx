@@ -220,7 +220,7 @@ export default function SearchSuggest({
         onKeyDown={onKeyDown}
         onFocus={() => items.length > 0 && setOpen(true)}
         onBlur={() => window.setTimeout(() => setOpen(false), 120)}
-        className={`${inputClass} [&::-webkit-search-cancel-button]:hidden`}
+        className={`${inputClass} text-ellipsis [&::-webkit-search-cancel-button]:hidden`}
       />
       {value && (
         <button
