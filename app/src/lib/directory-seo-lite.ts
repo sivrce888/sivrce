@@ -113,6 +113,25 @@ export const CITIES: GeoLoc[] = [
   { slug: 'shekvetili', ka: 'შეკვეთილი', loc: 'შეკვეთილში', en: 'Shekvetili', ru: 'Шекветили' },
   { slug: 'bakhmaro', ka: 'ბახმარო', loc: 'ბახმაროში', en: 'Bakhmaro', ru: 'Бахмаро' },
   { slug: 'goderdzi', ka: 'გოდერძი', loc: 'გოდერძში', en: 'Goderdzi', ru: 'Годердзи' },
+  // Regional centers (all 10 mkhare covered) + hot-keyword resort settlements.
+  { slug: 'akhaltsikhe', ka: 'ახალციხე', loc: 'ახალციხეში', en: 'Akhaltsikhe', ru: 'Ахалцихе' },
+  { slug: 'ozurgeti', ka: 'ოზურგეთი', loc: 'ოზურგეთში', en: 'Ozurgeti', ru: 'Озургети' },
+  { slug: 'ambrolauri', ka: 'ამბროლაური', loc: 'ამბროლაურში', en: 'Ambrolauri', ru: 'Амбролаури' },
+  { slug: 'marneuli', ka: 'მარნეული', loc: 'მარნეულში', en: 'Marneuli', ru: 'Марнеули' },
+  { slug: 'zestafoni', ka: 'ზესტაფონი', loc: 'ზესტაფონში', en: 'Zestafoni', ru: 'Зестафони' },
+  { slug: 'khashuri', ka: 'ხაშური', loc: 'ხაშურში', en: 'Khashuri', ru: 'Хашури' },
+  { slug: 'gurjaani', ka: 'გურჯაანი', loc: 'გურჯაანში', en: 'Gurjaani', ru: 'Гурджаани' },
+  { slug: 'kvareli', ka: 'ყვარელი', loc: 'ყვარელში', en: 'Kvareli', ru: 'Кварели' },
+  { slug: 'dusheti', ka: 'დუშეთი', loc: 'დუშეთში', en: 'Dusheti', ru: 'Душети' },
+  { slug: 'abastumani', ka: 'აბასთუმანი', loc: 'აბასთუმანში', en: 'Abastumani', ru: 'Абастумани' },
+  { slug: 'surami', ka: 'სურამი', loc: 'სურამში', en: 'Surami', ru: 'Сурами' },
+  // Coast & mountains with real buyer search volume (magnetic sand, Batumi
+  // south coast, Petra, Anaklia port).
+  { slug: 'ureki', ka: 'ურეკი', loc: 'ურეკში', en: 'Ureki', ru: 'Уреки' },
+  { slug: 'gonio', ka: 'გონიო', loc: 'გონიოში', en: 'Gonio', ru: 'Гонио' },
+  { slug: 'kvariati', ka: 'კვარიათი', loc: 'კვარიათში', en: 'Kvariati', ru: 'Квариати' },
+  { slug: 'tsikhisdziri', ka: 'ციხისძირი', loc: 'ციხისძირში', en: 'Tsikhisdziri', ru: 'Цихисдзири' },
+  { slug: 'anaklia', ka: 'ანაკლია', loc: 'ანაკლიაში', en: 'Anaklia', ru: 'Анаклия' },
   // DE market (sivrce.de) — top 16 metros by population. Inventory-light:
   // pages self-throttle (≥1 listing rule); Berlin has city-info prose today.
   { slug: 'berlin', ka: 'ბერლინი', loc: 'ბერლინში', en: 'Berlin', ru: 'Берлин', market: 'de' },

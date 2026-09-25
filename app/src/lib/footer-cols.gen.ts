@@ -623,6 +623,166 @@ export const FOOTER_COLS: FooterCol[] = [
           "en": "Kazbegi",
           "ru": "Казбеги"
         }
+      },
+      {
+        "href": "/chakvi",
+        "label": {
+          "ka": "ჩაქვი",
+          "en": "Chakvi",
+          "ru": "Чакви"
+        }
+      },
+      {
+        "href": "/shekvetili",
+        "label": {
+          "ka": "შეკვეთილი",
+          "en": "Shekvetili",
+          "ru": "Шекветили"
+        }
+      },
+      {
+        "href": "/bakhmaro",
+        "label": {
+          "ka": "ბახმარო",
+          "en": "Bakhmaro",
+          "ru": "Бахмаро"
+        }
+      },
+      {
+        "href": "/goderdzi",
+        "label": {
+          "ka": "გოდერძი",
+          "en": "Goderdzi",
+          "ru": "Годердзи"
+        }
+      },
+      {
+        "href": "/akhaltsikhe",
+        "label": {
+          "ka": "ახალციხე",
+          "en": "Akhaltsikhe",
+          "ru": "Ахалцихе"
+        }
+      },
+      {
+        "href": "/ozurgeti",
+        "label": {
+          "ka": "ოზურგეთი",
+          "en": "Ozurgeti",
+          "ru": "Озургети"
+        }
+      },
+      {
+        "href": "/ambrolauri",
+        "label": {
+          "ka": "ამბროლაური",
+          "en": "Ambrolauri",
+          "ru": "Амбролаури"
+        }
+      },
+      {
+        "href": "/marneuli",
+        "label": {
+          "ka": "მარნეული",
+          "en": "Marneuli",
+          "ru": "Марнеули"
+        }
+      },
+      {
+        "href": "/zestafoni",
+        "label": {
+          "ka": "ზესტაფონი",
+          "en": "Zestafoni",
+          "ru": "Зестафони"
+        }
+      },
+      {
+        "href": "/khashuri",
+        "label": {
+          "ka": "ხაშური",
+          "en": "Khashuri",
+          "ru": "Хашури"
+        }
+      },
+      {
+        "href": "/gurjaani",
+        "label": {
+          "ka": "გურჯაანი",
+          "en": "Gurjaani",
+          "ru": "Гурджаани"
+        }
+      },
+      {
+        "href": "/kvareli",
+        "label": {
+          "ka": "ყვარელი",
+          "en": "Kvareli",
+          "ru": "Кварели"
+        }
+      },
+      {
+        "href": "/dusheti",
+        "label": {
+          "ka": "დუშეთი",
+          "en": "Dusheti",
+          "ru": "Душети"
+        }
+      },
+      {
+        "href": "/abastumani",
+        "label": {
+          "ka": "აბასთუმანი",
+          "en": "Abastumani",
+          "ru": "Абастумани"
+        }
+      },
+      {
+        "href": "/surami",
+        "label": {
+          "ka": "სურამი",
+          "en": "Surami",
+          "ru": "Сурами"
+        }
+      },
+      {
+        "href": "/ureki",
+        "label": {
+          "ka": "ურეკი",
+          "en": "Ureki",
+          "ru": "Уреки"
+        }
+      },
+      {
+        "href": "/gonio",
+        "label": {
+          "ka": "გონიო",
+          "en": "Gonio",
+          "ru": "Гонио"
+        }
+      },
+      {
+        "href": "/kvariati",
+        "label": {
+          "ka": "კვარიათი",
+          "en": "Kvariati",
+          "ru": "Квариати"
+        }
+      },
+      {
+        "href": "/tsikhisdziri",
+        "label": {
+          "ka": "ციხისძირი",
+          "en": "Tsikhisdziri",
+          "ru": "Цихисдзири"
+        }
+      },
+      {
+        "href": "/anaklia",
+        "label": {
+          "ka": "ანაკლია",
+          "en": "Anaklia",
+          "ru": "Анаклия"
+        }
       }
     ]
   }

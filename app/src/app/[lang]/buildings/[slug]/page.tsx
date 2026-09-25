@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import Link from 'next/link'
+import Link from '@/components/LocalizedLink'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import {
@@ -59,7 +59,8 @@ import { avifCardOf, cardOf } from '@/lib/media'
 import { buildingScoreOf, type BuildingFactorKey } from '@/lib/building-score'
 import { faqPageLd } from '@/lib/directory-seo'
 import { jsonLd, ogImage } from '@/lib/utils'
-import {pageAlternates,  } from '@/lib/i18n/server'
+import { pageAlternates } from '@/lib/i18n/server'
+import { toLatin } from '@/lib/ka-latin'
 import { isValidLang } from '@/lib/i18n/core'
 
 const FACTOR_LABEL: Record<DirLoc | 'de', Record<BuildingFactorKey, string>> = {
@@ -174,12 +175,13 @@ const T: Record<DirLoc | 'de', {
   },
 }
 
-/** District/ubani names are KA data keys — locale name when one exists. de falls back to the Latin `en` name. */
+/** Place names are KA data keys — locale name when one exists, else national
+ *  romanization (a non-ka reader never gets bare Mkhedruli). de reads the Latin `en` name. */
 function geoName(ka: string, loc: DirLoc | 'de'): string {
   if (loc === 'ka') return ka
   const d = DISTRICTS.find((x) => x.ka === ka)
   if (d) return loc === 'ru' ? d.ru : d.en
-  return ka
+  return toLatin(ka)
 }
 
 export const revalidate = 3600
@@ -225,7 +227,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const place = [b.ubani, b.district, b.city].filter((n): n is string => Boolean(n)).map((n) => geoName(n, loc)).join(', ')
   const description = `${b.description[loc] ?? b.description.en} ${place}. ${counts.sale} ${t.sale}, ${counts.rent} ${t.rent}.`.slice(0, 160)
   return {
-    title: `${bName} (${b.code}) — ${geoName(b.district, loc)}, ${b.city}`,
+    title: `${bName} (${b.code}) — ${geoName(b.district, loc)}, ${geoName(b.city, loc)}`,
     description,
     alternates: pageAlternates(`/buildings/${b.slug}`, lang),
     openGraph: {
@@ -283,7 +285,7 @@ export default async function BuildingPage({ params }: PageProps) {
     verifiedShare: listings.length
       ? listings.filter((l) => l.verified).length / listings.length
       : null,
-    rating: aggregate ? aggregate.average : (building.rating ?? null),
+    rating: aggregate ? aggregate.average : null,
     metroWalkMin: metro ? metro.walkMin : null,
   })
 
@@ -310,12 +312,12 @@ export default async function BuildingPage({ params }: PageProps) {
     {
       q: loc === 'ka' ? `სად არის ${building.name}?` : loc === 'ru' ? `Где находится ${bName}?` : loc === 'de' ? `Wo befindet sich ${bName}?` : `Where is ${bName}?`,
       a: loc === 'ka'
-        ? `მისამართი: ${building.address}. ${place}. კოდი: ${building.code}.${metro ? ` უახლოესი მეტრო: ${metro.name} (${formatMetroDist(metro)}).` : ''}`
+        ? `მისამართი: ${geoName(building.address, loc)}. ${place}. კოდი: ${building.code}.${metro ? ` უახლოესი მეტრო: ${geoName(metro.name, loc)} (${formatMetroDist(metro)}).` : ''}`
         : loc === 'ru'
-          ? `Адрес: ${building.address}. ${place}. Код: ${building.code}.${metro ? ` Ближайшее метро: ${metro.name} (${formatMetroDist(metro)}).` : ''}`
+          ? `Адрес: ${geoName(building.address, loc)}. ${place}. Код: ${building.code}.${metro ? ` Ближайшее метро: ${geoName(metro.name, loc)} (${formatMetroDist(metro)}).` : ''}`
           : loc === 'de'
-            ? `Adresse: ${building.address}. ${place}. Code: ${building.code}.${metro ? ` Nächste U-Bahn-Station: ${metro.name} (${formatMetroDist(metro)}).` : ''}`
-            : `Address: ${building.address}. ${place}. Code: ${building.code}.${metro ? ` Nearest metro: ${metro.name} (${formatMetroDist(metro)}).` : ''}`,
+            ? `Adresse: ${geoName(building.address, loc)}. ${place}. Code: ${building.code}.${metro ? ` Nächste U-Bahn-Station: ${geoName(metro.name, loc)} (${formatMetroDist(metro)}).` : ''}`
+            : `Address: ${geoName(building.address, loc)}. ${place}. Code: ${building.code}.${metro ? ` Nearest metro: ${geoName(metro.name, loc)} (${formatMetroDist(metro)}).` : ''}`,
     },
     ...(buildingAvgPerM2 != null
       ? [
@@ -343,19 +345,19 @@ export default async function BuildingPage({ params }: PageProps) {
       q: loc === 'ka' ? 'როგორ მივიდე?' : loc === 'ru' ? 'Как добраться?' : loc === 'de' ? 'Wie komme ich dorthin?' : 'How do I get there?',
       a: metro
         ? loc === 'ka'
-          ? `მეტრო ${metro.name}-დან ფეხით ${metro.walkMin} წთ. გახსენი Apple Maps ან Google Maps მარშრუტისთვის.`
+          ? `მეტრო ${geoName(metro.name, loc)}-დან ფეხით ${metro.walkMin} წთ. გახსენი Apple Maps ან Google Maps მარშრუტისთვის.`
           : loc === 'ru'
-            ? `${metro.walkMin} мин пешком от метро ${metro.name}. Маршрут — Apple Maps или Google Maps.`
+            ? `${metro.walkMin} мин пешком от метро ${geoName(metro.name, loc)}. Маршрут — Apple Maps или Google Maps.`
             : loc === 'de'
-              ? `${metro.walkMin} Min. Fußweg von der U-Bahn-Station ${metro.name}. Öffnen Sie Apple Maps oder Google Maps für die Route.`
-              : `${metro.walkMin} min walk from ${metro.name} metro. Open Apple Maps or Google Maps for directions.`
+              ? `${metro.walkMin} Min. Fußweg von der U-Bahn-Station ${geoName(metro.name, loc)}. Öffnen Sie Apple Maps oder Google Maps für die Route.`
+              : `${metro.walkMin} min walk from ${geoName(metro.name, loc)} metro. Open Apple Maps or Google Maps for directions.`
         : loc === 'ka'
-          ? `მისამართი: ${building.address}. გახსენი Apple Maps ან Google Maps მარშრუტისთვის.`
+          ? `მისამართი: ${geoName(building.address, loc)}. გახსენი Apple Maps ან Google Maps მარშრუტისთვის.`
           : loc === 'ru'
-            ? `Адрес: ${building.address}. Маршрут — Apple Maps или Google Maps.`
+            ? `Адрес: ${geoName(building.address, loc)}. Маршрут — Apple Maps или Google Maps.`
             : loc === 'de'
-              ? `Adresse: ${building.address}. Öffnen Sie Apple Maps oder Google Maps für die Route.`
-              : `Address: ${building.address}. Open Apple Maps or Google Maps for directions.`,
+              ? `Adresse: ${geoName(building.address, loc)}. Öffnen Sie Apple Maps oder Google Maps für die Route.`
+              : `Address: ${geoName(building.address, loc)}. Open Apple Maps or Google Maps for directions.`,
     },
   ]
 
@@ -478,10 +480,12 @@ export default async function BuildingPage({ params }: PageProps) {
                 >
                   {building.status === 'ready' ? t.ready : t.construction}
                 </span>
-                <div className="flex items-center gap-1 rounded-control bg-white/95 px-3.5 py-2 text-[15px] font-black text-sv-ink">
-                  <Star className="h-4 w-4 fill-sv-orange text-sv-orange" aria-hidden />
-                  {aggregate ? aggregate.average.toFixed(1) : building.rating}
-                </div>
+                {aggregate && (
+                  <div className="flex items-center gap-1 rounded-control bg-white/95 px-3.5 py-2 text-[15px] font-black text-sv-ink">
+                    <Star className="h-4 w-4 fill-sv-orange text-sv-orange" aria-hidden />
+                    {aggregate.average.toFixed(1)}
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -593,7 +597,7 @@ export default async function BuildingPage({ params }: PageProps) {
             )}
             <p className="mt-6 flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] font-bold text-sv-ink/60">
               <span className="flex items-center gap-1.5">
-                <MapPin className="h-4 w-4 text-sv-ink/35" aria-hidden /> {building.address}
+                <MapPin className="h-4 w-4 text-sv-ink/35" aria-hidden /> {geoName(building.address, loc)}
               </span>
               <span className="flex items-center gap-1.5">
                 <Navigation className="h-4 w-4 text-sv-ink/35" aria-hidden />
@@ -620,7 +624,7 @@ export default async function BuildingPage({ params }: PageProps) {
             {metro && (
               <p className="mt-3 flex items-center gap-2 text-[14px] font-extrabold text-sv-blue-deep">
                 <TrainFront className="h-4 w-4 shrink-0" aria-hidden />
-                {metro.name} · {formatMetroDist(metro)}
+                {geoName(metro.name, loc)} · {formatMetroDist(metro)}
               </p>
             )}
             <div className="mt-5 flex flex-wrap gap-3">
@@ -703,7 +707,7 @@ export default async function BuildingPage({ params }: PageProps) {
               lat={fpPin?.lat ?? building.coords.lat}
               lng={fpPin?.lng ?? building.coords.lng}
               zoom={fpPin ? 17 : 16}
-              q={building.address}
+              q={geoName(building.address, loc)}
               aspect="16/9"
               highlight
               footprint={fpPin?.ring ?? null}
@@ -711,7 +715,7 @@ export default async function BuildingPage({ params }: PageProps) {
             />
           </div>
           <p className="mt-3 text-[13px] font-semibold text-sv-ink/60">
-            {building.address} · {(fpPin?.lat ?? building.coords.lat).toFixed(5)},{' '}
+            {geoName(building.address, loc)} · {(fpPin?.lat ?? building.coords.lat).toFixed(5)},{' '}
             {(fpPin?.lng ?? building.coords.lng).toFixed(5)}
           </p>
         </section>
@@ -817,9 +821,9 @@ export default async function BuildingPage({ params }: PageProps) {
                   </div>
                   <div className="p-4">
                     <p className="text-[11px] font-bold text-sv-ink/60">
-                      {[b.district, b.ubani].filter(Boolean).join(' · ')}
+                      {[b.district, b.ubani].filter((n): n is string => Boolean(n)).map((n) => geoName(n, loc)).join(' · ')}
                     </p>
-                    <h3 className="mt-0.5 text-[16px] font-black text-sv-ink">{b.name}</h3>
+                    <h3 className="mt-0.5 text-[16px] font-black text-sv-ink">{loc === 'ka' ? b.name : b.nameEn}</h3>
                     <p className="mt-1 text-[12px] font-semibold text-sv-ink/60">
                       {b.floors} {t.floorsAbbr}{b.units ? ` · ${b.units} ${t.unitsAbbr}` : ''}
                     </p>
