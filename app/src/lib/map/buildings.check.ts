@@ -54,7 +54,7 @@ import {
   buildingFloorCount,
   buildingFloors,
   buildingShowsFloorStack,
-  floorTooltipKa,
+  floorTooltip,
   floorsToGeoJSON,
 } from './floors'
 import { GEORGIA_BORDER, GEORGIA_HALO_KM, GEORGIA_HOLE, GEORGIA_MASK_FC, GEORGIA_MASK_MAXZOOM, GEORGIA_MAX_BOUNDS, MAP_CENTER, MAP_MIN_ZOOM } from './buildings'
@@ -62,6 +62,11 @@ import { neighborhoodsToGeoJSON } from './buildings'
 import { NEIGHBORHOODS } from '@/data/neighborhoods'
 import { TBILISI_DISTRICT_LABELS } from '@/data/district-labels'
 import TBILISI_RAIONS from '@/data/tbilisi-raions.json'
+import { translate } from '@/lib/i18n/dicts'
+
+/** Floor tooltip as a Georgian reader sees it (GEL money). */
+const kaTip = (info: Parameters<typeof floorTooltip>[0], opts: Parameters<typeof floorTooltip>[1]) =>
+  floorTooltip(info, opts, (k, v) => translate('ka', k, v), (gel) => formatMapPin(gel, 'GEL'))
 async function main() {
   await ensureFootprints()
   const base = {
@@ -907,9 +912,9 @@ async function main() {
 
   const ghostFc = floorsToGeoJSON(ghosts[0]!)
   assert.equal(ghostFc.features.every((f) => f.properties!.ghost === true), true)
-  assert.equal(floorTooltipKa({ n: 3, available: 0, minPriceGEL: null }, { ghost: true, progress: 40, showPrice: false }).lines[0], 'მშენებარე · 40%')
-  assert.equal(floorTooltipKa({ n: 5, available: 2, minPriceGEL: 120000 }, { ghost: false, showPrice: true }).lines.length, 2)
-  assert.equal(floorTooltipKa({ n: 5, available: 2, minPriceGEL: 120000 }, { ghost: false, showPrice: false }).lines.length, 1, 'price hidden when deals are mixed')
+  assert.equal(kaTip({ n: 3, available: 0, minPriceGEL: null }, { ghost: true, progress: 40, showPrice: false }).lines[0], 'მშენებარე · 40%')
+  assert.equal(kaTip({ n: 5, available: 2, minPriceGEL: 120000 }, { ghost: false, showPrice: true }).lines.length, 2)
+  assert.equal(kaTip({ n: 5, available: 2, minPriceGEL: 120000 }, { ghost: false, showPrice: false }).lines.length, 1, 'price hidden when deals are mixed')
 
   // ——— admin floor inventory gate (BuildingFloor rows win over listing-derived stacks) ———
 
@@ -926,7 +931,7 @@ async function main() {
   assert.deepEqual(invAll.map((f) => f.available), [3, 0, 4], 'inventory availability used as-is')
   assert.equal(buildingFloors(inventoryTower!, 'rent')[2]!.available, 2, 'deal filter reads per-deal inventory counts')
   assert.equal(invAll[0]!.minPriceGEL, null, 'inventory price is per m², not a total')
-  const invTip = floorTooltipKa(invAll[0]!, { ghost: false, showPrice: true })
+  const invTip = kaTip(invAll[0]!, { ghost: false, showPrice: true })
   assert.equal(invTip.lines.length, 2)
   assert.ok(invTip.lines[1]!.includes('/მ²-დან'), 'inventory tooltip shows ₾/m²')
   assert.equal(floorsToGeoJSON(inventoryTower!).features.length, 3, 'inventory stack renders all floors')

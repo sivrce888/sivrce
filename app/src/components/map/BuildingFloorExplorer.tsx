@@ -9,6 +9,7 @@
 import { useState, type ReactNode } from 'react'
 import { BuildingFloorsMapLazy } from './BuildingFloorsMapLazy'
 import type { FloorInfo } from '@/lib/map/floors'
+import { useI18n } from '@/lib/i18n/context'
 
 interface BuildingFloorExplorerProps {
   label: string
@@ -25,6 +26,7 @@ export default function BuildingFloorExplorer({
   floors,
   children,
 }: BuildingFloorExplorerProps) {
+  const { t } = useI18n()
   const [floor, setFloor] = useState<number | null>(null)
 
   return (
@@ -43,7 +45,7 @@ export default function BuildingFloorExplorer({
       <div
         className="mt-4 flex gap-1.5 overflow-x-auto scrollbar-hide"
         role="group"
-        aria-label="სართულები"
+        aria-label={t('map.floors')}
       >
         {floors.map((f) => {
           const isActive = floor === f.n
@@ -59,7 +61,7 @@ export default function BuildingFloorExplorer({
                   : 'bg-sv-cloud text-sv-ink/60 hover:text-sv-ink'
               }`}
             >
-              სართ. {f.n}
+              {t('map.floorN', { n: f.n })}
               <span
                 className={
                   isActive

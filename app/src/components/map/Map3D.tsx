@@ -61,7 +61,7 @@ import BerlinFeaturePanel from '@/components/map/BerlinFeaturePanel'
 import {
   EMPTY_FLOORS,
   buildingShowsFloorStack,
-  floorTooltipKa,
+  floorTooltip,
   floorsToGeoJSON,
   type FloorInfo,
 } from '@/lib/map/floors'
@@ -1724,6 +1724,8 @@ function Map3DInner({
     (gel: number) => formatMapPin(gel, currency, rate, eurRate, lang),
     [currency, rate, eurRate, lang],
   )
+  const pinFmtRef = useRef(pinFmt)
+  useEffect(() => { pinFmtRef.current = pinFmt }, [pinFmt])
   // ponytail: FCs memoized once — shared by boot + every data push; re-toggling a
   // filter reuses the cached FC instead of rebuilding polygon geometry.
   const polyFc = useMemo(
@@ -2287,11 +2289,12 @@ function Map3DInner({
           available: Number(p.available) || 0,
           minPriceGEL: Number(p.minPrice) || null,
         }
-        const tip = floorTooltipKa(info, {
-          ghost: Boolean(p.ghost),
-          progress: b?.progress,
-          showPrice: dealRef.current !== 'all',
-        })
+        const tip = floorTooltip(
+          info,
+          { ghost: Boolean(p.ghost), progress: b?.progress, showPrice: dealRef.current !== 'all' },
+          tRef.current,
+          pinFmtRef.current,
+        )
         const root = document.createElement('div')
         const title = document.createElement('div')
         title.className = 'sivrce-floor-pop-title'

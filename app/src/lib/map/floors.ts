@@ -129,25 +129,37 @@ export const EMPTY_FLOORS: GeoJSON.FeatureCollection = {
   features: [],
 }
 
-/** Georgian tooltip line for a hovered floor. Price only when the deal filter
- *  makes prices comparable (single deal type). */
-export function floorTooltipKa(
+/** Keys the floor tooltip reads — callers pass their locale's `t`. */
+export type FloorTipKey =
+  | 'map.floorN'
+  | 'map.status.construction'
+  | 'map.floors3d'
+  | 'map.floorNoneFree'
+  | 'map.floorFreeN'
+  | 'map.priceFrom'
+  | 'add.areaUnit.m2'
+
+/** Tooltip for a hovered floor, in the reader's language and currency. Price
+ *  only when the deal filter makes prices comparable (single deal type). */
+export function floorTooltip(
   info: FloorInfo,
   opts: { ghost: boolean; progress?: number; showPrice: boolean },
+  t: (key: FloorTipKey, vars?: Record<string, string | number>) => string,
+  money: (gel: number) => string,
 ): { title: string; lines: string[] } {
-  const title = `სართული ${info.n}`
+  const title = t('map.floorN', { n: info.n })
   if (opts.ghost) {
     return {
       title,
-      lines: [`მშენებარე · ${opts.progress ?? 0}%`, 'სართულების ხედი'],
+      lines: [`${t('map.status.construction')} · ${opts.progress ?? 0}%`, t('map.floors3d')],
     }
   }
-  if (info.available === 0) return { title, lines: ['თავისუფალი ბინა არ არის'] }
-  const lines = [`${info.available} თავისუფალია`]
+  if (info.available === 0) return { title, lines: [t('map.floorNoneFree')] }
+  const lines = [t('map.floorFreeN', { n: info.available })]
   if (opts.showPrice && info.minPricePerSqm != null) {
-    lines.push(`₾${info.minPricePerSqm.toLocaleString('ka-GE')}/მ²-დან`)
+    lines.push(t('map.priceFrom', { v: `${money(info.minPricePerSqm)}/${t('add.areaUnit.m2')}` }))
   } else if (opts.showPrice && info.minPriceGEL != null) {
-    lines.push(`₾${info.minPriceGEL.toLocaleString('ka-GE')}-დან`)
+    lines.push(t('map.priceFrom', { v: money(info.minPriceGEL) }))
   }
   return { title, lines }
 }

@@ -36,7 +36,7 @@ import {
 import { mapRuntimeOptions } from '@/lib/device-budget'
 import { bindMaplibreWorker } from '@/lib/map/maplibre-worker'
 import { MAP_MIN_ZOOM } from '@/lib/map/map-geo'
-import { floorTooltipKa, type FloorInfo } from '@/lib/map/floors'
+import { floorTooltip, type FloorInfo } from '@/lib/map/floors'
 
 interface BuildingFloorsMapProps {
   geojson: GeoJSON.FeatureCollection
@@ -70,6 +70,8 @@ export default function BuildingFloorsMap({
   const styleUrlRef = useRef<string | null>(null)
   const { resolvedTheme } = useTheme()
   const { t } = useI18n()
+  const tRef = useRef(t)
+  useEffect(() => { tRef.current = t }, [t])
   const isDark = resolvedTheme === 'dark'
   const themeReady = resolvedTheme != null
 
@@ -167,9 +169,12 @@ export default function BuildingFloorsMap({
           map.setFeatureState({ source: FLOORS_SOURCE_ID, id: n }, { hover: true })
         }
         map.getCanvas().style.cursor = 'pointer'
-        const tip = floorTooltipKa(
+        // showPrice off: the page grid below carries prices, so money is never formatted here.
+        const tip = floorTooltip(
           { n, available: Number(p?.available) || 0, minPriceGEL: null },
           { ghost, progress, showPrice: false },
+          tRef.current,
+          String,
         )
         const root = document.createElement('div')
         const title = document.createElement('div')
