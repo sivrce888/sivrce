@@ -14,6 +14,8 @@ import {
 } from '@/lib/directory-seo'
 import { PER_PAGE, Pager, ProjectsGrid } from '@/app/[lang]/projects/ProjectsGrid'
 import { toCard } from '@/app/[lang]/projects/to-card'
+import { projectsLive } from '@/lib/directory-live'
+import { marketDeltas } from '@/lib/project-insights'
 
 /**
  * Shared new-build hub page — identical card/prose/FAQ pattern to
@@ -46,7 +48,7 @@ export function projectHubMetadata(path: string, lang: Lang, c: DirectoryHubCopy
   }
 }
 
-export function ProjectHub({
+export async function ProjectHub({
   loc,
   c,
   projects,
@@ -60,6 +62,8 @@ export function ProjectHub({
   basePath?: string
   page?: number
 }) {
+  // Medians run over the whole corpus, not this sub-hub's slice.
+  const deltas = marketDeltas(await projectsLive())
   const totalPages = Math.max(1, Math.ceil(projects.length / PER_PAGE))
   const pageProjects = projects.slice((page - 1) * PER_PAGE, page * PER_PAGE)
   const listLd = {
@@ -86,7 +90,7 @@ export function ProjectHub({
           <p className="mt-2 max-w-2xl text-[15px] font-semibold text-sv-ink/65 md:text-[16px]">
             {c.sub}
           </p>
-          <ProjectsGrid projects={pageProjects.map((p) => toCard(p, loc))} loc={loc} />
+          <ProjectsGrid projects={pageProjects.map((p) => toCard(p, loc, deltas))} loc={loc} />
           <Pager page={page} totalPages={totalPages} loc={loc} basePath={basePath} />
         </section>
 

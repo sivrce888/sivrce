@@ -7,6 +7,7 @@ import { PageHero } from '@/components/PageHero'
 import { AdSlot } from '@/components/ads/AdSlot'
 import { FaqSection } from '@/components/seo/FaqSection'
 import { projectsLive } from '@/lib/directory-live'
+import { marketDeltas } from '@/lib/project-insights'
 import { altName } from '@/lib/bilingual'
 import { jsonLd } from '@/lib/utils'
 import { isValidLang, type Lang } from '@/lib/i18n/core'
@@ -57,6 +58,7 @@ export default async function ProjectsPage({ params }: PageProps) {
   const loc = raw === 'ka' || raw === 'ru' || raw === 'de' ? raw : 'en'
 
   const projects = await projectsLive()
+  const deltas = marketDeltas(projects)
   const totalPages = Math.max(1, Math.ceil(projects.length / PER_PAGE))
   const pageSlice = projects.slice(0, PER_PAGE)
   // Nested item = Google carousel spec; alternateName carries the other script.
@@ -117,7 +119,7 @@ export default async function ProjectsPage({ params }: PageProps) {
         <AdSlot slot="projects" lang={raw} />
         <section className="mx-auto max-w-[1440px] px-5 pb-16 md:px-10">
           <ProjectsExplorer
-            projects={projects.map((p) => toCard(p, loc))}
+            projects={projects.map((p) => toCard(p, loc, deltas))}
             loc={loc}
             pager={<Pager page={1} totalPages={totalPages} loc={loc} />}
           />

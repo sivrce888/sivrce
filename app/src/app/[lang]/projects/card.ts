@@ -26,6 +26,10 @@ export interface ProjectCard {
   year: number | null
   flats: number
   delivered: boolean
+  /** Signed % vs the peer median (project-insights.marketDeltas) — absent under MIN_PEERS. */
+  vs?: number
+  /** Localized peer-set name the median ran over ('Vake' / 'Tbilisi'). */
+  vsIn?: string
 }
 
 
@@ -52,8 +56,8 @@ export const HANDOVER_BUCKETS = [
 
 // ponytail: no 'rating' sort — the catalog's seed rating has no review source,
 // ranking on it would advertise fabricated data. Re-add when real aggregates feed ProjectCard.
-export type Sort = 'rec' | 'price' | 'price-desc' | 'handover' | 'progress'
-export const SORTS: Sort[] = ['rec', 'price', 'price-desc', 'handover', 'progress']
+export type Sort = 'rec' | 'value' | 'price' | 'price-desc' | 'handover' | 'progress'
+export const SORTS: Sort[] = ['rec', 'value', 'price', 'price-desc', 'handover', 'progress']
 
 export interface Q {
   q: string
@@ -72,9 +76,20 @@ export const EMPTY_Q: Q = { q: '', country: '', city: '', district: '', status: 
 /** City chip value for "everything outside the top cities". */
 export const OTHER_CITY = '__other'
 
-/** '$1,450' → 1450; '' or junk → 0 (price bucket then excludes the row). */
+/**
+ * USD-equivalent $/m² for bucketing + sorting: '$1,450' → 1450, '₾3,574' → 1324,
+ * '€5,200' → 5855; '' or junk → 0 (price bucket then excludes the row). Buckets
+ * are USD, so lari (SS.ge rows) and euro (Berlin) must convert, not pass through.
+ */
+/** Static crosses — this file must stay import-free (bundle-leak lock); card.check pins them to lib/listing-format. */
+export const CARD_USD_GEL = 2.7
+export const CARD_EUR_GEL = 3.04
+
 export function priceM2(p: Pick<ProjectCard, 'priceFromM2'>): number {
-  return Number(p.priceFromM2.replace(/[^0-9.]/g, '')) || 0
+  const n = Number(p.priceFromM2.replace(/[^0-9.]/g, '')) || 0
+  if (/₾|GEL/i.test(p.priceFromM2)) return Math.round(n / CARD_USD_GEL)
+  if (/€|EUR/i.test(p.priceFromM2)) return Math.round((n * CARD_EUR_GEL) / CARD_USD_GEL)
+  return n
 }
 
 // URL is the trust boundary: whitelist keys, cap lengths, ignore junk — bad
@@ -145,7 +160,9 @@ export function matchesCard(p: ProjectCard, q: Q, topCities: ReadonlySet<string>
 export function sortCards(items: ProjectCard[], sort: Sort): ProjectCard[] {
   if (sort === 'rec') return items
   const s = [...items]
-  if (sort === 'price') s.sort((a, b) => (priceM2(a) || Infinity) - (priceM2(b) || Infinity))
+  // 'value': furthest below its own district/city median first; no-peer rows trail.
+  if (sort === 'value') s.sort((a, b) => (a.vs ?? Infinity) - (b.vs ?? Infinity))
+  else if (sort === 'price') s.sort((a, b) => (priceM2(a) || Infinity) - (priceM2(b) || Infinity))
   else if (sort === 'price-desc') s.sort((a, b) => priceM2(b) - priceM2(a))
   else if (sort === 'progress') s.sort((a, b) => b.done - a.done)
   else s.sort((a, b) => (a.delivered ? Infinity : a.year ?? Infinity) - (b.delivered ? Infinity : b.year ?? Infinity))

@@ -18,8 +18,11 @@ import {
   priceM2,
   qToSearch,
   sortCards,
+  CARD_EUR_GEL,
+  CARD_USD_GEL,
   type ProjectCard,
 } from './card'
+import { EUR_GEL, USD_GEL } from '@/lib/listing-format'
 
 const card = (over: Partial<ProjectCard>): ProjectCard => ({
   slug: 'x',
@@ -57,6 +60,19 @@ const rows = [tbilisi, batumi, doneRow, noPrice, gudauri]
 // priceM2 parsing — '$1,450' → 1450, junk/'' → 0
 assert.equal(priceM2(tbilisi), 1500)
 assert.equal(priceM2(noPrice), 0)
+// 'value' sort: most below its median first, rows without a peer median last.
+{
+  const base = { ...tbilisi }
+  const v = sortCards([{ ...base, slug: 'n' }, { ...base, slug: 'a', vs: 12 }, { ...base, slug: 'b', vs: -20 }], 'value')
+  assert.deepEqual(v.map((x) => x.slug), ['b', 'a', 'n'])
+}
+// Leaf rate copies must track the shared formatter's static crosses.
+assert.equal(CARD_USD_GEL, USD_GEL)
+assert.equal(CARD_EUR_GEL, EUR_GEL)
+// Non-USD rows convert before bucketing — ₾3,574 is ~$1,324, not '$3,000+'.
+assert.equal(priceM2({ priceFromM2: '₾3,574' }), 1324)
+assert.equal(priceM2({ priceFromM2: '9,999 ₾' }), 3703)
+assert.equal(priceM2({ priceFromM2: '€5,200' }), 5855)
 
 // status filter — build excludes delivered, done excludes building
 assert.ok(matchesCard(tbilisi, { ...EMPTY_Q, status: 'build' }, new Set()))

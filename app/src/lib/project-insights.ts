@@ -5,7 +5,8 @@
  */
 
 import { finishMaxYear, isDelivered, type Project } from '@/data/professionals'
-import { hasPriceFrom } from '@/lib/directory-seo-lite'
+import { TBILISI_DISTRICT_LABELS } from '@/data/district-labels'
+import { cityName, hasPriceFrom, type DirLoc } from '@/lib/directory-seo-lite'
 import { priceScaleOf } from '@/lib/price-scale'
 
 export type PriceCurrency = 'GEL' | 'EUR' | 'USD'
@@ -38,6 +39,12 @@ export function rowPriceM2(r: { id?: string; pricePerSqmFrom: number }): string 
 
 /** Fewer peers than this and a percentile is noise — the block hides instead. */
 export const MIN_PEERS = 5
+
+/**
+ * Beyond ±50% of the median the peer set is almost always the wrong one (a
+ * suburban cottage village against city towers, a data error) — make no claim.
+ */
+export const MAX_ABS_DELTA = 50
 
 export interface MarketPosition {
   /** 'district' when the district alone has MIN_PEERS priced peers, else the city. */
@@ -80,16 +87,66 @@ export function marketPosition(p: Project, all: readonly Project[]): MarketPosit
   const peers = (scope === 'district' ? inDistrict : priced).map((q) => priceM2Number(q.priceFromM2)!)
   if (peers.length < MIN_PEERS) return null
   const med = median(peers)
+  const deltaPct = Math.round(((value - med) / med) * 100)
+  if (Math.abs(deltaPct) > MAX_ABS_DELTA) return null
   return {
     scope,
     peers: peers.length,
     median: med,
-    deltaPct: Math.round(((value - med) / med) * 100),
+    deltaPct,
     pct: priceScaleOf(value, peers).pct,
     currency,
     min: Math.min(...peers, value),
     max: Math.max(...peers, value),
   }
+}
+
+/** Median of a sorted array with the element at `skip` removed (the project itself). */
+function medianWithout(sorted: readonly number[], skip: number): number {
+  const at = (r: number) => sorted[r < skip ? r : r + 1]
+  const n = sorted.length - 1
+  const m = n >> 1
+  return n % 2 ? at(m) : Math.round((at(m - 1) + at(m)) / 2)
+}
+
+/**
+ * Hub-scale marketPosition: one O(n log n) pass instead of O(n²), returning the
+ * same scope + deltaPct marketPosition() gives each project (asserted in the
+ * check) — so a card chip never disagrees with the detail page.
+ */
+export function marketDeltas(all: readonly Project[]): Map<string, { scope: 'district' | 'city'; deltaPct: number }> {
+  const groups = new Map<string, number[]>()
+  const key = (p: Project, d: string) => `${p.city}|${priceM2Currency(p.priceFromM2)}|${d}`
+  const priced = all.filter((p) => priceM2Number(p.priceFromM2) !== null)
+  for (const p of priced) {
+    const v = priceM2Number(p.priceFromM2)!
+    for (const k of [key(p, ''), ...(p.district ? [key(p, p.district)] : [])]) {
+      const g = groups.get(k)
+      if (g) g.push(v)
+      else groups.set(k, [v])
+    }
+  }
+  for (const g of groups.values()) g.sort((a, b) => a - b)
+  const out = new Map<string, { scope: 'district' | 'city'; deltaPct: number }>()
+  for (const p of priced) {
+    const v = priceM2Number(p.priceFromM2)!
+    const d = p.district ? groups.get(key(p, p.district)) : undefined
+    const scope = d && d.length - 1 >= MIN_PEERS ? 'district' : 'city'
+    const g = scope === 'district' ? d! : groups.get(key(p, ''))!
+    if (g.length - 1 < MIN_PEERS) continue
+    const med = medianWithout(g, g.indexOf(v))
+    const deltaPct = Math.round(((v - med) / med) * 100)
+    if (Math.abs(deltaPct) <= MAX_ABS_DELTA) out.set(p.slug, { scope, deltaPct })
+  }
+  return out
+}
+
+/** Reader-facing name of the peer set: ka district as-is, Latin for other locales, else the city. */
+export function scopeLabel(p: Pick<Project, 'city' | 'district'>, scope: 'district' | 'city', loc: DirLoc | 'de'): string {
+  if (scope === 'district' && p.district) {
+    return loc === 'ka' ? p.district : (TBILISI_DISTRICT_LABELS.find((d) => d.name.ka === p.district)?.name.en ?? p.district)
+  }
+  return cityName(p.city, loc)
 }
 
 export interface TrackRecord {

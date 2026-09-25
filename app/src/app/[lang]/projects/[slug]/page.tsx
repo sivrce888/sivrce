@@ -23,8 +23,7 @@ import { ProjectMediaGallery } from '@/components/entities/ProjectMediaGallery'
 import { ProjectMarket } from '@/components/entities/ProjectMarket'
 import { ReportInaccuracy } from '@/components/entities/ReportInaccuracy'
 import { DeveloperLogo } from '@/components/entities/DeveloperLogo'
-import { TBILISI_DISTRICT_LABELS } from '@/data/district-labels'
-import { marketPosition, priceM2Currency, priceM2Number, trackRecord } from '@/lib/project-insights'
+import { marketPosition, priceM2Currency, priceM2Number, scopeLabel, trackRecord } from '@/lib/project-insights'
 import { PROJECT_PAGE } from '@/lib/project-page-copy'
 import { PROJECTS, isDelivered } from '@/data/professionals'
 import {
@@ -57,7 +56,6 @@ import {
   PROJECT_DETAIL_DE,
   dirLoc,
   faqPageLd,
-  cityName,
   finishLabel,
   floorsLabel,
   hasPriceFrom,
@@ -197,12 +195,7 @@ export default async function ProjectPage({ params }: PageProps) {
   const devNames = new Map(devs.map((d) => [d.slug, pickLoc(d.name, loc)]))
   // Percentile among same-city, same-currency priced projects (district when dense enough).
   const position = marketPosition(project, allProjects)
-  const scopeName =
-    position?.scope === 'district' && project.district
-      ? loc === 'ka'
-        ? project.district
-        : (TBILISI_DISTRICT_LABELS.find((d) => d.name.ka === project.district)?.name.en ?? project.district)
-      : cityName(project.city, chromeLoc)
+  const scopeName = position ? scopeLabel(project, position.scope, chromeLoc) : ''
   const factRows = intel ? toPublicFacts(intel.facts, lang) : []
   const sourcesCopy = sourcesHeading(lang)
 

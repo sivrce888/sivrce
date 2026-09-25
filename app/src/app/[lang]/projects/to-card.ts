@@ -9,10 +9,12 @@ import { finishMaxYear, getDeveloper, isDelivered, type Project } from '@/data/p
 import { canonicalizeDistrict } from '@/lib/district-canon'
 import { pickLoc, type DirLoc } from '@/lib/directory-seo'
 import { cityByName, nearestMapCity } from '@/lib/map/user-place'
+import { scopeLabel, type marketDeltas } from '@/lib/project-insights'
 import type { ProjectCard } from './card'
 
 /** Server-side projection: resolves dev name + delivered once so the client grid never imports the catalog. */
-export function toCard(p: Project, loc: DirLoc | 'de'): ProjectCard {
+export function toCard(p: Project, loc: DirLoc | 'de', deltas?: ReturnType<typeof marketDeltas>): ProjectCard {
+  const vs = deltas?.get(p.slug)
   const dev = getDeveloper(p.developerSlug)
   const pin = cityByName(p.city)
   const cc = pin?.cc ?? (p.coords ? nearestMapCity(p.coords.lat, p.coords.lng)?.cc : null) ?? 'GE'
@@ -32,5 +34,6 @@ export function toCard(p: Project, loc: DirLoc | 'de'): ProjectCard {
     year: finishMaxYear(p.finish),
     flats: p.flats,
     delivered: isDelivered(p),
+    ...(vs ? { vs: vs.deltaPct, vsIn: scopeLabel(p, vs.scope, loc) } : {}),
   }
 }

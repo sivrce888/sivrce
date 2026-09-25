@@ -1,7 +1,7 @@
 /** Invariants for project-insights — tsx src/lib/project-insights.check.ts */
 import assert from 'node:assert/strict'
 import type { Project } from '@/data/professionals'
-import { marketPosition, priceM2Currency, priceM2Number, rowPriceM2, splitPortfolio, trackRecord } from './project-insights'
+import { marketDeltas, marketPosition, priceM2Currency, priceM2Number, rowPriceM2, scopeLabel, splitPortfolio, trackRecord } from './project-insights'
 
 const base: Project = {
   slug: 'x', name: 'X', img: '/x.webp', location: 'a', city: 'თბილისი', district: 'ვაკე',
@@ -34,6 +34,30 @@ const cityPeers = [700, 800, 900, 1500, 1600].map((v, i) => mk(`c${i}`, { distri
 assert.equal(marketPosition(base, [...cityPeers, vake[0]])!.scope, 'city')
 assert.equal(marketPosition(base, vake.slice(0, 3)), null)
 assert.equal(marketPosition(mk('r', { priceFromM2: 'მოთხოვნით' }), vake), null)
+
+// Hub index agrees with the detail page for every project (seeded pseudo-random corpus).
+let seed = 7
+const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647)
+const districts = ['ვაკე', 'საბურთალო', 'ისანი', undefined]
+const corpus = Array.from({ length: 80 }, (_, i) =>
+  mk(`r${i}`, {
+    city: rnd() < 0.8 ? 'თბილისი' : 'ბათუმი',
+    district: districts[Math.floor(rnd() * districts.length)],
+    priceFromM2: rnd() < 0.15 ? 'მოთხოვნით' : `${rnd() < 0.2 ? '₾' : '$'}${Math.round(700 + rnd() * 2500)}`,
+  }),
+)
+const idx = marketDeltas(corpus)
+for (const p of corpus) {
+  const pos = marketPosition(p, corpus)
+  const hit = idx.get(p.slug)
+  assert.equal(hit?.deltaPct, pos?.deltaPct, `delta mismatch ${p.slug}`)
+  assert.equal(hit?.scope, pos?.scope, `scope mismatch ${p.slug}`)
+}
+assert.ok(idx.size > 20, 'fixture exercises the index')
+// Outliers make no claim: $300 among ~$1,000 peers is a different product, not a bargain.
+assert.equal(marketPosition(mk('cheap', { priceFromM2: '$300' }), vake), null)
+assert.equal(scopeLabel({ city: 'თბილისი', district: 'ვაკე' }, 'district', 'en'), 'Vake')
+assert.equal(scopeLabel({ city: 'თბილისი', district: 'ვაკე' }, 'district', 'ka'), 'ვაკე')
 
 // Track record + portfolio order.
 const done = mk('d', { done: 100, finish: 'ჩაბარებული (2021)', flats: 50 })

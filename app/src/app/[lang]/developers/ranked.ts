@@ -55,6 +55,8 @@ export async function rankedDevelopers(page = 1): Promise<{ cards: RankedDevelop
       (x, y) =>
         (geMarket ? Number(geDevSlugs.has(y.d.slug)) - Number(geDevSlugs.has(x.d.slug)) : 0) ||
         y.listingsCount - x.listingsCount ||
+        // Projects we actually list beat a self-reported portfolio size.
+        (devStats.get(y.d.slug)?.count ?? 0) - (devStats.get(x.d.slug)?.count ?? 0) ||
         y.d.projectsDone - x.d.projectsDone,
     )
 

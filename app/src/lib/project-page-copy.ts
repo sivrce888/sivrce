@@ -6,6 +6,7 @@
 
 import { ruPlural } from '@/lib/i18n/core'
 import type { DirLoc } from '@/lib/directory-seo-lite'
+import { marketChip } from '@/lib/market-chip'
 
 type Loc = DirLoc | 'de'
 
@@ -59,8 +60,6 @@ export interface ProjectPageCopy {
 export const REPORT_FIELDS = ['price', 'status', 'location', 'media', 'developer', 'other'] as const
 export type ReportField = (typeof REPORT_FIELDS)[number]
 
-const pctAbs = (d: number) => `${Math.abs(d)}%`
-
 export const PROJECT_PAGE: Record<Loc, ProjectPageCopy> = {
   ka: {
     building: 'მშენებარე',
@@ -72,7 +71,7 @@ export const PROJECT_PAGE: Record<Loc, ProjectPageCopy> = {
     developer: 'დეველოპერი',
     devRecord: (t, d) => `${t} პროექტი სივრცეზე · ${d} ჩაბარებული`,
     marketTitle: 'ფასი ბაზართან შედარებით',
-    marketChip: (d, s) => (Math.abs(d) < 3 ? `მედიანასთან ახლოს · ${s}` : `${pctAbs(d)}-ით ${d < 0 ? 'იაფი' : 'ძვირი'} მედიანაზე · ${s}`),
+    marketChip: (d, s) => marketChip('ka', d, s),
     marketBody: (p, m, n, s) => `${p}/მ² — მედიანა ${m}/მ² (${n} ახალი პროექტი, ${s}).`,
     marketNote: 'დეველოპერების მიერ გამოქვეყნებული „-დან" ფასები სივრცეზე — საწყისი ფასი და არა საშუალო.',
     lower: 'იაფი',
@@ -117,7 +116,7 @@ export const PROJECT_PAGE: Record<Loc, ProjectPageCopy> = {
     developer: 'Developer',
     devRecord: (t, d) => `${t} ${t === 1 ? 'project' : 'projects'} on Sivrce · ${d} completed`,
     marketTitle: 'Price vs the market',
-    marketChip: (d, s) => (Math.abs(d) < 3 ? `Near the ${s} median` : `${pctAbs(d)} ${d < 0 ? 'below' : 'above'} the ${s} median`),
+    marketChip: (d, s) => marketChip('en', d, s),
     marketBody: (p, m, n, s) => `${p}/m² against a median of ${m}/m² across ${n} new-build projects in ${s}.`,
     marketNote: 'Developers’ published “from” prices on Sivrce — the entry price, not an average.',
     lower: 'Lower',
@@ -162,7 +161,7 @@ export const PROJECT_PAGE: Record<Loc, ProjectPageCopy> = {
     developer: 'Застройщик',
     devRecord: (t, d) => `${t} ${ruPlural(t, 'проект', 'проекта', 'проектов')} на Sivrce · ${d} ${ruPlural(d, 'сдан', 'сдано', 'сдано')}`,
     marketTitle: 'Цена относительно рынка',
-    marketChip: (d, s) => (Math.abs(d) < 3 ? `Около медианы: ${s}` : `На ${pctAbs(d)} ${d < 0 ? 'ниже' : 'выше'} медианы: ${s}`),
+    marketChip: (d, s) => marketChip('ru', d, s),
     marketBody: (p, m, n, s) => `${p}/м² при медиане ${m}/м² по ${n} ${ruPlural(n, 'новостройке', 'новостройкам', 'новостройкам')} (${s}).`,
     marketNote: 'Опубликованные застройщиками цены «от» на Sivrce — стартовая цена, а не средняя.',
     lower: 'Ниже',
@@ -207,7 +206,7 @@ export const PROJECT_PAGE: Record<Loc, ProjectPageCopy> = {
     developer: 'Bauträger',
     devRecord: (t, d) => `${t} ${t === 1 ? 'Projekt' : 'Projekte'} auf Sivrce · ${d} fertiggestellt`,
     marketTitle: 'Preis im Marktvergleich',
-    marketChip: (d, s) => (Math.abs(d) < 3 ? `Nahe am Median (${s})` : `${pctAbs(d)} ${d < 0 ? 'unter' : 'über'} dem Median (${s})`),
+    marketChip: (d, s) => marketChip('de', d, s),
     marketBody: (p, m, n, s) => `${p}/m² bei einem Median von ${m}/m² über ${n} Neubauprojekte in ${s}.`,
     marketNote: 'Von Bauträgern veröffentlichte „ab“-Preise auf Sivrce — Einstiegspreis, kein Durchschnitt.',
     lower: 'Günstiger',

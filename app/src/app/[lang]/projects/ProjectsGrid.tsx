@@ -7,9 +7,10 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { Building2, CalendarCheck, CheckCircle2, ChevronLeft, ChevronRight, MapPin } from 'lucide-react'
 import { MICRO, MICRO_DE, finishLabel, hasPriceFrom, priceFromLabel, unitsLabel, type DirLoc } from '@/lib/directory-seo-lite'
+import { marketChip } from '@/lib/market-chip'
 import type { ProjectCard } from './card'
 
-/** Cards per hub page — 18 rows × 2 cols desktop. Caps ISR payload weight. */
+/** Cards per hub page — 12 rows × 3 cols desktop. Caps ISR payload weight. */
 export const PER_PAGE = 36
 
 export function ProjectsGrid({ projects, loc }: { projects: ProjectCard[]; loc: DirLoc | 'de' }) {
@@ -22,81 +23,78 @@ export function ProjectsGrid({ projects, loc }: { projects: ProjectCard[]; loc: 
     )
   }
   return (
-    <div className="mt-6 grid gap-6 lg:grid-cols-2">
-      {projects.map((p, i) => {
-        const dev = p.devName
-        const delivered = p.delivered
-        return (
-          <Link
-            key={p.slug}
-            href={`/projects/${p.slug}`}
-            // no aria-label: visible text (name+dev+status) IS the accessible name
-            className="group block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue rounded-card"
-          >
-            <article className="overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-card-hover">
-              <div className="relative aspect-[16/9] overflow-hidden">
-                <Image
-                  src={p.img}
-                  alt={p.name}
-                  fill
-                  sizes="(max-width:1024px) 100vw, 690px"
-                  priority={i < 2}
-                  className="object-cover transition-transform duration-700 group-hover:scale-[1.05]"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-sv-navy/75 via-transparent to-transparent" />
-                <div className="absolute bottom-4 left-5 right-5 flex items-end justify-between">
-                  <div>
-                    <h2 className="text-[22px] font-black text-white [text-shadow:0_2px_10px_rgba(5,11,38,0.55)]">
-                      {p.name}
-                    </h2>
-                    {dev && (
-                      <p className="text-[13px] font-bold text-white/80">{dev}</p>
-                    )}
-                  </div>
-                </div>
-                {delivered ? (
-                  <div className="absolute left-5 top-4 flex items-center gap-1.5 rounded-full bg-white/95 px-3.5 py-1.5 text-[12px] font-extrabold text-sv-ink backdrop-blur">
-                    <CheckCircle2 className="h-3.5 w-3.5 text-sv-success" aria-hidden />
-                    {finishLabel(loc, p.finish)}
-                  </div>
-                ) : (
-                  <div className="absolute left-5 top-4 rounded-full bg-sv-navy/55 px-3.5 py-1.5 text-[12px] font-extrabold text-white backdrop-blur">
-                    {micro.builtPct(p.done)}
-                  </div>
-                )}
-              </div>
-              <div className="flex flex-wrap items-center gap-x-6 gap-y-3 p-5">
-                <span className="flex items-center gap-1.5 text-[13px] font-bold text-sv-ink/70">
-                  <MapPin className="h-4 w-4 text-sv-ink/35" aria-hidden /> {p.location}
+    <div className="mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+      {projects.map((p, i) => (
+        <Link
+          key={p.slug}
+          href={`/projects/${p.slug}`}
+          // no aria-label: visible text (name+dev+status) IS the accessible name
+          className="group block rounded-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue"
+        >
+          <article className="flex h-full flex-col overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-card-hover">
+            <div className="relative aspect-[16/10] overflow-hidden">
+              <Image
+                src={p.img}
+                alt={p.name}
+                fill
+                sizes="(max-width:640px) 100vw, (max-width:1280px) 50vw, 460px"
+                priority={i < 3}
+                className="object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+              />
+              {p.delivered ? (
+                <span className="absolute left-4 top-4 flex items-center gap-1.5 rounded-full bg-sv-surface/95 px-3 py-1 text-[12px] font-extrabold text-sv-ink shadow-card">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-sv-blue" aria-hidden />
+                  {finishLabel(loc, p.finish) || micro.builtPct(100)}
                 </span>
-                <span className="flex items-center gap-1.5 text-[13px] font-bold text-sv-ink/70">
-                  <CalendarCheck className="h-4 w-4 text-sv-ink/35" aria-hidden /> {micro.handover}{' '}
-                  {finishLabel(loc, p.finish)}
+              ) : (
+                <span className="absolute left-4 top-4 rounded-full bg-sv-navy/60 px-3 py-1 text-[12px] font-extrabold text-white backdrop-blur">
+                  {micro.builtPct(p.done)}
                 </span>
-                <span className="flex items-center gap-1.5 text-[13px] font-bold text-sv-ink/70">
-                  <Building2 className="h-4 w-4 text-sv-ink/35" aria-hidden /> {unitsLabel(p.flats, loc)}
-                </span>
-                {p.priceFromM2 && (
-                  <span className="ml-auto text-[16px] font-black text-sv-blue">
-                    {priceFromLabel(p.priceFromM2, loc)}
+              )}
+            </div>
+            <div className="flex flex-1 flex-col p-5">
+              <h2 className="text-[18px] font-black leading-snug text-sv-ink">{p.name}</h2>
+              {p.devName && <p className="text-[13px] font-bold text-sv-ink/60">{p.devName}</p>}
+              <p className="mt-2 flex items-start gap-1.5 text-[13px] font-semibold text-sv-ink/65">
+                <MapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-sv-ink/35" aria-hidden />
+                <span className="line-clamp-1" title={p.location}>{p.location}</span>
+              </p>
+              <div className="mt-auto flex items-end justify-between gap-3 pt-4">
+                <div className="min-w-0">
+                  <p className="text-[20px] font-black tracking-[-0.01em] text-sv-ink">
+                    {priceFromLabel(p.priceFromM2, loc) || '—'}
                     {hasPriceFrom(p.priceFromM2) && (
                       <span className="text-[12px] font-bold text-sv-ink/60"> {micro.perM2From}</span>
                     )}
+                  </p>
+                  {p.vs !== undefined && p.vsIn && (
+                    <p className="mt-1 inline-flex rounded-full bg-sv-blue/[0.08] px-2.5 py-0.5 text-[12px] font-extrabold text-sv-blue-deep">
+                      {marketChip(loc, p.vs, p.vsIn)}
+                    </p>
+                  )}
+                </div>
+                <div className="shrink-0 text-right text-[12px] font-bold leading-relaxed text-sv-ink/60">
+                  {!p.delivered && (
+                    <span className="flex items-center justify-end gap-1">
+                      <CalendarCheck className="h-3.5 w-3.5" aria-hidden />
+                      {finishLabel(loc, p.finish)}
+                    </span>
+                  )}
+                  <span className="flex items-center justify-end gap-1">
+                    <Building2 className="h-3.5 w-3.5" aria-hidden />
+                    {unitsLabel(p.flats, loc)}
                   </span>
-                )}
+                </div>
               </div>
-              {!delivered && (
-                <div className="mx-5 mb-5 h-1.5 overflow-hidden rounded-full bg-sv-ink/[0.07]">
-                  <div
-                    className="h-full rounded-full bg-gradient-to-r from-sv-blue to-sv-violet"
-                    style={{ width: `${p.done}%` }}
-                  />
+              {!p.delivered && (
+                <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-sv-ink/[0.07]" aria-hidden>
+                  <div className="h-full rounded-full bg-gradient-to-r from-sv-blue to-sv-violet" style={{ width: `${p.done}%` }} />
                 </div>
               )}
-            </article>
-          </Link>
-        )
-      })}
+            </div>
+          </article>
+        </Link>
+      ))}
     </div>
   )
 }
