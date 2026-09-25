@@ -10,18 +10,6 @@ import {
   Navigation,
   Calendar,
   TrainFront,
-  TramFront,
-  Bus,
-  GraduationCap,
-  Trees,
-  Hospital,
-  ShoppingBag,
-  Landmark,
-  Castle,
-  Dumbbell,
-  Pill,
-  Baby,
-  type LucideIcon,
 } from 'lucide-react'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
@@ -60,10 +48,8 @@ import {
   formatMetroDist,
   nearestAmenities,
   nearestMetro,
-  POI_COLORS,
-  POI_LABELS,
-  type PoiCategory,
 } from '@/lib/map/pois'
+import { AmenityChips } from '@/components/places/AmenityChips'
 import { getDistrictPeerPerM2, getListingsByIds } from '@/lib/listings-db'
 import { type DirLoc } from '@/lib/directory-seo'
 import { DISTRICTS } from '@/lib/seo-pages'
@@ -201,23 +187,6 @@ export const maxDuration = 15
 
 interface PageProps {
   params: Promise<{ lang: string; slug: string }>
-}
-
-const AMENITY_ICON: Record<PoiCategory, LucideIcon> = {
-  metro: TrainFront,
-  bus: Bus,
-  tram: TramFront,
-  rail: TrainFront,
-  school: GraduationCap,
-  university: Landmark,
-  park: Trees,
-  hospital: Hospital,
-  shop: ShoppingBag,
-  gym: Dumbbell,
-  pharmacy: Pill,
-  landmark: Castle,
-  kindergarten: Baby,
-  bank: Landmark,
 }
 
 /** Static catalog first; DB-curated buildings (admin) as fallback so map deep-links never 404. */
@@ -721,26 +690,7 @@ export default async function BuildingPage({ params }: PageProps) {
             <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
               {t.around}
             </h2>
-            <ul className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              {amenities.map((a) => {
-                const Icon = AMENITY_ICON[a.category]
-                return (
-                  <li
-                    key={a.category}
-                    className="flex items-start gap-3 rounded-module border border-sv-ink/[0.06] bg-sv-surface px-4 py-3.5 shadow-card"
-                  >
-                    <Icon className="mt-0.5 h-5 w-5 shrink-0" style={{ color: POI_COLORS[a.category] }} aria-hidden />
-                    <div className="min-w-0">
-                      <p className="text-[11px] font-bold uppercase tracking-wide text-sv-ink/60">
-                        {POI_LABELS[a.category]}
-                      </p>
-                      <p className="truncate text-[14px] font-extrabold text-sv-ink">{a.name}</p>
-                      <p className="text-[12px] font-bold text-sv-ink/60">{formatMetroDist(a)}</p>
-                    </div>
-                  </li>
-                )
-              })}
-            </ul>
+            <AmenityChips amenities={amenities} lang={lang} className="mt-5" />
           </section>
         )}
 

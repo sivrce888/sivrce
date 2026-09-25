@@ -17,6 +17,8 @@ import {
   type MetroStation,
 } from '@/data/tbilisi-metro'
 import { getListingsNearMetro } from '@/lib/listings-db'
+import { nearestAmenities } from '@/lib/map/pois'
+import { AmenityChips } from '@/components/places/AmenityChips'
 import { DISTRICTS, parseSeoSlug, statsOf, type District, type Faq } from '@/lib/seo-pages'
 import { jsonLd } from '@/lib/utils'
 import { listingPath } from '@/lib/listing-slug'
@@ -64,6 +66,7 @@ interface Copy {
   chipAllStations: string
   chipDistrict: string
   listingsAria: string
+  around: string
   emptyTitle: string
   emptyBody: string
   introTitle: string
@@ -111,6 +114,7 @@ const C: Record<'ka' | 'en' | 'ru' | 'de', Copy> = {
     chipAllStations: 'ყველა სადგური',
     chipDistrict: 'უბანი: {name}',
     listingsAria: 'განცხადებები',
+    around: 'სადგურის ირგვლივ',
     emptyTitle: 'სადგურთან ახლოს ჯერ განცხადება არ არის',
     emptyBody: 'მარაგი ყოველდღე იცვლება — მოძებნეთ ბინა ძიებით, დაათვალიერეთ მთლიანი უბანი ან მეზობელი სადგურები.',
     introTitle: 'ბინები {near} — ბაზრის მიმოხილვა',
@@ -163,6 +167,7 @@ const C: Record<'ka' | 'en' | 'ru' | 'de', Copy> = {
     chipAllStations: 'All stations',
     chipDistrict: 'District: {name}',
     listingsAria: 'Listings',
+    around: 'Around the station',
     emptyTitle: 'No listings near this station yet',
     emptyBody: 'Inventory changes daily — search for an apartment, browse the whole district or neighbouring stations.',
     introTitle: 'Apartments {near} — market overview',
@@ -214,6 +219,7 @@ const C: Record<'ka' | 'en' | 'ru' | 'de', Copy> = {
     chipAllStations: 'Все станции',
     chipDistrict: 'Район: {name}',
     listingsAria: 'Объявления',
+    around: 'Рядом со станцией',
     emptyTitle: 'Рядом со станцией пока нет объявлений',
     emptyBody: 'Предложение меняется каждый день — воспользуйтесь поиском, посмотрите весь район или соседние станции.',
     introTitle: 'Квартиры {near} — обзор рынка',
@@ -265,6 +271,7 @@ const C: Record<'ka' | 'en' | 'ru' | 'de', Copy> = {
     chipAllStations: 'Alle Stationen',
     chipDistrict: 'Viertel: {name}',
     listingsAria: 'Inserate',
+    around: 'In der Umgebung der Station',
     emptyTitle: 'Noch keine Inserate in Stationsnähe',
     emptyBody:
       'Das Angebot ändert sich täglich — suchen Sie eine Wohnung, stöbern Sie im gesamten Viertel oder bei benachbarten Stationen.',
@@ -456,6 +463,7 @@ export default async function MetroStationPage({ params }: PageProps) {
   const ctx = await resolve(s)
   if (!ctx) notFound()
   const { station, listings } = ctx
+  const amenities = nearestAmenities(station.lat, station.lng)
   const district = districtOf(station)
   const neighbours = metroNeighbours(station.slug)
   const near = nearOf(station, cl)
@@ -558,6 +566,16 @@ export default async function MetroStationPage({ params }: PageProps) {
           ))}
           <Chip label={c.chipAllStations} href="/metro" active />
         </div>
+
+        {/* Around the station — real OSM amenities within walking reach */}
+        {amenities.length > 0 && (
+          <section aria-label={c.around} className="mb-12">
+            <h2 className="mb-5 text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
+              {c.around}
+            </h2>
+            <AmenityChips amenities={amenities} lang={lang} />
+          </section>
+        )}
 
         {/* Listings */}
         {listings.length > 0 ? (

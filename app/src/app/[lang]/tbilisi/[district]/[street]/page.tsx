@@ -16,6 +16,8 @@ import {
   type TbilisiStreet,
 } from '@/data/tbilisi-streets'
 import { getListingsOnStreet } from '@/lib/listings-db'
+import { nearestAmenities } from '@/lib/map/pois'
+import { AmenityChips } from '@/components/places/AmenityChips'
 import { DISTRICTS, parseSeoSlug, statsOf, type District, type Faq } from '@/lib/seo-pages'
 import { jsonLd } from '@/lib/utils'
 import { listingPath } from '@/lib/listing-slug'
@@ -69,6 +71,7 @@ interface Copy {
   chipStreets: string
   chipMetro: string
   listingsAria: string
+  around: string
   emptyTitle: string
   emptyBody: string
   chipDistrict: string
@@ -113,6 +116,7 @@ const C: Record<'ka' | 'en' | 'ru' | 'de', Copy> = {
     chipStreets: 'თბილისის ქუჩები',
     chipMetro: 'ბინები მეტროსთან',
     listingsAria: 'განცხადებები',
+    around: 'ქუჩის ირგვლივ',
     emptyTitle: 'ამ ქუჩაზე ჯერ განცხადება არ არის',
     emptyBody: 'მარაგი ყოველდღე იცვლება — მოძებნეთ ბინა ძიებით ან დაათვალიერეთ მთლიანი უბანი.',
     chipDistrict: 'უბანი: {name}',
@@ -160,6 +164,7 @@ const C: Record<'ka' | 'en' | 'ru' | 'de', Copy> = {
     chipStreets: 'Tbilisi streets',
     chipMetro: 'Apartments near the metro',
     listingsAria: 'Listings',
+    around: 'Around the street',
     emptyTitle: 'No listings on this street yet',
     emptyBody: 'Inventory changes daily — search for an apartment or browse the whole district.',
     chipDistrict: 'District: {name}',
@@ -207,6 +212,7 @@ const C: Record<'ka' | 'en' | 'ru' | 'de', Copy> = {
     chipStreets: 'Улицы Тбилиси',
     chipMetro: 'Квартиры у метро',
     listingsAria: 'Объявления',
+    around: 'Рядом с улицей',
     emptyTitle: 'На этой улице пока нет объявлений',
     emptyBody: 'Предложение меняется каждый день — воспользуйтесь поиском или посмотрите весь район.',
     chipDistrict: 'Район: {name}',
@@ -254,6 +260,7 @@ const C: Record<'ka' | 'en' | 'ru' | 'de', Copy> = {
     chipStreets: 'Tifliser Straßen',
     chipMetro: 'Wohnungen nahe der Metro',
     listingsAria: 'Inserate',
+    around: 'In der Umgebung der Straße',
     emptyTitle: 'Auf dieser Straße gibt es noch keine Inserate',
     emptyBody: 'Das Angebot ändert sich täglich — suchen Sie eine Wohnung oder stöbern Sie im gesamten Viertel.',
     chipDistrict: 'Viertel: {name}',
@@ -444,6 +451,7 @@ export default async function StreetPage({ params }: PageProps) {
   const title = titleOfStreet(street, district, listings.length, cl)
   const description = descriptionOfStreet(street, district, listings, cl)
   const coords = DISTRICT_COORDS[district.slug]
+  const amenities = coords ? nearestAmenities(coords.lat, coords.lng) : []
   // District hub self-throttles (≥1 listing rule) — link only when it exists.
   const districtHub = parseSeoSlug(['tbilisi', district.slug]) !== null
 
@@ -540,6 +548,16 @@ export default async function StreetPage({ params }: PageProps) {
           <Chip label={c.chipStreets} href="/tbilisi/kuchebi" />
           <Chip label={c.chipMetro} href="/metro" />
         </div>
+
+        {/* Around the street — real OSM amenities within walking reach */}
+        {amenities.length > 0 && (
+          <section aria-label={c.around} className="mb-12">
+            <h2 className="mb-5 text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
+              {c.around}
+            </h2>
+            <AmenityChips amenities={amenities} lang={lang} />
+          </section>
+        )}
 
         {/* Listings */}
         {listings.length > 0 ? (

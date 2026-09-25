@@ -11,9 +11,12 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 
 const UA = 'sivrce-maps/1.0 (sivrce888@gmail.com)'
+// kumi mirrors the canonical planet; osm.ch answers during canonical outages
+// but can serve a mid-import (empty) DB — last resort, merge-seed stays safe.
 const ENDPOINTS = [
-  'https://overpass-api.de/api/interpreter',
   'https://overpass.kumi.systems/api/interpreter',
+  'https://overpass-api.de/api/interpreter',
+  'https://overpass.osm.ch/api/interpreter',
 ]
 
 /** Cities with live inventory: the big three + Rustavi, the Gonio–Chakvi–
@@ -37,6 +40,8 @@ type BoxKey = keyof typeof BOXES
 
 export type PoiCategory =
   | 'metro'
+  | 'bus'
+  | 'rail'
   | 'pharmacy'
   | 'school'
   | 'kindergarten'
@@ -117,6 +122,12 @@ function classify(tags: Record<string, string> | undefined): PoiCategory | null 
   if (!tags) return null
   if (tags.station === 'subway' || tags.subway === 'yes') return 'metro'
   if (tags.railway === 'station' && tags.station === 'subway') return 'metro'
+  // Mainline rail — stations + halts, subway already claimed above.
+  if (tags.railway === 'station' || tags.railway === 'halt') return 'rail'
+  // Bus stops: the physical stop is the signal, name optional — the nearest
+  // stop is the one you wait at. Co-tagged platform/bus_stop share an OSM id.
+  if (tags.highway === 'bus_stop') return 'bus'
+  if (tags.public_transport === 'platform' && tags.bus === 'yes') return 'bus'
   if (tags.amenity === 'pharmacy') return 'pharmacy'
   // Georgian family filters — named kindergartens and banks stand alone;
   // unnamed ones are address noise, not a place a parent or payer searches.
@@ -192,6 +203,10 @@ function fallbackName(cat: PoiCategory): string {
   switch (cat) {
     case 'metro':
       return 'მეტრო'
+    case 'bus':
+      return 'ავტობუსის გაჩერება'
+    case 'rail':
+      return 'რკინიგზის სადგური'
     case 'pharmacy':
       return 'აფთიაქი'
     case 'school':
@@ -238,6 +253,10 @@ async function main() {
   // Tbilisi metro only — Georgia-wide subway tags pick up Abkhazia noise.
   node["railway"="station"]["station"="subway"](${t});
   node["public_transport"="station"]["subway"="yes"](${t});
+  nwr["highway"="bus_stop"](${t});
+  nwr["public_transport"="platform"]["bus"="yes"](${t});
+  nwr["railway"="station"][!"station"="subway"](${t});
+  nwr["railway"="halt"](${t});
   nwr["amenity"="pharmacy"](${t});
   nwr["amenity"="bank"](${t});
   nwr["amenity"="school"](${t});

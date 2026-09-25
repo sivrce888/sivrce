@@ -81,9 +81,15 @@ export type NearAmenity = {
   walkMin: number
 }
 
-/** Catchments for building-page “როგორ მივიდე” — metro uses the walking grid instead. */
+/** Catchments for building-page “როგორ მივიდე” — metro uses the walking grid instead.
+ *  bus/rail catchments cover walk-score's transit band (≤1000 m); kindergarten/bank
+ *  cover the walk band (≤600 m scores, wider still informs the chip). */
 const AMENITY_MAX_M: Partial<Record<PoiCategory, number>> = {
+  bus: 1000,
+  rail: 1200,
   school: 1500,
+  kindergarten: 900,
+  bank: 700,
   park: 1200,
   hospital: 2500,
   shop: 800,

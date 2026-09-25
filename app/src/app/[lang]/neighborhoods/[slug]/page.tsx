@@ -7,8 +7,10 @@ import { NEIGHBORHOODS, getNeighborhood, pick } from '@/data/neighborhoods'
 import { getListingsInDistricts, USD_GEL } from '@/lib/listings-db'
 import { getNeighborhoodMarketStats } from '@/lib/market-stats'
 import { AirBadge, WeatherBadge } from '@/components/WeatherBadge'
+import { nearestAmenities } from '@/lib/map/pois'
+import { AmenityChips } from '@/components/places/AmenityChips'
 import { jsonLd, ogImage } from '@/lib/utils'
-import { pageAlternates, OG_LOCALE } from '@/lib/i18n/server'
+import { getServerT, pageAlternates, OG_LOCALE } from '@/lib/i18n/server'
 import { isValidLang, type Lang } from '@/lib/i18n/core'
 import { dirLoc, neighborhoodFaqs, faqPageLd } from '@/lib/directory-seo'
 
@@ -112,6 +114,19 @@ export default async function NeighborhoodPage({ params }: PageProps) {
 
   const homeLabel = loc === 'ka' ? 'მთავარი' : loc === 'ru' ? 'Главная' : 'Home'
   const hubLabel = loc === 'ka' ? 'უბნები' : loc === 'ru' ? 'Районы' : 'Neighborhoods'
+  const around = nearestAmenities(n.coords.lat, n.coords.lng)
+  const aroundT = getServerT(lang)('detail.around')
+  const amenitiesNode =
+    around.length > 0 ? (
+      <section aria-label={aroundT} className="bg-sv-cloud py-16 md:py-20">
+        <div className="mx-auto max-w-[1440px] px-5 md:px-10">
+          <h2 className="mb-6 text-[26px] font-black tracking-[-0.02em] text-sv-ink md:text-[32px]">
+            {aroundT}
+          </h2>
+          <AmenityChips amenities={around} lang={lang} />
+        </div>
+      </section>
+    ) : null
   const breadcrumbLd = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
@@ -131,6 +146,7 @@ export default async function NeighborhoodPage({ params }: PageProps) {
           listings={listings}
           market={market}
           faqs={faqs}
+          amenities={amenitiesNode}
           weather={
             <>
               <WeatherBadge

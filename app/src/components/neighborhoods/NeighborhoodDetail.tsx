@@ -21,6 +21,7 @@ export default function NeighborhoodDetail({
   market = null,
   weather = null,
   faqs = [],
+  amenities = null,
 }: {
   n: Neighborhood
   listings: Listing[]
@@ -28,6 +29,8 @@ export default function NeighborhoodDetail({
   market?: { stats: DistrictStats | null; mom: number | null } | null
   /** Server-rendered <WeatherBadge> slot — fetched on the server, shown in the hero. */
   weather?: ReactNode
+  /** Server-rendered "around you" amenity section — computed from the OSM corpus. */
+  amenities?: ReactNode
   faqs?: { q: string; a: string }[]
 }) {
   const { lang } = useI18n()
@@ -156,6 +159,9 @@ export default function NeighborhoodDetail({
           </Reveal>
         </div>
       </section>
+
+      {/* around you — server-rendered OSM amenities */}
+      {amenities}
 
       {/* listings in this area */}
       <section className="bg-sv-surface py-16 md:py-20">

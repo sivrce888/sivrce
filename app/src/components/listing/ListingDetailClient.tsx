@@ -123,6 +123,7 @@ const AMENITY_ICON: Record<PoiCategory, LucideIcon> = {
 }
 
 type NearChip = { category: PoiCategory; name: string; dist: string; color: string; meters: number }
+type AmenityHit = import('@/lib/walk-score').AmenityHit
 
 function FeatureGroups({ features, dealType }: { features: string[]; dealType: string }) {
   const { t } = useI18n()
@@ -780,10 +781,15 @@ export default function ListingDetailClient({
 
   const recentIds = useRecentIds()
   const [nearChips, setNearChips] = useState<NearChip[] | null>(null)
+  // Full catchment list — WalkScore counts every category in range, the chip
+  // grid shows the six nearest. Scoring on the slice would drop transit hits.
+  const [nearHits, setNearHits] = useState<AmenityHit[] | null>(null)
   useEffect(() => {
     let cancelled = false
     void import('@/lib/map/pois').then(({ nearestAmenities, formatMetroDist, POI_COLORS }) => {
       if (cancelled) return
+      const all = nearestAmenities(l.coords.lat, l.coords.lng)
+      setNearHits(all.map((a) => ({ category: a.category, meters: a.meters })))
       setNearChips(
         nearestAmenities(l.coords.lat, l.coords.lng).slice(0, 6).map((a) => ({
           category: a.category,
@@ -1638,7 +1644,7 @@ export default function ListingDetailClient({
                 className="mt-6"
                 lat={l.coords.lat}
                 lng={l.coords.lng}
-                amenities={nearChips}
+                amenities={nearHits}
               />
             )}
 
