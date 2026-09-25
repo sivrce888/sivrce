@@ -9,6 +9,8 @@ import { useEffect, useRef, useState } from 'react'
 import type { Map as MlMap } from 'maplibre-gl'
 import { bindMaplibreWorker } from '@/lib/map/maplibre-worker'
 import { mapChromeOptions, tightenAttribution } from '@/lib/map/mapChrome'
+import { BRAND } from '@/lib/brand'
+import { useI18n } from '@/lib/i18n/context'
 
 type MaplibreNS = typeof import('maplibre-gl')
 
@@ -38,6 +40,7 @@ export default function MetroStationMap({
   const mapRef = useRef<MlMap | null>(null)
   const [ready, setReady] = useState(false)
   const [error, setError] = useState(false)
+  const { t } = useI18n()
 
   useEffect(() => {
     let disposed = false
@@ -77,7 +80,7 @@ export default function MetroStationMap({
       const el = document.createElement('div')
       el.className = 'metro-station-pin'
       el.style.cssText =
-        'width:28px;height:28px;border-radius:50%;background:#0066FF;border:3px solid #fff;' +
+        `width:28px;height:28px;border-radius:50%;background:${BRAND.colors.blue};border:3px solid #fff;` +
         'box-shadow:0 2px 8px rgba(0,0,20,.25);display:grid;place-items:center;'
       el.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M8 6v6m8-6v6M5 18h14M5 12h14M5 6h14"/></svg>`
       el.title = `${stationName} (${lines.join(', ')})`
@@ -96,13 +99,13 @@ export default function MetroStationMap({
           id: 'metro-radius-fill',
           type: 'fill',
           source: 'metro-radius',
-          paint: { 'fill-color': '#0066FF', 'fill-opacity': 0.08 },
+          paint: { 'fill-color': BRAND.colors.blue, 'fill-opacity': 0.08 },
         })
         map.addLayer({
           id: 'metro-radius-stroke',
           type: 'line',
           source: 'metro-radius',
-          paint: { 'line-color': '#0066FF', 'line-width': 1.5, 'line-opacity': 0.35 },
+          paint: { 'line-color': BRAND.colors.blue, 'line-width': 1.5, 'line-opacity': 0.35 },
         })
         setReady(true)
       })
@@ -123,8 +126,8 @@ export default function MetroStationMap({
 
   if (error) {
     return (
-      <div className="grid h-[260px] place-items-center rounded-card border border-sv-ink/[0.06] bg-sv-surface text-[13px] font-bold text-sv-ink/40">
-        Karte konnte nicht geladen werden
+      <div className="grid h-[260px] place-items-center rounded-card border border-sv-ink/[0.06] bg-sv-surface text-[13px] font-bold text-sv-ink/60">
+        {t('map.error')}
       </div>
     )
   }
@@ -134,7 +137,7 @@ export default function MetroStationMap({
       <div ref={containerRef} className="h-[260px] w-full" />
       {!ready && (
         <div className="absolute inset-0 grid place-items-center bg-sv-surface/80 backdrop-blur-sm">
-          <span className="text-[13px] font-bold text-sv-ink/40">Karte wird geladen…</span>
+          <span className="text-[13px] font-bold text-sv-ink/60">{t('search.loading')}</span>
         </div>
       )}
     </div>
