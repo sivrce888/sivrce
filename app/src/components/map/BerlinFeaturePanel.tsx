@@ -54,7 +54,7 @@ function heightNote(src: string | null, de: boolean): string | null {
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between gap-4 py-0.5">
-      <dt className="shrink-0 text-sv-ink/50 text-[13px]">{label}</dt>
+      <dt className="shrink-0 text-sv-ink/60 text-[13px]">{label}</dt>
       <dd className="text-right font-semibold text-sv-ink text-[13px]">{value}</dd>
     </div>
   )
@@ -133,10 +133,10 @@ export default function BerlinFeaturePanel({
           {feature.floors != null ? <Row label={de ? 'Geschosse' : 'Storeys'} value={String(feature.floors)} /> : null}
           {feature.height != null && hNote ? (
             <div className="flex items-center justify-between gap-4 py-0.5">
-              <dt className="text-sv-ink/50 text-[13px]">{de ? 'Höhe' : 'Height'}</dt>
+              <dt className="text-sv-ink/60 text-[13px]">{de ? 'Höhe' : 'Height'}</dt>
               <dd className="text-right font-semibold text-sv-ink tabular-nums text-[13px]">
                 {Math.round(feature.height)} m
-                <span className="mt-0.5 block text-[11px] font-normal text-sv-ink/45">{hNote}</span>
+                <span className="mt-0.5 block text-[11px] font-normal text-sv-ink/60">{hNote}</span>
               </dd>
             </div>
           ) : null}
@@ -147,13 +147,13 @@ export default function BerlinFeaturePanel({
             />
           ) : null}
           <div className="flex items-center justify-between gap-4 py-1">
-            <dt className="text-sv-ink/50 text-[13px]">{de ? 'Quellen-ID' : 'Source id'}</dt>
+            <dt className="text-sv-ink/60 text-[13px]">{de ? 'Quellen-ID' : 'Source id'}</dt>
             <dd className="flex items-center gap-1.5 font-mono text-xs text-sv-ink/80">
               <span className="max-w-[180px] truncate" title={feature.id}>{feature.id}</span>
               <button
                 type="button"
                 onClick={handleCopyId}
-                className="grid h-7 w-7 place-items-center rounded-md hover:bg-sv-ink/5 text-sv-ink/40 hover:text-sv-ink transition"
+                className="grid h-7 w-7 place-items-center rounded-md hover:bg-sv-ink/5 text-sv-ink/60 hover:text-sv-ink transition"
                 title={de ? 'ID kopieren' : 'Copy ID'}
               >
                 {copied ? <Check className="h-3.5 w-3.5 text-sv-green" /> : <Copy className="h-3.5 w-3.5" />}
@@ -175,7 +175,7 @@ export default function BerlinFeaturePanel({
         ) : null}
 
         <section className="rounded-module border border-sv-ink/8 bg-sv-cloud/50 p-4">
-          <h3 className="text-[11px] font-bold uppercase tracking-wider text-sv-ink/45">
+          <h3 className="text-[11px] font-bold uppercase tracking-wider text-sv-ink/60">
             {de ? 'Herkunft & Integrität' : 'Provenance & Integrity'}
           </h3>
           <p className="mt-1 text-xs font-bold text-sv-ink">{SOURCE_LABEL[feature.source]}</p>
