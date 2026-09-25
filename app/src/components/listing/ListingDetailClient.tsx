@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useSession } from 'next-auth/react'
 import { toast } from 'sonner'
 import {
-  Heart, Share2, MapPin, Eye, Calendar, BedDouble, Bath, Ruler,
+  Heart, Share2, MapPin, Eye, Calendar, BedDouble, Bath, Ruler, ArrowUpRight,
   Building2, DoorOpen, Layers, ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut, Crown, Flame,
   MessageCircle, BadgeCheck, Calculator, TrendingDown, TrendingUp, TrainFront, TramFront, Bus, Columns2, Copy,
   Play, Camera, GraduationCap, Trees, Hospital, ShoppingBag, Landmark, Castle, Dumbbell, Pill, Leaf,
@@ -1883,6 +1883,16 @@ export default function ListingDetailClient({
                     </span>
                   </div>
                 </div>
+                {/* Full calculator carries amortization, bank-rate bands, subsidy — prefill this listing. */}
+                {!euroNative && (
+                  <LocalizedLink
+                    href={`/mortgage-calculator?price=${Math.round(l.priceUSD)}&down=${downPct}&rate=${rate}&years=${years}`}
+                    className="mt-4 inline-flex min-h-11 items-center gap-1.5 text-[13px] font-extrabold text-sv-blue transition-colors hover:text-sv-blue-deep"
+                  >
+                    {t('detail.mortgageFull')}
+                    <ArrowUpRight className="h-4 w-4" aria-hidden />
+                  </LocalizedLink>
+                )}
               </div>
             )}
 

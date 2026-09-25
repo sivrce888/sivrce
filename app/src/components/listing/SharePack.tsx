@@ -1,15 +1,18 @@
 "use client"
 
 import { useEffect, type ReactNode } from "react"
-import { Copy, MessageCircle, Share2 } from "lucide-react"
+import { Copy, MessageCircle, Phone, Send, Share2 } from "lucide-react"
 import { toast } from "sonner"
 
 import { useI18n } from "@/lib/i18n/context"
 import { localizedHref, type Lang } from "@/lib/i18n/core"
 import {
+  fbShareHref,
   listingPriceLabel,
   listingShareLines,
   listingShareText,
+  tgShareHref,
+  viberShareHref,
   waSendHref,
   type ListingShareInput,
 } from "@/lib/listing-share"
@@ -60,6 +63,7 @@ export function ShareSheet({
 
   const url = absUrl(path, lang)
   const text = listingShareText(input, url)
+  const lines = listingShareLines(input).join("\n")
   const canNative = typeof navigator !== "undefined" && typeof navigator.share === "function"
 
   const copy = () => {
@@ -74,7 +78,7 @@ export function ShareSheet({
     try {
       await navigator.share({
         title: input.title,
-        text: listingShareLines(input).join("\n"),
+        text: lines,
         url,
       })
     } catch {
@@ -102,6 +106,15 @@ export function ShareSheet({
             <MessageCircle className="h-5 w-5" />
             WhatsApp
           </a>
+          <SheetAnchor href={tgShareHref(url, lines)} target="_blank" onClick={onClose} icon={<Send className="h-5 w-5" />}>
+            Telegram
+          </SheetAnchor>
+          <SheetAnchor href={viberShareHref(text)} onClick={onClose} icon={<Phone className="h-5 w-5" />}>
+            Viber
+          </SheetAnchor>
+          <SheetAnchor href={fbShareHref(url)} target="_blank" rel="noopener noreferrer" onClick={onClose} icon={<FacebookGlyph />}>
+            Facebook
+          </SheetAnchor>
           <SheetBtn onClick={copy} icon={<Copy className="h-5 w-5" />}>
             {t("detail.copyLink")}
           </SheetBtn>
@@ -134,6 +147,44 @@ function SheetBtn({
       {icon}
       {children}
     </button>
+  )
+}
+
+function SheetAnchor({
+  children,
+  icon,
+  href,
+  target,
+  rel,
+  onClick,
+}: {
+  children: ReactNode
+  icon: ReactNode
+  href: string
+  target?: string
+  rel?: string
+  onClick: () => void
+}) {
+  return (
+    <a
+      href={href}
+      target={target}
+      rel={rel}
+      onClick={onClick}
+      className="flex h-12 items-center gap-3 rounded-control bg-sv-cloud px-4 text-[14px] font-extrabold text-sv-ink ring-1 ring-sv-ink/8 transition hover:text-sv-blue"
+    >
+      {icon}
+      {children}
+    </a>
+  )
+}
+
+/** lucide dropped brand marks — one inline path keeps the FB row recognizable. */
+function FacebookGlyph() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor" aria-hidden>
+      <path d="M13.5 21v-7.1h2.39l.36-2.77H13.5V9.35c0-.8.22-1.35 1.37-1.35h1.47V5.53c-.25-.03-1.12-.11-2.13-.11-2.1 0-3.55 1.28-3.55 3.65v2.04H8.26v2.77h2.4V21h2.84Z" />
+    </svg>
   )
 }
 

@@ -365,6 +365,7 @@ export const tr: Dict = {
   'detail.landHintShade': 'Kuzeye eğimli — daha serin ve nemli mikroiklim',
   'detail.mortgage': 'Konut kredisi hesaplayıcı',
   'detail.mortgageNote': 'Anüite ödeme planı · kur 1$ = {rate} ₾',
+  'detail.mortgageFull': 'Tam hesaplayıcı',
   'detail.downPayment': 'Peşinat',
   'detail.downPaymentAria': 'Peşinat yüzdesi',
   'detail.term': 'Vade',

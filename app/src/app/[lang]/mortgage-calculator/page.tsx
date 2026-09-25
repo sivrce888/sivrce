@@ -253,13 +253,29 @@ function hubLdFor(loc: DirLoc | 'de') {
 
 export default async function MortgageCalculatorPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ lang: string }>
+  searchParams: Promise<Record<string, string | string[] | undefined>>
 }) {
   const { lang: raw } = await params
   const lang = isValidLang(raw) ? raw : 'ka'
   const loc: DirLoc | 'de' = lang === 'ka' || lang === 'ru' || lang === 'de' ? lang : 'en'
   const c = COPY[loc]
+  // Deep-link prefill from the listing-detail calculator — clamped to slider ranges.
+  const sp = await searchParams
+  const num = (key: string, min: number, max: number, dflt: number) => {
+    const n = Number(sp[key])
+    return Number.isFinite(n) && sp[key] !== undefined && sp[key] !== ''
+      ? Math.min(max, Math.max(min, n))
+      : dflt
+  }
+  const initial = {
+    price: Math.round(num('price', 20_000, 500_000, 120_000) / 5_000) * 5_000,
+    down: Math.round(num('down', 0, 70, 25) / 5) * 5,
+    rate: Math.round(num('rate', 4, 18, 10) * 10) / 10,
+    years: Math.round(num('years', 5, 25, 20)),
+  }
   return (
     <div className="min-h-screen bg-sv-cloud">
       <Navbar />
@@ -268,7 +284,7 @@ export default async function MortgageCalculatorPage({
         <AdSlot slot="mortgage" lang={lang} />
         <div className="mx-auto max-w-[1100px] px-5 pb-20 md:px-10">
 
-        <MortgageCalcClient loc={loc} />
+        <MortgageCalcClient loc={loc} initial={initial} />
 
         <div className="mt-4 flex items-center justify-center gap-2 text-[14px] font-bold text-sv-ink/60">
           <Scale className="h-4 w-4 text-sv-blue" aria-hidden />

@@ -365,6 +365,7 @@ export const ar: Dict = {
   'detail.landHintShade': 'منحدر نحو الشمال — مناخ محلي أبرد وأكثر رطوبة',
   'detail.mortgage': 'حاسبة الرهن العقاري',
   'detail.mortgageNote': 'جدول أقساط ثابتة · سعر 1$ = {rate} ₾',
+  'detail.mortgageFull': 'الحاسبة الكاملة',
   'detail.downPayment': 'الدفعة الأولى',
   'detail.downPaymentAria': 'الدفعة الأولى بالنسبة المئوية',
   'detail.term': 'المدة',

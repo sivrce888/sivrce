@@ -365,6 +365,7 @@ export const he: Dict = {
   'detail.landHintShade': 'משופע צפונה — מיקרו-אקלים קריר ולח יותר',
   'detail.mortgage': 'מחשבון משכנתה',
   'detail.mortgageNote': 'לוח סילוקין אנויטטי · שער 1$ = {rate} ₾',
+  'detail.mortgageFull': 'מחשבון מלא',
   'detail.downPayment': 'מקדמה',
   'detail.downPaymentAria': 'מקדמה באחוזים',
   'detail.term': 'תקופה',

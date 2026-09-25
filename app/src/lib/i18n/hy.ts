@@ -365,6 +365,7 @@ export const hy: Dict = {
   'detail.landHintShade': 'Թեքված է հյուսիս — ավելի զով և խոնավ միկրոկլիմա',
   'detail.mortgage': 'Հիպոթեքի հաշվիչ',
   'detail.mortgageNote': 'Անուիտետ գրաֆիկ · փոխարժեքը 1$ = {rate} ₾',
+  'detail.mortgageFull': 'Լիարժեք հաշվիչ',
   'detail.downPayment': 'Կանխավճար',
   'detail.downPaymentAria': 'Կանխավճար տոկոսներով',
   'detail.term': 'Ժամկետ',

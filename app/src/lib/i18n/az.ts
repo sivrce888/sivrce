@@ -365,6 +365,7 @@ export const az: Dict = {
   'detail.landHintShade': 'Şimala doğru maillik — daha sərin və rütubətli mikroiklim',
   'detail.mortgage': 'İpoteka kalkulyatoru',
   'detail.mortgageNote': 'Annuitet qrafiki · məzənnə 1$ = {rate} ₾',
+  'detail.mortgageFull': 'Tam kalkulyator',
   'detail.downPayment': 'İlkin ödəniş',
   'detail.downPaymentAria': 'İlkin ödəniş faizlə',
   'detail.term': 'Müddət',

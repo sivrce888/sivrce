@@ -367,6 +367,7 @@ export const de: Dict = {
   'detail.landHintShade': 'Nordhang – kühleres, feuchteres Mikroklima',
   'detail.mortgage': 'Baufinanzierungsrechner',
   'detail.mortgageNote': 'Annuität · Kurs 1 $ = {rate} ₾',
+  'detail.mortgageFull': 'Vollständiger Rechner',
   'detail.downPayment': 'Eigenkapital',
   'detail.downPaymentAria': 'Eigenkapital in Prozent',
   'detail.term': 'Laufzeit',

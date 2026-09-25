@@ -38,3 +38,18 @@ export function listingShareText(input: ListingShareInput, url: string): string 
 export function waSendHref(text: string): string {
   return `https://wa.me/?text=${encodeURIComponent(text)}`
 }
+
+/* Georgian users split shares across Telegram/Viber/Facebook as much as WhatsApp. */
+
+export function tgShareHref(url: string, text: string): string {
+  return `https://t.me/share/url?url=${encodeURIComponent(url)}&text=${encodeURIComponent(text)}`
+}
+
+/** Viber has no web share endpoint — the app protocol forwards precomposed text. */
+export function viberShareHref(text: string): string {
+  return `viber://forward?text=${encodeURIComponent(text)}`
+}
+
+export function fbShareHref(url: string): string {
+  return `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`
+}

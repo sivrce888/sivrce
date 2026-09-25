@@ -365,6 +365,7 @@ export const ka = {
   'detail.landHintShade': 'ჩრდილოეთით ეშვება — გრილი, უფრო ტენიანი მიკროკლიმატი',
   'detail.mortgage': 'იპოთეკის კალკულატორი',
   'detail.mortgageNote': 'ანუიტეტური გრაფიკი · კურსი 1$ = {rate} ₾',
+  'detail.mortgageFull': 'სრული კალკულატორი',
   'detail.downPayment': 'საწყისი შენატანი',
   'detail.downPaymentAria': 'საწყისი შენატანი პროცენტებში',
   'detail.term': 'ვადა',

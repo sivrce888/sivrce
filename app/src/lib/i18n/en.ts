@@ -365,6 +365,7 @@ export const en: Dict = {
   'detail.landHintShade': 'Slopes north — cooler, more humid microclimate',
   'detail.mortgage': 'Mortgage calculator',
   'detail.mortgageNote': 'Annuity schedule · rate 1$ = {rate} ₾',
+  'detail.mortgageFull': 'Full calculator',
   'detail.downPayment': 'Down payment',
   'detail.downPaymentAria': 'Down payment in percent',
   'detail.term': 'Term',

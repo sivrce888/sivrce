@@ -365,6 +365,7 @@ export const uk: Dict = {
   'detail.landHintShade': 'Ухил на північ — прохолодніший і вологіший мікроклімат',
   'detail.mortgage': 'Іпотечний калькулятор',
   'detail.mortgageNote': 'Ануїтетний графік · курс 1$ = {rate} ₾',
+  'detail.mortgageFull': 'Повний калькулятор',
   'detail.downPayment': 'Первинний внесок',
   'detail.downPaymentAria': 'Первинний внесок у відсотках',
   'detail.term': 'Термін',

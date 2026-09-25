@@ -47,12 +47,19 @@ const PRESETS = [
   { label: '$250,000', price: 250_000 },
 ]
 
-export default function MortgageCalcClient({ loc }: { loc: DirLoc | 'de' }) {
+export default function MortgageCalcClient({
+  loc,
+  initial,
+}: {
+  loc: DirLoc | 'de'
+  /** Prefill from the listing-detail calculator deep link (?price&down&rate&years). */
+  initial?: { price?: number; down?: number; rate?: number; years?: number }
+}) {
   const t = L[loc]
-  const [price, setPrice] = useState(120_000)
-  const [downPct, setDownPct] = useState(25)
-  const [rate, setRate] = useState(10)
-  const [years, setYears] = useState(20)
+  const [price, setPrice] = useState(initial?.price ?? 120_000)
+  const [downPct, setDownPct] = useState(initial?.down ?? 25)
+  const [rate, setRate] = useState(initial?.rate ?? 10)
+  const [years, setYears] = useState(initial?.years ?? 20)
 
   const { monthly, principal, totalInterest, totalPaid } = useMemo(() => {
     const principal = Math.max(0, price * (1 - downPct / 100))
