@@ -8,6 +8,7 @@ import {
   buildingFootprint,
   buildingsToGeoJSON,
   buildingsToPointsGeoJSON,
+  clusterLabel,
   catalogToCluster,
   clusterGeometry,
   clusterListingsToBuildings,
@@ -1153,7 +1154,20 @@ async function main() {
     }
   }
 
-  console.log('map buildings check: ok')
+  // EN map labels read like the panel title — never raw Mkhedruli.
+{
+  const kaOnly = clusterListingsToBuildings(LISTINGS).find((b) => /[\u10A0-\u10FF]/.test(b.label))
+  if (kaOnly) {
+    const en = String(buildingsToPointsGeoJSON([kaOnly], 'all', undefined, 'en').features[0]!.properties?.label)
+    assert.ok(!/[\u10A0-\u10FF]/.test(en), `en label still Georgian: ${en}`)
+    assert.equal(buildingsToPointsGeoJSON([kaOnly]).features[0]!.properties?.label, kaOnly.label, 'ka keeps source label')
+  }
+  // Catalog English name wins over transliteration ("Chavchavadze 47", not "Chavchavadzis 47").
+  assert.equal(clusterLabel({ label: 'ჭავჭავაძის 47', labelEn: 'Chavchavadze 47' }, 'en'), 'Chavchavadze 47')
+  assert.equal(clusterLabel({ label: 'ჭავჭავაძის 47', labelEn: 'Chavchavadze 47' }, 'ka'), 'ჭავჭავაძის 47')
+}
+
+console.log('map buildings check: ok')
 
   // ——— Compact price labels for mid-zoom pills ———
   assert.equal(formatMapPin(185_000, 'GEL'), '185კ₾')

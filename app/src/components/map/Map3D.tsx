@@ -133,6 +133,7 @@ import {
 } from '@/lib/map/live-footprint'
 import {
   geometryRing,
+  featureOfPart,
   pickNearestBuildingGeometry,
 } from '@/lib/map/pick-building'
 import {
@@ -1755,12 +1756,12 @@ function Map3DInner({
   // ponytail: FCs memoized once — shared by boot + every data push; re-toggling a
   // filter reuses the cached FC instead of rebuilding polygon geometry.
   const polyFc = useMemo(
-    () => buildingsToGeoJSON(visible, dealFilter, pinFmt),
-    [visible, dealFilter, pinFmt],
+    () => buildingsToGeoJSON(visible, dealFilter, pinFmt, lang),
+    [visible, dealFilter, pinFmt, lang],
   )
   const ptsFc = useMemo(
-    () => buildingsToPointsGeoJSON(visible, dealFilter, pinFmt),
-    [visible, dealFilter, pinFmt],
+    () => buildingsToPointsGeoJSON(visible, dealFilter, pinFmt, lang),
+    [visible, dealFilter, pinFmt, lang],
   )
   const matchListings = useMemo(() => {
     let n = 0
@@ -2209,7 +2210,7 @@ function Map3DInner({
           // instead of spending Nominatim's 1 rps budget again.
           const lat5 = e.lngLat.lat.toFixed(5)
           const lng5 = e.lngLat.lng.toFixed(5)
-          const addrKey = `${lat5},${lng5}`
+          const addrKey = `${lat5},${lng5},${langRef.current}`
           const root = document.createElement('div')
           root.className = 'sivrce-nbh-pop'
           const title = document.createElement('div')
@@ -2227,7 +2228,7 @@ function Map3DInner({
           nbhPopup.setLngLat(e.lngLat).setDOMContent(root).addTo(map)
           // After addTo — re-opening fires the popup's 'close', which clears the pick.
           if (geom) {
-            const fp = feats[geoms.indexOf(geom)]?.properties ?? {}
+            const fp = featureOfPart(feats, geom)?.properties ?? {}
             const num = (v: unknown) => (Number.isFinite(Number(v)) ? Number(v) : 0)
             // Same height rule as the basemap extrusion (render_height, else 10 m);
             // +0.6 m clears it so the two never z-fight. 2D gets a thin slab.
@@ -2256,7 +2257,8 @@ function Map3DInner({
             fetch(`/api/geocode?lat=${lat5}&lng=${lng5}`)
               .then((r) => (r.ok ? r.json() : null))
               .then((d) => {
-                const line = d?.ok ? formatGeocodeAddress(d) : ''
+                // Same script as the search landing card — EN/RU readers get Latin.
+                const line = d?.ok ? readableName(formatGeocodeAddress(d), langRef.current) : ''
                 rememberAddress(addrKey, line)
                 if (seq !== osmSeq) return
                 title.textContent = line || tRef.current('map.pinDropped')
@@ -2282,7 +2284,7 @@ function Map3DInner({
                 )
               }
               const tasN = Array.isArray(d.tasDocs) ? d.tasDocs.length : 0
-              if (tasN > 0) root.appendChild(row('TAS', String(tasN)))
+              if (tasN > 0) root.appendChild(row(tRef.current('detail.tasPermits'), String(tasN)))
             })
             .catch(() => {})
         } catch {

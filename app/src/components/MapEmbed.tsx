@@ -34,6 +34,7 @@ import {
   geometryRing,
   OSM_PICK_RADIUS_M,
   pickHighlightPolygon,
+  featureOfPart,
   pickNearestBuildingGeometry,
   snapPick,
 } from '@/lib/map/pick-building'
@@ -165,7 +166,7 @@ function queryBuildingNear(
   if (direct) {
     return {
       geometry: direct,
-      heightM: tileHeight(atPoint.find((f) => f.geometry === direct)),
+      heightM: tileHeight(featureOfPart(atPoint, direct)),
     }
   }
   const r = Math.min(96, Math.max(16, metersToPx(map, OSM_PICK_RADIUS_M, lngLat.lat)))
@@ -177,7 +178,7 @@ function queryBuildingNear(
     { layers },
   )
   const near = pickNearestBuildingGeometry(nearby.map((f) => f.geometry), lngLat.lat, lngLat.lng)
-  return { geometry: near, heightM: near ? tileHeight(nearby.find((f) => f.geometry === near)) : null }
+  return { geometry: near, heightM: near ? tileHeight(featureOfPart(nearby, near)) : null }
 }
 
 /** render_height from the style's 3D building source; null when the tile omits it. */

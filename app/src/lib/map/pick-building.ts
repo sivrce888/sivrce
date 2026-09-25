@@ -96,6 +96,29 @@ export function ringContains(
   return inside
 }
 
+/** MultiPolygon → Polygon per part (same coordinate arrays, so featureOfPart can match). */
+function buildingParts(g: GeoJSON.Geometry | null | undefined): GeoJSON.Geometry[] {
+  if (!g) return []
+  return g.type === 'MultiPolygon'
+    ? g.coordinates.map((coordinates): GeoJSON.Polygon => ({ type: 'Polygon', coordinates }))
+    : [g]
+}
+
+/** Rendered feature that owns a picked geometry (whole feature or one MultiPolygon part). */
+export function featureOfPart<F extends { geometry: GeoJSON.Geometry }>(
+  feats: readonly F[],
+  picked: GeoJSON.Geometry | null,
+): F | undefined {
+  if (!picked) return undefined
+  return feats.find(
+    (f) =>
+      f.geometry === picked ||
+      (picked.type === 'Polygon' &&
+        f.geometry.type === 'MultiPolygon' &&
+        f.geometry.coordinates.includes(picked.coordinates)),
+  )
+}
+
 /**
  * Among rendered OSM hits, pick the building that owns this pin:
  * 1) ring that contains the pin (largest wins — wing vs shed)
@@ -112,8 +135,9 @@ export function pickNearestBuildingGeometry(
   let best: GeoJSON.Geometry | null = null
   let bestDist = Infinity
   let bestHalf = 0
-  for (const g of geometries) {
-    if (!g) continue
+  // OMT z14 tiles pack a block's buildings into one MultiPolygon — judge each
+  // part, or a tap resolves to the block's largest building (or nothing).
+  for (const g of geometries.flatMap(buildingParts)) {
     const ring = geometryRing(g)
     if (!ring) continue
     const half = ringBboxHalfM(ring)

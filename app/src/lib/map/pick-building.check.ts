@@ -10,6 +10,7 @@ import {
   FALLBACK_FOOTPRINT_HALF_M,
   geometryRing,
   pickHighlightPolygon,
+  featureOfPart,
   pickNearestBuildingGeometry,
   ringCentroid,
   ringContains,
@@ -84,6 +85,15 @@ assert.equal(ringContains(big, insideApt.lng, insideApt.lat), true)
 assert.equal(ringContains(shed.coordinates[0] as [number, number][], insideApt.lng, insideApt.lat), false)
 const contained = pickNearestBuildingGeometry([shed, apt], insideApt.lat, insideApt.lng)
 assert.equal(contained, apt)
+
+// OMT packs a block into one MultiPolygon — tap on the shed must return the
+// shed (as a Polygon), not the block's largest part, and map back to its feature.
+const block: GeoJSON.MultiPolygon = { type: 'MultiPolygon', coordinates: [[big], shed.coordinates] }
+const inShed = { lat: 41.770465, lng: 44.77946 }
+const part = pickNearestBuildingGeometry([block], inShed.lat, inShed.lng)
+assert.deepEqual(part && geometryRing(part), shed.coordinates[0])
+const blockFeat = { geometry: block as GeoJSON.Geometry, properties: { render_height: 11 } }
+assert.equal(featureOfPart([blockFeat], part), blockFeat)
 
 const hl = pickHighlightPolygon(curb.lat, curb.lng, null)
 assert.equal(hl.geometry.type, 'Polygon')

@@ -12,7 +12,7 @@ import { stayCount, stayLine } from '@/lib/listing-format'
 import { useCurrency } from '@/lib/currency'
 import { useI18n, type DictKey } from '@/lib/i18n/context'
 import { DEAL_BRAND, STATUS_BRAND } from '@/lib/category-brand'
-import { listingBuildingNumber } from '@/lib/map/buildings'
+import { clusterLabel, listingBuildingNumber } from '@/lib/map/buildings'
 import type { MapBuildingCluster } from '@/lib/map/buildings'
 import { buildingFloorCount, listingFloor } from '@/lib/map/floors'
 import { MetroLine } from '@/components/MetroLine'
@@ -60,7 +60,7 @@ export default function BuildingPanel({ building, tab, onTab, floor, highlightId
     <aside
       className="flex h-full w-full flex-col border-l border-sv-ink/8 bg-sv-surface shadow-panel-dark md:w-[400px]"
       role="dialog"
-      aria-label={read(building.label)}
+      aria-label={clusterLabel(building, lang)}
     >
       <div className="mx-auto mt-2 h-1 w-10 shrink-0 rounded-full bg-sv-ink/15 md:hidden" aria-hidden />
       <header className="shrink-0 border-b border-sv-ink/6">
@@ -101,7 +101,7 @@ export default function BuildingPanel({ building, tab, onTab, floor, highlightId
             ) : null}
             <div className="min-w-0">
               <h2 className="text-[17px] font-black tracking-[-0.02em] text-sv-ink">
-                {read(building.label)}
+                {clusterLabel(building, lang)}
               </h2>
               {building.code && (
                 <p className="mt-0.5 text-[11px] font-bold text-sv-ink/60">{building.code}</p>

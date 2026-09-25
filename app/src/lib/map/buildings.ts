@@ -26,6 +26,7 @@ import { TBILISI_DISTRICT_LABELS } from '@/data/district-labels'
 import { ensureNaprOverrides, naprOverrideFor } from '@/lib/map/napr-overrides'
 import { circleRing } from '@/lib/map/footprint-circle'
 import { ringLabelPoint } from '@/lib/map/ring-label'
+import { readableName } from '@/lib/ka-latin'
 export { ringLabelPoint }
 
 /** Hard lock — m² Highlight is twin cylinders (korter Block 11/12). Never site polygons.
@@ -199,6 +200,8 @@ export type MapBuildingCluster = {
   lat: number
   lng: number
   label: string
+  /** Catalog English name ("Chavchavadze 47") — beats transliteration off-ka. */
+  labelEn?: string
   address: string
   buildingNumber: string
   district: string
@@ -411,6 +414,7 @@ function enrichFromCatalog(
     ...cluster,
     id: `bldg-${cat.slug}`,
     label: cat.name,
+    labelEn: cat.nameEn,
     address: cat.address,
     buildingNumber: cat.buildingNumber,
     district: cat.district,
@@ -444,6 +448,7 @@ export function catalogToCluster(cat: BuildingCatalogEntry, listings: MapListing
     lat: pin.lat,
     lng: pin.lng,
     label: cat.name,
+    labelEn: cat.nameEn,
     address: cat.address,
     buildingNumber: cat.buildingNumber,
     district: cat.district,
@@ -1071,10 +1076,16 @@ export function clusterMinPriceGEL(
  * the React-side cluster objects, not the worker-bound GeoJSON. ponytail: every
  * prop here is read by a layer/filter/event; adding one costs setData ×2.
  */
+/** Display name in the reader's script — map label and panel title share it. */
+export function clusterLabel(b: Pick<MapBuildingCluster, 'label' | 'labelEn'>, lang: string): string {
+  return lang !== 'ka' && b.labelEn ? b.labelEn : readableName(b.label, lang)
+}
+
 function buildingProps(
   b: MapBuildingCluster,
   deal: MapDealFilter = 'all',
   fmt: MapPinFormat = formatMapPinGEL,
+  lang = 'ka',
 ) {
   // One deal per pill. The cheapest across *all* deals put a €163/day stay on a
   // tower selling at €300k — the pill read as a sale price 2000× too low.
@@ -1087,7 +1098,8 @@ function buildingProps(
     id: b.id,
     // slug: tests locate features by it; ~9 bytes per feature.
     slug: b.slug ?? '',
-    label: b.label,
+    // Same script as the panel title — EN/RU readers never get Mkhedruli on the map.
+    label: clusterLabel(b, lang),
     code: b.code ?? '',
     // Alpha baked into color — MapLibre 5 rejects data-driven fill-extrusion-opacity.
     color: colorWithAlpha(hue, ghost ? 0.6 : 0.95),
@@ -1131,6 +1143,7 @@ export function buildingsToGeoJSON(
   buildings: MapBuildingCluster[],
   deal: MapDealFilter = 'all',
   fmt: MapPinFormat = formatMapPinGEL,
+  lang = 'ka',
 ): GeoJSON.FeatureCollection {
   return {
     type: 'FeatureCollection',
@@ -1155,13 +1168,13 @@ export function buildingsToGeoJSON(
               type: 'Feature' as const,
               id: i === 0 ? b.id : `${b.id}__${i}`,
               properties: {
-                ...buildingProps(b, deal, fmt),
+                ...buildingProps(b, deal, fmt, lang),
                 // Keep cluster id so map click → same panel for every tower.
                 id: b.id,
                 height,
                 color: colorWithAlpha(pinHue(b, deal), ghost ? 0.6 : 0.95),
                 // One label per campus — duplicate "m² Highlight" / M2-05 looked fused.
-                label: i === 0 ? b.label : '',
+                label: i === 0 ? clusterLabel(b, lang) : '',
                 code: i === 0 ? (b.code ?? '') : '',
               },
               geometry: { type: 'Polygon' as const, coordinates: [part.ring] },
@@ -1173,7 +1186,7 @@ export function buildingsToGeoJSON(
         {
           type: 'Feature' as const,
           id: b.id,
-          properties: buildingProps(b, deal, fmt),
+          properties: buildingProps(b, deal, fmt, lang),
           geometry: clusterGeometry(b),
         },
       ]
@@ -1186,13 +1199,14 @@ export function buildingsToPointsGeoJSON(
   buildings: MapBuildingCluster[],
   deal: MapDealFilter = 'all',
   fmt: MapPinFormat = formatMapPinGEL,
+  lang = 'ka',
 ): GeoJSON.FeatureCollection {
   return {
     type: 'FeatureCollection',
     features: buildings.map((b) => ({
       type: 'Feature' as const,
       id: b.id,
-      properties: buildingProps(b, deal, fmt),
+      properties: buildingProps(b, deal, fmt, lang),
       geometry: { type: 'Point' as const, coordinates: [b.lng, b.lat] },
     })),
   }
