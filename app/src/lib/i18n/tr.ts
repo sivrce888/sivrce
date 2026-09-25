@@ -787,6 +787,7 @@ export const tr: Dict = {
   'search.mapInArea': '{n} ilan',
   'search.mapClearArea': 'Tümü',
   'search.mapEmptyArea': 'Bu alanda ilan yok',
+  'map.buildingEmpty': 'Bu binada henüz ilan yok',
   'add.contactHint': 'Adınızı ve alıcıların size ulaşabileceği cep numarasını belirtin.',
 
   // ——— Chat ———

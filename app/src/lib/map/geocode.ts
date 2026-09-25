@@ -205,6 +205,11 @@ function rankRows(rows: NominatimRow[], wantHouse?: string): NominatimRow[] {
   return [...rows].sort((a, b) => scoreNominatimRow(b, wantHouse) - scoreNominatimRow(a, wantHouse))
 }
 
+/** Nominatim `countrycodes` — a sivrce.ge search must never land in Sochi. */
+export function countryParam(iso?: string): { countrycodes?: string } {
+  return iso && /^[a-z]{2}$/i.test(iso) ? { countrycodes: iso.toLowerCase() } : {}
+}
+
 async function nominatimSearch(
   params: Record<string, string>,
   signal?: AbortSignal,
@@ -238,12 +243,13 @@ async function nominatimSearch(
 export async function geocodeAddress(
   query: string,
   signal?: AbortSignal,
+  countryIso?: string,
 ): Promise<GeocodeHit | null> {
   const q = query.trim()
   if (q.length < 3 || q.length > 240) return null
 
   const { houseNo } = splitStreetHouse(q)
-  const rows = await nominatimSearch({ q, limit: '8' }, signal)
+  const rows = await nominatimSearch({ q, limit: '8', ...countryParam(countryIso) }, signal)
   const row = pickBestRow(rows, houseNo || undefined)
   return row ? hitFromRow(row, q) : null
 }
@@ -253,6 +259,7 @@ export async function suggestAddresses(
   query: string,
   city?: string,
   signal?: AbortSignal,
+  countryIso?: string,
 ): Promise<GeocodeHit[]> {
   const q = query.trim()
   if (q.length < 2 || q.length > 120) return []
@@ -263,7 +270,7 @@ export async function suggestAddresses(
     .filter(Boolean)
     .join(', ')
 
-  const rows = await nominatimSearch({ q: needle, limit: '8' }, signal)
+  const rows = await nominatimSearch({ q: needle, limit: '8', ...countryParam(countryIso) }, signal)
   const seen = new Set<string>()
   const out: GeocodeHit[] = []
   for (const row of rankRows(rows, houseNo || undefined)) {

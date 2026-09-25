@@ -789,6 +789,7 @@ export const de: Dict = {
   'search.mapInArea': '{n} Inserate',
   'search.mapClearArea': 'Alle anzeigen',
   'search.mapEmptyArea': 'Keine Inserate in diesem Bereich',
+  'map.buildingEmpty': 'In diesem Gebäude gibt es noch keine Angebote',
   'add.contactHint': 'Sagen Sie uns Ihren Namen und die Mobilnummer, unter der Käufer Sie erreichen.',
 
   // ——— Chat ———

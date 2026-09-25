@@ -1534,22 +1534,30 @@ function Map3DInner({
   useEffect(() => {
     if ((listings?.length ?? 0) > 0) return
     let cancelled = false
-    fetch(mapDataUrl, { cache: 'no-store' })
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data: { listings?: Listing[]; buildings?: MapBuildingCluster[] } | null) => {
-        // Settle on any good response — a legitimately empty DB must show 0, not "…".
-        if (cancelled || !data) return
-        if (data.listings) setLiveListings(data.listings)
+    let timer: ReturnType<typeof setTimeout> | undefined
+    // ponytail: 2 retries (after 2s, then 6s), then the refresh button owns it.
+    const load = async (attempt: number): Promise<void> => {
+      try {
+        const res = await fetch(mapDataUrl, { cache: 'no-store' })
+        if (!res.ok) throw new Error(`map-data ${res.status}`)
+        const data = (await res.json()) as { listings?: Listing[]; buildings?: MapBuildingCluster[] }
+        if (cancelled) return
+        // A legitimately empty DB shows 0; only a *good* response may say so.
+        setLiveListings(data.listings ?? [])
         if (data.buildings) setLiveDbBuildings(data.buildings)
         setListingsSettled(true)
-      })
-      .catch(() => {
-        // ponytail: settle on failure too — deep links must fly even when
-        // map-data is down (catalog clusters still render).
-        if (!cancelled) setListingsSettled(true)
-      })
+      } catch {
+        if (cancelled) return
+        // Settle anyway so deep links still fly (catalog clusters render), but
+        // liveListings stays undefined — the counter keeps "…", never a fake 0.
+        setListingsSettled(true)
+        if (attempt < 2) timer = setTimeout(() => void load(attempt + 1), 2000 * (attempt * 2 + 1))
+      }
+    }
+    void load(0)
     return () => {
       cancelled = true
+      clearTimeout(timer)
     }
   }, [listings, mapDataUrl])
 
@@ -2807,8 +2815,23 @@ function Map3DInner({
         if (clusterId == null) return
         const src = map.getSource(PTS_SOURCE_ID) as GeoJSONSource
         const [lng, lat] = f.geometry.coordinates
-        void src.getClusterExpansionZoom(clusterId).then((zoom) => {
-          map.easeTo({ center: [lng, lat], zoom, duration: camMs(450) })
+        // Expansion zoom alone is often +0.5 — the tap "does nothing". Frame every
+        // member instead (Apple/Zillow), never shallower than the split zoom and
+        // never past the pill zoom when they share one building.
+        void Promise.all([
+          src.getClusterExpansionZoom(clusterId),
+          src.getClusterLeaves(clusterId, Infinity, 0),
+        ]).then(([zoom, leaves]) => {
+          const bounds = new maplibregl.LngLatBounds([lng, lat], [lng, lat])
+          for (const l of leaves) {
+            if (l.geometry.type === 'Point') bounds.extend(l.geometry.coordinates as [number, number])
+          }
+          const fit = map.cameraForBounds(bounds, { padding: 96, maxZoom: zooms.detailZoom + 1.5 })
+          map.easeTo({
+            center: fit?.center ?? [lng, lat],
+            zoom: Math.max(zoom, fit?.zoom ?? zoom),
+            duration: camMs(450),
+          })
         })
       })
       map.on('mousemove', FLOORS_FILL_ID, onFloorMove)
@@ -3220,6 +3243,13 @@ function Map3DInner({
     [allBuildings],
   )
   const filtersActive = dealFilter !== 'all' || kindFilter !== 'all' || drawRing !== null
+  // Never a bare number. Developments carry no listings yet, so under the
+  // construction filter the honest count is projects, not a lying "0".
+  const countLabel = !pinsLoaded || !liveListings
+    ? '…'
+    : kindFilter === 'construction'
+      ? `${t(KIND_FILTERS.find((f) => f.id === 'construction')!.labelKey)} · ${visible.length}`
+      : t('search.mapInArea', { n: matchListings })
 
   const chip = isDark
     ? 'border-white/10 bg-sv-navy/90 text-white shadow-soft backdrop-blur-xl'
@@ -3245,9 +3275,9 @@ function Map3DInner({
       <p className="sr-only" role="status" aria-live="polite">
         {selected
           ? `${selected.label || selected.address} · ${t('search.mapInArea', { n: selected.listings.length })}`
-          : pinsLoaded
-            ? t('search.mapInArea', { n: matchListings })
-            : t('map.loading')}
+          : countLabel === '…'
+            ? t('map.loading')
+            : countLabel}
       </p>
       <div className="relative min-w-0 flex-1">
         {/* ponytail: MapLibre forces position:relative — absolute on the map node collapses to h=0. */}
@@ -3283,16 +3313,15 @@ function Map3DInner({
           <div className="flex flex-col gap-2">
             <ChromeSearch
               variant={isDark ? 'dark' : 'light'}
-              className={`w-full rounded-tile border p-1.5 ${chip}`}
+              // relative z-10: every plate is its own stacking context (backdrop-blur),
+              // so without it the chip bar below paints over the suggestion list.
+              className={`relative z-10 w-full rounded-tile border p-1.5 ${chip}`}
               onPlace={(q, s) => void flyToQuery(q, s)}
             />
             <div className={`hidden items-center gap-2 overflow-x-auto rounded-tile border p-1.5 scrollbar-hide md:flex ${chip}`}>
-              <div className="flex shrink-0 items-center gap-1.5 px-1">
-                <Layers className={`h-3.5 w-3.5 ${isDark ? 'text-sv-blue-light' : 'text-sv-blue'}`} strokeWidth={2} />
-                <p className="whitespace-nowrap text-[12px] font-extrabold tabular-nums tracking-tight">
-                  {pinsLoaded ? matchListings : '…'}
-                </p>
-              </div>
+              <p className="shrink-0 whitespace-nowrap px-2 text-[12px] font-extrabold tabular-nums tracking-tight">
+                {countLabel}
+              </p>
               <span className={`h-6 w-px shrink-0 ${isDark ? 'bg-white/10' : 'bg-sv-ink/10'}`} aria-hidden />
               <MapFilterPills
                 items={DEAL_FILTERS.map((f) => ({ id: f.id, label: t(f.labelKey), color: f.color }))}
@@ -3333,7 +3362,7 @@ function Map3DInner({
                 façade is unreadable at any contrast ratio. */}
             {/* pinsLoaded, not ready: the map paints before listings/footprints
                 land, so gating on `ready` flashed "no results" on every cold load. */}
-            {visible.length === 0 && pinsLoaded && (
+            {visible.length === 0 && pinsLoaded && liveListings && (
               <p className={`w-fit rounded-full border px-3 py-1.5 text-[11px] font-bold ${chip} ${isDark ? 'text-white/70' : 'text-sv-ink/70'}`}>
                 {t('search.emptyTitle')}
               </p>
@@ -3370,7 +3399,7 @@ function Map3DInner({
             )}
             <div className="flex items-center gap-2 md:hidden">
               <p className={`min-w-0 flex-1 truncate rounded-tile border px-3 py-2.5 text-[12px] font-extrabold tabular-nums ${chip}`}>
-                {pinsLoaded ? matchListings : '…'}
+                {countLabel}
               </p>
               <button
                 type="button"
@@ -3549,7 +3578,7 @@ function Map3DInner({
             type="button"
             aria-label={t('map.zoomIn')}
             onClick={() => mapRef.current?.zoomIn({ duration: camMs(280) })}
-            className={`grid h-11 w-full place-items-center transition ${railHover}`}
+            className={`hidden h-11 w-full place-items-center transition md:grid ${railHover}`}
           >
             <Plus className="h-4 w-4" strokeWidth={2.25} />
           </button>
@@ -3557,12 +3586,14 @@ function Map3DInner({
             type="button"
             aria-label={t('map.zoomOut')}
             onClick={() => mapRef.current?.zoomOut({ duration: camMs(280) })}
-            className={`grid h-11 w-full place-items-center transition ${railSep} ${railHover}`}
+            className={`hidden h-11 w-full place-items-center transition md:grid ${railSep} ${railHover}`}
           >
             <Minus className="h-4 w-4" strokeWidth={2.25} />
           </button>
 
-          <div className={`flex flex-col ${railSep}`} role="group" aria-label={t('map.view')}>
+          {/* Phones pinch to zoom (Apple/Google Maps ship no ± there), so 2D/3D
+              leads the rail and needs no top hairline. */}
+          <div className={`flex flex-col md:border-t ${hair}`} role="group" aria-label={t('map.view')}>
             <button
               type="button"
               aria-label="2D"
@@ -3659,7 +3690,7 @@ function Map3DInner({
             aria-busy={refreshing}
             disabled={refreshing}
             onClick={() => void refreshMapData()}
-            className={`grid h-11 w-full place-items-center transition ${railSep} ${railHover} disabled:opacity-45`}
+            className={`hidden h-11 w-full place-items-center transition md:grid ${railSep} ${railHover} disabled:opacity-45`}
           >
             <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} strokeWidth={2} />
           </button>

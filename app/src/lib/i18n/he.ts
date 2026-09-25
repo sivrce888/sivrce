@@ -787,6 +787,7 @@ export const he: Dict = {
   'search.mapInArea': '{n} מודעות',
   'search.mapClearArea': 'הכל',
   'search.mapEmptyArea': 'אין מודעות באזור זה',
+  'map.buildingEmpty': 'אין עדיין מודעות בבניין הזה',
   'add.contactHint': 'ספרו לנו את שמכם ומספר הנייד שבו קונים יוכלו להשיג אתכם.',
 
   // ——— Chat ———

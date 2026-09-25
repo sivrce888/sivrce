@@ -4,6 +4,7 @@
 import assert from 'node:assert/strict'
 import {
   cityCenter,
+  countryParam,
   knownCityCenter,
   formatGeocodeAddress,
   inGeorgia,
@@ -23,6 +24,10 @@ import {
 
 assert.equal(inGeorgia(41.7151, 44.8271), true)
 assert.equal(inGeorgia(0, 0), false)
+// sivrce.ge clamps Nominatim to Georgia; bad input never reaches the URL.
+assert.deepEqual(countryParam('GE'), { countrycodes: 'ge' })
+assert.deepEqual(countryParam(undefined), {})
+assert.deepEqual(countryParam('ge&x=1'), {})
 assert.equal(inGeorgia(48.8566, 2.3522), false)
 
 assert.deepEqual(parseCoords(41.7, 44.8), { lat: 41.7, lng: 44.8 })

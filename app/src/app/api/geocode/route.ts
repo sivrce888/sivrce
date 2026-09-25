@@ -14,6 +14,7 @@ import {
   reverseGeocode,
   suggestAddresses,
 } from "@/lib/map/geocode"
+import { requestCountryLock } from "@/lib/request-market"
 import { isSameOrigin } from "@/lib/security/origin"
 
 export const maxDuration = 8
@@ -46,7 +47,7 @@ export async function GET(req: NextRequest) {
     if (q.length < 2) {
       return cdnJson({ ok: true, hits: [] })
     }
-    const hits = await suggestAddresses(q, city)
+    const hits = await suggestAddresses(q, city, undefined, await requestCountryLock())
     return cdnJson({ ok: true, hits })
   }
 
@@ -64,7 +65,7 @@ export async function GET(req: NextRequest) {
   if (q.length < 3) {
     return NextResponse.json({ ok: false, error: "short_query" }, { status: 400 })
   }
-  const hit = await geocodeAddress(q)
+  const hit = await geocodeAddress(q, undefined, await requestCountryLock())
   if (!hit) return cdnJson({ ok: false, error: "not_found" }, 300, 404)
   return cdnJson({ ok: true, ...hit })
 }

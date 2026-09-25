@@ -788,6 +788,7 @@ export const uk: Dict = {
   'search.mapInArea': '{n} оголошень',
   'search.mapClearArea': 'Усі',
   'search.mapEmptyArea': 'У цій області немає оголошень',
+  'map.buildingEmpty': 'У цьому будинку ще немає оголошень',
   'add.contactHint': 'Вкажіть ім’я та мобільний номер, за яким покупці зможуть зв’язатися з вами.',
 
   // ——— Chat ———

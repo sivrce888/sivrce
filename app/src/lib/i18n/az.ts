@@ -788,6 +788,7 @@ export const az: Dict = {
   'search.mapInArea': '{n} elan',
   'search.mapClearArea': 'Hamısı',
   'search.mapEmptyArea': 'Bu ərazidə elan yoxdur',
+  'map.buildingEmpty': 'Bu binada hələ elan yoxdur',
   'add.contactHint': 'Adınızı və alıcıların sizə çata biləcəyi mobil nömrəni qeyd edin.',
 
   // ——— Chat ———

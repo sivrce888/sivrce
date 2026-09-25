@@ -797,6 +797,7 @@ export const ka = {
   'search.mapInArea': '{n} განცხადება',
   'search.mapClearArea': 'ყველა',
   'search.mapEmptyArea': 'ამ ადგილას შედეგი არ არის',
+  'map.buildingEmpty': 'ამ შენობაში განცხადება ჯერ არ არის',
 
   // ——— Chat ———
   'chat.open': 'ჩატი',

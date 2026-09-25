@@ -787,6 +787,7 @@ export const ar: Dict = {
   'search.mapInArea': '{n} إعلان',
   'search.mapClearArea': 'الكل',
   'search.mapEmptyArea': 'لا نتائج في هذه المنطقة',
+  'map.buildingEmpty': 'لا توجد إعلانات في هذا المبنى بعد',
   'add.contactHint': 'أخبرنا باسمك ورقم الجوال الذي يمكن التواصل عبره.',
 
   // ——— Chat ———

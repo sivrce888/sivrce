@@ -127,61 +127,66 @@ export function rowToMapListing(row: {
 async function fetchMapListings(country?: string): Promise<MapListing[]> {
   try {
     if (!(await dbAvailable())) return []
-    const rows = await db.listing.findMany({
-      // Cap is for mappable pins — drop 0,0 unset sentinel.
-      where: {
-        deletedAt: null,
-        status: "active",
-        NOT: { AND: [{ lat: 0 }, { lng: 0 }] },
-        ...(country ? { country } : {}),
-      },
-      select: {
-        id: true,
-        publicId: true,
-        country: true,
-        title: true,
-        dealType: true,
-        propertyType: true,
-        price: true,
-        currency: true,
-        pricePerSqm: true,
-        rooms: true,
-        bedrooms: true,
-        bathrooms: true,
-        area: true,
-        floor: true,
-        totalFloors: true,
-        city: true,
-        district: true,
-        address: true,
-        lat: true,
-        lng: true,
-        images: true,
-        tier: true,
-        tierExpiresAt: true,
-        extendedFields: true,
-        createdAt: true,
-        listingLocation: {
-          select: {
-            floorNumber: true,
-            building3D: { select: { mapBuilding: { select: { slug: true } } } },
-          },
-        },
-      },
-      // Cap then rank in JS — Prisma can't order by custom tier weight.
-      orderBy: { createdAt: "desc" },
-      take: MAP_LISTINGS_CAP,
-    })
-    return rows
-      .map((row) => ({
-        listing: rowToMapListing(row),
-        rank: tierRankOf(row.tier, row.tierExpiresAt),
-      }))
-      .sort((a, b) => b.rank - a.rank || b.listing.postedAt.localeCompare(a.listing.postedAt))
-      .map((x) => x.listing)
+    return await queryMapListings(country)
   } catch {
     return []
   }
+}
+
+/** Throws on DB failure — callers that must tell "down" from "empty" use this. */
+async function queryMapListings(country?: string): Promise<MapListing[]> {
+  const rows = await db.listing.findMany({
+    // Cap is for mappable pins — drop 0,0 unset sentinel.
+    where: {
+      deletedAt: null,
+      status: "active",
+      NOT: { AND: [{ lat: 0 }, { lng: 0 }] },
+      ...(country ? { country } : {}),
+    },
+    select: {
+      id: true,
+      publicId: true,
+      country: true,
+      title: true,
+      dealType: true,
+      propertyType: true,
+      price: true,
+      currency: true,
+      pricePerSqm: true,
+      rooms: true,
+      bedrooms: true,
+      bathrooms: true,
+      area: true,
+      floor: true,
+      totalFloors: true,
+      city: true,
+      district: true,
+      address: true,
+      lat: true,
+      lng: true,
+      images: true,
+      tier: true,
+      tierExpiresAt: true,
+      extendedFields: true,
+      createdAt: true,
+      listingLocation: {
+        select: {
+          floorNumber: true,
+          building3D: { select: { mapBuilding: { select: { slug: true } } } },
+        },
+      },
+    },
+    // Cap then rank in JS — Prisma can't order by custom tier weight.
+    orderBy: { createdAt: "desc" },
+    take: MAP_LISTINGS_CAP,
+  })
+  return rows
+    .map((row) => ({
+      listing: rowToMapListing(row),
+      rank: tierRankOf(row.tier, row.tierExpiresAt),
+    }))
+    .sort((a, b) => b.rank - a.rank || b.listing.postedAt.localeCompare(a.listing.postedAt))
+    .map((x) => x.listing)
 }
 
 /** PostGIS bbox → listing ids (for map viewport when > MAP_LISTINGS_CAP). */
@@ -211,7 +216,10 @@ export async function loadMapDataFresh(country?: string): Promise<{
   listings: MapListing[]
   buildings: MapBuildingCluster[]
 }> {
-  const [listings, rows] = await Promise.all([fetchMapListings(country), fetchRows()])
+  // Throws when the DB is down. A 200 with empty arrays here was CDN-cached and
+  // read by the map as "this country has 0 listings" — pins vanished, counter lied.
+  if (!(await dbAvailable())) throw new Error('db unavailable')
+  const [listings, rows] = await Promise.all([queryMapListings(country), queryRows()])
   return { listings, buildings: rows.map(rowToCluster) }
 }
 
@@ -341,15 +349,6 @@ async function queryRows(): Promise<DbBuildingRow[]> {
     select: SELECT,
     orderBy: [{ popular: "desc" }, { createdAt: "desc" }],
   })) as unknown as DbBuildingRow[]
-}
-
-async function fetchRows(): Promise<DbBuildingRow[]> {
-  try {
-    return await queryRows()
-  } catch {
-    // Map must render even when the DB is unreachable — static catalog still shows.
-    return []
-  }
 }
 
 // No revalidate on these (admin actions bust the tag), so a cached empty result

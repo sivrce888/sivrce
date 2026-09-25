@@ -788,6 +788,7 @@ export const hy: Dict = {
   'search.mapInArea': '{n} հայտարարություն',
   'search.mapClearArea': 'Բոլորը',
   'search.mapEmptyArea': 'Այս տարածքում հայտարարություններ չկան',
+  'map.buildingEmpty': 'Այս շենքում դեռ հայտարարություններ չկան',
   'add.contactHint': 'Նշեք ձեր անունը և բջջային համարը, որով գնորդները կարող են կապվել ձեզ հետ։',
 
   // ——— Chat ———

@@ -787,6 +787,7 @@ export const ru: Dict = {
   'search.mapInArea': '{n} объявлений',
   'search.mapClearArea': 'Все',
   'search.mapEmptyArea': 'В этой области ничего нет',
+  'map.buildingEmpty': 'В этом доме пока нет объявлений',
   'add.contactHint': 'Укажите имя и мобильный номер, по которому с вами можно связаться.',
 
   // ——— Chat ———

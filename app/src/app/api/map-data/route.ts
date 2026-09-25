@@ -24,6 +24,10 @@ export async function GET(req: Request) {
     }, 30)
   } catch (err) {
     console.error('[map-data]', err instanceof Error ? err.message : err)
-    return NextResponse.json({ error: 'map refresh failed' }, { status: 500 })
+    // 503 + no-store: never let a CDN pin an outage; the client retries.
+    return NextResponse.json(
+      { error: 'map data unavailable' },
+      { status: 503, headers: { 'Cache-Control': 'no-store', 'Retry-After': '5' } },
+    )
   }
 }

@@ -787,6 +787,7 @@ export const en: Dict = {
   'search.mapInArea': '{n} listings',
   'search.mapClearArea': 'Show all',
   'search.mapEmptyArea': 'No listings in this area',
+  'map.buildingEmpty': 'No listings in this building yet',
   'add.contactHint': 'Tell us your name and the mobile number buyers can use to reach you.',
 
   // ——— Chat ———

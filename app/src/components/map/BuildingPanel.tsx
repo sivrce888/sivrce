@@ -211,7 +211,7 @@ export default function BuildingPanel({ building, tab, onTab, floor, highlightId
               </Link>
             )}
           </div>
-        ) : (
+        ) : building.listings.length === 0 ? null : (
           <>
             <div className="mt-4 grid grid-cols-4 gap-1.5">
               {(
@@ -282,7 +282,7 @@ export default function BuildingPanel({ building, tab, onTab, floor, highlightId
         <ul className="min-h-0 flex-1 space-y-2 overflow-y-auto p-4">
           {list.length === 0 ? (
             <li className="rounded-module bg-sv-cloud px-4 py-8 text-center text-[14px] font-semibold text-sv-ink/60">
-              {t('search.mapEmptyArea')}
+              {building.listings.length === 0 ? t('map.buildingEmpty') : t('search.mapEmptyArea')}
             </li>
           ) : (
             list.map((l) => {
