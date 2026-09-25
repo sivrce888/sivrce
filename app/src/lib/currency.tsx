@@ -234,6 +234,8 @@ export function convertGel(gel: number, currency: Currency, rate: number = USD_G
 export interface FormattedListingPrice {
   primary: string
   secondary: string
+  /** Primary ÷ area, same currency + grouping — undefined without an area. */
+  perM2?: string
 }
 
 /**
@@ -252,6 +254,7 @@ export function formatListingPrice({
   country,
   rate = USD_GEL_FALLBACK,
   eurRate = EUR_GEL_FALLBACK,
+  area = 0,
 }: {
   priceUSD: number
   priceGEL: number
@@ -262,10 +265,14 @@ export function formatListingPrice({
   country?: string | null
   rate?: number
   eurRate?: number
+  /** m² — when > 0, adds `perM2` derived from the displayed primary figure. */
+  area?: number
 }): FormattedListingPrice {
   const orig: ListingCurrency = currencyOriginal ?? 'USD'
   const locked = priceOriginal ?? (orig === 'GEL' ? priceGEL : priceUSD)
   const mkt = country?.toLowerCase()
+  const perM2 = (v: number, fmt: (n: number) => string) =>
+    area > 0 ? { perM2: fmt(Math.round(v / area)) } : {}
   // Each native currency pivots to USD/GEL exactly once — no double-conversion drift.
   const baseUsd =
     orig === 'USD' ? locked
@@ -282,14 +289,16 @@ export function formatListingPrice({
     // Secondary shows the listing's native locked figure — never a double conversion.
     // EUR-native listings have no other locked figure, so they fall back to USD.
     const secondaryFormatted = orig === 'GEL' ? `${group3(baseGel)}₾` : `$${group3(baseUsd)}`
-    return { primary: `€${group3(primaryValue)}`, secondary: `≈ ${secondaryFormatted}` }
+    const eur = (n: number) => `€${group3(n)}`
+    return { primary: eur(primaryValue), secondary: `≈ ${secondaryFormatted}`, ...perM2(primaryValue, eur) }
   }
 
   if (currencyPreference === 'AED') {
     // AED is USD-pegged — native AED quotes stay locked, the rest pivot once.
     const primaryValue = orig === 'AED' ? locked : Math.round(baseUsd * AED_PER_USD)
     const secondaryFormatted = orig === 'GEL' ? `${group3(baseGel)}₾` : `$${group3(baseUsd)}`
-    return { primary: `AED ${group3(primaryValue)}`, secondary: `≈ ${secondaryFormatted}` }
+    const aed = (n: number) => `AED ${group3(n)}`
+    return { primary: aed(primaryValue), secondary: `≈ ${secondaryFormatted}`, ...perM2(primaryValue, aed) }
   }
 
   const primaryValue = currencyPreference === 'GEL' ? baseGel : baseUsd
@@ -308,11 +317,12 @@ export function formatListingPrice({
   }
 
   // EUR/AED preferences returned above — only GEL/USD reach here.
-  const primaryFormatted = currencyPreference === 'GEL' ? `${group3(primaryValue)}₾` : `$${group3(primaryValue)}`
+  const fmt = (n: number) => (currencyPreference === 'GEL' ? `${group3(n)}₾` : `$${group3(n)}`)
 
   return {
-    primary: primaryFormatted,
+    primary: fmt(primaryValue),
     secondary: `≈ ${secondaryFormatted}`,
+    ...perM2(primaryValue, fmt),
   }
 }
 

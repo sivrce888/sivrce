@@ -11,6 +11,8 @@ interface ValuationTerminalProps {
   monthlyRentUSD: number
   countryCode?: string
   lang?: string
+  /** Position vs real district comps (fairPriceOf) — omit when there are none. */
+  verdict?: 'below' | 'in' | 'above'
 }
 
 export default function ValuationTerminal({
@@ -19,6 +21,7 @@ export default function ValuationTerminal({
   monthlyRentUSD,
   countryCode = 'GE',
   lang = 'ka',
+  verdict,
 }: ValuationTerminalProps) {
   const [selectedScenario, setSelectedScenario] = useState<'BEAR' | 'BASE' | 'BULL'>('BASE')
   const isKa = lang === 'ka'
@@ -38,45 +41,31 @@ export default function ValuationTerminal({
   // the verdict — count it once; props are stable per listing.
   const { capture: captureEvent } = usePostHog()
   useEffect(() => {
-    captureEvent('valuation_viewed', { verdict: report.dealVerdict, country: countryCode })
-  }, [captureEvent, report.dealVerdict, countryCode])
+    captureEvent('valuation_viewed', { verdict: verdict ?? 'no_comps', country: countryCode })
+  }, [captureEvent, verdict, countryCode])
 
   // ponytail: inferred from report.scenarios — the annotation named a type this
   // file never imported, which is why the build was red.
   const scenario = report.scenarios[selectedScenario.toLowerCase() as 'bear' | 'base' | 'bull']
 
+  // Verdict comes only from real district comps (fairPriceOf) — the income model's
+  // own "fair value" is rent ÷ target yield, and rent is itself estimated from the
+  // price, so it would call every listing overpriced. No comps → no verdict chip.
   const verdictColor =
-    report.dealVerdict === 'EXCEPTIONAL'
-      ? 'text-sv-accent bg-sv-accent/10 border-sv-accent/20'
-      : report.dealVerdict === 'GOOD'
-        ? 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20'
-        : report.dealVerdict === 'OVERPRICED'
-          ? 'text-sv-red bg-sv-red/10 border-sv-red/20'
-          : 'text-sv-ink-soft bg-sv-ink/[0.04] border-sv-ink/[0.08]'
+    verdict === 'below'
+      ? 'text-emerald-500 bg-emerald-500/10 border-emerald-500/20'
+      : verdict === 'above'
+        ? 'text-sv-red bg-sv-red/10 border-sv-red/20'
+        : 'text-sv-ink-soft bg-sv-ink/[0.04] border-sv-ink/[0.08]'
 
-  const verdictLabel = isKa
-    ? report.dealVerdict === 'EXCEPTIONAL'
-      ? 'საუკეთესო შეთავაზება (Underpriced)'
-      : report.dealVerdict === 'GOOD'
-        ? 'ხელსაყრელი ფასი (Good Value)'
-        : report.dealVerdict === 'OVERPRICED'
-          ? 'მაღალი ფასი (Overpriced)'
-          : 'სამართლიანი საბაზრო ფასი'
-    : lang === 'de'
-    ? report.dealVerdict === 'EXCEPTIONAL'
-      ? 'Außergewöhnliche Gelegenheit'
-      : report.dealVerdict === 'GOOD'
-        ? 'Guter Marktwert'
-        : report.dealVerdict === 'OVERPRICED'
-          ? 'Über Marktpreis'
-          : 'Fairer Marktwert'
-    : report.dealVerdict === 'EXCEPTIONAL'
-      ? 'Exceptional Opportunity'
-      : report.dealVerdict === 'GOOD'
-        ? 'Good Market Value'
-        : report.dealVerdict === 'OVERPRICED'
-          ? 'Priced Above Market'
-          : 'Fair Market Value'
+  const verdictLabel =
+    verdict === 'below'
+      ? T('საბაზრო დიაპაზონზე დაბალი', 'Unter Marktspanne', 'Below market range')
+      : verdict === 'above'
+        ? T('საბაზრო დიაპაზონზე მაღალი', 'Über Marktspanne', 'Above market range')
+        : verdict === 'in'
+          ? T('საბაზრო დიაპაზონში', 'Innerhalb der Marktspanne', 'Within market range')
+          : null
 
   return (
     <section
@@ -100,10 +89,12 @@ export default function ValuationTerminal({
           </p>
         </div>
 
-        <div className={`inline-flex items-center self-start sm:self-center rounded-lg border px-3 py-1 text-xs font-semibold uppercase tracking-wider gap-1.5 ${verdictColor}`}>
-          <ShieldCheck className="h-3.5 w-3.5" />
-          <span>{verdictLabel}</span>
-        </div>
+        {verdictLabel ? (
+          <div className={`inline-flex items-center self-start sm:self-center rounded-lg border px-3 py-1 text-xs font-semibold uppercase tracking-wider gap-1.5 ${verdictColor}`}>
+            <ShieldCheck className="h-3.5 w-3.5" aria-hidden />
+            <span>{verdictLabel}</span>
+          </div>
+        ) : null}
       </div>
 
       {/* Scenario Selector Tabs */}

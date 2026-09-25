@@ -1,16 +1,18 @@
-/** Shared AI score → label. Default ka keeps existing DB/mapper callers. */
+/** Shared Sivrce Score → tier word. The score rates listing quality (verification,
+ *  photos, amenities, documents) — never price, so no tier may claim "great price":
+ *  price verdicts come only from real comps (price-scale.ts). Default ka keeps DB/mapper callers. */
 
 const TIER = {
-  ka: ['შესანიშნავი ფასი', 'კარგი შეთავაზება', 'საშუალო'],
-  en: ['Great price', 'Good deal', 'Fair'],
-  de: ['Top-Preis', 'Gutes Angebot', 'Durchschnitt'],
-  ru: ['Отличная цена', 'Хорошее предложение', 'Средне'],
-  tr: ['Harika fiyat', 'İyi fırsat', 'Orta'],
-  uk: ['Чудова ціна', 'Гарна пропозиція', 'Середньо'],
-  he: ['מחיר מצוין', 'עסקה טובה', 'בינוני'],
-  ar: ['سعر ممتاز', 'عرض جيد', 'متوسط'],
-  hy: ['Հիանալի գին', 'Լավ առաջարկ', 'Միջին'],
-  az: ['Əla qiymət', 'Yaxşı təklif', 'Orta'],
+  ka: ['შესანიშნავი', 'ძალიან კარგი', 'საშუალო'],
+  en: ['Excellent', 'Very good', 'Average'],
+  de: ['Ausgezeichnet', 'Sehr gut', 'Durchschnitt'],
+  ru: ['Отлично', 'Очень хорошо', 'Средне'],
+  tr: ['Mükemmel', 'Çok iyi', 'Orta'],
+  uk: ['Відмінно', 'Дуже добре', 'Середньо'],
+  he: ['מצוין', 'טוב מאוד', 'בינוני'],
+  ar: ['ممتاز', 'جيد جدًا', 'متوسط'],
+  hy: ['Գերազանց', 'Շատ լավ', 'Միջին'],
+  az: ['Əla', 'Çox yaxşı', 'Orta'],
 } as const
 
 export function aiLabel(score: number, lang: string = 'ka'): string {

@@ -19,6 +19,7 @@ import { estimateMonthlyRent, grossYieldPct } from "@/lib/finance"
 import { compareProperties } from "@/lib/10x-engine"
 import type { PropType } from "@/data/listings"
 import { cardOf } from "@/lib/media"
+import { aiLabel } from "@/lib/ai-label"
 
 const PROP_KEY: Record<PropType, DictKey> = {
   apartment: "prop.apartment",
@@ -135,7 +136,7 @@ export default function CompareClient() {
     { key: "type", label: tt("type"), cell: (l) => t(PROP_KEY[l.propType]) },
     { key: "deal", label: tt("deal"), cell: (l) => t(dealLabelKey(l.dealType, l.propType)) },
     { key: "views", label: lang === "de" ? "Aufrufe" : "Views", cell: (l) => l.views > 0 ? String(l.views) : "—" },
-    { key: "ai", label: tt("ai"), cell: (l) => `${l.ai.score} · ${l.ai.label}` },
+    { key: "ai", label: tt("ai"), cell: (l) => `${l.ai.score} · ${aiLabel(l.ai.score, lang)}` },
   ]
 
   return (

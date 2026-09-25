@@ -24,15 +24,15 @@ async function main() {
   assert.equal(await estimatePropertyValue(base), null)
 
   // Shared score → label mapping (search cards + listing mapper).
-  assert.equal(aiLabel(95), 'შესანიშნავი ფასი')
-  assert.equal(aiLabel(90), 'შესანიშნავი ფასი')
-  assert.equal(aiLabel(89), 'კარგი შეთავაზება')
-  assert.equal(aiLabel(75), 'კარგი შეთავაზება')
+  assert.equal(aiLabel(95), 'შესანიშნავი')
+  assert.equal(aiLabel(90), 'შესანიშნავი')
+  assert.equal(aiLabel(89), 'ძალიან კარგი')
+  assert.equal(aiLabel(75), 'ძალიან კარგი')
   assert.equal(aiLabel(74), 'საშუალო')
-  assert.equal(aiLabel(95, 'en'), 'Great price')
-  assert.equal(aiLabel(80, 'de'), 'Gutes Angebot')
-  assert.equal(aiLabel(50, 'en'), 'Fair')
-  assert.equal(aiLabel(95, 'fr'), 'Great price')
+  assert.equal(aiLabel(95, 'en'), 'Excellent')
+  assert.equal(aiLabel(80, 'de'), 'Sehr gut')
+  assert.equal(aiLabel(50, 'en'), 'Average')
+  assert.equal(aiLabel(95, 'fr'), 'Excellent')
 
   if (savedKey) process.env.GOOGLE_GENERATIVE_AI_API_KEY = savedKey
   console.log('ai.check: OK')

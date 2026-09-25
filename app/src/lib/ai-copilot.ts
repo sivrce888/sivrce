@@ -83,6 +83,20 @@ export function answerPropertyQuestion(
       }
     }
 
+    if (diffPct > 10) {
+      return {
+        questionCategory: 'valuation',
+        headlineEn: `Priced ${diffPct}% above district median ($${pricePerSqm}/m² vs $${context.districtMedianPerSqm}/m²)`,
+        headlineKa: `ფასი უბნის საშუალოზე ${diffPct}%-ით მაღალია ($${pricePerSqm}/მ² vs $${context.districtMedianPerSqm}/მ²)`,
+        bodyEn: `This property asks more than the ${context.district} median. A premium can be justified by floor, view, renovation or a newer building — compare with the nearby listings before negotiating.`,
+        bodyKa: `ეს ბინა ${context.district}-ის საშუალოზე ძვირია. მაღალი ფასი შეიძლება გაამართლოს სართულმა, ხედმა, რემონტმა ან ახალმა შენობამ — ვაჭრობამდე შეადარეთ ახლომდებარე განცხადებებს.`,
+        headlineDe: `Preis ${diffPct}% über Bezirksmedian ($${pricePerSqm}/m² vs. $${context.districtMedianPerSqm}/m²)`,
+        bodyDe: `Diese Immobilie liegt über dem Median in ${context.district}. Etage, Aussicht, Renovierung oder ein neueres Gebäude können einen Aufschlag rechtfertigen — vergleichen Sie vor der Verhandlung mit Angeboten in der Nähe.`,
+        confidenceScore: 90,
+        factState: 'FACT',
+      }
+    }
+
     return {
       questionCategory: 'valuation',
       headlineEn: `Fair market pricing within ${context.district} benchmark`,

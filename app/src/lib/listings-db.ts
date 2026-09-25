@@ -364,9 +364,12 @@ export async function getListingOwnerMeta(
   }, null)
 }
 
-/** Get a single listing by string id OR public number. Returns null if not found. */
-export async function getListing(id: string): Promise<Listing | null> {
-  return safeQuery(async () => {
+/** Get a single listing by string id OR public number. Returns null if not found.
+ *  `strict`: throw when the DB can't answer (outage, breaker, deadline) instead of
+ *  returning null — a detail page must never render "not found" for a live listing
+ *  just because the lookup failed (ISR would cache that 404; buyers bounce). */
+export async function getListing(id: string, opts?: { strict?: boolean }): Promise<Listing | null> {
+  const read = async (): Promise<Listing | null> => {
     const publicNum = parseListingNumber(id)
     const row = await db.listing.findFirst({
       where: {
@@ -388,7 +391,8 @@ export async function getListing(id: string): Promise<Listing | null> {
       image: meta.image,
     }
     return listing
-  }, null)
+  }
+  return opts?.strict ? freshQuery(read) : safeQuery(read, null)
 }
 
 const LOOKUP_SELECT = { id: true, publicId: true } as const

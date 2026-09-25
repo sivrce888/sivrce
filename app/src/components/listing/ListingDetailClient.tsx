@@ -51,6 +51,7 @@ import { scoreReasonKey, sivrceScore } from '@/lib/sivrce-score'
 import type { PropertyCopilotContext } from '@/lib/ai-copilot'
 import { aiLabel } from '@/lib/ai-label'
 import { listingTitle, placeLabel } from '@/lib/place-label'
+import { readableName } from '@/lib/ka-latin'
 import type { TasPublicDoc } from '@/lib/map/tas-arch'
 import { listingPath } from '@/lib/listing-slug'
 import { ShareSheet, openWhatsAppShare } from '@/components/listing/SharePack'
@@ -277,8 +278,10 @@ function Lightbox({
     const img = imgRef.current
     if (!img) return
     const r = img.getBoundingClientRect()
-    if (!r.width || !r.height) return // photo not decoded yet — nothing to scale
-    setZoomAt({ i: index, w: r.width * ZOOM, h: r.height * ZOOM, x, y, low: img.currentSrc })
+    if (!r.width || !r.height || !img.naturalWidth) return // photo not decoded yet — nothing to scale
+    // The box is object-contain — scale the painted photo, not its letterboxed box.
+    const fit = Math.min(r.width / img.naturalWidth, r.height / img.naturalHeight)
+    setZoomAt({ i: index, w: img.naturalWidth * fit * ZOOM, h: img.naturalHeight * fit * ZOOM, x, y, low: img.currentSrc })
   }
 
   const onKey = useEffectEvent((e: KeyboardEvent) => {
@@ -356,7 +359,7 @@ function Lightbox({
           type="button"
           onClick={(e) => { e.stopPropagation(); onNav(-1) }}
           aria-label={t('detail.prevPhoto')}
-          className="absolute left-4 top-1/2 z-10 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-sv-navy/60 text-white ring-1 ring-white/15 backdrop-blur-sm transition-colors hover:bg-sv-navy/80"
+          className="absolute left-4 top-1/2 z-10 grid pointer-coarse:hidden h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-sv-navy/60 text-white ring-1 ring-white/15 backdrop-blur-sm transition-colors hover:bg-sv-navy/80"
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
@@ -380,7 +383,9 @@ function Lightbox({
           if (info.offset.x <= -60) onNav(1)
           else if (info.offset.x >= 60) onNav(-1)
         }}
-        className="max-h-[78dvh] max-w-full cursor-zoom-in rounded-module object-contain shadow-panel-dark"
+        // Sized by CSS, not intrinsically: srcset says 2560w even when the uploaded
+        // master is smaller, which made the viewer render small photos at ~⅓ size.
+        className="h-[78dvh] w-full cursor-zoom-in object-contain"
         onClick={(e) => {
           e.stopPropagation()
           // A swipe ends with a click on the same image — don't read it as "zoom".
@@ -415,7 +420,7 @@ function Lightbox({
           type="button"
           onClick={(e) => { e.stopPropagation(); onNav(1) }}
           aria-label={t('detail.nextPhoto')}
-          className="absolute right-4 top-1/2 z-10 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-sv-navy/60 text-white ring-1 ring-white/15 backdrop-blur-sm transition-colors hover:bg-sv-navy/80"
+          className="absolute right-4 top-1/2 z-10 grid pointer-coarse:hidden h-11 w-11 -translate-y-1/2 place-items-center rounded-full bg-sv-navy/60 text-white ring-1 ring-white/15 backdrop-blur-sm transition-colors hover:bg-sv-navy/80"
         >
           <ChevronRight className="h-5 w-5" />
         </button>
@@ -791,7 +796,7 @@ export default function ListingDetailClient({
       const all = nearestAmenities(l.coords.lat, l.coords.lng)
       setNearHits(all.map((a) => ({ category: a.category, meters: a.meters })))
       setNearChips(
-        nearestAmenities(l.coords.lat, l.coords.lng).slice(0, 6).map((a) => ({
+        all.slice(0, 6).map((a) => ({
           category: a.category,
           name: a.name,
           dist: formatMetroDist(a),
@@ -836,6 +841,7 @@ export default function ListingDetailClient({
     country: l.country,
     rate: liveRate,
     eurRate,
+    area: l.area,
   })
   const priceMain = priceDetailObj.primary
   const priceAlt = priceDetailObj.secondary
@@ -852,14 +858,8 @@ export default function ListingDetailClient({
     () => parseDeExpose(`${l.description ?? ''} ${l.features.join(' ')}`),
     [l.description, l.features],
   )
-  const perM2Label =
-    uiCurrency === 'USD'
-      ? `$${l.perM2USD.toLocaleString('en-US')}`
-      : uiCurrency === 'EUR'
-        ? `€${Math.round(
-            euroNative && l.area > 0 ? l.priceOriginal! / l.area : l.priceGEL / l.area / eurRate,
-          ).toLocaleString(lang === 'de' ? 'de-DE' : 'en-US')}`
-        : `${Math.round(l.priceGEL / l.area).toLocaleString('en-US')} ₾`
+  // Derived from the displayed headline — never a second (stale-rate) conversion.
+  const perM2Label = priceDetailObj.perM2 ?? ''
   const publicId = listingPublicId(l)
   const streetHref = l.streetHref ?? null
   const priceScale = useMemo(() => {
@@ -880,8 +880,9 @@ export default function ListingDetailClient({
       title: l.title,
       priceUSD: l.priceUSD,
       areaSqm: l.area,
-      district: l.district,
-      city: l.city,
+      // Localized — the copilot interpolates it into prose ("… within Dighomi Massive").
+      district: readableName(placeLabel(l.district, lang, l.country), lang),
+      city: readableName(placeLabel(l.city, lang, l.country), lang),
       countryCode: l.country,
       // Only assert a district median when real peers exist — a circular
       // "average of $35/m²" (the listing itself) reads as a fabricated FACT.
@@ -891,7 +892,7 @@ export default function ListingDetailClient({
       photosCount: l.photoCount ?? l.images.length,
       hasCadastralCode: l.hasCadastralCode,
     }
-  }, [l, isSale, rentEst, peerPerM2])
+  }, [l, lang, isSale, rentEst, peerPerM2])
 
   useEffect(() => {
     if (!Number.isFinite(l.coords.lat) || !Number.isFinite(l.coords.lng)) return
@@ -957,7 +958,8 @@ export default function ListingDetailClient({
   const displayScore = scored.score
   const displayLabel = aiLabel(displayScore, lang)
   const city = placeLabel(l.city, lang, l.country)
-  const district = placeLabel(l.district, lang, l.country)
+  // GE districts are stored in Mkhedruli — romanize for every non-ka reader.
+  const district = readableName(placeLabel(l.district, lang, l.country), lang)
   const title = listingTitle(l.title, l.city, lang)
 
   const specs: { icon: typeof BedDouble; label: string; value: string }[] = [
@@ -1041,10 +1043,8 @@ export default function ListingDetailClient({
 
         {/* ————— Gallery ————— */}
         <div className="grid items-stretch gap-4 lg:grid-cols-[1.9fr_1fr] lg:min-h-[min(52vh,520px)]">
-          <motion.div
-            initial={{ opacity: 0, y: 28 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, ease }}
+          {/* No entrance fade: SSR opacity:0 hid the LCP photo until hydration + 0.7s. */}
+          <div
             className={`group relative overflow-hidden rounded-card shadow-card lg:min-h-[min(52vh,520px)] ${
               l.highlighted ? 'ring-2 ring-sv-blue/35' : ''
             }`}
@@ -1182,7 +1182,8 @@ export default function ListingDetailClient({
                   <Eye className="h-3.5 w-3.5" /> {t('detail.views', { n: formatViews(views, lang) })}
                 </span>
                 {l.images.length > 1 ? (
-                  <div className="pointer-events-auto flex gap-2">
+                  // Touch: swipe is the gesture; the dots above stay as labelled buttons.
+                  <div className="pointer-events-auto flex gap-2 pointer-coarse:hidden">
                     <button
                       onClick={() => navPhoto(-1)}
                       aria-label={t('detail.prevPhoto')}
@@ -1201,10 +1202,11 @@ export default function ListingDetailClient({
                 ) : null}
               </div>
             </div>
-          </motion.div>
+          </div>
 
-          {/* Thumbnails — 4th tile becomes a "+N more" lightbox trigger when there are extra photos */}
-          <div className="grid grid-cols-4 gap-3 lg:grid-cols-2 lg:grid-rows-2">
+          {/* Thumbnails — 4th tile becomes a "+N more" lightbox trigger when there are extra photos.
+              Phones: hidden — swipe + dots + counter already cover it, and the strip pushed price below the fold. */}
+          <div className="hidden grid-cols-4 gap-3 sm:grid lg:grid-cols-2 lg:grid-rows-2">
             {l.images.slice(0, 4).map((src, i) => {
               const moreTile = i === 3 && l.images.length > 4
               return (
@@ -1333,34 +1335,6 @@ export default function ListingDetailClient({
               </div>
             </div>
 
-            {/* Key specs — competitor-beating scan strip (area · floor · rooms · condition) */}
-            <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {keySpecs.map((s) => (
-                <div
-                  key={s.label}
-                  className="rounded-tile border border-sv-ink/[0.06] bg-sv-surface px-3 py-4 shadow-card sm:px-4"
-                >
-                  <s.icon className="h-5 w-5 text-sv-blue" aria-hidden />
-                  <div className="mt-2 break-words text-[17px] font-black leading-tight tracking-tight text-sv-ink sm:text-[20px]">
-                    {s.value}
-                  </div>
-                  <div className="text-[12px] font-bold text-sv-ink/60">{s.label}</div>
-                </div>
-              ))}
-            </div>
-
-            {/*
-              GEG § 87 Pflichtangaben. The law requires these facts in the ad
-              itself, so they render verbatim as stored at publish time — no
-              re-derivation, no translation of the legal terms.
-            */}
-            {l.gegDisclosure && (
-              <p className="mt-4 rounded-tile border border-sv-ink/[0.06] bg-sv-surface px-4 py-3 text-[12px] font-semibold leading-relaxed text-sv-ink/70 shadow-card">
-                <span className="font-black text-sv-ink/80">Energieausweis · § 87 GEG: </span>
-                {l.gegDisclosure}
-              </p>
-            )}
-
             {/* Price block */}
             <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card">
               <div>
@@ -1378,7 +1352,7 @@ export default function ListingDetailClient({
                   </div>
                 ) : null}
                 <div className="mt-0.5 text-[14px] font-bold text-sv-ink/60 dark:text-sv-blue-light/70">
-                  {priceAlt} · {perM2Label}/{t('add.areaUnit.m2')}
+                  {priceAlt}{perM2Label ? ` · ${perM2Label}/${t('add.areaUnit.m2')}` : ''}
                 </div>
               </div>
               {/* Currency toggle — group + pressed (no tabpanel exists, so tablist/tab misleads AT) */}
@@ -1407,6 +1381,34 @@ export default function ListingDetailClient({
                 ))}
               </div>
             </div>
+
+            {/* Key specs — competitor-beating scan strip (area · floor · rooms · condition) */}
+            <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {keySpecs.map((s) => (
+                <div
+                  key={s.label}
+                  className="rounded-tile border border-sv-ink/[0.06] bg-sv-surface px-3 py-4 shadow-card sm:px-4"
+                >
+                  <s.icon className="h-5 w-5 text-sv-blue" aria-hidden />
+                  <div className="mt-2 break-words text-[17px] font-black leading-tight tracking-tight text-sv-ink sm:text-[20px]">
+                    {s.value}
+                  </div>
+                  <div className="text-[12px] font-bold text-sv-ink/60">{s.label}</div>
+                </div>
+              ))}
+            </div>
+
+            {/*
+              GEG § 87 Pflichtangaben. The law requires these facts in the ad
+              itself, so they render verbatim as stored at publish time — no
+              re-derivation, no translation of the legal terms.
+            */}
+            {l.gegDisclosure && (
+              <p className="mt-4 rounded-tile border border-sv-ink/[0.06] bg-sv-surface px-4 py-3 text-[12px] font-semibold leading-relaxed text-sv-ink/70 shadow-card">
+                <span className="font-black text-sv-ink/80">Energieausweis · § 87 GEG: </span>
+                {l.gegDisclosure}
+              </p>
+            )}
 
             {deCosts ? (
               <div className="mt-3 rounded-card border border-sv-ink/[0.06] bg-sv-surface px-5 py-4 shadow-card">
@@ -1804,7 +1806,7 @@ export default function ListingDetailClient({
                     <p className="text-[12px] font-bold text-sv-ink/60">
                       {euroNative
                         ? (lang === 'de' ? 'Annuität, 25 Jahre · 3,8 % als Startwert (kein Angebot).' : 'Annuity, 25 years · 3.8% starter rate (not an offer).')
-                        : t('detail.mortgageNote', { rate: USD_GEL })}
+                        : t('detail.mortgageNote', { rate: (liveRate || USD_GEL).toFixed(2) })}
                     </p>
                   </div>
                 </div>
@@ -1863,7 +1865,7 @@ export default function ListingDetailClient({
                     </div>
                     {euroNative ? null : (
                     <div className="text-[13px] font-bold text-sv-ink/60">
-                      {t('detail.approxPerMonth', { gel: formatGEL(Math.round(monthlyUSD * USD_GEL)) })}
+                      {t('detail.approxPerMonth', { gel: formatGEL(Math.round(monthlyUSD * (liveRate || USD_GEL))) })}
                     </div>
                     )}
                     <div className="mt-1 text-[12px] font-bold text-sv-ink/50">
@@ -1896,6 +1898,7 @@ export default function ListingDetailClient({
                 monthlyRentUSD={rentEst}
                 countryCode={l.country}
                 lang={lang}
+                verdict={fairPrice?.position}
               />
             )}
 
@@ -1932,7 +1935,7 @@ export default function ListingDetailClient({
                 </div>
                 <div className="text-[12px] font-bold text-sv-ink/60 dark:text-sv-blue-light/70">
                   {priceAlt}
-                  {isSale && l.perM2USD > 0 ? ` · ${perM2Label}/${t('add.areaUnit.m2')}` : ''}
+                  {isSale && perM2Label ? ` · ${perM2Label}/${t('add.areaUnit.m2')}` : ''}
                 </div>
               </div>
               <div className="flex items-center gap-4">

@@ -23,6 +23,14 @@ if (val.questionCategory !== 'valuation' || val.confidenceScore < 80) {
   throw new Error('Valuation question parsing failed')
 }
 
+// Verdict follows the median both ways — +11% must never read "aligns closely".
+{
+  const hi = answerPropertyQuestion('Is the price fair?', { ...ctx, priceUSD: 70 * 2331 })
+  if (!hi.headlineEn.startsWith('Priced 11% above district median')) throw new Error(`above-median verdict: ${hi.headlineEn}`)
+  const mid = answerPropertyQuestion('Is the price fair?', { ...ctx, priceUSD: 70 * 2200 })
+  if (!mid.headlineEn.startsWith('Fair market pricing')) throw new Error(`in-band verdict: ${mid.headlineEn}`)
+}
+
 // Investment question
 const inv = answerPropertyQuestion('What is the rental yield and ROI?', ctx)
 if (inv.questionCategory !== 'investment' || !inv.headlineEn.includes('Yield')) {

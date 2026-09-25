@@ -75,14 +75,10 @@ function metaDescription(text: string, max = 155): string {
   return `${cut.slice(0, cut.lastIndexOf(' ')).replace(/[.,;:!?…-]+$/, '')}…`
 }
 
-/** DB only — mock LISTINGS never surface as live detail pages. */
-async function getListing(id: string) {
-  try {
-    return await getDbListing(id)
-  } catch {
-    return null
-  }
-}
+/** DB only — mock LISTINGS never surface as live detail pages. Strict: a failed
+ *  lookup throws (ISR keeps the last good render, else error.tsx with Retry);
+ *  only a real miss becomes notFound(). */
+const getListing = (id: string) => getDbListing(id, { strict: true })
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id, lang: raw } = await params
@@ -100,10 +96,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       : formatUSD(l.priceUSD)
   const price = `${head}${per}`
   const keyword = listingKeyword(l)
-  const exclusiveLead = [
-    l.isExclusive && t('badge.exclusive'),
-    l.isSivrceExclusive && t('badge.sivrceExclusive'),
-  ].filter(Boolean).join(' · ')
+  // One lead only — both read "Exclusive · Exclusively on Sivrce" and ate half the
+  // SERP title. Sivrce-only is the stronger (unique) claim.
+  const exclusiveLead = l.isSivrceExclusive
+    ? t('badge.sivrceExclusive')
+    : l.isExclusive ? t('badge.exclusive') : ''
   // No brand suffix here — the layout title template appends "| sivrce"
   // (hardcoding it produced "… | Sivrce | sivrce" on every listing SERP).
   const title = `${exclusiveLead ? `${exclusiveLead} · ` : ''}${keyword} — ${price}`

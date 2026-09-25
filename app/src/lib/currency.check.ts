@@ -99,4 +99,12 @@ if (listingToggleCurrencies({ country: 'AE' }).join() !== 'AED,USD') throw new E
 if (marketCurrencyOptions('AE').join() !== 'AED,USD') throw new Error('AE options')
 if (marketCurrencyOptions(null).join() !== 'USD,EUR,GEL') throw new Error('GE options')
 
+// ₾/m² follows the displayed (live-rate) headline, not the stored GEL snapshot.
+{
+  const p = formatListingPrice({ priceUSD: 285_000, priceGEL: 769_500, currencyOriginal: 'USD', currencyPreference: 'GEL', rate: 2.6, area: 90 })
+  const sp = (x?: string) => x?.replace(/\s/gu, ' ')
+  if (sp(p.primary) !== '741 000₾' || sp(p.perM2) !== '8 233₾') throw new Error(`perM2 drift: ${p.primary} · ${p.perM2}`)
+  if (formatListingPrice({ ...usdListing, area: 0 }).perM2 !== undefined) throw new Error('perM2 without area')
+}
+
 console.log('currency.check.ts: ok')
