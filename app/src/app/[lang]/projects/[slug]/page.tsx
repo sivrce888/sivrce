@@ -3,7 +3,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { avifCardOf, cardOf } from '@/lib/media'
-import { MapPin, CalendarCheck, Building2, BadgeCheck, Star, Phone, Landmark, ArrowUpRight } from 'lucide-react'
+import { MapPin, BadgeCheck, Star, Phone, PhoneCall, Landmark, ArrowUpRight, Images, PlayCircle, Calculator } from 'lucide-react'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import ListingCard from '@/components/ListingCard'
@@ -12,7 +12,6 @@ import { StickyLeadBar } from '@/components/lead/StickyLeadBar'
 import { PlaceContext } from '@/components/entities/PlaceContext'
 import { placeLabels } from '@/lib/place-context'
 import { telHref, waHref, CONTACT_PHONE } from '@/lib/inquiries/phone'
-import { StatsRow } from '@/components/entities/StatsRow'
 import { SourcesSection } from '@/components/entities/SourcesSection'
 import { getEntityProfile } from '@/lib/intel/store'
 import { sourcesHeading, toPublicFacts } from '@/lib/intel/public-facts'
@@ -21,11 +20,20 @@ import { ProjectChatButton } from '@/components/chat/ProjectChatButton'
 import ReviewsSectionServer from '@/components/reviews/ReviewsSectionServer'
 import { FaqSection } from '@/components/seo/FaqSection'
 import { ProjectMediaGallery } from '@/components/entities/ProjectMediaGallery'
+import { ProjectMarket } from '@/components/entities/ProjectMarket'
+import { ReportInaccuracy } from '@/components/entities/ReportInaccuracy'
+import { DeveloperLogo } from '@/components/entities/DeveloperLogo'
+import { TBILISI_DISTRICT_LABELS } from '@/data/district-labels'
+import { marketPosition, priceM2Currency, priceM2Number, trackRecord } from '@/lib/project-insights'
+import { PROJECT_PAGE } from '@/lib/project-page-copy'
 import { listingVideoObject } from '@/lib/listing-video'
 import { PROJECTS, isDelivered } from '@/data/professionals'
 import {
   getLiveProject,
   getLiveDeveloper,
+  developersLive,
+  nearbyProjectsLive,
+  projectsLive,
   projectsLiveByDeveloper,
   isValidCoords,
 } from '@/lib/directory-live'
@@ -50,6 +58,7 @@ import {
   PROJECT_DETAIL_DE,
   dirLoc,
   faqPageLd,
+  cityName,
   finishLabel,
   floorsLabel,
   hasPriceFrom,
@@ -87,19 +96,6 @@ function sourceLabel(url: string, lang: string, isDe: boolean): string {
 
 function absImg(src: string, com = false) {
   return src.startsWith('http') ? src : com ? `https://sivrce.com${src}` : `https://sivrce.ge${src}`
-}
-
-/** "$2,100" | "₾4,224" → 2100 / 4224 — AggregateOffer lowPrice. */
-function priceNumber(priceFromM2: string): number | null {
-  const n = Number(priceFromM2.replace(/[^0-9.]/g, ''))
-  return Number.isFinite(n) && n > 0 ? n : null
-}
-
-/** ponytail: GEL if ₾/GEL marker, EUR if €/EUR (Berlin), else USD — covers catalog + live merge. */
-function priceCurrency(priceFromM2: string): 'GEL' | 'EUR' | 'USD' {
-  if (/₾|GEL/i.test(priceFromM2)) return 'GEL'
-  if (/€|EUR/i.test(priceFromM2)) return 'EUR'
-  return 'USD'
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -178,18 +174,34 @@ export default async function ProjectPage({ params }: PageProps) {
   // Georgian transliteration wins on ka — matches how users actually search.
   const displayName = lang === 'ka' && project.nameKa ? project.nameKa : project.name
 
-  const [dev, listings, aggregate, siblingProjects, intel] = await Promise.all([
+  const hasGeo = isValidCoords(project.coords.lat, project.coords.lng)
+  const [dev, listings, aggregate, allProjects, devProjects, intel, nearby, devs] = await Promise.all([
     project.developerSlug ? getLiveDeveloper(project.developerSlug) : Promise.resolve(null),
     getListingsForProjectSlug(slug, 6),
     getReviewAggregate('project', slug),
-    project.developerSlug
-      ? projectsLiveByDeveloper(project.developerSlug).then((ps) =>
-          ps.filter((p) => p.slug !== project.slug).slice(0, 4),
-        )
-      : Promise.resolve([]),
+    projectsLive(),
+    project.developerSlug ? projectsLiveByDeveloper(project.developerSlug) : Promise.resolve([]),
     // Provenance is additive: a dossier miss must never 500 the project page.
     getEntityProfile('project', slug).catch(() => null),
+    hasGeo ? nearbyProjectsLive(project.coords, project.city, 6, project.slug) : Promise.resolve([]),
+    developersLive(),
   ])
+  const siblingProjects = devProjects.filter((p) => p.slug !== project.slug).slice(0, 4)
+  const track = trackRecord(devProjects)
+  const t = PROJECT_PAGE[chromeLoc]
+  const delivered = isDelivered(project)
+  const phoneNum = dev?.phone || CONTACT_PHONE
+  const marketIso = cityByName(project.city)?.cc
+  const showMortgage = !com && marketIso === 'GE'
+  const devNames = new Map(devs.map((d) => [d.slug, pickLoc(d.name, loc)]))
+  // Percentile among same-city, same-currency priced projects (district when dense enough).
+  const position = marketPosition(project, allProjects)
+  const scopeName =
+    position?.scope === 'district' && project.district
+      ? loc === 'ka'
+        ? project.district
+        : (TBILISI_DISTRICT_LABELS.find((d) => d.name.ka === project.district)?.name.en ?? project.district)
+      : cityName(project.city, chromeLoc)
   const factRows = intel ? toPublicFacts(intel.facts, lang) : []
   const sourcesCopy = sourcesHeading(lang)
 
@@ -212,9 +224,8 @@ export default async function ProjectPage({ params }: PageProps) {
       return c ? [[absImg(g, com), c] as const] : []
     }),
   )
-  const lowPrice = priceNumber(project.priceFromM2)
-  const currency = priceCurrency(project.priceFromM2)
-  const hasGeo = isValidCoords(project.coords.lat, project.coords.lng)
+  const lowPrice = priceM2Number(project.priceFromM2)
+  const currency = priceM2Currency(project.priceFromM2)
   // Exact-building pin — committed OSM footprint beats street-level geocode drift.
   const fpPin = hasGeo ? footprintPin({ slug: project.slug }, project.coords) : null
   const aboutText =
@@ -277,7 +288,7 @@ export default async function ProjectPage({ params }: PageProps) {
         lowPrice,
         unitText: 'SQM',
         availability:
-          isDelivered(project)
+          delivered
             ? 'https://schema.org/SoldOut'
             : 'https://schema.org/InStock',
         url: `${ldOrigin}${ldPath}`,
@@ -338,15 +349,16 @@ export default async function ProjectPage({ params }: PageProps) {
     { label: micro.flats, value: unitsLabel(project.flats, chromeLoc) },
     ...(project.floors ? [{ label: c.floorsRow, value: floorsLabel(project.floors, chromeLoc) }] : []),
     ...(project.cadastral ? [{ label: c.cadastral, value: project.cadastral }] : []),
-    { label: c.location, value: `${project.location}, ${locality}` },
+    { label: c.location, value: project.location.includes(locality) ? project.location : `${project.location}, ${locality}` },
   ]
 
   const anchors = [
+    { id: 'details', label: c.details },
+    ...(position || nearby.length > 0 ? [{ id: 'market', label: t.marketTitle }] : []),
     ...(floorsFc || hasGeo
       ? [{ id: 'location', label: floorsFc && cluster ? c.building3d : c.location }]
       : []),
     ...(floorsFc || hasGeo ? [{ id: 'area', label: placeLabels(chromeLoc).area }] : []),
-    { id: 'details', label: c.details },
     { id: 'gallery', label: c.gallery },
     ...(aboutText ? [{ id: 'about', label: c.aboutProject }] : []),
     ...(listings.length > 0 ? [{ id: 'listings', label: micro.listingsShort }] : []),
@@ -357,54 +369,191 @@ export default async function ProjectPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-sv-cloud">
-      <Navbar marketIso={cityByName(project.city)?.cc} />
+      <Navbar marketIso={marketIso} />
       <main id="main">
-        {/* Hero */}
-        <div className="relative aspect-[16/9] max-h-[520px] w-full overflow-hidden md:aspect-[21/9]">
-          {/* ponytail: manual card/master srcset — global Image.unoptimized ships the 2560px master to phones */}
-          { }
-          <picture className="contents">
-            {avifCardOf(project.img) ? (
-              <source type="image/avif" media="(max-width: 800px)" srcSet={avifCardOf(project.img)} />
-            ) : null}
-          <img
-            src={project.img}
-            srcSet={cardOf(project.img) ? `${cardOf(project.img)} 800w, ${project.img} 2560w` : undefined}
-            sizes="100vw"
-            alt={project.name}
-            fetchPriority="high"
-            className="absolute inset-0 h-full w-full object-cover"
-          />
-          </picture>
-          <div className="absolute inset-0 bg-gradient-to-t from-sv-navy/80 via-sv-navy/20 to-transparent" />
-          <div aria-hidden className="absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-sv-navy/55 to-transparent" />
-          <div className="absolute inset-x-0 bottom-0 mx-auto max-w-[1440px] px-5 pb-8 md:px-10">
-            <nav aria-label="breadcrumb" className="mb-3 text-[12px] font-semibold text-white/60">
-              <Link href={com && market ? `/${market}` : '/projects'} className="hover:text-white">
-                {c.crumbProjects}
-              </Link>
-              <span aria-hidden className="mx-1.5">
-                /
+        {/* Hero — media + decision panel: price, status, developer and the call-to-action above the fold */}
+        <section aria-labelledby="project-title" className="mx-auto max-w-[1440px] px-5 pb-8 pt-[84px] md:px-10 md:pt-[92px]">
+          <nav aria-label="breadcrumb" className="mb-4 text-[12px] font-semibold text-sv-ink/60">
+            <ol className="flex flex-wrap items-center gap-1.5">
+              <li>
+                <Link href={com && market ? `/${market}` : '/'} className="hover:text-sv-ink">
+                  {c.crumbHome}
+                </Link>
+              </li>
+              <li aria-hidden>/</li>
+              <li>
+                <Link href={com && market ? `/${market}#new-builds` : '/projects'} className="hover:text-sv-ink">
+                  {c.crumbProjects}
+                </Link>
+              </li>
+              <li aria-hidden>/</li>
+              <li aria-current="page" className="text-sv-ink/85">
+                {displayName}
+              </li>
+            </ol>
+          </nav>
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1.5fr)_minmax(360px,1fr)]">
+            <div className="relative aspect-[4/3] overflow-hidden rounded-card bg-sv-navy sm:aspect-[16/10] lg:aspect-auto lg:min-h-[500px]">
+              {/* ponytail: manual card/master srcset — global Image.unoptimized ships the 2560px master to phones */}
+              <picture className="contents">
+                {avifCardOf(project.img) ? (
+                  <source type="image/avif" media="(max-width: 800px)" srcSet={avifCardOf(project.img)} />
+                ) : null}
+                <img
+                  src={project.img}
+                  srcSet={cardOf(project.img) ? `${cardOf(project.img)} 800w, ${project.img} 2560w` : undefined}
+                  sizes="(min-width: 1024px) 60vw, 100vw"
+                  alt={displayName}
+                  fetchPriority="high"
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+              </picture>
+              <div aria-hidden className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-sv-navy/60 to-transparent" />
+              <span className="absolute left-4 top-4 rounded-full bg-sv-surface/95 px-3 py-1 text-[12px] font-extrabold text-sv-ink shadow-card">
+                {delivered ? t.completed : `${t.building} · ${micro.builtPct(project.done)}`}
               </span>
-              <span className="text-white/85">{displayName}</span>
-            </nav>
-            <div className="flex flex-wrap items-end justify-between gap-4">
-              <div>
-                <h1 className="text-[28px] font-black text-white [text-shadow:0_2px_12px_rgba(5,11,38,0.6)] md:text-[40px]">
-                  {displayName}
-                </h1>
-                {(displayName !== project.name || altNames.length > 0) && (
-                  <p className="text-[13px] font-bold text-white/60">
-                    {displayName !== project.name ? project.name : altNames[0]}
-                  </p>
-                )}
-                {dev && (
-                  <Link
-                    href={`/developers/${dev.slug}`}
-                    className="mt-1 inline-flex min-h-11 items-center gap-1.5 text-[14px] font-bold text-white/85 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+              <div className="absolute bottom-4 left-4 flex flex-wrap gap-2">
+                <a
+                  href="#gallery"
+                  className="inline-flex min-h-11 items-center gap-2 rounded-control bg-sv-navy/55 px-4 text-[13px] font-extrabold text-white backdrop-blur transition-colors hover:bg-sv-navy/75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                >
+                  <Images className="h-4 w-4" aria-hidden />
+                  {t.photos(images.length)}
+                </a>
+                {project.videoUrl && (
+                  <a
+                    href="#gallery"
+                    className="inline-flex min-h-11 items-center gap-2 rounded-control bg-sv-navy/55 px-4 text-[13px] font-extrabold text-white backdrop-blur transition-colors hover:bg-sv-navy/75 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
                   >
-                    <BadgeCheck className="h-4 w-4 text-sv-success" aria-hidden />
-                    {pickLoc(dev.name, loc)}
+                    <PlayCircle className="h-4 w-4" aria-hidden />
+                    {t.video}
+                  </a>
+                )}
+              </div>
+            </div>
+
+            <div className="flex flex-col rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card md:p-7">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <h1 id="project-title" className="text-[26px] font-black leading-tight tracking-[-0.02em] text-sv-ink md:text-[32px]">
+                    {displayName}
+                  </h1>
+                  {(displayName !== project.name || altNames.length > 0) && (
+                    <p className="mt-0.5 text-[13px] font-bold text-sv-ink/60">
+                      {displayName !== project.name ? project.name : altNames[0]}
+                    </p>
+                  )}
+                </div>
+                {/* Real reviews only — the catalog's seed `rating` has no source. */}
+                {aggregate && (
+                  <a
+                    href="#contact"
+                    className="inline-flex shrink-0 items-center gap-1 rounded-control bg-sv-cloud px-3 py-1.5 text-[14px] font-black text-sv-ink"
+                  >
+                    <Star className="h-4 w-4 fill-sv-orange text-sv-orange" aria-hidden />
+                    {aggregate.average.toFixed(1)}
+                    <span className="text-[12px] font-bold text-sv-ink/60">({aggregate.count})</span>
+                  </a>
+                )}
+              </div>
+              <a
+                href="#location"
+                className="mt-2 inline-flex items-start gap-1.5 text-[14px] font-bold text-sv-ink/70 transition-colors hover:text-sv-ink"
+              >
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-sv-ink/40" aria-hidden />
+                {project.location}
+              </a>
+
+              <dl className="mt-5 grid grid-cols-2 gap-x-4 gap-y-4 border-y border-sv-ink/[0.06] py-5">
+                <div className="col-span-2">
+                  <dt className="text-[12px] font-bold uppercase tracking-wide text-sv-ink/60">{micro.priceFromM2}</dt>
+                  <dd className="mt-0.5 text-[28px] font-black tracking-[-0.02em] text-sv-ink">
+                    {priceFromLabel(project.priceFromM2, chromeLoc) || '—'}
+                  </dd>
+                  {position && (
+                    <dd className="mt-1.5">
+                      <a
+                        href="#market"
+                        className="inline-flex rounded-full bg-sv-blue/[0.08] px-3 py-1 text-[12px] font-extrabold text-sv-blue-deep transition-colors hover:bg-sv-blue/[0.14]"
+                      >
+                        {t.marketChip(position.deltaPct, scopeName)}
+                      </a>
+                    </dd>
+                  )}
+                </div>
+                <div>
+                  <dt className="text-[12px] font-bold uppercase tracking-wide text-sv-ink/60">{micro.handover}</dt>
+                  <dd className="mt-0.5 text-[16px] font-black text-sv-ink">{finishLabel(chromeLoc, project.finish) || '—'}</dd>
+                </div>
+                <div>
+                  <dt className="text-[12px] font-bold uppercase tracking-wide text-sv-ink/60">{micro.flats}</dt>
+                  <dd className="mt-0.5 text-[16px] font-black text-sv-ink">
+                    {unitsLabel(project.flats, chromeLoc)}
+                    {project.floors ? <span className="block text-[13px] font-bold text-sv-ink/60">{floorsLabel(project.floors, chromeLoc)}</span> : null}
+                  </dd>
+                </div>
+                <div className="col-span-2">
+                  <dt className="flex justify-between text-[12px] font-bold uppercase tracking-wide text-sv-ink/60">
+                    {c.statsBuilt}
+                    <span className="text-sv-ink">{project.done}%</span>
+                  </dt>
+                  <dd className="mt-2 h-1.5 overflow-hidden rounded-full bg-sv-ink/[0.07]">
+                    <div className="h-full rounded-full bg-gradient-to-r from-sv-blue to-sv-violet" style={{ width: `${project.done}%` }} />
+                  </dd>
+                </div>
+              </dl>
+
+              {dev && (
+                <Link
+                  href={`/developers/${dev.slug}`}
+                  className="-mx-2 mt-4 flex items-center gap-3 rounded-module p-2 transition-colors hover:bg-sv-cloud focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue"
+                >
+                  <DeveloperLogo slug={dev.slug} name={dev.name} logoUrl={dev.logoUrl} size="sm" />
+                  <span className="min-w-0">
+                    <span className="block text-[11px] font-bold uppercase tracking-wide text-sv-ink/60">{t.developer}</span>
+                    <span className="flex items-center gap-1 text-[15px] font-black text-sv-ink">
+                      <span className="truncate">{pickLoc(dev.name, loc)}</span>
+                      {dev.verified && <BadgeCheck className="h-4 w-4 shrink-0 text-sv-blue" aria-hidden />}
+                    </span>
+                    {track.total > 0 && (
+                      <span className="block text-[12px] font-semibold text-sv-ink/60">{t.devRecord(track.total, track.delivered)}</span>
+                    )}
+                  </span>
+                </Link>
+              )}
+
+              <div className="mt-auto grid grid-cols-2 gap-2 pt-5">
+                <a
+                  href="#contact"
+                  className="col-span-2 inline-flex min-h-12 items-center justify-center gap-2 rounded-control bg-sv-orange px-5 text-[15px] font-extrabold text-sv-ink transition-all duration-200 hover:-translate-y-0.5 hover:shadow-glow-orange-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
+                >
+                  <PhoneCall className="h-4 w-4" aria-hidden />
+                  {t.requestCall}
+                </a>
+                <a
+                  href={telHref(phoneNum)}
+                  aria-label={`${displayName} — ${phoneNum}`}
+                  className="inline-flex min-h-11 items-center justify-center gap-2 rounded-control bg-sv-blue px-3 text-[14px] font-extrabold text-white transition-colors duration-200 hover:bg-sv-blue-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
+                >
+                  <Phone className="h-4 w-4 shrink-0" aria-hidden />
+                  <span className="truncate">{phoneNum}</span>
+                </a>
+                <a
+                  href={waHref(phoneNum)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`WhatsApp: ${displayName}`}
+                  className="inline-flex min-h-11 items-center justify-center rounded-control border border-sv-blue/25 bg-sv-blue/[0.06] px-3 text-[14px] font-extrabold text-sv-blue-deep transition-colors duration-200 hover:bg-sv-blue/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
+                >
+                  WhatsApp
+                </a>
+              </div>
+              {(showMortgage || project.sourceUrl) && (
+              <p className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] font-bold text-sv-ink/60">
+                {showMortgage && (
+                  <Link href="/mortgage-calculator" className="inline-flex min-h-8 items-center gap-1 text-sv-blue-deep hover:underline">
+                    <Calculator className="h-3.5 w-3.5" aria-hidden />
+                    {t.mortgage}
                   </Link>
                 )}
                 {project.sourceUrl && (
@@ -412,93 +561,18 @@ export default async function ProjectPage({ params }: PageProps) {
                     href={project.sourceUrl}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="mt-1 inline-flex min-h-11 items-center gap-1.5 text-[13px] font-bold text-white/70 transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                    className="inline-flex min-h-8 items-center gap-1 hover:text-sv-ink"
                   >
-                    <Landmark className="h-4 w-4 text-white/50" aria-hidden />
+                    <Landmark className="h-3.5 w-3.5" aria-hidden />
                     {sourceLabel(project.sourceUrl, lang, isDe)}
-                    <ArrowUpRight className="h-3.5 w-3.5" aria-hidden />
+                    <ArrowUpRight className="h-3 w-3" aria-hidden />
                   </a>
                 )}
-              </div>
-              {/* Real reviews only — the catalog's seed `rating` has no source. */}
-              {aggregate && (
-                <div className="flex items-center gap-1 rounded-control bg-white/95 px-3.5 py-2 text-[15px] font-black text-sv-ink">
-                  <Star className="h-4 w-4 fill-sv-orange text-sv-orange" aria-hidden />
-                  {aggregate.average.toFixed(1)}
-                  <span className="text-[12px] font-bold text-sv-ink/60">({aggregate.count})</span>
-                </div>
+              </p>
               )}
             </div>
           </div>
-        </div>
-
-        {/* Stats */}
-        <section className="border-b border-sv-ink/[0.06] bg-sv-cloud">
-          <div className="mx-auto max-w-[1440px] px-5 py-8 md:px-10">
-            <div className="flex flex-wrap items-start justify-between gap-6">
-              <div className="min-w-0 flex-1">
-                <StatsRow
-                  items={[
-                    ...(project.priceFromM2
-                      ? [
-                          {
-                            label: micro.priceFromM2,
-                            value: priceFromLabel(project.priceFromM2, chromeLoc),
-                          },
-                        ]
-                      : []),
-                    { label: c.statsBuilt, value: `${project.done}%` },
-                    { label: micro.handover, value: finishLabel(chromeLoc, project.finish) },
-                    { label: micro.flats, value: unitsLabel(project.flats, chromeLoc) },
-                  ]}
-                />
-                <div className="mt-6 h-1.5 max-w-xl overflow-hidden rounded-full bg-sv-ink/[0.07]">
-                  <div
-                    className="h-full rounded-full bg-gradient-to-r from-sv-blue to-sv-violet"
-                    style={{ width: `${project.done}%` }}
-                  />
-                </div>
-              </div>
-              {(() => {
-                const phoneNum = dev?.phone || CONTACT_PHONE
-                return (
-                  <div className="flex shrink-0 flex-wrap gap-2">
-                    <a
-                      href={telHref(phoneNum)}
-                      aria-label={`${displayName} — ${phoneNum}`}
-                      className="inline-flex min-h-11 items-center gap-2 rounded-control bg-sv-blue px-5 text-[15px] font-extrabold text-white transition-colors duration-200 hover:bg-sv-blue-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
-                    >
-                      <Phone className="h-4 w-4" aria-hidden />
-                      {phoneNum}
-                    </a>
-                    <a
-                      href={waHref(phoneNum)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      aria-label={`WhatsApp: ${displayName}`}
-                      className="inline-flex min-h-11 items-center rounded-control border border-sv-blue/25 bg-sv-blue/[0.06] px-5 text-[15px] font-extrabold text-sv-blue-deep transition-colors duration-200 hover:bg-sv-blue/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
-                    >
-                      WhatsApp
-                    </a>
-                  </div>
-                )
-              })()}
-            </div>
-            <p className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] font-bold text-sv-ink/60">
-              <span className="flex items-center gap-1.5">
-                <MapPin className="h-4 w-4 text-sv-ink/35" aria-hidden /> {project.location}
-              </span>
-              <span className="flex items-center gap-1.5">
-                <CalendarCheck className="h-4 w-4 text-sv-ink/35" aria-hidden /> {micro.handover}{' '}
-                {finishLabel(chromeLoc, project.finish)}
-              </span>
-              <span className="flex items-center gap-1.5">
-                <Building2 className="h-4 w-4 text-sv-ink/35" aria-hidden /> {unitsLabel(project.flats, chromeLoc)}
-              </span>
-            </p>
-          </div>
         </section>
-
         <AnchorNav items={anchors} label={c.navLabel} />
 
         {/* Facts */}
@@ -515,6 +589,16 @@ export default async function ProjectPage({ params }: PageProps) {
             ))}
           </dl>
         </section>
+
+        <ProjectMarket
+          project={project}
+          position={position}
+          scopeName={scopeName}
+          nearby={nearby}
+          devNames={devNames}
+          t={t}
+          loc={chromeLoc}
+        />
 
         {floorsFc && cluster ? (
           <section id="location" className="mx-auto max-w-[1440px] scroll-mt-[7.5rem] px-5 py-12 md:px-10">
@@ -653,6 +737,10 @@ export default async function ProjectPage({ params }: PageProps) {
           id="sources"
         />
 
+        <div className="mx-auto max-w-[1440px] px-5 pb-10 md:px-10">
+          <ReportInaccuracy kind="project" slug={project.slug} t={t.report} />
+        </div>
+
         <div id="faq" className="scroll-mt-[7.5rem]">
           <FaqSection
             title={c.faqTitle}
@@ -675,7 +763,7 @@ export default async function ProjectPage({ params }: PageProps) {
         </section>
         <StickyLeadBar targetType="project" targetId={project.slug} phone={dev?.phone || CONTACT_PHONE} recipientName={project.name} />
       </main>
-      <Footer marketIso={cityByName(project.city)?.cc} marketCity={cityByName(project.city)?.en} />
+      <Footer marketIso={marketIso} marketCity={cityByName(project.city)?.en} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(projectLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(breadcrumbLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(faqPageLd(faqs)) }} />

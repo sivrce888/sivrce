@@ -185,8 +185,8 @@ export function ProjectMediaGallery({
       }
     }
 
-    // 3. Floor plan / passport
-    if (passportUrl) {
+    // 3. Floor plan / passport — catalog rows reuse the '-lage' render as passport; already listed above.
+    if (passportUrl && passportUrl !== heroImage && !gallery?.includes(passportUrl)) {
       items.push({
         type: 'floorplan',
         src: passportUrl,

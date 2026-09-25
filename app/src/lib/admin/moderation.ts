@@ -78,6 +78,9 @@ export function subjectHref(kind: string, id: string): string | null {
   if (kind === "listing") return `/admin/listings/${id}`
   if (kind === "user") return `/admin/users/${id}`
   if (kind === "review") return "/admin/content/reviews"
+  // Inaccuracy reports (lib/inaccuracy-report) — the public page is the thing to check.
+  if (kind === "project") return `/projects/${id}`
+  if (kind === "developer") return `/developers/${id}`
   return null
 }
 

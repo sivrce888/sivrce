@@ -14,10 +14,13 @@ import { LeadForm } from '@/components/lead/LeadForm'
 import ReviewsSectionServer from '@/components/reviews/ReviewsSectionServer'
 import { FaqSection } from '@/components/seo/FaqSection'
 import { DeveloperMediaGallery } from '@/components/entities/DeveloperMediaGallery'
+import { StatsRow } from '@/components/entities/StatsRow'
+import { ReportInaccuracy } from '@/components/entities/ReportInaccuracy'
+import { splitPortfolio, trackRecord } from '@/lib/project-insights'
+import { PROJECT_PAGE, type ProjectPageCopy } from '@/lib/project-page-copy'
+import type { DirLoc } from '@/lib/directory-seo-lite'
 import { listingVideoObject } from '@/lib/listing-video'
-import {
-  DEVELOPERS,
-} from '@/data/professionals'
+import { DEVELOPERS, isDelivered, type Project } from '@/data/professionals'
 import { getLiveDeveloper, projectsLiveByDeveloper } from '@/lib/directory-live'
 import { getListingsForDeveloper } from '@/lib/listings-db'
 import { cityCenter, parseCoords } from '@/lib/map/geocode'
@@ -103,6 +106,44 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       ...(og ? { images: [og] } : {}),
     },
   }
+}
+
+/** Portfolio card — status chip reads 'Completed (2021)' / '40% built'. */
+function PortfolioCard({ p, loc, t, micro }: { p: Project; loc: DirLoc | 'de'; t: ProjectPageCopy; micro: (typeof MICRO)['en'] }) {
+  const f = finishLabel(loc, p.finish)
+  const status = !isDelivered(p) ? micro.builtPct(p.done) : f.startsWith(t.completed) ? f : `${t.completed} · ${f}`
+  return (
+    <Link
+      href={`/projects/${p.slug}`}
+      // no aria-label: visible text IS the accessible name (Label-in-Name)
+      className="group overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card transition-all duration-500 hover:-translate-y-1.5 hover:shadow-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue"
+    >
+      <div className="relative aspect-[16/9] overflow-hidden">
+        <Image
+          src={p.img}
+          alt={p.name}
+          fill
+          sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 460px"
+          className="object-cover transition-transform duration-700 group-hover:scale-[1.05]"
+        />
+        <div className="absolute left-4 top-3 rounded-full bg-sv-navy/55 px-3 py-1 text-[12px] font-extrabold text-white backdrop-blur">
+          {status}
+        </div>
+      </div>
+      <div className="p-4">
+        <h4 className="text-[16px] font-black text-sv-ink">{p.name}</h4>
+        <p className="mt-1 text-[13px] font-bold text-sv-ink/60">
+          {p.location} · {micro.handover} {finishLabel(loc, p.finish)}
+        </p>
+        {p.priceFromM2 && (
+          <p className="mt-2 text-[15px] font-black text-sv-blue-deep">
+            {priceFromLabel(p.priceFromM2, loc)}
+            {hasPriceFrom(p.priceFromM2) && <span className="text-[12px] font-bold text-sv-ink/60"> {micro.perM2From}</span>}
+          </p>
+        )}
+      </div>
+    </Link>
+  )
 }
 
 export default async function DeveloperPage({ params }: PageProps) {
@@ -232,13 +273,18 @@ export default async function DeveloperPage({ params }: PageProps) {
   // Every render across the portfolio — developer gallery + project art, deduped, capped.
   const allPhotos = collectPhotos([...(dev.gallery ?? []), ...projects.flatMap((p) => [p.img, ...(p.gallery ?? [])])])
   const areaLabels = placeLabels(chromeLoc)
+  const t = PROJECT_PAGE[chromeLoc]
+  const track = trackRecord(projects)
+  const portfolio = splitPortfolio(projects)
+
+
 
   const anchors = [
+    ...(projects.length > 0 ? [{ id: 'projects', label: c.projects }] : []),
     { id: 'about', label: c.about },
     { id: 'location', label: c.location },
     { id: 'area', label: areaLabels.area },
     ...(allPhotos.length > 0 || dev.videoUrl ? [{ id: 'photos', label: areaLabels.photos }] : []),
-    ...(projects.length > 0 ? [{ id: 'projects', label: c.projects }] : []),
     ...(listings.length > 0 ? [{ id: 'listings', label: micro.listingsShort }] : []),
     { id: 'faq', label: c.faqChip },
     { id: 'contact', label: c.contact },
@@ -294,7 +340,8 @@ export default async function DeveloperPage({ params }: PageProps) {
           logoUrl={dev.logoUrl}
           stats={[
             { key: 'yearsActive', value: dev.yearsActive },
-            { key: 'projectsDone', value: projects.length || dev.projectsDone },
+            // Catalog counts live in the portfolio block below ('23 completed' here contradicted it).
+            ...(projects.length === 0 && dev.projectsDone > 0 ? [{ key: 'projectsDone' as const, value: dev.projectsDone }] : []),
             { key: 'unitsDelivered', value: dev.unitsDelivered.toLocaleString('en-US') },
             // Zero listings reads as "inactive" — drop the stat instead.
             ...(listings.length > 0 ? [{ key: 'activeListings' as const, value: listings.length }] : []),
@@ -303,6 +350,37 @@ export default async function DeveloperPage({ params }: PageProps) {
         />
 
         <AnchorNav items={anchors} label={c.navLabel} />
+
+        {projects.length > 0 && (
+          <section id="projects" className="mx-auto max-w-[1440px] scroll-mt-[7.5rem] px-5 py-12 md:px-10">
+            <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">{t.trackTitle}</h2>
+            <StatsRow
+              className="mt-5"
+              items={[
+                { label: t.statProjects, value: String(track.total) },
+                { label: t.statCompleted, value: String(track.delivered) },
+                { label: t.statBuilding, value: String(track.building) },
+                ...(track.flats > 0 ? [{ label: t.statFlats, value: track.flats.toLocaleString('en-US') }] : []),
+                ...(track.cities > 1 ? [{ label: t.statCities, value: String(track.cities) }] : []),
+              ]}
+            />
+            {[
+              { heading: t.buildingHeading(portfolio.building.length), items: portfolio.building },
+              { heading: t.completedHeading(portfolio.delivered.length), items: portfolio.delivered },
+            ]
+              .filter((g) => g.items.length > 0)
+              .map((g) => (
+                <div key={g.heading} className="mt-10">
+                  <h3 className="text-[17px] font-black text-sv-ink md:text-[19px]">{g.heading}</h3>
+                  <div className="mt-5 sv-card-grid-3">
+                    {g.items.map((p) => (
+                      <PortfolioCard key={p.slug} p={p} loc={chromeLoc} t={t} micro={micro} />
+                    ))}
+                  </div>
+                </div>
+              ))}
+          </section>
+        )}
 
         <section id="about" className="mx-auto max-w-[1440px] scroll-mt-[7.5rem] px-5 py-12 md:px-10">
           <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
@@ -366,51 +444,6 @@ export default async function DeveloperPage({ params }: PageProps) {
           lang={chromeLoc}
         />
 
-        {projects.length > 0 && (
-          <section id="projects" className="mx-auto max-w-[1440px] scroll-mt-[7.5rem] px-5 pb-12 md:px-10">
-            <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
-              {c.projects}
-            </h2>
-            <div className="mt-6 sv-card-grid-3">
-              {projects.map((p) => (
-                <Link
-                  key={p.slug}
-                  href={`/projects/${p.slug}`}
-                  // no aria-label: visible text IS the accessible name (Label-in-Name)
-                  className="group overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card transition-all duration-500 hover:-translate-y-1.5 hover:shadow-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue"
-                >
-                  <div className="relative aspect-[16/9] overflow-hidden">
-                    <Image
-                      src={p.img}
-                      alt={p.name}
-                      fill
-                      sizes="(max-width:640px) 100vw, (max-width:1024px) 50vw, 460px"
-                      className="object-cover transition-transform duration-700 group-hover:scale-[1.05]"
-                    />
-                    <div className="absolute left-4 top-3 rounded-full bg-sv-navy/55 px-3 py-1 text-[12px] font-extrabold text-white backdrop-blur">
-                      {micro.builtPct(p.done)}
-                    </div>
-                  </div>
-                  <div className="p-4">
-                    <h3 className="text-[16px] font-black text-sv-ink">{p.name}</h3>
-                    <p className="mt-1 text-[13px] font-bold text-sv-ink/60">
-                      {p.location} · {micro.handover} {finishLabel(chromeLoc, p.finish)}
-                    </p>
-                    {p.priceFromM2 && (
-                      <p className="mt-2 text-[15px] font-black text-sv-blue-deep">
-                        {priceFromLabel(p.priceFromM2, chromeLoc)}
-                        {hasPriceFrom(p.priceFromM2) && (
-                          <span className="text-[12px] font-bold text-sv-ink/60"> {micro.perM2From}</span>
-                        )}
-                      </p>
-                    )}
-                  </div>
-                </Link>
-              ))}
-            </div>
-          </section>
-        )}
-
         {listings.length > 0 && (
           <section id="listings" className="mx-auto max-w-[1440px] scroll-mt-[7.5rem] px-5 pb-12 md:px-10">
             <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
@@ -438,6 +471,7 @@ export default async function DeveloperPage({ params }: PageProps) {
         >
           <LeadForm targetType="developer" targetId={dev.slug} recipientName={name} />
           <ReviewsSectionServer targetType="developer" targetId={dev.slug} />
+          <ReportInaccuracy kind="developer" slug={dev.slug} t={t.report} className="lg:col-span-2" />
         </section>
       </main>
       <Footer />

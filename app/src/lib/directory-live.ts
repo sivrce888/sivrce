@@ -12,6 +12,7 @@ import { safeQuery } from '@/lib/guards'
 import { canonicalizeDistrict } from '@/lib/district-canon'
 import { DEVELOPERS, PROJECTS, freshenFinish, getDeveloper, type Developer, type Project } from '@/data/professionals'
 import { haversineKm, type PlaceCoords } from '@/lib/place-context'
+import { rowPriceM2 } from '@/lib/project-insights'
 
 export const norm = (s: string) => s.toLowerCase().replace(/[^a-z0-9\u10d0-\u10ff]+/g, '')
 
@@ -116,6 +117,8 @@ type DevRow = {
 }
 
 type ProjectRow = {
+  /** Source-prefixed id (korter_/ss_/myhome_) — decides the price currency. */
+  id?: string
   slug: string
   name: string
   developer: string
@@ -173,6 +176,7 @@ const DEV_SELECT = {
 } as const
 
 const PROJECT_SELECT = {
+  id: true,
   slug: true,
   name: true,
   developer: true,
@@ -231,9 +235,7 @@ export function applyProjectRow(
     location,
     finish: r.readyBy || base.finish,
     // ponytail: curated catalog price/currency wins; DB fills gaps only (avoids $ wipe of ₾).
-    priceFromM2:
-      base.priceFromM2.trim() ||
-      (r.pricePerSqmFrom > 0 ? `$${r.pricePerSqmFrom.toLocaleString('en-US')}` : ''),
+    priceFromM2: base.priceFromM2.trim() || rowPriceM2(r),
     flats: r.units || base.flats,
     img: nextImg,
     ...(rowGallery.length ? { gallery: rowGallery } : {}),
@@ -269,7 +271,7 @@ export function rowToProject(
     city: r.city,
     ...(district ? { district } : {}),
     ...(canonicalizeDistrict(r.district, r.city) ? { district: canonicalizeDistrict(r.district, r.city) } : {}),
-    priceFromM2: r.pricePerSqmFrom > 0 ? `$${r.pricePerSqmFrom.toLocaleString('en-US')}` : '',
+    priceFromM2: rowPriceM2(r),
     done: r.status === 'completed' ? 100 : 35,
     finish: r.readyBy,
     flats: r.units,
