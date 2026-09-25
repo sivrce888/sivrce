@@ -14,6 +14,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { PROJECTS, type Project } from '../src/data/professionals'
+import { CURATED_GALLERIES } from '../src/data/project-galleries-curated'
 import { processProjectUniversal } from './fetch-real-project-photos'
 
 const ROOT = path.resolve(__dirname, '..')
@@ -29,7 +30,7 @@ type ManifestEntry = {
   gallery?: string[]
 }
 
-async function loadManifest(): Promise<Map<string, ManifestEntry>> {
+export async function loadManifest(): Promise<Map<string, ManifestEntry>> {
   if (!fs.existsSync(MANIFEST_PATH)) return new Map()
   try {
     const raw = fs.readFileSync(MANIFEST_PATH, 'utf8')
@@ -45,10 +46,13 @@ async function saveManifest(manifest: Map<string, ManifestEntry>) {
   fs.writeFileSync(MANIFEST_PATH, JSON.stringify(list, null, 2) + '\n')
 }
 
-async function emitGalleries(manifest: Map<string, ManifestEntry>) {
+export async function emitGalleries(manifest: Map<string, ManifestEntry>) {
   const lines: string[] = []
+  // Curated galleries are hand-kept and must never also land in the generated
+  // file (project-gallery-files.check enforces disjoint sets).
+  const curated = Object.keys(CURATED_GALLERIES)
   for (const [slug, entry] of [...manifest.entries()].sort((a, b) => a[0].localeCompare(b[0]))) {
-    if (entry.gallery && entry.gallery.length > 0) {
+    if (!curated.includes(slug) && entry.gallery && entry.gallery.length > 0) {
       lines.push(`  '${slug}': [${entry.gallery.map((g) => `'${g}'`).join(', ')}],`)
     }
   }

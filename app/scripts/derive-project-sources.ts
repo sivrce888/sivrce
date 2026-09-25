@@ -38,7 +38,12 @@ async function main() {
     byCity.set(r.city!, list)
   }
 
-  const out: Record<string, string> = {}
+  // Seed from the previous derivation — the DB pool churns (imports retire,
+  // wikidata landmarks land) and links the match rule already earned must not
+  // silently vanish from the catalog.
+  const out: Record<string, string> = JSON.parse(
+    readFileSync(new URL('../src/data/project-sources.gen.json', import.meta.url), 'utf8'),
+  ) as Record<string, string>
   for (const p of PROJECTS) {
     if (!GE.has(p.city) || p.sourceUrl) continue
     const pn = norm(p.name)

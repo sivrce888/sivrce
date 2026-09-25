@@ -36,7 +36,8 @@ export type BuildingCatalogEntry = {
   yearBuilt?: number
   floors: number
   units?: number
-  rating: number
+  /** Real review aggregate only — seed ratings were purged as fabricated. */
+  rating?: number
   description: LocalText
   /** Optional link to /projects/[slug] */
   projectSlug?: string
@@ -62,7 +63,6 @@ const STREET_LANDMARKS: BuildingCatalogEntry[] = [
     yearBuilt: 2018,
     floors: 24,
     units: 150,
-    rating: 4.8,
     projectSlug: 'axis-towers',
     status: 'ready',
     description: {
@@ -86,7 +86,6 @@ const STREET_LANDMARKS: BuildingCatalogEntry[] = [
     yearBuilt: 2016,
     floors: 18,
     units: 120,
-    rating: 4.9,
     status: 'ready',
     description: {
       ka: 'ქინგ დევიდ რეზიდენსი — გიორგი ათონელის 12, მთაწმინდა. 18 სართ., კონსიერჟი, პარკინგი. ხედი ძველ თბილისზე და მთაწმინდაზე.',
@@ -109,7 +108,6 @@ const STREET_LANDMARKS: BuildingCatalogEntry[] = [
     yearBuilt: 2021,
     floors: 22,
     units: 90,
-    rating: 4.7,
     status: 'ready',
     description: {
       ka: 'პეკინის 12 — საბურთალო. 22 სართ., პენტჰაუსები ზედა სართულებზე.',
@@ -132,7 +130,6 @@ const STREET_LANDMARKS: BuildingCatalogEntry[] = [
     yearBuilt: 2019,
     floors: 18,
     units: 80,
-    rating: 4.6,
     status: 'ready',
     description: {
       ka: 'ჭავჭავაძის 47 — ვაკე, 18 სართ. ღია ხედი გამზირზე.',
@@ -154,7 +151,6 @@ const STREET_LANDMARKS: BuildingCatalogEntry[] = [
     developerSlug: 'orbi-group',
     floors: 32,
     units: 320,
-    rating: 4.7,
     projectSlug: 'orbi-sea-towers',
     status: 'construction',
     description: {
@@ -177,7 +173,6 @@ const STREET_LANDMARKS: BuildingCatalogEntry[] = [
     developerSlug: 'alliance-group',
     floors: 28,
     units: 168,
-    rating: 4.9,
     projectSlug: 'batumi-riviera-tower',
     status: 'construction',
     description: {
@@ -201,7 +196,6 @@ const STREET_LANDMARKS: BuildingCatalogEntry[] = [
     yearBuilt: 2020,
     floors: 16,
     units: 64,
-    rating: 4.5,
     status: 'ready',
     description: {
       ka: 'გორგილაძის 50 — ბათუმის ცენტრი. 16 სართ. ზღვამდე დაახლოებით 5 წუთი.',
@@ -224,7 +218,6 @@ const STREET_LANDMARKS: BuildingCatalogEntry[] = [
     yearBuilt: 2015,
     floors: 12,
     units: 48,
-    rating: 4.4,
     status: 'ready',
     description: {
       ka: 'აბაშიძის 34 — ვაკე. 12 სართ., ჩაბარება 2015.',
@@ -247,7 +240,6 @@ const STREET_LANDMARKS: BuildingCatalogEntry[] = [
     yearBuilt: 2017,
     floors: 14,
     units: 70,
-    rating: 4.3,
     status: 'ready',
     description: {
       ka: 'ნუცუბიძის 77 — საბურთალოს პლატო. 14 სართ., ჩაბარება 2017.',
@@ -270,7 +262,6 @@ const STREET_LANDMARKS: BuildingCatalogEntry[] = [
     yearBuilt: 2017,
     floors: 32,
     units: 140,
-    rating: 4.9,
     status: 'ready',
     description: {
       ka: 'ქინგ დევიდ ბიზნეს ცენტრი — ალექსიძის 12, საბურთალო. 32 სართული, Class-A ოფისები, საკონფერენციო დარბაზები, რესტორნები და მიწისქვეშა პარკინგი.',
@@ -292,7 +283,6 @@ const STREET_LANDMARKS: BuildingCatalogEntry[] = [
     yearBuilt: 2016,
     floors: 34,
     units: 214,
-    rating: 4.9,
     status: 'ready',
     description: {
       ka: 'ბილტმორ თბილისი — რუსთაველის გამზ. 29. 34-სართულიანი შუშის ცათამბჯენი, უმაღლესი სასტუმრო თბილისის ისტორიულ ცენტრში.',
@@ -314,7 +304,6 @@ const STREET_LANDMARKS: BuildingCatalogEntry[] = [
     yearBuilt: 2009,
     floors: 18,
     units: 249,
-    rating: 4.8,
     status: 'ready',
     description: {
       ka: 'რადისონ ბლუ ივერია — პირველი რესპუბლიკის მოედანი 1. 18 სართული, Anne Semonin Spa, Sky Bar და პანორამული ხედები მტკვარსა და ქალაქზე.',
@@ -336,7 +325,6 @@ const STREET_LANDMARKS: BuildingCatalogEntry[] = [
     yearBuilt: 2017,
     floors: 8,
     units: 120,
-    rating: 4.8,
     status: 'ready',
     description: {
       ka: 'გალერია თბილისი — რუსთაველის 2/4, თავისუფლების მოედანი. მრავალფუნქციური სავაჭრო-გასართობი ცენტრი ინტეგრირებული მეტროსადგურთან.',
@@ -358,7 +346,6 @@ const STREET_LANDMARKS: BuildingCatalogEntry[] = [
     yearBuilt: 2019,
     floors: 6,
     units: 180,
-    rating: 4.8,
     status: 'ready',
     description: {
       ka: 'სითი მოლი საბურთალო — ვაჟა-ფშაველას 70. საბურთალოს უდიდესი სავაჭრო-საქმიანი კომპლექსი Class-A საოფისე ცენტრით City Tower.',
@@ -380,7 +367,6 @@ const STREET_LANDMARKS: BuildingCatalogEntry[] = [
     yearBuilt: 2019,
     floors: 35,
     units: 110,
-    rating: 4.9,
     status: 'ready',
     description: {
       ka: 'ლე მერიდიენ ბათუმი / Batumi Tower — ნინოშვილის 1. 205 მეტრი სიმაღლის კოშკი ეშმაკის ბორბლით ფასადზე, კავკასიაში ერთ-ერთი უმაღლესი შენობა.',
@@ -403,7 +389,6 @@ const STREET_LANDMARKS: BuildingCatalogEntry[] = [
     yearBuilt: 2019,
     floors: 41,
     units: 1000,
-    rating: 4.8,
     status: 'ready',
     description: {
       ka: 'ალიანს პალასი — ხიმშიაშვილის 5, ახალი ბულვარი. 41 სართული, Courtyard by Marriott-ის სასტუმრო და პრემიუმ აპარტამენტები ზღვის ხედით.',
@@ -425,7 +410,6 @@ const STREET_LANDMARKS: BuildingCatalogEntry[] = [
     yearBuilt: 2014,
     floors: 8,
     units: 125,
-    rating: 4.9,
     status: 'ready',
     description: {
       ka: 'რუმს ჰოტელ თბილისი — კოსტავას 14, ვერა. დიზაინ-სასტუმრო და კულტურული ჰაბი ინდუსტრიული ესთეტიკით, ბაღითა და Lounge Bar-ით.',
@@ -447,7 +431,6 @@ const STREET_LANDMARKS: BuildingCatalogEntry[] = [
     yearBuilt: 2018,
     floors: 6,
     units: 150,
-    rating: 5.0,
     status: 'ready',
     description: {
       ka: 'სტამბა თბილისი — კოსტავას 14. საბჭოთა პერიოდის ისტორიული სტამბის შენობის უნიკალური რესტავრაცია შუშის ფსკერიანი აუზითა და ბიბლიოთეკით.',
@@ -469,7 +452,6 @@ const STREET_LANDMARKS: BuildingCatalogEntry[] = [
     yearBuilt: 1915,
     floors: 7,
     units: 127,
-    rating: 4.9,
     status: 'ready',
     description: {
       ka: 'თბილისი მარიოტი — რუსთაველის 13. ასწლოვანი ისტორიული ნეოკლასიკური არქიტექტურული ძეგლი, 5-ვარსკვლავიანი სასტუმრო დედაქალაქის გულში.',
@@ -491,7 +473,6 @@ const STREET_LANDMARKS: BuildingCatalogEntry[] = [
     yearBuilt: 2016,
     floors: 43,
     units: 418,
-    rating: 4.9,
     status: 'ready',
     description: {
       ka: 'პორტა ბათუმი თაუერი — რუსთაველის 4. 43-სართულიანი 164 მეტრიანი ექსკლუზიური მინის კოშკი Broadway Malyan-ის დიზაინით, ბათუმის პორტის პირდაპირ.',
@@ -513,7 +494,6 @@ const STREET_LANDMARKS: BuildingCatalogEntry[] = [
     yearBuilt: 2011,
     floors: 19,
     units: 168,
-    rating: 4.8,
     status: 'ready',
     description: {
       ka: 'რადისონ ბლუ ბათუმი — ნინოშვილის 1. იტალიელი არქიტექტორის მიკელე დე ლუკის მიერ დაპროექტებული გამორჩეული ტალღისებური შენობა პლაჟთან.',
@@ -763,7 +743,6 @@ function projectToBuilding(p: Project): BuildingCatalogEntry {
     yearBuilt: yearBuiltFrom(p),
     floors,
     units: p.flats,
-    rating: p.rating,
     description: p.description,
     projectSlug: p.slug,
     status: p.done >= 100 ? 'ready' : 'construction',
@@ -824,10 +803,10 @@ export function relatedBuildings(slug: string, limit = 6): BuildingCatalogEntry[
   if (!me) return []
   const same = BUILDINGS.filter(
     (b) => b.slug !== slug && b.city === me.city && b.district === me.district,
-  ).sort((a, b) => b.rating - a.rating)
+  ).sort((a, b) => a.name.localeCompare(b.name, 'ka'))
   if (same.length >= 3) return same.slice(0, limit)
   const fill = BUILDINGS.filter(
     (b) => b.slug !== slug && b.city === me.city && !same.some((x) => x.slug === b.slug),
-  ).sort((a, b) => b.rating - a.rating)
+  ).sort((a, b) => a.name.localeCompare(b.name, 'ka'))
   return [...same, ...fill].slice(0, limit)
 }

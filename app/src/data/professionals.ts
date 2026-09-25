@@ -103,6 +103,7 @@ const WORLD_LOCAL_HEROES = new Set([
   'tornakalna-terases',
   'volta-skai-tallinn',
   'vancouver-burry',
+  'raemian-one-bailey',
 ])
 
 /**

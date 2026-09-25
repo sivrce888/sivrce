@@ -408,10 +408,12 @@ export function BuildingsCatalog({ buildings, countsBySlug, developerNames, loc 
                           <p className="text-[12px] font-bold text-white/80">{devName}</p>
                         )}
                       </div>
-                      <div className="flex shrink-0 items-center gap-1 rounded-control bg-white/95 px-2.5 py-1.5 text-[13px] font-black text-sv-ink">
-                        <Star className="h-3.5 w-3.5 fill-sv-orange text-sv-orange" aria-hidden />
-                        {b.rating}
-                      </div>
+                      {b.rating != null && (
+                        <div className="flex shrink-0 items-center gap-1 rounded-control bg-white/95 px-2.5 py-1.5 text-[13px] font-black text-sv-ink">
+                          <Star className="h-3.5 w-3.5 fill-sv-orange text-sv-orange" aria-hidden />
+                          {b.rating}
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div className="space-y-3 p-4">

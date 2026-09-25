@@ -133,7 +133,8 @@
     "status": "ok",
     "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 5
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "algarve-vilamoura",
@@ -167,9 +168,13 @@
   {
     "slug": "alliance-centropolis-b",
     "status": "ok",
-    "source": "wikipedia-en",
+    "source": "official",
     "sourceUrl": null,
-    "batch": 5
+    "batch": 5,
+    "gallery": [
+      "/images/projects/alliance-centropolis-b-g1.webp",
+      "/images/projects/alliance-centropolis-b-g2.webp"
+    ]
   },
   {
     "slug": "alliance-highline",
@@ -241,7 +246,16 @@
     "status": "ok",
     "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
+  },
+  {
+    "slug": "almaty-ibd",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "almaty-medeu",
@@ -288,7 +302,8 @@
     "status": "ok",
     "source": "wikipedia-en",
     "sourceUrl": null,
-    "batch": 5
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "amazon-hq2",
@@ -349,7 +364,8 @@
     "status": "ok",
     "source": "wikipedia-en",
     "sourceUrl": null,
-    "batch": 5
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "anagi-m3-saburtalo",
@@ -719,16 +735,17 @@
   {
     "slug": "arrive-kreuzberg",
     "status": "ok",
-    "source": "wikipedia-en",
+    "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "art-invest-macherei",
     "status": "ok",
     "source": "official",
     "sourceUrl": null,
-    "batch": 3,
+    "batch": 5,
     "gallery": [
       "/images/projects/art-invest-macherei-g1.webp",
       "/images/projects/art-invest-macherei-g2.webp"
@@ -776,10 +793,11 @@
   },
   {
     "slug": "atria-business-bay",
-    "status": "failed",
-    "source": null,
+    "status": "ok",
+    "source": "wikipedia-en",
     "sourceUrl": null,
-    "batch": 1
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "auckland-meadowbank",
@@ -801,10 +819,14 @@
   },
   {
     "slug": "avlabari-residence",
-    "status": "failed",
-    "source": null,
+    "status": "ok",
+    "source": "official",
     "sourceUrl": null,
-    "batch": 1
+    "batch": 5,
+    "gallery": [
+      "/images/projects/avlabari-residence-g1.webp",
+      "/images/projects/avlabari-residence-g2.webp"
+    ]
   },
   {
     "slug": "axis-avlabari",
@@ -923,6 +945,16 @@
     ]
   },
   {
+    "slug": "azabudai-hills-mori-jp-tower",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": [
+      "/images/projects/azabudai-hills-mori-jp-tower-g1.webp"
+    ]
+  },
+  {
     "slug": "azabudai-hills-residences",
     "status": "ok",
     "source": "wikipedia",
@@ -932,6 +964,14 @@
       "/images/projects/azabudai-hills-residences-g1.webp",
       "/images/projects/azabudai-hills-residences-g2.webp"
     ]
+  },
+  {
+    "slug": "azrieli-spiral-tower",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "bagrationi-residence-batumi",
@@ -952,6 +992,16 @@
     "batch": 5,
     "gallery": [
       "/images/projects/bahrain-bay-g1.webp"
+    ]
+  },
+  {
+    "slug": "bahria-town-lahore",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": [
+      "/images/projects/bahria-town-lahore-g1.webp"
     ]
   },
   {
@@ -1019,7 +1069,8 @@
     "status": "ok",
     "source": "wikipedia-en",
     "sourceUrl": null,
-    "batch": 5
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "barangaroo",
@@ -1040,11 +1091,20 @@
     "batch": 4
   },
   {
+    "slug": "barcelo-residences",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
+  },
+  {
     "slug": "barcelona-22@",
     "status": "ok",
     "source": "wikipedia-en",
     "sourceUrl": null,
-    "batch": 5
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "barcelona-sagrada-familia",
@@ -1108,6 +1168,25 @@
     "batch": 4
   },
   {
+    "slug": "bel-towers-brussels",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": [
+      "/images/projects/bel-towers-brussels-g1.webp",
+      "/images/projects/bel-towers-brussels-g2.webp"
+    ]
+  },
+  {
+    "slug": "belgrade-waterfront",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
+  },
+  {
     "slug": "belgravia-heights",
     "status": "ok",
     "source": "wikipedia-en",
@@ -1119,7 +1198,8 @@
     "status": "ok",
     "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "bilbao-guggenheim",
@@ -1150,8 +1230,12 @@
     "slug": "biograpi-daira",
     "status": "ok",
     "source": "official",
-    "sourceUrl": "https://biograpi.ge/en/daira",
-    "batch": 1
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": [
+      "/images/projects/biograpi-daira-g1.webp",
+      "/images/projects/biograpi-daira-g2.webp"
+    ]
   },
   {
     "slug": "biograpi-gardani",
@@ -1207,9 +1291,13 @@
   {
     "slug": "biograpi-sakeni",
     "status": "ok",
-    "source": "wikipedia-en",
+    "source": "official",
     "sourceUrl": null,
-    "batch": 5
+    "batch": 5,
+    "gallery": [
+      "/images/projects/biograpi-sakeni-g1.webp",
+      "/images/projects/biograpi-sakeni-g2.webp"
+    ]
   },
   {
     "slug": "biota-park",
@@ -1302,8 +1390,12 @@
     "slug": "blox-krtsanisi",
     "status": "ok",
     "source": "official",
-    "sourceUrl": "https://blox.ge/proeqtebi/blox-krtsanisi?fromLanding=true",
-    "batch": 1
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": [
+      "/images/projects/blox-krtsanisi-g1.webp",
+      "/images/projects/blox-krtsanisi-g2.webp"
+    ]
   },
   {
     "slug": "blox-mukhiani",
@@ -1363,7 +1455,7 @@
     "batch": 4
   },
   {
-    "slug": "bogota-chic\u00f3",
+    "slug": "bogota-chicó",
     "status": "ok",
     "source": "wikipedia-en",
     "sourceUrl": null,
@@ -1427,7 +1519,8 @@
     "status": "ok",
     "source": "wikipedia-en",
     "sourceUrl": null,
-    "batch": 5
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "budapest-metro-city",
@@ -1441,7 +1534,16 @@
     "status": "ok",
     "source": "wikipedia-en",
     "sourceUrl": null,
-    "batch": 5
+    "batch": 5,
+    "gallery": []
+  },
+  {
+    "slug": "bugatti-residences-binghatti",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "build-group-ketevan-74",
@@ -1473,7 +1575,8 @@
     "status": "ok",
     "source": "wikipedia-en",
     "sourceUrl": null,
-    "batch": 5
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "busan-haeundae",
@@ -1508,21 +1611,24 @@
     "status": "ok",
     "source": "wikipedia-en",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "buwog-weydenhof",
     "status": "ok",
     "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "buwog-zweiklang",
     "status": "ok",
     "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "calligraphy-towers",
@@ -1550,6 +1656,14 @@
     "batch": 4
   },
   {
+    "slug": "cancun-scenic-tower",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
+  },
+  {
     "slug": "canninghill-piers",
     "status": "ok",
     "source": "wikipedia-en",
@@ -1561,7 +1675,8 @@
     "status": "ok",
     "source": "wikipedia-en",
     "sourceUrl": null,
-    "batch": 5
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "capitaspring",
@@ -1569,6 +1684,22 @@
     "source": "wikipedia-en",
     "sourceUrl": null,
     "batch": 4
+  },
+  {
+    "slug": "carlsberg-byen",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
+  },
+  {
+    "slug": "carthage-thalassa",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "casablanca-anfa",
@@ -1603,7 +1734,24 @@
     "status": "ok",
     "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
+  },
+  {
+    "slug": "central-business-tower-frankfurt",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
+  },
+  {
+    "slug": "central-park-boulevard-port-city",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "central-park-tower",
@@ -1649,7 +1797,8 @@
     "status": "ok",
     "source": "wikipedia-en",
     "sourceUrl": null,
-    "batch": 5
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "city-center-gldani",
@@ -1677,6 +1826,14 @@
     "batch": 4
   },
   {
+    "slug": "citylife-residences-milan",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
+  },
+  {
     "slug": "cityzen-tower",
     "status": "ok",
     "source": "korter",
@@ -1700,6 +1857,14 @@
     "source": "wikipedia-en",
     "sourceUrl": null,
     "batch": 4
+  },
+  {
+    "slug": "connection-hamm",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "console-lisi-townhouse",
@@ -1750,14 +1915,16 @@
     "status": "ok",
     "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "corpus-the-q",
     "status": "ok",
     "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 5
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "costa-verde-lima",
@@ -1778,14 +1945,16 @@
     "status": "ok",
     "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "covivio-biesdorf",
     "status": "ok",
     "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 5
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "crown-sydney",
@@ -1849,7 +2018,8 @@
     "status": "ok",
     "source": "wikipedia-en",
     "sourceUrl": null,
-    "batch": 5
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "damac-towers-paramount",
@@ -1863,7 +2033,8 @@
     "status": "ok",
     "source": "wikipedia-en",
     "sourceUrl": null,
-    "batch": 5
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "dasan-residence",
@@ -1892,14 +2063,16 @@
     "status": "ok",
     "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "degewo-neulichterfelde",
     "status": "ok",
     "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "delhi-aerocity",
@@ -1916,6 +2089,16 @@
     "batch": 4
   },
   {
+    "slug": "delta-district",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": [
+      "/images/projects/delta-district-g1.webp"
+    ]
+  },
+  {
     "slug": "devart-green-gardens",
     "status": "ok",
     "source": "korter",
@@ -1925,6 +2108,14 @@
       "/images/projects/devart-green-gardens-g1.webp",
       "/images/projects/devart-green-gardens-g2.webp"
     ]
+  },
+  {
+    "slug": "dhaka-tower",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "diamondz-jlt",
@@ -1938,14 +2129,16 @@
     "status": "ok",
     "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "dic-stadthausquartier",
     "status": "ok",
     "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "dighomi-gardens",
@@ -1957,6 +2150,14 @@
       "/images/projects/dighomi-gardens-g1.webp",
       "/images/projects/dighomi-gardens-g2.webp"
     ]
+  },
+  {
+    "slug": "diriyah-gate-residences",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "dirsi-riverside",
@@ -1981,7 +2182,16 @@
     "status": "ok",
     "source": "wikipedia-en",
     "sourceUrl": null,
-    "batch": 5
+    "batch": 5,
+    "gallery": []
+  },
+  {
+    "slug": "dlf-the-dahlias",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "doha-west-bay",
@@ -2033,6 +2243,14 @@
       "/images/projects/domus-gazapkhuli-g1.webp",
       "/images/projects/domus-gazapkhuli-g2.webp"
     ]
+  },
+  {
+    "slug": "domus-hippodrome",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "domus-nea",
@@ -2160,14 +2378,16 @@
     "status": "ok",
     "source": "wikipedia-en",
     "sourceUrl": null,
-    "batch": 5
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "dubai-hills-estate",
     "status": "ok",
     "source": "official",
     "sourceUrl": null,
-    "batch": 5
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "dubai-islands",
@@ -2214,14 +2434,16 @@
     "status": "ok",
     "source": "wikipedia-en",
     "sourceUrl": null,
-    "batch": 5
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "eckert-carre",
     "status": "ok",
     "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "eco-lisi-residence",
@@ -2235,6 +2457,14 @@
     ]
   },
   {
+    "slug": "edge-suedkreuz-berlin",
+    "status": "ok",
+    "source": "wikipedia-de",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
+  },
+  {
     "slug": "eko-atlantic",
     "status": "ok",
     "source": "wikipedia-en",
@@ -2246,7 +2476,7 @@
     "status": "ok",
     "source": "official",
     "sourceUrl": null,
-    "batch": 3,
+    "batch": 5,
     "gallery": [
       "/images/projects/elbphilharmonie-g1.webp",
       "/images/projects/elbphilharmonie-g2.webp"
@@ -2257,7 +2487,8 @@
     "status": "ok",
     "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "elephant-park",
@@ -2272,6 +2503,14 @@
     "source": "wikipedia-en",
     "sourceUrl": null,
     "batch": 4
+  },
+  {
+    "slug": "ellington-beach-house",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "ellinikon",
@@ -2317,21 +2556,24 @@
     "status": "ok",
     "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 5
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "euroboden-am-tacheles",
     "status": "ok",
     "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "euroboden-haus-fuer-muenchen",
     "status": "ok",
-    "source": "wikipedia-de",
+    "source": "wikipedia-en",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "euroboden-kopenicker-strasse",
@@ -2345,7 +2587,8 @@
     "status": "ok",
     "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "falcon-island",
@@ -2384,7 +2627,8 @@
     "status": "ok",
     "source": "wikipedia-en",
     "sourceUrl": null,
-    "batch": 5
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "forms-tsatskhvebi-3-14",
@@ -2396,13 +2640,21 @@
   {
     "slug": "four-frankfurt",
     "status": "ok",
-    "source": "wikipedia",
-    "sourceUrl": "https://de.wikipedia.org/wiki/Four_(Frankfurt_am_Main)",
-    "batch": 1,
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
     "gallery": [
       "/images/projects/four-frankfurt-g1.webp",
       "/images/projects/four-frankfurt-g2.webp"
     ]
+  },
+  {
+    "slug": "franklin-mannheim",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "freedom-plaza",
@@ -2425,9 +2677,10 @@
   {
     "slug": "gag-zollstockguertel",
     "status": "ok",
-    "source": "wikipedia-de",
+    "source": "wikipedia-en",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "galataport",
@@ -2457,6 +2710,14 @@
       "/images/projects/gate-by-artex-g1.webp",
       "/images/projects/gate-by-artex-g2.webp"
     ]
+  },
+  {
+    "slug": "gato-tower-bkk1",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "gbg-andronikashvili",
@@ -2495,21 +2756,23 @@
     "status": "ok",
     "source": "official",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "gesobau-cecilien-carre",
     "status": "ok",
     "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "gesobau-gesocampus-alt-wittenau",
     "status": "ok",
     "source": "official",
     "sourceUrl": null,
-    "batch": 3,
+    "batch": 5,
     "gallery": [
       "/images/projects/gesobau-gesocampus-alt-wittenau-g1.webp"
     ]
@@ -2519,21 +2782,23 @@
     "status": "ok",
     "source": "official",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "gesobau-pankower-allee-55",
     "status": "ok",
     "source": "official",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "gesobau-reinickendorfer-strasse",
     "status": "ok",
     "source": "official",
     "sourceUrl": null,
-    "batch": 3,
+    "batch": 5,
     "gallery": [
       "/images/projects/gesobau-reinickendorfer-strasse-g1.webp"
     ]
@@ -2553,7 +2818,7 @@
     "status": "ok",
     "source": "official",
     "sourceUrl": null,
-    "batch": 3,
+    "batch": 5,
     "gallery": [
       "/images/projects/gesobau-wilhelmsruher-damm-150-g1.webp"
     ]
@@ -2563,14 +2828,15 @@
     "status": "ok",
     "source": "wikipedia-en",
     "sourceUrl": null,
-    "batch": 5
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "gewobag-allee-der-kosmonauten",
     "status": "ok",
-    "source": "wikipedia",
-    "sourceUrl": "https://de.wikipedia.org/wiki/Allee_der_Kosmonauten_(Berlin)",
-    "batch": 1,
+    "source": "official",
+    "sourceUrl": null,
+    "batch": 5,
     "gallery": [
       "/images/projects/gewobag-allee-der-kosmonauten-g1.webp",
       "/images/projects/gewobag-allee-der-kosmonauten-g2.webp"
@@ -2581,21 +2847,23 @@
     "status": "ok",
     "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "gewobag-gartenfeld",
     "status": "ok",
     "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "gewobag-hohensaatener-strasse-18",
     "status": "ok",
     "source": "official",
     "sourceUrl": null,
-    "batch": 3,
+    "batch": 5,
     "gallery": [
       "/images/projects/gewobag-hohensaatener-strasse-18-g1.webp",
       "/images/projects/gewobag-hohensaatener-strasse-18-g2.webp"
@@ -2606,7 +2874,7 @@
     "status": "ok",
     "source": "official",
     "sourceUrl": null,
-    "batch": 3,
+    "batch": 5,
     "gallery": [
       "/images/projects/gewobag-landsberger-allee-g1.webp",
       "/images/projects/gewobag-landsberger-allee-g2.webp"
@@ -2617,7 +2885,7 @@
     "status": "ok",
     "source": "official",
     "sourceUrl": null,
-    "batch": 3,
+    "batch": 5,
     "gallery": [
       "/images/projects/gewobag-waterkant-g1.webp",
       "/images/projects/gewobag-waterkant-g2.webp"
@@ -2626,9 +2894,9 @@
   {
     "slug": "gewobag-wendenschlossstrasse",
     "status": "ok",
-    "source": "wikipedia",
-    "sourceUrl": "https://de.wikipedia.org/wiki/Wendenschlo%C3%9Fstra%C3%9Fe",
-    "batch": 1,
+    "source": "wikipedia-de",
+    "sourceUrl": null,
+    "batch": 5,
     "gallery": [
       "/images/projects/gewobag-wendenschlossstrasse-g1.webp",
       "/images/projects/gewobag-wendenschlossstrasse-g2.webp"
@@ -2728,7 +2996,8 @@
     "status": "ok",
     "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 5
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "grand-marina-saigon",
@@ -2753,7 +3022,7 @@
     "status": "ok",
     "source": "official",
     "sourceUrl": null,
-    "batch": 3,
+    "batch": 5,
     "gallery": [
       "/images/projects/grand-tower-frankfurt-g1.webp"
     ]
@@ -2833,6 +3102,14 @@
     "source": "wikipedia-en",
     "sourceUrl": null,
     "batch": 5
+  },
+  {
+    "slug": "gulfstream-seaview",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "gumbati-boulevard-point",
@@ -2934,7 +3211,7 @@
     "status": "ok",
     "source": "official",
     "sourceUrl": null,
-    "batch": 3,
+    "batch": 5,
     "gallery": [
       "/images/projects/hafen-city-hamburg-g1.webp",
       "/images/projects/hafen-city-hamburg-g2.webp"
@@ -2945,7 +3222,8 @@
     "status": "ok",
     "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "hagastaden",
@@ -2960,9 +3238,9 @@
   {
     "slug": "hamburg-grasbrook",
     "status": "ok",
-    "source": "wikipedia",
-    "sourceUrl": "https://de.wikipedia.org/wiki/Hamburg-Kleiner_Grasbrook",
-    "batch": 1,
+    "source": "wikipedia-de",
+    "sourceUrl": null,
+    "batch": 5,
     "gallery": [
       "/images/projects/hamburg-grasbrook-g1.webp"
     ]
@@ -2979,14 +3257,16 @@
     "status": "ok",
     "source": "wikipedia-en",
     "sourceUrl": null,
-    "batch": 5
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "hanoi-west-lake",
     "status": "ok",
     "source": "wikipedia-en",
     "sourceUrl": null,
-    "batch": 5
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "harmonica-green-cape",
@@ -3013,11 +3293,19 @@
     "batch": 4
   },
   {
+    "slug": "hessah-district",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
+  },
+  {
     "slug": "hey-charlottenburg",
     "status": "ok",
     "source": "official",
     "sourceUrl": null,
-    "batch": 3,
+    "batch": 5,
     "gallery": [
       "/images/projects/hey-charlottenburg-g1.webp"
     ]
@@ -3085,7 +3373,7 @@
     "status": "ok",
     "source": "official",
     "sourceUrl": null,
-    "batch": 3,
+    "batch": 5,
     "gallery": [
       "/images/projects/howoge-alfred-kowalke-strasse-22-g1.webp",
       "/images/projects/howoge-alfred-kowalke-strasse-22-g2.webp"
@@ -3118,14 +3406,15 @@
     "status": "ok",
     "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "howoge-detlevstrasse",
     "status": "ok",
     "source": "official",
     "sourceUrl": null,
-    "batch": 3,
+    "batch": 5,
     "gallery": [
       "/images/projects/howoge-detlevstrasse-g1.webp",
       "/images/projects/howoge-detlevstrasse-g2.webp"
@@ -3136,14 +3425,15 @@
     "status": "ok",
     "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "howoge-gartenstadt-karlshorst",
     "status": "ok",
     "source": "official",
     "sourceUrl": null,
-    "batch": 3,
+    "batch": 5,
     "gallery": [
       "/images/projects/howoge-gartenstadt-karlshorst-g1.webp",
       "/images/projects/howoge-gartenstadt-karlshorst-g2.webp"
@@ -3165,7 +3455,7 @@
     "status": "ok",
     "source": "official",
     "sourceUrl": null,
-    "batch": 3,
+    "batch": 5,
     "gallery": [
       "/images/projects/howoge-havelufer-quartier-g1.webp",
       "/images/projects/howoge-havelufer-quartier-g2.webp"
@@ -3187,14 +3477,16 @@
     "status": "ok",
     "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "howoge-joachimsthaler-plauener",
     "status": "ok",
     "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "howoge-kirchsteig",
@@ -3219,14 +3511,15 @@
     "status": "ok",
     "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "howoge-mahlower-strasse",
     "status": "ok",
     "source": "official",
     "sourceUrl": null,
-    "batch": 3,
+    "batch": 5,
     "gallery": [
       "/images/projects/howoge-mahlower-strasse-g1.webp",
       "/images/projects/howoge-mahlower-strasse-g2.webp"
@@ -3237,7 +3530,8 @@
     "status": "ok",
     "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "howoge-plonzstrasse",
@@ -3255,9 +3549,10 @@
     "status": "ok",
     "source": "official",
     "sourceUrl": null,
-    "batch": 3,
+    "batch": 5,
     "gallery": [
-      "/images/projects/howoge-rosenfelder-ring-88-g1.webp"
+      "/images/projects/howoge-rosenfelder-ring-88-g1.webp",
+      "/images/projects/howoge-rosenfelder-ring-88-g2.webp"
     ]
   },
   {
@@ -3265,7 +3560,7 @@
     "status": "ok",
     "source": "official",
     "sourceUrl": null,
-    "batch": 3,
+    "batch": 5,
     "gallery": [
       "/images/projects/howoge-salzmannstrasse-34-g1.webp",
       "/images/projects/howoge-salzmannstrasse-34-g2.webp"
@@ -3276,7 +3571,7 @@
     "status": "ok",
     "source": "official",
     "sourceUrl": null,
-    "batch": 3,
+    "batch": 5,
     "gallery": [
       "/images/projects/howoge-schkeuditzer-strasse-g1.webp",
       "/images/projects/howoge-schkeuditzer-strasse-g2.webp"
@@ -3287,7 +3582,7 @@
     "status": "ok",
     "source": "official",
     "sourceUrl": null,
-    "batch": 3,
+    "batch": 5,
     "gallery": [
       "/images/projects/howoge-schulze-boysen-strasse-g1.webp"
     ]
@@ -3297,7 +3592,7 @@
     "status": "ok",
     "source": "official",
     "sourceUrl": null,
-    "batch": 3,
+    "batch": 5,
     "gallery": [
       "/images/projects/howoge-sewanstrasse-256-g1.webp",
       "/images/projects/howoge-sewanstrasse-256-g2.webp"
@@ -3308,7 +3603,7 @@
     "status": "ok",
     "source": "official",
     "sourceUrl": null,
-    "batch": 3,
+    "batch": 5,
     "gallery": [
       "/images/projects/howoge-sewanstrasse-38-40-g1.webp",
       "/images/projects/howoge-sewanstrasse-38-40-g2.webp"
@@ -3319,14 +3614,15 @@
     "status": "ok",
     "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "howoge-vincent-van-gogh-strasse",
     "status": "ok",
     "source": "official",
     "sourceUrl": null,
-    "batch": 3,
+    "batch": 5,
     "gallery": [
       "/images/projects/howoge-vincent-van-gogh-strasse-g1.webp",
       "/images/projects/howoge-vincent-van-gogh-strasse-g2.webp"
@@ -3337,7 +3633,7 @@
     "status": "ok",
     "source": "official",
     "sourceUrl": null,
-    "batch": 3,
+    "batch": 5,
     "gallery": [
       "/images/projects/howoge-wiecker-strasse-g1.webp",
       "/images/projects/howoge-wiecker-strasse-g2.webp"
@@ -3359,7 +3655,8 @@
     "status": "ok",
     "source": "wikipedia-en",
     "sourceUrl": null,
-    "batch": 5
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "hudson-yards",
@@ -3377,7 +3674,8 @@
     "status": "ok",
     "source": "wikipedia-en",
     "sourceUrl": null,
-    "batch": 5
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "iconsiam",
@@ -3423,21 +3721,32 @@
     "status": "ok",
     "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "instone-kopenhagener-strasse",
     "status": "ok",
     "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "instone-topaz",
     "status": "ok",
     "source": "wikipedia-en",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
+  },
+  {
+    "slug": "ipanema-costa-del-este",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "isani-bilderz",
@@ -3472,11 +3781,27 @@
     "batch": 4
   },
   {
+    "slug": "jaber-al-ahmad-residential-city",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
+  },
+  {
     "slug": "jakarta-mega-kuningan",
     "status": "ok",
     "source": "wikipedia-en",
     "sourceUrl": null,
     "batch": 4
+  },
+  {
+    "slug": "jatkasaari-helsinki",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "jeddah-bab",
@@ -3521,6 +3846,14 @@
     "source": "wikipedia-en",
     "sourceUrl": null,
     "batch": 4
+  },
+  {
+    "slug": "kalasatama-helsinki",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "kampala-marina",
@@ -3577,7 +3910,8 @@
     "status": "ok",
     "source": "wikipedia-en",
     "sourceUrl": null,
-    "batch": 5
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "kings-garden",
@@ -3605,14 +3939,19 @@
     "status": "ok",
     "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "kokhta-ubani-tsatskhvebi",
-    "status": "failed",
-    "source": null,
+    "status": "ok",
+    "source": "official",
     "sourceUrl": null,
-    "batch": 1
+    "batch": 5,
+    "gallery": [
+      "/images/projects/kokhta-ubani-tsatskhvebi-g1.webp",
+      "/images/projects/kokhta-ubani-tsatskhvebi-g2.webp"
+    ]
   },
   {
     "slug": "konza-technopolis",
@@ -3701,7 +4040,8 @@
     "status": "ok",
     "source": "wikipedia-en",
     "sourceUrl": null,
-    "batch": 5
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "la-grand-ave",
@@ -3746,9 +4086,10 @@
     "status": "ok",
     "source": "official",
     "sourceUrl": null,
-    "batch": 6,
+    "batch": 5,
     "gallery": [
-      "/images/projects/larimar-city-resort-g1.webp"
+      "/images/projects/larimar-city-resort-g1.webp",
+      "/images/projects/larimar-city-resort-g2.webp"
     ]
   },
   {
@@ -3757,6 +4098,14 @@
     "source": "wikipedia-en",
     "sourceUrl": null,
     "batch": 4
+  },
+  {
+    "slug": "le-conde-bkk1",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "le-meridien-sioni-lake-resort-spa-by-archi",
@@ -3771,11 +4120,22 @@
   {
     "slug": "leipzig-city-tunnel",
     "status": "ok",
-    "source": "wikipedia",
-    "sourceUrl": "https://de.wikipedia.org/wiki/City-Tunnel_Leipzig",
-    "batch": 1,
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
     "gallery": [
       "/images/projects/leipzig-city-tunnel-g1.webp"
+    ]
+  },
+  {
+    "slug": "leopoldquartier",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": [
+      "/images/projects/leopoldquartier-g1.webp",
+      "/images/projects/leopoldquartier-g2.webp"
     ]
   },
   {
@@ -3862,7 +4222,8 @@
     "status": "ok",
     "source": "wikipedia-en",
     "sourceUrl": null,
-    "batch": 5
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "livin-dadiani-263",
@@ -3908,7 +4269,8 @@
     "status": "ok",
     "source": "wikipedia-en",
     "sourceUrl": null,
-    "batch": 5
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "lyon-confluence",
@@ -3993,6 +4355,17 @@
     "batch": 5
   },
   {
+    "slug": "macherei-berlin",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": [
+      "/images/projects/macherei-berlin-g1.webp",
+      "/images/projects/macherei-berlin-g2.webp"
+    ]
+  },
+  {
     "slug": "madrid-nuevo-norte",
     "status": "ok",
     "source": "wikipedia-en",
@@ -4062,6 +4435,14 @@
     "batch": 4
   },
   {
+    "slug": "manufaktuuri-quarter",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
+  },
+  {
     "slug": "maqro-city-tbilisi",
     "status": "ok",
     "source": "korter",
@@ -4122,6 +4503,14 @@
     ]
   },
   {
+    "slug": "marina-gardens-dresden",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
+  },
+  {
     "slug": "marina-gate",
     "status": "ok",
     "source": "wikipedia-en",
@@ -4152,6 +4541,14 @@
       "/images/projects/masaar-g1.webp",
       "/images/projects/masaar-g2.webp"
     ]
+  },
+  {
+    "slug": "max-ophuels-quartier",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "medellin-lleras",
@@ -4197,6 +4594,14 @@
     "source": "wikipedia-en",
     "sourceUrl": null,
     "batch": 4
+  },
+  {
+    "slug": "mercedes-benz-places-dubai",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "merdeka-118",
@@ -4334,9 +4739,10 @@
   {
     "slug": "milaneo-stuttgart",
     "status": "ok",
-    "source": "wikipedia-de",
+    "source": "wikipedia-en",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "milestone-project-tsavkisi",
@@ -4357,6 +4763,14 @@
     "gallery": [
       "/images/projects/millennium-residence-g1.webp"
     ]
+  },
+  {
+    "slug": "mina-al-arab-marbella",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "minato-mirai",
@@ -4384,6 +4798,14 @@
     "gallery": [
       "/images/projects/moedani-g1.webp"
     ]
+  },
+  {
+    "slug": "moma-tel-aviv",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "monolith-dighomi-city",
@@ -4478,14 +4900,16 @@
     "status": "ok",
     "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "munich-olympiapark",
     "status": "ok",
     "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "mziani-valley",
@@ -4568,7 +4992,8 @@
     "status": "ok",
     "source": "wikipedia-en",
     "sourceUrl": null,
-    "batch": 5
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "national-landing-amazon-hq2",
@@ -4596,18 +5021,35 @@
     ]
   },
   {
+    "slug": "neckar-park-stuttgart",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
+  },
+  {
     "slug": "nelson-mandela-bay",
     "status": "ok",
     "source": "wikipedia-en",
     "sourceUrl": null,
-    "batch": 5
+    "batch": 5,
+    "gallery": []
+  },
+  {
+    "slug": "neom-the-line",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "neue-bockbrauerei",
     "status": "ok",
     "source": "official",
     "sourceUrl": null,
-    "batch": 3,
+    "batch": 5,
     "gallery": [
       "/images/projects/neue-bockbrauerei-g1.webp",
       "/images/projects/neue-bockbrauerei-g2.webp"
@@ -4711,6 +5153,14 @@
     ]
   },
   {
+    "slug": "new-murabba",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
+  },
+  {
     "slug": "next-address",
     "status": "ok",
     "source": "korter",
@@ -4756,9 +5206,13 @@
   {
     "slug": "next-collection-green-cape",
     "status": "ok",
-    "source": "wikipedia-en",
+    "source": "official",
     "sourceUrl": null,
-    "batch": 5
+    "batch": 5,
+    "gallery": [
+      "/images/projects/next-collection-green-cape-g1.webp",
+      "/images/projects/next-collection-green-cape-g2.webp"
+    ]
   },
   {
     "slug": "next-door-gelovani",
@@ -4872,7 +5326,7 @@
     "status": "ok",
     "source": "official",
     "sourceUrl": null,
-    "batch": 3,
+    "batch": 5,
     "gallery": [
       "/images/projects/nhw-elisabethentor-g1.webp",
       "/images/projects/nhw-elisabethentor-g2.webp"
@@ -4881,9 +5335,10 @@
   {
     "slug": "nhw-mariengaerten",
     "status": "ok",
-    "source": "wikipedia-de",
+    "source": "wikipedia-en",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "nhw-nuville",
@@ -4897,7 +5352,7 @@
     "status": "ok",
     "source": "official",
     "sourceUrl": null,
-    "batch": 3,
+    "batch": 5,
     "gallery": [
       "/images/projects/nhw-riedbogen-g1.webp",
       "/images/projects/nhw-riedbogen-g2.webp"
@@ -4929,6 +5384,22 @@
     "batch": 5
   },
   {
+    "slug": "nordhavn-copenhagen",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
+  },
+  {
+    "slug": "novopecherski-lypky",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
+  },
+  {
     "slug": "nueva-costanera",
     "status": "ok",
     "source": "wikipedia-en",
@@ -4947,7 +5418,8 @@
     "status": "ok",
     "source": "wikipedia-en",
     "sourceUrl": null,
-    "batch": 5
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "nurly-zhol",
@@ -5110,18 +5582,39 @@
     "batch": 4
   },
   {
+    "slug": "one-canal-road-lahore",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
+  },
+  {
     "slug": "one-frankfurt",
     "status": "ok",
     "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
+  },
+  {
+    "slug": "one-frankfurt-ca-immo",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": [
+      "/images/projects/one-frankfurt-ca-immo-g1.webp",
+      "/images/projects/one-frankfurt-ca-immo-g2.webp"
+    ]
   },
   {
     "slug": "one-limassol",
     "status": "ok",
     "source": "wikipedia-en",
     "sourceUrl": null,
-    "batch": 5
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "one-thousand-museum",
@@ -5135,7 +5628,8 @@
     "status": "ok",
     "source": "wikipedia-en",
     "sourceUrl": null,
-    "batch": 5
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "one-zaabeel",
@@ -5386,7 +5880,8 @@
     "status": "ok",
     "source": "wikipedia-en",
     "sourceUrl": null,
-    "batch": 5
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "osaka-umeda",
@@ -5396,11 +5891,20 @@
     "batch": 4
   },
   {
+    "slug": "oslo-spektrum-high-rise",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
+  },
+  {
     "slug": "otto-quartier-esslingen",
     "status": "ok",
     "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "oxy-residence",
@@ -5453,9 +5957,9 @@
   {
     "slug": "pandion-midtown-4",
     "status": "ok",
-    "source": "official",
+    "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 3,
+    "batch": 5,
     "gallery": [
       "/images/projects/pandion-midtown-4-g1.webp",
       "/images/projects/pandion-midtown-4-g2.webp"
@@ -5541,7 +6045,16 @@
     "status": "ok",
     "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 5
+    "batch": 5,
+    "gallery": []
+  },
+  {
+    "slug": "paupys-vilnius",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "paya-lebar-quarter",
@@ -5570,6 +6083,14 @@
     "source": null,
     "sourceUrl": null,
     "batch": 1
+  },
+  {
+    "slug": "phuket-andara",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "pillar-park",
@@ -5613,6 +6134,17 @@
     "batch": 2,
     "gallery": [
       "/images/projects/pontus-rotana-gonio-g1.webp"
+    ]
+  },
+  {
+    "slug": "port-city-colombo",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": [
+      "/images/projects/port-city-colombo-g1.webp",
+      "/images/projects/port-city-colombo-g2.webp"
     ]
   },
   {
@@ -5685,25 +6217,43 @@
     ]
   },
   {
+    "slug": "puerto-marina-residences",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
+  },
+  {
     "slug": "quartier-eins-prenzlauer-berg",
     "status": "ok",
     "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "quartier-eins-schoeneberg",
     "status": "ok",
     "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
+  },
+  {
+    "slug": "quartier-ipanema-hamburg",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "quartier-lilienthal",
     "status": "ok",
-    "source": "official",
+    "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 3,
+    "batch": 5,
     "gallery": [
       "/images/projects/quartier-lilienthal-g1.webp",
       "/images/projects/quartier-lilienthal-g2.webp"
@@ -5738,11 +6288,20 @@
     ]
   },
   {
+    "slug": "raemian-one-bailey",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
+  },
+  {
     "slug": "ramhan-island",
     "status": "ok",
     "source": "wikipedia-en",
     "sourceUrl": null,
-    "batch": 5
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "ratevani",
@@ -5775,6 +6334,14 @@
     ]
   },
   {
+    "slug": "red-sea-project",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
+  },
+  {
     "slug": "redco-bamboo-beach",
     "status": "ok",
     "source": "korter",
@@ -5797,6 +6364,14 @@
     "source": "wikipedia-en",
     "sourceUrl": null,
     "batch": 4
+  },
+  {
+    "slug": "regjeringskvartalet",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "relevance-nutsubidze",
@@ -5845,7 +6420,7 @@
   {
     "slug": "reside-riverside",
     "status": "ok",
-    "source": "official",
+    "source": "wikipedia-en",
     "sourceUrl": null,
     "batch": 5,
     "gallery": [
@@ -5896,14 +6471,16 @@
     "status": "ok",
     "source": "wikipedia-en",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "roma-eur",
     "status": "ok",
     "source": "wikipedia-en",
     "sourceUrl": null,
-    "batch": 5
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "rome-testaccio",
@@ -5953,6 +6530,14 @@
       "/images/projects/roomix-vazha-pshavela-g1.webp",
       "/images/projects/roomix-vazha-pshavela-g2.webp"
     ]
+  },
+  {
+    "slug": "rothschild-10",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "rotterdam-de-kuip",
@@ -6018,6 +6603,14 @@
     "batch": 4
   },
   {
+    "slug": "saadiyat-lagoons-abu-dhabi",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
+  },
+  {
     "slug": "saburtalo-residence",
     "status": "ok",
     "source": "korter",
@@ -6037,9 +6630,10 @@
   {
     "slug": "saga-horn",
     "status": "ok",
-    "source": "wikipedia-de",
+    "source": "wikipedia-en",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "salesforce-tower",
@@ -6110,7 +6704,16 @@
     "status": "ok",
     "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
+  },
+  {
+    "slug": "schwabinger-tor",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "sentosa-cove",
@@ -6182,6 +6785,14 @@
     "batch": 4
   },
   {
+    "slug": "shenzhen-bay-super-hq",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
+  },
+  {
     "slug": "shibuya-upper-west",
     "status": "ok",
     "source": "wikipedia-en",
@@ -6194,6 +6805,14 @@
     "source": "wikipedia-en",
     "sourceUrl": null,
     "batch": 4
+  },
+  {
+    "slug": "silk-factory-tbilisi",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "silk-towers",
@@ -6224,6 +6843,25 @@
     "gallery": [
       "/images/projects/simetria-park-g1.webp"
     ]
+  },
+  {
+    "slug": "simetria-park-okrokana",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": [
+      "/images/projects/simetria-park-okrokana-g1.webp",
+      "/images/projects/simetria-park-okrokana-g2.webp"
+    ]
+  },
+  {
+    "slug": "singapore-guangxi",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "six-senses-palm",
@@ -6272,8 +6910,8 @@
     "slug": "sobha-hartland-ii",
     "status": "ok",
     "source": "wikipedia-en",
-    "sourceUrl": "https://sobharealty.com/sobha-communities/sobha-hartland",
-    "batch": 6,
+    "sourceUrl": null,
+    "batch": 5,
     "gallery": [
       "/images/projects/sobha-hartland-ii-g1.webp"
     ]
@@ -6321,6 +6959,14 @@
     "batch": 4
   },
   {
+    "slug": "southbank-melbourne",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
+  },
+  {
     "slug": "sport-city-batumi",
     "status": "ok",
     "source": "korter",
@@ -6335,7 +6981,7 @@
     "status": "ok",
     "source": "official",
     "sourceUrl": null,
-    "batch": 3,
+    "batch": 5,
     "gallery": [
       "/images/projects/stadt-und-land-buckower-felder-g1.webp",
       "/images/projects/stadt-und-land-buckower-felder-g2.webp"
@@ -6346,14 +6992,15 @@
     "status": "ok",
     "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "stadt-und-land-fritz-werner-strasse-45",
     "status": "ok",
     "source": "official",
     "sourceUrl": null,
-    "batch": 3,
+    "batch": 5,
     "gallery": [
       "/images/projects/stadt-und-land-fritz-werner-strasse-45-g1.webp",
       "/images/projects/stadt-und-land-fritz-werner-strasse-45-g2.webp"
@@ -6374,7 +7021,7 @@
     "status": "ok",
     "source": "official",
     "sourceUrl": null,
-    "batch": 3,
+    "batch": 5,
     "gallery": [
       "/images/projects/stadt-und-land-johannes-tobei-strasse-g1.webp"
     ]
@@ -6384,7 +7031,7 @@
     "status": "ok",
     "source": "official",
     "sourceUrl": null,
-    "batch": 3,
+    "batch": 5,
     "gallery": [
       "/images/projects/stadt-und-land-john-locke-siedlung-g1.webp",
       "/images/projects/stadt-und-land-john-locke-siedlung-g2.webp"
@@ -6395,7 +7042,7 @@
     "status": "ok",
     "source": "official",
     "sourceUrl": null,
-    "batch": 3,
+    "batch": 5,
     "gallery": [
       "/images/projects/stadt-und-land-kaserne-hessenwinkel-g1.webp",
       "/images/projects/stadt-und-land-kaserne-hessenwinkel-g2.webp"
@@ -6406,7 +7053,7 @@
     "status": "ok",
     "source": "official",
     "sourceUrl": null,
-    "batch": 3,
+    "batch": 5,
     "gallery": [
       "/images/projects/stadt-und-land-maybachufer-g1.webp",
       "/images/projects/stadt-und-land-maybachufer-g2.webp"
@@ -6417,28 +7064,31 @@
     "status": "ok",
     "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "stadt-und-land-sonnenallee-210",
     "status": "ok",
     "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 5
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "stadt-und-land-walkuerenstrasse",
     "status": "ok",
     "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "stadt-und-land-weinstrasse-9",
     "status": "ok",
     "source": "official",
     "sourceUrl": null,
-    "batch": 3,
+    "batch": 5,
     "gallery": [
       "/images/projects/stadt-und-land-weinstrasse-9-g1.webp"
     ]
@@ -6468,6 +7118,14 @@
     "batch": 1
   },
   {
+    "slug": "strandkai-hafencity",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
+  },
+  {
     "slug": "structura-vake-tower",
     "status": "ok",
     "source": "korter",
@@ -6482,7 +7140,8 @@
     "status": "ok",
     "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "sugar-wharf",
@@ -6490,6 +7149,24 @@
     "source": "wikipedia-en",
     "sourceUrl": null,
     "batch": 4
+  },
+  {
+    "slug": "sugar-wharf-toronto",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": [
+      "/images/projects/sugar-wharf-toronto-g1.webp"
+    ]
+  },
+  {
+    "slug": "sultan-haitham-city",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "summer-365",
@@ -6546,6 +7223,14 @@
     "batch": 4
   },
   {
+    "slug": "sydney-western-hub",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
+  },
+  {
     "slug": "symbol-residences",
     "status": "ok",
     "source": "local",
@@ -6568,7 +7253,8 @@
     "status": "ok",
     "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "taksim-1453",
@@ -6576,6 +7262,22 @@
     "source": "wikipedia-en",
     "sourceUrl": null,
     "batch": 4
+  },
+  {
+    "slug": "tao-zhu-yin-yuan",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
+  },
+  {
+    "slug": "taryan-towers-kyiv",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "tashkent-city",
@@ -6765,6 +7467,14 @@
     ]
   },
   {
+    "slug": "the-brooklyn-tower",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
+  },
+  {
     "slug": "the-h-firstier-banpo",
     "status": "ok",
     "source": "wikipedia-en",
@@ -6797,6 +7507,14 @@
     ]
   },
   {
+    "slug": "the-opus-dubai",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
+  },
+  {
     "slug": "the-shard",
     "status": "ok",
     "source": "wikipedia-en",
@@ -6822,7 +7540,8 @@
     "status": "ok",
     "source": "wikipedia-en",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "tokyo-midtown",
@@ -6874,6 +7593,14 @@
     "batch": 4
   },
   {
+    "slug": "torre-isea-barcelona",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
+  },
+  {
     "slug": "torre-unicredit",
     "status": "ok",
     "source": "wikipedia-en",
@@ -6900,6 +7627,14 @@
     "source": "wikipedia-en",
     "sourceUrl": null,
     "batch": 4
+  },
+  {
+    "slug": "tower-gelovani",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "tower-ketevani",
@@ -6937,7 +7672,8 @@
     "status": "ok",
     "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 5
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "tun-razak-exchange",
@@ -6955,6 +7691,22 @@
     "source": "wikipedia-en",
     "sourceUrl": null,
     "batch": 4
+  },
+  {
+    "slug": "twist-tower-antwerp",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
+  },
+  {
+    "slug": "ueberseequartier-hamburg",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "union-upl-europacity",
@@ -6991,11 +7743,28 @@
     "batch": 4
   },
   {
+    "slug": "uus-veerenni-tallinn",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
+  },
+  {
     "slug": "valencia-arts-sciences",
     "status": "ok",
     "source": "wikipedia-en",
     "sourceUrl": null,
-    "batch": 5
+    "batch": 5,
+    "gallery": []
+  },
+  {
+    "slug": "vancouver-burry",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "varso-tower",
@@ -7014,6 +7783,14 @@
       "/images/projects/verda-mukhiani-g1.webp",
       "/images/projects/verda-mukhiani-g2.webp"
     ]
+  },
+  {
+    "slug": "verde-riga",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "vertikal-batumi",
@@ -7040,6 +7817,14 @@
     "batch": 4
   },
   {
+    "slug": "village-im-dritten",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
+  },
+  {
     "slug": "vinci-tsatskhvebi-11",
     "status": "ok",
     "source": "korter",
@@ -7057,11 +7842,30 @@
     "batch": 4
   },
   {
+    "slug": "volta-skai-tallinn",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
+  },
+  {
     "slug": "vysoka-tower",
     "status": "ok",
     "source": "wikipedia-en",
     "sourceUrl": null,
     "batch": 4
+  },
+  {
+    "slug": "wardian-london",
+    "status": "ok",
+    "source": "official",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": [
+      "/images/projects/wardian-london-g1.webp",
+      "/images/projects/wardian-london-g2.webp"
+    ]
   },
   {
     "slug": "warsaw-centralna",
@@ -7103,7 +7907,7 @@
     "status": "ok",
     "source": "official",
     "sourceUrl": null,
-    "batch": 3,
+    "batch": 5,
     "gallery": [
       "/images/projects/wbm-breite-strasse-g1.webp"
     ]
@@ -7111,19 +7915,20 @@
   {
     "slug": "wbm-haus-der-statistik",
     "status": "ok",
-    "source": "wikipedia",
-    "sourceUrl": "https://de.wikipedia.org/wiki/Haus_der_Statistik",
-    "batch": 1,
+    "source": "official",
+    "sourceUrl": null,
+    "batch": 5,
     "gallery": [
-      "/images/projects/wbm-haus-der-statistik-g1.webp"
+      "/images/projects/wbm-haus-der-statistik-g1.webp",
+      "/images/projects/wbm-haus-der-statistik-g2.webp"
     ]
   },
   {
     "slug": "wbm-lange-strasse",
     "status": "ok",
-    "source": "official",
+    "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 3,
+    "batch": 5,
     "gallery": [
       "/images/projects/wbm-lange-strasse-g1.webp",
       "/images/projects/wbm-lange-strasse-g2.webp"
@@ -7132,9 +7937,9 @@
   {
     "slug": "wbm-melchior-engeldamm",
     "status": "ok",
-    "source": "official",
+    "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 3,
+    "batch": 5,
     "gallery": [
       "/images/projects/wbm-melchior-engeldamm-g1.webp",
       "/images/projects/wbm-melchior-engeldamm-g2.webp"
@@ -7145,7 +7950,7 @@
     "status": "ok",
     "source": "official",
     "sourceUrl": null,
-    "batch": 3,
+    "batch": 5,
     "gallery": [
       "/images/projects/wbm-molkenmarkt-g1.webp",
       "/images/projects/wbm-molkenmarkt-g2.webp"
@@ -7154,9 +7959,9 @@
   {
     "slug": "wbm-mollstrasse",
     "status": "ok",
-    "source": "official",
+    "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 3,
+    "batch": 5,
     "gallery": [
       "/images/projects/wbm-mollstrasse-g1.webp",
       "/images/projects/wbm-mollstrasse-g2.webp"
@@ -7165,9 +7970,9 @@
   {
     "slug": "wbm-neue-jakobstrasse",
     "status": "ok",
-    "source": "official",
+    "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 3,
+    "batch": 5,
     "gallery": [
       "/images/projects/wbm-neue-jakobstrasse-g1.webp",
       "/images/projects/wbm-neue-jakobstrasse-g2.webp"
@@ -7176,9 +7981,9 @@
   {
     "slug": "wbm-rathausblock-sued",
     "status": "ok",
-    "source": "official",
+    "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 3,
+    "batch": 5,
     "gallery": [
       "/images/projects/wbm-rathausblock-sued-g1.webp",
       "/images/projects/wbm-rathausblock-sued-g2.webp"
@@ -7189,14 +7994,15 @@
     "status": "ok",
     "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "wbm-sez-quartier",
     "status": "ok",
     "source": "official",
     "sourceUrl": null,
-    "batch": 3,
+    "batch": 5,
     "gallery": [
       "/images/projects/wbm-sez-quartier-g1.webp",
       "/images/projects/wbm-sez-quartier-g2.webp"
@@ -7207,14 +8013,15 @@
     "status": "ok",
     "source": "wikipedia-de",
     "sourceUrl": null,
-    "batch": 3
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "werksviertel-munich",
     "status": "ok",
     "source": "official",
     "sourceUrl": null,
-    "batch": 3,
+    "batch": 5,
     "gallery": [
       "/images/projects/werksviertel-munich-g1.webp"
     ]
@@ -7361,6 +8168,14 @@
     "source": null,
     "sourceUrl": null,
     "batch": 1
+  },
+  {
+    "slug": "york-town-tabakhmela",
+    "status": "ok",
+    "source": "wikipedia-en",
+    "sourceUrl": null,
+    "batch": 5,
+    "gallery": []
   },
   {
     "slug": "york-vista-garden",
