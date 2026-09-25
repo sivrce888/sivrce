@@ -1,21 +1,10 @@
 import assert from 'node:assert/strict'
-import { CITIES } from '@/data/listings'
-import { AGENT_PROFILES, DEVELOPERS, PROJECTS } from '@/data/professionals'
-import type { HomeStats } from './home-stats'
+import { freshQuery } from './guards'
+import { NO_LIVE_STATS } from './home-stats'
 
-/** Shape guard — values must be finite non-negative (no fake 52k injection). */
-function assertStats(s: HomeStats) {
-  for (const [k, v] of Object.entries(s)) {
-    assert.equal(typeof v, 'number', k)
-    assert.ok(Number.isFinite(v) && v >= 0, k)
-  }
-}
+// Outage fallback is all-zero: Stats hides zero tiles, so a DB blip can never
+// relabel catalog sizes as live trust metrics.
+for (const [k, v] of Object.entries(NO_LIVE_STATS)) assert.equal(v, 0, k)
 
-assertStats({ listings: 0, professionals: 1, projects: 2, cities: 3 })
-assert.throws(() => assertStats({ listings: -1, professionals: 0, projects: 0, cities: 0 } as HomeStats))
-
-assert.ok(PROJECTS.length > 0, 'catalog projects')
-assert.ok(CITIES.length > 0, 'catalog cities')
-assert.ok(AGENT_PROFILES.length + DEVELOPERS.length > 0, 'catalog professionals')
-
-console.log('home-stats: ok')
+// freshQuery must reject (never resolve a fallback) so unstable_cache skips it.
+assert.rejects(freshQuery(async () => { throw new Error('boom') })).then(() => console.log('home-stats: ok'))

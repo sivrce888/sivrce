@@ -5,16 +5,15 @@ import { getCmsBlock } from '@/lib/cms'
 import { getServerT } from '@/lib/i18n/server'
 import type { Lang } from '@/lib/i18n/core'
 
-/* Closing CTA — server component; proof line is locale copy, not live counts. */
+/* Closing CTA — server component. Proof line is locale copy only: the old
+   count-less "Active listings · Apartments under construction" read as a bug. */
 
 export default async function CTA({ lang = 'ka' }: { lang?: Lang }) {
-  const [title, sub, primary, secondary, proofA, proofB, proofC] = await Promise.all([
+  const [title, sub, primary, secondary, proof] = await Promise.all([
     getCmsBlock('home.cta.title', lang),
     getCmsBlock('home.cta.sub', lang),
     getCmsBlock('home.cta.primary', lang),
     getCmsBlock('home.cta.secondary', lang),
-    getCmsBlock('home.cta.proofA', lang),
-    getCmsBlock('home.cta.proofB', lang),
     getCmsBlock('home.cta.proofC', lang),
   ])
   const t = getServerT(lang)
@@ -75,13 +74,7 @@ export default async function CTA({ lang = 'ka' }: { lang?: Lang }) {
           </div>
         </Reveal>
         <Reveal delay={0.3}>
-          <p className="mt-8 flex flex-wrap items-center justify-center text-[13px] font-bold text-white/60">
-            {proofA}
-            <span aria-hidden className="mx-1.5 inline-block h-1 w-1 rounded-full bg-white/30" />
-            {proofB}
-            <span aria-hidden className="mx-1.5 inline-block h-1 w-1 rounded-full bg-white/30" />
-            {proofC}
-          </p>
+          <p className="mt-8 text-[13px] font-bold text-white/60">{proof}</p>
         </Reveal>
       </div>
     </section>

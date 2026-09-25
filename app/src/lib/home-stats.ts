@@ -1,13 +1,13 @@
 /**
- * Homepage trust metrics — live DB where it exists, catalog for public directory.
- * ponytail: never invent listing inventory; projects/cities/pros are the shipped catalog.
+ * Homepage trust metrics — live DB counts only. The project count is supplied
+ * by the caller from the same scoped catalog the projects rail links to.
+ * ponytail: never invent inventory; a DB outage hides the tiles (Stats skips 0)
+ * instead of relabelling catalog sizes — 611 developers once rendered as
+ * "611 agents & agencies".
  */
 import { db } from '@/lib/db'
 import { safeQuery } from '@/lib/guards'
 import { unstable_cache } from 'next/cache'
-import { projectsLive } from '@/lib/directory-live'
-import { CITIES } from '@/data/listings'
-import { AGENT_PROFILES, DEVELOPERS, PROJECTS } from '@/data/professionals'
 
 export type HomeStats = {
   listings: number
@@ -16,46 +16,37 @@ export type HomeStats = {
   cities: number
 }
 
-export async function getHomeStats(country?: string): Promise<HomeStats> {
-  return readHomeStats(country ?? '')
-}
+export type LiveHomeStats = Omit<HomeStats, 'projects'>
 
+/** Outage fallback — zeros hide their tiles; nothing is proxied from the catalog. */
+export const NO_LIVE_STATS: LiveHomeStats = { listings: 0, professionals: 0, cities: 0 }
+
+// A fallback must never be cached: safeQuery resolves (not throws) on its
+// deadline, and a cached fallback pinned the catalog numbers for 5 minutes.
 const readHomeStats = unstable_cache(
-  async (country: string): Promise<HomeStats> => {
-    const catalog: HomeStats = {
-      listings: 0,
-      professionals: AGENT_PROFILES.length + DEVELOPERS.length,
-      projects: PROJECTS.length,
-      cities: CITIES.length,
-    }
-    const listingWhere = {
+  async (country: string): Promise<LiveHomeStats> => {
+    const where = {
       deletedAt: null,
       status: 'active' as const,
       // '*' = worldwide hub — count the unified inventory, not one country.
       ...(country && country !== '*' ? { country } : {}),
     }
-
-    return safeQuery(async () => {
-      const [listings, agents, agencies, projectRows, cityRows] = await Promise.all([
-        db.listing.count({ where: listingWhere }),
+    const live = await safeQuery(async () => {
+      const [listings, agents, agencies, cityRows] = await Promise.all([
+        db.listing.count({ where }),
         db.agentProfile.count({ where: { deletedAt: null } }),
         db.agencyProfile.count({ where: { deletedAt: null } }),
-        projectsLive().then((p) => p.length),
-        db.listing.groupBy({
-          by: ['city'],
-          where: listingWhere,
-        }),
+        db.listing.groupBy({ by: ['city'], where }),
       ])
-
-      const professionals = agents + agencies
-      return {
-        listings,
-        professionals: professionals > 0 ? professionals : catalog.professionals,
-        projects: projectRows > 0 ? projectRows : catalog.projects,
-        cities: cityRows.length > 0 ? cityRows.length : catalog.cities,
-      }
-    }, catalog)
+      return { listings, professionals: agents + agencies, cities: cityRows.length }
+    }, null)
+    if (!live) throw new Error('home-stats: DB unavailable')
+    return live
   },
-  ['home-stats-v2'],
+  ['home-stats-v3'],
   { revalidate: 300 },
 )
+
+export async function getHomeStats(country?: string): Promise<LiveHomeStats> {
+  return readHomeStats(country ?? '').catch(() => NO_LIVE_STATS)
+}

@@ -49,23 +49,37 @@ function railCard(l: StoryListing): StoryListing {
 
 import { DEVELOPERS, PROJECTS, getDeveloper, type Developer, type Project } from '@/data/professionals'
 import { cityByName, nearestMapCity } from '@/lib/map/user-place'
+import { placeLabel } from '@/lib/place-label'
+import { readableName } from '@/lib/ka-latin'
 
-function countryProjects(country: string): Project[] {
-  // Worldwide hub shows the whole shipped catalog (GE + DE + …).
-  if (country === '*') return PROJECTS
-  return PROJECTS.filter((p) => {
-    const pin = cityByName(p.city)
-    const cc = pin?.cc ?? (p.coords ? nearestMapCity(p.coords.lat, p.coords.lng)?.cc : null)
-    return cc === country
-  })
+function projectCountry(p: Project): string {
+  const pin = cityByName(p.city)
+  return pin?.cc ?? (p.coords ? nearestMapCity(p.coords.lat, p.coords.lng)?.cc : null) ?? 'GE'
 }
 
-function countryDevelopers(country: string): Developer[] {
-  if (country === '*') return DEVELOPERS
-  return DEVELOPERS.filter((d) => {
-    const pin = cityByName(typeof d.city === 'string' ? d.city : (d.city as Record<string, string>)?.ka ?? '')
-    return pin?.cc === country
-  })
+// Same country resolution as /projects toCard — the rail's "All (N)" matches ?country=N's grid.
+function countryProjects(country: string, list: Project[]): Project[] {
+  // Worldwide hub shows the whole shipped catalog (GE + DE + …).
+  if (country === '*') return list
+  return list.filter((p) => projectCountry(p) === country)
+}
+
+/** Developers with a project in the market, or headquartered there (DB-only rows carry no projects). */
+function countryDevelopers(country: string, list: Developer[], projects: Project[]): Developer[] {
+  if (country === '*') return list
+  const active = new Set(projects.map((p) => p.developerSlug))
+  return list.filter((d) => active.has(d.slug) || cityByName(d.city)?.cc === country)
+}
+
+/** Card payload only — descriptions/galleries never ride the RSC stream; places readable in the UI locale. */
+function railProject(p: Project, lang: Lang): Project {
+  return {
+    ...p,
+    location: readableName(p.location, lang),
+    description: { ka: '', en: '', ru: '' },
+    gallery: undefined,
+    galleryCredits: undefined,
+  }
 }
 
 const FEATURED_NEIGHBORHOODS = ['vake', 'saburtalo', 'old-tbilisi', 'mtatsminda', 'vera', 'lisi', 'batumi', 'kutaisi']
@@ -94,19 +108,22 @@ async function featuredNeighborhoods(lang: Lang, counts: Record<string, number>)
 async function HomeBelowFold({ lang, scope }: { lang: Lang; scope: HomeScope | null }) {
   const ge = scope?.country === 'GE'
   const country = scope?.country ?? 'GE'
-  const [superVip, vipPlus, stories, videos, projects, stats, developers, agentCounts, districtCounts, blogPosts] =
+  const [superVip, vipPlus, stories, videos, allProjects, stats, allDevelopers, agentCounts, districtCounts, blogPosts] =
     await Promise.all([
       scope ? getHomeTierListings('diamond', 8, scope).catch(() => []) : Promise.resolve([]),
       scope ? getHomeTierListings('super_vip', 8, scope).catch(() => []) : Promise.resolve([]),
       scope ? getStoryListings(12, scope).catch(() => [] as StoryListing[]) : Promise.resolve([] as StoryListing[]),
       scope ? getVideoListings(16, scope).catch(() => [] as StoryListing[]) : Promise.resolve([] as StoryListing[]),
-      ge ? projectsLive().catch(() => []) : Promise.resolve(countryProjects(country)),
+      ge ? projectsLive().catch(() => []) : Promise.resolve(PROJECTS),
       getHomeStats(scope?.country),
-      ge ? developersLive().catch(() => []) : Promise.resolve(countryDevelopers(country)),
+      ge ? developersLive().catch(() => []) : Promise.resolve(DEVELOPERS),
       ge ? getAgentListingCountsByKaName().catch(() => ({}) as Record<string, number>) : Promise.resolve({} as Record<string, number>),
       ge ? getDistrictListingCounts('GE').catch(() => ({}) as Record<string, number>) : Promise.resolve({} as Record<string, number>),
       listBlogPosts().catch(() => []),
     ])
+  // sivrce.ge rails stay in Georgia — the live catalog also carries Berlin/Dubai rows.
+  const projects = countryProjects(country, allProjects)
+  const developers = countryDevelopers(country, allDevelopers, projects)
   // Under-construction first; real CDN heroes over stock npN/pN. Rail shows 8 — rest via /projects.
   const building = projects.filter((p) => p.done < 100)
   const pool = building.length >= 2 ? building : projects
@@ -123,7 +140,7 @@ async function HomeBelowFold({ lang, scope }: { lang: Lang; scope: HomeScope | n
     .map((d) => ({
       slug: d.slug,
       name: d.name,
-      city: d.city,
+      city: readableName(placeLabel(d.city, lang), lang),
       verified: d.verified,
       logoUrl: d.logoUrl,
       projectsDone: d.projectsDone,
@@ -167,7 +184,7 @@ async function HomeBelowFold({ lang, scope }: { lang: Lang; scope: HomeScope | n
         <VideoListingsRail items={videoCards} />
       </>
     ) : null,
-    categories: <Categories lang={lang} />,
+    categories: <Categories lang={lang} country={country} projectsTotal={projects.length} />,
     listings: (
       <Listings
         items={superVipCards}
@@ -189,8 +206,9 @@ async function HomeBelowFold({ lang, scope }: { lang: Lang; scope: HomeScope | n
     projects: homeProjects.length > 0 ? (
       // ponytail: dev names resolved server-side — a client getDeveloper() would drag the whole catalog into the bundle.
       <Projects
-        items={homeProjects}
+        items={homeProjects.map((p) => railProject(p, lang))}
         total={projects.length}
+        href={country === '*' ? '/projects' : `/projects?country=${country}`}
         devNames={Object.fromEntries(
           homeProjects.flatMap((p) => {
             const d = getDeveloper(p.developerSlug)
@@ -201,9 +219,10 @@ async function HomeBelowFold({ lang, scope }: { lang: Lang; scope: HomeScope | n
     ) : null,
     ad_after_projects: <AdSlot slot="home_after_projects" lang={lang} />,
     agents: ge && topAgents.length > 0 ? <AgentSlider agents={topAgents} total={AGENT_PROFILES.length} /> : null,
-    developers: topDevelopers.length > 0 ? <DeveloperSlider developers={topDevelopers} total={developers.length} /> : null,
+    developers: topDevelopers.length > 0 ? <DeveloperSlider developers={topDevelopers} total={allDevelopers.length} /> : null,
     services: <Services lang={lang} />,
-    stats: <Stats live={stats} />,
+    // Project count = the same scoped catalog the rail links to, not the world total.
+    stats: <Stats live={{ ...stats, projects: projects.length }} />,
     forum: <ForumTeaser />,
     blog: <BlogNewsSection articles={blogPosts.slice(0, 4)} />,
     cta: <CTA lang={lang} />,

@@ -26,6 +26,7 @@ import { CATEGORY_BRAND } from '@/lib/category-brand'
 import { getCmsBlock } from '@/lib/cms'
 import type { CmsBlockKey } from '@/lib/cms-blocks'
 import { db } from '@/lib/db'
+import { unstable_cache } from 'next/cache'
 import type { Lang } from '@/lib/i18n/core'
 
 /** Daily listings tagged as houses for parties — events, birthdays. */
@@ -83,106 +84,97 @@ function formatCount(n: number, explore: string): string {
   return n.toLocaleString('en-US')
 }
 
-/** Live facet counts — never invent inventory numbers. */
-async function categoryCounts(): Promise<Record<CatKey, number>> {
-  const empty: Record<CatKey, number> = {
-    apartments: 0,
-    houses: 0,
-    cottages: 0,
-    land: 0,
-    commercial: 0,
-    dailyRent: 0,
-    partyHouses: 0,
-    selfCheckIn: 0,
-    hotels: 0,
-    newProjects: 0,
-    pools: 0,
-    jacuzzi: 0,
-    seaView: 0,
-    ski: 0,
-    petFriendly: 0,
-    workspace: 0,
-    penthouses: 0,
-    cabins: 0,
-  }
-  try {
-    const [byProp, daily, partyHouses, selfCheckIn, pools, jacuzzi, seaView, ski, petFriendly, workspace, penthouses, cabins, projects] = await Promise.all([
-      db.listing.groupBy({
-        by: ['propertyType'],
-        where: { deletedAt: null, status: 'active', dealType: 'buy' },
-        _count: { _all: true },
-      }),
-      db.listing.count({
-        where: { deletedAt: null, status: 'active', dealType: 'daily' },
-      }),
-      db.listing.count({
-        where: { deletedAt: null, status: 'active', dealType: 'daily', features: { has: 'add.f.partiesAllowed' } },
-      }),
-      db.listing.count({
-        where: { deletedAt: null, status: 'active', dealType: 'daily', features: { has: 'add.f.selfCheckIn' } },
-      }),
-      db.listing.count({
-        where: { deletedAt: null, status: 'active', features: { has: 'add.f.pool' } },
-      }),
-      db.listing.count({
-        where: { deletedAt: null, status: 'active', features: { has: 'add.f.jacuzzi' } },
-      }),
-      db.listing.count({
-        where: { deletedAt: null, status: 'active', features: { has: 'add.f.seaView' } },
-      }),
-      db.listing.count({
-        where: { deletedAt: null, status: 'active', features: { has: 'add.f.skiAccess' } },
-      }),
-      db.listing.count({
-        where: { deletedAt: null, status: 'active', features: { has: 'add.f.petsAllowed' } },
-      }),
-      db.listing.count({
-        where: { deletedAt: null, status: 'active', features: { has: 'add.f.workspace' } },
-      }),
-      db.listing.count({
-        where: { deletedAt: null, status: 'active', features: { has: 'add.f.penthouse' } },
-      }),
-      db.listing.count({
-        where: { deletedAt: null, status: 'active', propertyType: 'house', features: { has: 'add.f.wooden' } },
-      }),
-      db.projectDirectory.count().catch(() => 0),
-    ])
-    for (const row of byProp) {
-      const n = row._count._all
-      if (row.propertyType === 'apartment') empty.apartments = n
-      else if (row.propertyType === 'house') empty.houses = n
-      else if (row.propertyType === 'villa') empty.cottages = n
-      else if (row.propertyType === 'land') empty.land = n
-      else if (row.propertyType === 'commercial') empty.commercial = n
-      // ponytail: home Hotels tile → GDS /hotels, not for-sale hotel buildings.
-      // Listing count would lie. Sale inventory stays on search type=hotel.
-    }
-    empty.dailyRent = daily
-    empty.partyHouses = partyHouses
-    empty.selfCheckIn = selfCheckIn
-    empty.pools = pools
-    empty.jacuzzi = jacuzzi
-    empty.seaView = seaView
-    empty.ski = ski
-    empty.petFriendly = petFriendly
-    empty.workspace = workspace
-    empty.penthouses = penthouses
-    empty.cabins = cabins
-    empty.newProjects = projects
-  } catch {
-    /* DB down — show soft labels via formatCount(0) */
-  }
-  return empty
+const ZERO: Record<CatKey, number> = {
+  apartments: 0,
+  houses: 0,
+  cottages: 0,
+  land: 0,
+  commercial: 0,
+  dailyRent: 0,
+  partyHouses: 0,
+  selfCheckIn: 0,
+  hotels: 0,
+  newProjects: 0,
+  pools: 0,
+  jacuzzi: 0,
+  seaView: 0,
+  ski: 0,
+  petFriendly: 0,
+  workspace: 0,
+  penthouses: 0,
+  cabins: 0,
 }
 
-export default async function Categories({ lang = 'ka' }: { lang?: Lang }) {
-  const [title, sub, counts, explore, ...labels] = await Promise.all([
+/** Live facet counts — never invent inventory numbers. Scoped to the market
+ *  (sivrce.ge counts Georgia only) and cached 5 min: 12 counts per ISR render
+ *  was the home's heaviest DB fan-out. A throw is never cached — the next
+ *  render retries instead of pinning "Browse" on every tile for 5 minutes. */
+const readCategoryCounts = unstable_cache(
+  async (country: string): Promise<Record<CatKey, number>> => {
+    const live = { deletedAt: null, status: 'active' as const, ...(country !== '*' ? { country } : {}) }
+    const withFeature = (f: string, extra: Record<string, unknown> = {}) =>
+      db.listing.count({ where: { ...live, ...extra, features: { has: f } } })
+    const [byProp, daily, partyHouses, selfCheckIn, pools, jacuzzi, seaView, ski, petFriendly, workspace, penthouses, cabins] =
+      await Promise.all([
+        db.listing.groupBy({ by: ['propertyType'], where: { ...live, dealType: 'buy' }, _count: { _all: true } }),
+        db.listing.count({ where: { ...live, dealType: 'daily' } }),
+        withFeature('add.f.partiesAllowed', { dealType: 'daily' }),
+        withFeature('add.f.selfCheckIn', { dealType: 'daily' }),
+        withFeature('add.f.pool'),
+        withFeature('add.f.jacuzzi'),
+        withFeature('add.f.seaView'),
+        withFeature('add.f.skiAccess'),
+        withFeature('add.f.petsAllowed'),
+        withFeature('add.f.workspace'),
+        withFeature('add.f.penthouse'),
+        withFeature('add.f.wooden', { propertyType: 'house' }),
+      ])
+    const byType = Object.fromEntries(byProp.map((r) => [r.propertyType, r._count._all]))
+    return {
+      ...ZERO,
+      apartments: byType.apartment ?? 0,
+      houses: byType.house ?? 0,
+      cottages: byType.villa ?? 0,
+      land: byType.land ?? 0,
+      commercial: byType.commercial ?? 0,
+      // ponytail: home Hotels tile → GDS /hotels, not for-sale hotel buildings.
+      // Listing count would lie. Sale inventory stays on search type=hotel.
+      dailyRent: daily,
+      partyHouses,
+      selfCheckIn,
+      pools,
+      jacuzzi,
+      seaView,
+      ski,
+      petFriendly,
+      workspace,
+      penthouses,
+      cabins,
+    }
+  },
+  ['home-category-counts-v2'],
+  { revalidate: 300 },
+)
+
+export default async function Categories({
+  lang = 'ka',
+  country = 'GE',
+  projectsTotal = 0,
+}: {
+  lang?: Lang
+  /** ISO market, '*' = worldwide hub. */
+  country?: string
+  /** Same scoped catalog count the projects rail links to — one number per page. */
+  projectsTotal?: number
+}) {
+  const [title, sub, listingCounts, explore, ...labels] = await Promise.all([
     getCmsBlock('home.categories.title', lang),
     getCmsBlock('home.categories.sub', lang),
-    categoryCounts(),
+    readCategoryCounts(country).catch(() => ZERO), // DB down — soft labels via formatCount(0)
     getCmsBlock('home.categories.explore', lang),
     ...CATS.map((c) => getCmsBlock(c.labelKey, lang)),
   ])
+  const counts = { ...listingCounts, newProjects: projectsTotal }
   return (
     <section className="bg-sv-cloud pb-20 md:pb-28">
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
@@ -201,7 +193,7 @@ export default async function Categories({ lang = 'ka' }: { lang?: Lang }) {
           {CATS.map((c, i) => (
             <Reveal key={c.key} delay={i * 0.03} className="h-full">
               <LocalizedLink
-                href={c.href}
+                href={c.key === 'newProjects' && country !== '*' ? `${c.href}?country=${country}` : c.href}
                 className="group relative flex h-full flex-col items-center gap-2 rounded-card border border-sv-ink/[0.06] bg-sv-surface px-2 py-4 text-center sm:gap-2.5 sm:p-5 transition-all duration-300 hover:-translate-y-1.5 hover:border-transparent hover:shadow-card-hover"
               >
                 <span

@@ -9,7 +9,8 @@ import { useI18n } from '@/lib/i18n/context'
  * PWA install prompt. Chromium gives us `beforeinstallprompt`; iOS Safari
  * has no API, so it gets a one-line Share-sheet hint instead. Hidden in the
  * Capacitor shell (the app is already installed) and for 30 days after a
- * dismissal. Appears 10s after load so it never touches LCP/INP.
+ * dismissal. Appears from the second visit, 10s after load, so it never
+ * greets a newcomer or touches LCP/INP.
  */
 
 interface InstallEvent extends Event {
@@ -20,6 +21,7 @@ interface InstallEvent extends Event {
 const DISMISS_KEY = 'sivrce:install-dismissed'
 const RESHOW_MS = 30 * 24 * 60 * 60 * 1000
 const SHOW_AFTER_MS = 10_000
+const VISITS_KEY = 'sivrce:visits'
 
 export function InstallPrompt() {
   const { t } = useI18n()
@@ -31,6 +33,14 @@ export function InstallPrompt() {
   useEffect(() => {
     if (isNative()) return
     if (Date.now() - Number(localStorage.getItem(DISMISS_KEY) ?? 0) < RESHOW_MS) return
+    // Earned, not ambushed: first-time visitors never see the ask — only a
+    // returning visitor (second session+) has shown the intent it serves.
+    let visits = Number(localStorage.getItem(VISITS_KEY) ?? 0)
+    if (!sessionStorage.getItem(VISITS_KEY)) {
+      sessionStorage.setItem(VISITS_KEY, '1')
+      localStorage.setItem(VISITS_KEY, String(++visits))
+    }
+    if (visits < 2) return
 
     const iosStandalone =
       matchMedia('(display-mode: standalone)').matches ||

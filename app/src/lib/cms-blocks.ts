@@ -143,6 +143,7 @@ export const CMS_BLOCKS = {
   'home.devs.active': '{n} აქტიური',
   'home.devs.projectsCta': 'პროექტები',
   'home.devs.scrollLabel': 'დეველოპერების კარუსელი',
+  'home.devs.verified': 'ვერიფიცირებული დეველოპერი',
 
   // ——— Forum teaser ———
   'home.forum.kicker': 'ფორუმი და ანალიტიკა',
@@ -215,8 +216,6 @@ export const CMS_BLOCKS = {
     'უძრავი ქონება საქართველოში — იყიდე, იქირავე ან განათავსე. ერთი ანგარიში, 3 წუთი, უფასო.',
   'home.cta.primary': 'დაამატე განცხადება',
   'home.cta.secondary': 'დაიწყე ძიება',
-  'home.cta.proofA': 'აქტიური განცხადებები',
-  'home.cta.proofB': 'მშენებარე ბინები',
   'home.cta.proofC': '10 ენა · 3D რუკა · AI ქულა',
 } as const
 

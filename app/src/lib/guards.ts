@@ -112,3 +112,16 @@ export async function safeQuery<T>(
     clearTimeout(timer)
   }
 }
+
+/**
+ * safeQuery for `unstable_cache` bodies. A resolved fallback gets cached like
+ * any value — one deadline miss used to pin empty home rails for 5 minutes —
+ * so this throws instead (Next never caches a throw) and the caller maps the
+ * rejection to its fallback outside the cache: `read(...).catch(() => [])`.
+ */
+export async function freshQuery<T>(fn: () => Promise<T>, deadlineMs?: number): Promise<T> {
+  const miss = Symbol('miss')
+  const out = await safeQuery<T | typeof miss>(fn, miss, deadlineMs)
+  if (out === miss) throw new Error('freshQuery: DB unavailable')
+  return out
+}

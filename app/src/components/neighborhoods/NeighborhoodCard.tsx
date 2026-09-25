@@ -39,10 +39,11 @@ export default function NeighborhoodCard({ n, count }: { n: NeighborhoodCardData
           <div className="absolute inset-0 bg-gradient-to-t from-sv-navy/75 via-transparent to-transparent" />
           <div
             className="absolute right-4 top-4 flex items-center gap-1.5 rounded-full bg-white/95 px-3 py-1.5 text-[13px] font-black text-sv-ink"
+            role="img"
             aria-label={`${s.scoreLabel} ${score}/10`}
           >
             {/* Sits on the bg-white/95 pill, which is white in both themes — no dark: flip. */}
-            <span className="grid h-5 w-5 place-items-center rounded-full bg-sv-blue/10 text-[11px] text-sv-blue-deep">
+            <span className="grid h-5 min-w-5 place-items-center rounded-full bg-sv-blue/10 px-1.5 text-[11px] tabular-nums text-sv-blue-deep">
               {score}
             </span>
             /10
@@ -52,8 +53,9 @@ export default function NeighborhoodCard({ n, count }: { n: NeighborhoodCardData
               {n.name}
             </h3>
             <p className="flex items-center gap-1.5 text-[13px] font-bold text-white/80">
-              <MapPin className="h-4 w-4" /> {n.city}
-              {count > 0 && <> · {count} {s.listingsHere}</>}
+              {/* City-named places (Batumi, Kutaisi) skip the "Batumi · Batumi" echo. */}
+              <MapPin className="h-4 w-4" />{' '}
+              {[n.city !== n.name && n.city, count > 0 && `${count} ${s.listingsHere}`].filter(Boolean).join(' · ')}
             </p>
           </div>
         </div>

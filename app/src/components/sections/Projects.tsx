@@ -13,7 +13,7 @@ import { type LocalName, type Project } from '@/data/professionals'
 function ProjectProgress({ done }: { done: number }) {
   const { ref, inView } = useInViewOnce<HTMLDivElement>()
   return (
-    <div className="mx-5 mb-5 h-1.5 overflow-hidden rounded-full bg-sv-ink/[0.07]">
+    <div className="mx-5 mb-5 mt-auto h-1.5 shrink-0 overflow-hidden rounded-full bg-sv-ink/[0.07]">
       <div
         ref={ref}
         data-in={inView || undefined}
@@ -27,10 +27,13 @@ function ProjectProgress({ done }: { done: number }) {
 export default function Projects({
   items,
   total,
+  href = '/projects',
   devNames,
 }: {
   items: Project[]
   total: number
+  /** "All projects" target — scoped (?country=GE) so its count matches the page it opens. */
+  href?: string
   /** Server-resolved developer names by project slug — keeps the catalog out of the client bundle. */
   devNames?: Record<string, LocalName>
 }) {
@@ -54,7 +57,7 @@ export default function Projects({
             </p>
           </div>
           <LocalizedLink
-            href="/projects"
+            href={href}
             className="group flex items-center gap-2 text-[15px] font-extrabold text-sv-blue-deep dark:text-sv-blue-light transition-colors duration-200 hover:text-sv-blue-deep dark:hover:text-sv-blue-light"
           >
             {/* SEO: keyword hub /projects — count stays projects (catalog unit). */}
@@ -99,7 +102,7 @@ export default function Projects({
                     {b('home.projects.built', { n: p.done })}
                   </div>
                 </div>
-                <div className="mt-auto flex flex-wrap items-center gap-x-5 gap-y-2 p-5">
+                <div className="flex flex-wrap items-center gap-x-5 gap-y-2 p-5">
                   <span className="flex max-w-full items-center gap-1.5 text-[13px] font-bold leading-snug text-sv-ink/60">
                     <MapPin className="h-4 w-4 shrink-0 text-sv-ink/35" /> {p.location}
                   </span>
@@ -107,7 +110,7 @@ export default function Projects({
                     <CalendarCheck className="h-4 w-4 text-sv-ink/35" /> {b('home.projects.delivery', { v: p.finish })}
                   </span>
                   <span className="flex items-center gap-1.5 text-[13px] font-bold text-sv-ink/60">
-                    <Building2 className="h-4 w-4 text-sv-ink/35" /> {b('home.projects.flats', { n: p.flats })}
+                    <Building2 className="h-4 w-4 text-sv-ink/35" /> {b('home.projects.flats', { n: p.flats }).replace(String(p.flats), p.flats.toLocaleString('en-US'))}
                   </span>
                   {p.priceFromM2 && (
                     <span className="ml-auto text-[16px] font-black text-sv-blue-deep dark:text-sv-blue-light">

@@ -29,5 +29,7 @@ export function toLatin(name: string): string {
  * locale that reads Mkhedruli — Latin beats an unreadable script for all others.
  */
 export function readableName(name: string, lang: string): string {
-  return lang === 'ka' ? name : toLatin(name)
+  if (lang === 'ka') return name
+  // Address abbreviations read as words, not letters: 'ქ.' → 'St.', never 'Q.'.
+  return toLatin(name.replace(/(^|[\s,])ქ\./g, '$1St.').replace(/(^|[\s,])გამზ\./g, '$1Ave.'))
 }

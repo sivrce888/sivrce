@@ -25,7 +25,7 @@ export default function DeveloperSlider({
   developers: TopDeveloperCard[]
   total: number
 }) {
-  const { b } = useI18n()
+  const { b, lang } = useI18n()
   if (developers.length === 0) return null
 
   return (
@@ -76,14 +76,15 @@ export default function DeveloperSlider({
                       {i + 1}
                     </span>
                     <h3 className="truncate text-[16px] font-black text-sv-ink transition-colors group-hover:text-sv-blue">
-                      {dev.name.ka}
+                      {lang === 'ka' ? dev.name.ka : lang === 'ru' ? dev.name.ru || dev.name.en : dev.name.en || dev.name.ka}
                     </h3>
                     {dev.verified && (
-                      <ShieldCheck className="h-4 w-4 shrink-0 text-sv-blue" />
+                      <ShieldCheck className="h-4 w-4 shrink-0 text-sv-blue" role="img" aria-label={b('home.devs.verified')} />
                     )}
                   </div>
                   <p className="truncate text-[12px] font-bold text-sv-ink/60">
-                    {dev.city} · {b('home.devs.projectsCount', { n: dev.projectsDone })}
+                    {/* DB-only developers carry no delivered count — "0 projects" beside "8 active" reads as a bug. */}
+                    {dev.projectsDone > 0 ? `${dev.city} · ${b('home.devs.projectsCount', { n: dev.projectsDone })}` : dev.city}
                   </p>
                 </div>
               </div>

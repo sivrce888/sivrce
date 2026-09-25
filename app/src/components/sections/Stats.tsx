@@ -1,42 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { Building2, Users, Award, TrendingUp } from 'lucide-react'
-import { Reveal, useInViewOnce } from '@/components/Reveal'
+import { Reveal } from '@/components/Reveal'
 import { useI18n } from '@/lib/i18n/context'
 import type { CmsBlockKey } from '@/lib/cms-blocks'
 import type { HomeStats } from '@/lib/home-stats'
-
-function CountUp({ target, suffix = '' }: { target: number; suffix?: string }) {
-  const { ref, inView } = useInViewOnce<HTMLSpanElement>('-60px')
-  const [val, setVal] = useState(0)
-
-  useEffect(() => {
-    if (!inView) return
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      const raf = requestAnimationFrame(() => setVal(target))
-      return () => cancelAnimationFrame(raf)
-    }
-    const start = performance.now()
-    const dur = 1600
-    let raf: number
-    const tick = (now: number) => {
-      const p = Math.min((now - start) / dur, 1)
-      const eased = 1 - Math.pow(1 - p, 4)
-      setVal(Math.round(target * eased))
-      if (p < 1) raf = requestAnimationFrame(tick)
-    }
-    raf = requestAnimationFrame(tick)
-    return () => cancelAnimationFrame(raf)
-  }, [inView, target])
-
-  return (
-    <span ref={ref}>
-      {val.toLocaleString('en-US')}
-      {suffix}
-    </span>
-  )
-}
 
 const STATS = [
   { icon: Building2, n: 1 as const, live: 'listings' as const },
@@ -45,25 +13,30 @@ const STATS = [
   { icon: Award, n: 4 as const, live: 'cities' as const },
 ]
 
+// No orphan rows: 4 → 2×2 / 1×4, 3 → stack / 1×3, 2 → 1×2.
+const COLS: Record<number, string> = { 2: 'grid-cols-2', 3: 'sm:grid-cols-3', 4: 'grid-cols-2 lg:grid-cols-4' }
+
 export default function Stats({ live }: { live: HomeStats }) {
   const { b } = useI18n()
+  const shown = STATS.filter((s) => live[s.live] > 0)
+  // One stranded tile in a 2-col grid reads as broken — an outage hides the band.
+  if (shown.length < 2) return null
   return (
     <section className="relative bg-sv-cloud py-20 md:py-28">
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
-        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
-          {STATS.map((s, i) => {
+        <div className={`grid gap-3 sm:gap-4 ${COLS[shown.length]}`}>
+          {shown.map((s, i) => {
             const label = b(`home.stats.${s.n}.label` as CmsBlockKey)
             const target = live[s.live]
-            if (target === 0) return null
-            const suffix = '+'
             return (
               <Reveal key={s.n} delay={i * 0.02} className="h-full">
-                <div className="group relative h-full overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface p-4 transition-all sm:p-6 duration-500 hover:-translate-y-1.5 hover:border-sv-blue/25 hover:shadow-card-hover">
-                  <div className="mb-5 grid h-11 w-11 place-items-center rounded-module bg-sv-blue/10 text-sv-blue-deep dark:text-sv-blue-light transition-all duration-500 group-hover:scale-110 group-hover:bg-sv-blue group-hover:text-white">
-                    <s.icon className="h-5 w-5" />
+                <div className="h-full rounded-card border border-sv-ink/[0.06] bg-sv-surface p-4 sm:p-6">
+                  <div className="mb-5 grid h-11 w-11 place-items-center rounded-module bg-sv-blue/10 text-sv-blue-deep dark:text-sv-blue-light">
+                    <s.icon className="h-5 w-5" aria-hidden />
                   </div>
-                  <div className="text-[34px] font-black tracking-tight text-sv-ink md:text-[38px]">
-                    <CountUp target={target} suffix={suffix} />
+                  <div className="text-[34px] font-black tabular-nums tracking-tight text-sv-ink md:text-[38px]">
+                    {/* Real number in the HTML — crawlers, no-JS and first paint never see "0"; exact counts, no "+" padding. */}
+                    {target.toLocaleString('en-US')}
                   </div>
                   <div className="mt-1 text-[13px] font-extrabold text-sv-ink/85 sm:text-[14px]">{label}</div>
                   <div className="mt-0.5 text-[12px] font-semibold text-sv-ink/65">

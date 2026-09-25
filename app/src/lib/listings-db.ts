@@ -11,7 +11,7 @@
 
 import { db } from "@/lib/db"
 import type { ListingCurrency } from "@/lib/currency"
-import { safeQuery } from "@/lib/guards"
+import { freshQuery, safeQuery } from "@/lib/guards"
 import { CONTACT_PHONE } from "@/lib/inquiries/phone"
 import { unstable_cache } from "next/cache"
 import { CITIES, districtsOf, filterListings as staticFilterListings } from "@/data/listings"
@@ -314,7 +314,7 @@ function rowToListing(row: Record<string, unknown>): Listing {
 /** Active listing counts keyed by district (neighborhoods index). */
 const readDistrictCounts = unstable_cache(
   async (country: string): Promise<Record<string, number>> =>
-    safeQuery(async () => {
+    freshQuery(async () => {
       const rows = await db.listing.groupBy({
         by: ["district"],
         where: { deletedAt: null, status: "active", country },
@@ -323,13 +323,13 @@ const readDistrictCounts = unstable_cache(
       const out: Record<string, number> = {}
       for (const r of rows) out[r.district] = r._count._all
       return out
-    }, {}),
+    }),
   ["district-listing-counts-v2"],
   { revalidate: 300 },
 )
 
 export async function getDistrictListingCounts(country = "GE"): Promise<Record<string, number>> {
-  return readDistrictCounts(country)
+  return readDistrictCounts(country).catch(() => ({}))
 }
 
 /** Active listings in any of the given districts (neighborhood detail rail). */
@@ -675,7 +675,7 @@ const readAgentListingCounts = unstable_cache(
   // ponytail: country arg joins the unstable_cache key, so .ge and world get
   // separate entries — never bake one host's clamp into the other's cache.
   async (country?: string): Promise<Record<string, number>> =>
-    safeQuery(async () => {
+    freshQuery(async () => {
       const [rows, profiles] = await Promise.all([
         db.listing.findMany({
           where: { deletedAt: null, status: "active", ...(country ? { country } : {}) },
@@ -700,13 +700,13 @@ const readAgentListingCounts = unstable_cache(
         if (n > 0) out[p.name] = Math.max(out[p.name] ?? 0, n)
       }
       return out
-    }, {}),
+    }),
   ["agent-listing-counts"],
   { revalidate: 300 },
 )
 
 export async function getAgentListingCountsByKaName(): Promise<Record<string, number>> {
-  return readAgentListingCounts(await requestCountryLock())
+  return readAgentListingCounts(await requestCountryLock()).catch(() => ({}))
 }
 
 /**
@@ -926,7 +926,7 @@ export async function getAllListings(limit = 50, scope?: HomeScope | null): Prom
  */
 const readHomeTierListings = unstable_cache(
   async (tier: HomeRailTier, limit: number, country: string, cityKey: string, deal: string): Promise<Listing[]> =>
-    safeQuery(async () => {
+    freshQuery(async () => {
       const now = new Date()
       const scope: HomeScope | null = country
         ? {
@@ -951,7 +951,7 @@ const readHomeTierListings = unstable_cache(
       const rail = pickHomeRail(mapped, HOME_RAIL_BADGE[tier], limit)
       if (rail.length > 0) return rail
       return getProjectCatalogListings(scope, limit)
-    }, []),
+    }),
   ["home-tier-listings-v4"],
   { revalidate: 60 },
 )
@@ -967,12 +967,12 @@ export async function getHomeTierListings(
     scope?.country ?? "",
     scope?.cityNames?.join("|") ?? "",
     scope?.deal ?? "",
-  )
+  ).catch(() => [])
 }
 
 const readStoryListings = unstable_cache(
   async (limit: number, country: string, cityKey: string, deal: string): Promise<Listing[]> =>
-    safeQuery(async () => {
+    freshQuery(async () => {
       const scope: HomeScope | null = country
         ? {
             country,
@@ -992,18 +992,18 @@ const readStoryListings = unstable_cache(
         if (out.length >= limit) break
       }
       return out
-    }, []),
+    }),
   ["story-listings-v2"],
   { revalidate: 300 },
 )
 
 export async function getStoryListings(limit = 24, scope?: HomeScope | null): Promise<Listing[]> {
-  return readStoryListings(limit, scope?.country ?? "", scope?.cityNames?.join("|") ?? "", scope?.deal ?? "")
+  return readStoryListings(limit, scope?.country ?? "", scope?.cityNames?.join("|") ?? "", scope?.deal ?? "").catch(() => [])
 }
 
 const readVideoListings = unstable_cache(
   async (limit: number, country: string, cityKey: string, deal: string): Promise<Listing[]> =>
-    safeQuery(async () => {
+    freshQuery(async () => {
       const scope: HomeScope | null = country
         ? {
             country,
@@ -1025,13 +1025,13 @@ const readVideoListings = unstable_cache(
       return rows
         .map((r) => rowToListing(r as unknown as Record<string, unknown>))
         .filter((l) => l.video)
-    }, []),
+    }),
   ["video-listings-v2"],
   { revalidate: 60 },
 )
 
 export async function getVideoListings(limit = 16, scope?: HomeScope | null): Promise<Listing[]> {
-  return readVideoListings(limit, scope?.country ?? "", scope?.cityNames?.join("|") ?? "", scope?.deal ?? "")
+  return readVideoListings(limit, scope?.country ?? "", scope?.cityNames?.join("|") ?? "", scope?.deal ?? "").catch(() => [])
 }
 
 /** Filtered search — mirrors data/listings.ts filterListings(). */
@@ -1184,7 +1184,7 @@ export interface SearchLocations {
 /** Cities + districts that actually have active listings; cached 5 min. */
 const readSearchLocations = unstable_cache(
   async (): Promise<SearchLocations | null> =>
-    safeQuery(async () => {
+    freshQuery(async () => {
       const rows = await db.listing.groupBy({
         by: ["city", "district"],
         where: { deletedAt: null, status: "active" },
@@ -1193,14 +1193,14 @@ const readSearchLocations = unstable_cache(
       const districts: Record<string, string[]> = {}
       for (const r of rows) (districts[r.city] ??= []).push(r.district)
       return { cities: Object.keys(districts), districts }
-    }, null),
+    }),
   ["search-locations"],
   { revalidate: 300 },
 )
 
 /** Live locations when the DB answers; static mock catalog as fallback. */
 export async function getSearchLocations(): Promise<SearchLocations> {
-  const live = await readSearchLocations()
+  const live = await readSearchLocations().catch(() => null)
   if (live && live.cities.length > 0) return live
   const districts: Record<string, string[]> = {}
   for (const c of CITIES) districts[c] = districtsOf(c)
