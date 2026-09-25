@@ -6,8 +6,8 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import Link from 'next/link'
 import LocalizedLink from '@/components/LocalizedLink'
+import { readableName } from '@/lib/ka-latin'
 import Image from 'next/image'
 import { useTheme } from 'next-themes'
 import * as maplibregl from 'maplibre-gl'
@@ -107,8 +107,8 @@ function MapPinCard({
           <span className="mt-0.5 block text-[12px] font-semibold text-sv-ink/60">{price.secondary}</span>
           <span className="mt-1 block truncate text-[13px] font-semibold text-sv-ink/60">
             {stay.n > 0
-              ? `${stayLine(l, t, lang)} · ${l.area} ${areaSym(lang)} · ${l.district}`
-              : `${l.area} ${areaSym(lang)} · ${l.district}`}
+              ? `${stayLine(l, t, lang)} · ${l.area} ${areaSym(lang)} · ${readableName(l.district, lang)}`
+              : `${l.area} ${areaSym(lang)} · ${readableName(l.district, lang)}`}
           </span>
           <span className="mt-0.5 block truncate text-[12px] font-semibold text-sv-ink/60">{l.title}</span>
         </span>
@@ -516,7 +516,7 @@ export default function SearchMapView({
             const suffixKey = rentPeriodKey(l.dealType, l.propType)
             const suffix = suffixKey ? t(suffixKey) : ''
             return (
-              <Link
+              <LocalizedLink
                 key={l.id}
                 href={listingPath(l)}
                 data-listing={l.id}
@@ -558,14 +558,14 @@ export default function SearchMapView({
                   </span>
                   <span className="mt-0.5 block truncate text-[12px] font-semibold text-sv-ink/60">
                     {stay.n > 0
-                      ? `${stayLine(l, t, lang)} · ${l.area} ${areaSym(lang)} · ${l.district}`
-                      : `${l.area} ${areaSym(lang)} · ${l.district}`}
+                      ? `${stayLine(l, t, lang)} · ${l.area} ${areaSym(lang)} · ${readableName(l.district, lang)}`
+                      : `${l.area} ${areaSym(lang)} · ${readableName(l.district, lang)}`}
                   </span>
                   <span className="mt-0.5 block truncate text-[12px] font-semibold text-sv-ink/60">
                     {l.title}
                   </span>
                 </span>
-              </Link>
+              </LocalizedLink>
             )
           })
         )}
