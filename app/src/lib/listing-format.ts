@@ -17,6 +17,13 @@ const AED_PER_USD = 3.6725
 /** Area-unit symbol per UI language; m² is the international default. */
 const M2_SYM: Partial<Record<Lang, string>> = { ka: 'მ²', ru: 'м²', uk: 'м²', ar: 'م²', he: 'מ״ר' }
 
+/**
+ * Groups of 3 split by a no-break space: "640 000", never wrapped mid-number.
+ * ponytail: manual grouping — Intl 'ka' grouping differs between Node (space) and
+ * some browsers (comma), which hydration-mismatched every price on the site.
+ */
+export const group3 = (n: number): string => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '\u00a0')
+
 export function areaSym(lang: Lang): string {
   return M2_SYM[lang] ?? 'm²'
 }
@@ -32,19 +39,11 @@ export function formatGEL(n: number): string {
 
 export function formatPerM2(l: Listing, currency?: Currency, lang: Lang = 'ka'): string {
   const m2 = areaSym(lang)
-  if (currency === 'GEL') {
-    const gelPerM2 = Math.round(l.perM2USD * USD_GEL)
-    return `${gelPerM2.toLocaleString('en-US')}₾/${m2}`
-  }
-  if (currency === 'EUR') {
-    const eurPerM2 = Math.round((l.perM2USD * USD_GEL) / EUR_GEL)
-    return `€${eurPerM2.toLocaleString('en-US')}/${m2}`
-  }
-  if (currency === 'AED') {
-    const aedPerM2 = Math.round(l.perM2USD * AED_PER_USD)
-    return `AED ${aedPerM2.toLocaleString('en-US')}/${m2}`
-  }
-  return `$${l.perM2USD.toLocaleString('en-US')}/${m2}`
+  // Same grouping as the card's headline price — "$640 000" never sits over "$3,765".
+  if (currency === 'GEL') return `${group3(Math.round(l.perM2USD * USD_GEL))}₾/${m2}`
+  if (currency === 'EUR') return `€${group3(Math.round((l.perM2USD * USD_GEL) / EUR_GEL))}/${m2}`
+  if (currency === 'AED') return `AED ${group3(Math.round(l.perM2USD * AED_PER_USD))}/${m2}`
+  return `$${group3(Math.round(l.perM2USD))}/${m2}`
 }
 
 /** 3200 → "3.2კ" (ka) / "3.2k" elsewhere */

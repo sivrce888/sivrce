@@ -70,7 +70,7 @@ export function AmenityChips({
                 {t(`map.poi.${a.category}`)}
               </p>
               <p className="truncate text-[14px] font-extrabold text-sv-ink">{a.name}</p>
-              <p className="text-[12px] font-bold text-sv-ink/60">{formatMetroDist(a)}</p>
+              <p className="text-[12px] font-bold text-sv-ink/60">{formatMetroDist(a, lang)}</p>
             </div>
           </li>
         )

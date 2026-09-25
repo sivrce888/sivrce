@@ -58,10 +58,10 @@ export const CMS_BLOCKS = {
   'home.listings.kicker': 'SUPER VIP',
   'home.listings.title': 'სუპერ VIP განცხადებები',
   'home.listings.sub': 'ტოპ შეთავაზებები პირველ ადგილზე — მაქსიმალური ხილვადობა',
-  'home.map.kicker': 'ექსკლუზიური ტექნოლოგია',
-  'home.map.titleA': 'პირველი',
+  'home.map.kicker': 'ქალაქი 3D-ში',
+  'home.map.titleA': 'საქართველოს',
   'home.map.titleAccent': 'ინტერაქტიული 3D რუკა',
-  'home.map.titleB': 'საქართველოში',
+  'home.map.titleB': '',
   'home.map.sub':
     'ნახე ქალაქი ისე, როგორც არის — იპოვე ბინა პირდაპირ 3D რუკიდან.',
   'home.ai.kicker': 'AI ტექნოლოგია',

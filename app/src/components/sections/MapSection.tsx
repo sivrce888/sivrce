@@ -85,7 +85,10 @@ export default function MapSection({ href = '/map' }: { href?: string }) {
                 <Layers className="h-3.5 w-3.5" /> {b('home.map.kicker')}
               </span>
               <h2 className="text-balance text-[clamp(1.75rem,1.15rem+2.6vw,2.875rem)] font-black tracking-[-0.02em] text-white">
-                {b('home.map.titleA')} <span className="text-gradient-blue">{b('home.map.titleAccent')}</span> {b('home.map.titleB')}
+                {/* Word order differs per language — either side of the accent may be empty. */}
+                {b('home.map.titleA') && `${b('home.map.titleA')} `}
+                <span className="text-gradient-blue">{b('home.map.titleAccent')}</span>
+                {b('home.map.titleB') && ` ${b('home.map.titleB')}`}
               </h2>
               <p className="mt-5 max-w-[520px] text-[15px] font-medium leading-relaxed text-white/60 md:text-[17px]">
                 {b('home.map.sub')}
@@ -119,9 +122,11 @@ export default function MapSection({ href = '/map' }: { href?: string }) {
             </Reveal>
           </div>
 
-          <Reveal delay={0.2} className="relative">
+          {/* Pointer shortcut to the same page as the CTA — one tab stop, one SR link;
+              phones skip it (it stacked a second "open map" button under the first). */}
+          <Reveal delay={0.2} className="relative hidden lg:block">
             <div className="relative overflow-hidden rounded-card border border-white/10 shadow-showcase-blue transition-transform duration-300 ease-[cubic-bezier(0.34,1.2,0.64,1)] hover:scale-[1.015]">
-              <LocalizedLink href={href} className="block">
+              <LocalizedLink href={href} className="block" tabIndex={-1} aria-hidden>
                 <MapPreviewCard badge={b('home.map.openBadge')} />
               </LocalizedLink>
               <div className="pointer-events-none absolute inset-0 rounded-card ring-1 ring-inset ring-white/10" />

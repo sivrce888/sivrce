@@ -53,9 +53,10 @@ export default function BlogNewsSection({ articles }: { articles: BlogCard[] }) 
           </LocalizedLink>
         </Reveal>
 
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        {/* Phones: native snap rail (no JS) — four stacked cards were ~1.8k px of scroll. */}
+        <div className="scrollbar-hide -mx-5 flex snap-x snap-mandatory scroll-px-5 gap-4 overflow-x-auto px-5 pb-2 sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-6 sm:overflow-visible sm:px-0 sm:pb-0 lg:grid-cols-4">
           {articles.map((art, i) => (
-            <Reveal key={art.slug} delay={i * 0.08} className="h-full">
+            <Reveal key={art.slug} delay={i * 0.08} className="h-full w-[82%] max-w-[340px] shrink-0 snap-start sm:w-auto sm:max-w-none">
               <LocalizedLink href={`/blog/${art.slug}`} className="block h-full">
                 <article className="group flex h-full flex-col overflow-hidden rounded-card border border-sv-ink/[0.08] bg-gradient-to-b from-sv-cloud to-sv-surface p-4 transition-all duration-300 hover:-translate-y-1.5 hover:border-sv-blue/30 hover:shadow-card-hover">
                   <div className="relative h-44 w-full overflow-hidden rounded-module bg-sv-surface">

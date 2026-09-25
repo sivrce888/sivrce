@@ -28,6 +28,7 @@ import { photoIndexFromX } from '@/lib/photo-index-from-x'
 import { cardGalleryTeaser, photoMountIdx } from '@/lib/card-gallery-teaser'
 import { pickDailySignals } from '@/lib/features'
 import { formatMetroDist } from '@/lib/map/metro-format'
+import { readableName } from '@/lib/ka-latin'
 import { useDistrictPpsm } from '@/lib/district-ppsm'
 import { vsDistrict } from '@/lib/price-scale'
 import { useNearestMetro } from '@/components/use-nearest-metro'
@@ -678,9 +679,9 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
           aria-hidden={!metro}
         >
           <TrainFront className="h-3.5 w-3.5 shrink-0" aria-hidden />
-          <span className="min-w-0 flex-1 text-[12px] font-bold leading-snug">{metro?.name ?? '\u00a0'}</span>
+          <span className="min-w-0 flex-1 text-[12px] font-bold leading-snug">{metro ? readableName(metro.name, lang) : '\u00a0'}</span>
           <span className="shrink-0 font-semibold text-sv-blue dark:text-sv-blue-light">
-            · {metro ? formatMetroDist(metro) : '\u00a0'}
+            · {metro ? formatMetroDist(metro, lang) : '\u00a0'}
           </span>
         </p>
       ) : null}

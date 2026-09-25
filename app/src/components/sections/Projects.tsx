@@ -9,13 +9,18 @@ import { useI18n } from '@/lib/i18n/context'
 import { dirLoc, hasPriceFrom, priceFromLabel } from '@/lib/directory-seo-lite'
 import { type LocalName, type Project } from '@/data/professionals'
 
-/** Construction bar grows when scrolled into view (CSS transition, no lib). */
+/** Construction bar grows when scrolled into view (CSS transition, no lib).
+ *  Observe the track, not the fill: the fill starts 0px wide, and a zero-width box
+ *  inside the observer's -80px inset (the first card in a rail) never intersects. */
 function ProjectProgress({ done }: { done: number }) {
   const { ref, inView } = useInViewOnce<HTMLDivElement>()
   return (
-    <div className="mx-5 mb-5 mt-auto h-1.5 shrink-0 overflow-hidden rounded-full bg-sv-ink/[0.07]">
+    <div
+      ref={ref}
+      aria-hidden
+      className="mx-5 mb-5 mt-auto h-1.5 shrink-0 overflow-hidden rounded-full bg-sv-ink/[0.07]"
+    >
       <div
-        ref={ref}
         data-in={inView || undefined}
         className="sv-progress h-full rounded-full bg-gradient-to-r from-sv-blue to-sv-violet"
         style={{ '--done': `${done}%` } as CSSProperties}

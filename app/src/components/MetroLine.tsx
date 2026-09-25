@@ -26,7 +26,7 @@ export function MetroLine({
   const { lang } = useI18n()
   const metro = useNearestMetro(chip, lat, lng)
   if (!metro) return null
-  const text = `${readableName(metro.name, lang)} · ${formatMetroDist(metro)}`
+  const text = `${readableName(metro.name, lang)} · ${formatMetroDist(metro, lang)}`
   return (
     <p className={className}>
       <TrainFront className="h-3.5 w-3.5 shrink-0" aria-hidden />

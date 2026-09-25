@@ -231,7 +231,7 @@ export async function PlaceContext({
         {metro && (
           <p className="mt-4 flex items-center gap-2 text-[14px] font-extrabold text-sv-blue-deep">
             <TrainFront className="h-4 w-4 shrink-0" aria-hidden />
-            {metro.name}{metroLine ? ` · ${metroLine}` : ''} · {formatMetroDist(metro)}
+            {metro.name}{metroLine ? ` · ${metroLine}` : ''} · {formatMetroDist(metro, lang)}
           </p>
         )}
 
@@ -258,7 +258,7 @@ export async function PlaceContext({
                         {POI_LABELS[a.category]}
                       </p>
                       <p className="truncate text-[14px] font-extrabold text-sv-ink">{a.name}</p>
-                      <p className="text-[12px] font-bold text-sv-ink/60">{formatMetroDist(a)}</p>
+                      <p className="text-[12px] font-bold text-sv-ink/60">{formatMetroDist(a, lang)}</p>
                     </div>
                   </li>
                 )

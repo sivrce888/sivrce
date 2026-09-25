@@ -56,6 +56,10 @@ assert.ok(near, 'nearest metro near rustaveli')
 assert.ok(near!.meters < 500, `expected <500m got ${near!.meters}`)
 assert.ok(near!.walkMin >= 1)
 assert.ok(formatMetroDist(near!).includes('m'))
+// Units follow the UI language; value and unit never split across a wrap.
+assert.equal(formatMetroDist({ name: '', meters: 645, walkMin: 8 }, 'ka'), '645\u00a0მ · 8\u00a0წთ')
+assert.equal(formatMetroDist({ name: '', meters: 1640, walkMin: 21 }, 'ru'), '1,6\u00a0км · 21\u00a0мин')
+assert.equal(formatMetroDist({ name: '', meters: 1640, walkMin: 21 }), '1.6\u00a0km · 21\u00a0min')
 assert.ok(metroMeters(rustaveli!.lat, rustaveli!.lng) <= METRO_NEAR_M)
 assert.equal(nearestMetro(41.61, 41.62), null) // Batumi — no Tbilisi metro
 

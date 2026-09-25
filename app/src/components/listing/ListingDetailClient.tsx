@@ -799,7 +799,7 @@ export default function ListingDetailClient({
         all.slice(0, 6).map((a) => ({
           category: a.category,
           name: a.name,
-          dist: formatMetroDist(a),
+          dist: formatMetroDist(a, lang),
           color: POI_COLORS[a.category],
           meters: a.meters,
         })),

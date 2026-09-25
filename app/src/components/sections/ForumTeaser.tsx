@@ -35,22 +35,22 @@ export default function ForumTeaser({ topics }: { topics: ForumTopic[] }) {
           </LocalizedLink>
         </Reveal>
 
-        <div className="grid gap-5 md:grid-cols-3">
+        <div className="grid gap-3 md:grid-cols-3 md:gap-5">
           {topics.map((t, i) => (
             <Reveal key={t.slug} delay={i * 0.1} className="h-full">
               <LocalizedLink href={`/forum/${t.slug}`} className="block h-full">
-                <article className="group flex h-full flex-col justify-between rounded-card border border-sv-ink/[0.07] bg-gradient-to-b from-sv-cloud to-sv-surface p-6 transition-all duration-300 hover:-translate-y-1.5 hover:border-sv-blue/30 hover:shadow-card-hover">
+                <article className="group flex h-full flex-col justify-between rounded-card border border-sv-ink/[0.07] bg-gradient-to-b from-sv-cloud to-sv-surface p-5 transition-all md:p-6 duration-300 hover:-translate-y-1.5 hover:border-sv-blue/30 hover:shadow-card-hover">
                   {/* Threads are Georgian community posts — lang="ka" so screen readers switch voice (WCAG 3.1.2). */}
                   <div lang="ka">
                     <span className="inline-block rounded-full bg-sv-blue/10 px-3 py-1 text-[11px] font-black text-sv-blue-deep dark:text-sv-blue-light">
                       {t.category}
                     </span>
-                    <h3 className="mt-4 text-[16px] font-extrabold leading-snug text-sv-ink transition-colors group-hover:text-sv-blue">
+                    <h3 className="mt-3 text-[16px] md:mt-4 font-extrabold leading-snug text-sv-ink transition-colors group-hover:text-sv-blue">
                       {t.title}
                     </h3>
                   </div>
 
-                  <div className="mt-6 flex items-center gap-1.5 border-t border-sv-ink/[0.06] pt-4 text-[12px] font-bold text-sv-ink/60">
+                  <div className="mt-4 flex items-center gap-1.5 border-t border-sv-ink/[0.06] pt-3 md:mt-6 md:pt-4 text-[12px] font-bold text-sv-ink/60">
                     <MessageSquare className="h-3.5 w-3.5" aria-hidden />
                     {b('home.forum.replies', { n: t.replies })}
                   </div>

@@ -31,7 +31,7 @@ export default async function Services({ lang = 'ka' }: { lang?: Lang }) {
   return (
     <section id="services" className="bg-sv-surface py-20 md:py-28">
       <div className="mx-auto max-w-[1440px] px-5 md:px-10">
-        <Reveal className="mb-12 text-center">
+        <Reveal className="mb-8 text-center md:mb-12">
           <h2 className="sv-h2 text-sv-ink">
             {title}
           </h2>
@@ -41,23 +41,27 @@ export default async function Services({ lang = 'ka' }: { lang?: Lang }) {
         </Reveal>
 
         {/* 6 cards: 3×2 / 2×3 — an auto-fill 4-col grid strands an orphan row of 2. */}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-6">
+        <div className="grid gap-3 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 lg:gap-6">
           {SERVICES.map((s, i) => (
             <Reveal key={s.titleKey} delay={i * 0.08} className="h-full">
               <LocalizedLink
                 href={s.href}
-                className="group relative flex h-full flex-col overflow-hidden rounded-card border border-sv-ink/[0.06] bg-gradient-to-b from-sv-cloud to-sv-surface p-5 transition-all duration-500 hover:-translate-y-2 hover:border-transparent hover:shadow-card-hover sm:p-7"
+                className="group relative flex h-full items-start gap-4 overflow-hidden rounded-card border border-sv-ink/[0.06] bg-gradient-to-b from-sv-cloud to-sv-surface p-4 transition-all duration-500 hover:-translate-y-2 hover:border-transparent hover:shadow-card-hover sm:flex-col sm:gap-0 sm:p-7"
               >
+                {/* Phones: compact row (icon | text | arrow) — six tall cards were ~1.4k px of scroll. */}
                 <span
-                  className="grid h-12 w-12 sm:h-14 sm:w-14 place-items-center rounded-module transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3"
+                  className="grid h-11 w-11 shrink-0 place-items-center rounded-module sm:h-14 sm:w-14 transition-transform duration-500 group-hover:scale-110 group-hover:rotate-3"
                   style={{ backgroundColor: s.brand.chipVar, color: s.brand.hue }}
                 >
                   <s.icon className="h-6 w-6" />
                 </span>
-                <h3 className="mt-4 text-[17px] sm:mt-6 sm:text-[18px] font-extrabold leading-snug text-sv-ink">{cards[i * 2]}</h3>
-                <p className="mt-2.5 flex-1 text-[14px] font-medium leading-relaxed text-sv-ink/60">{cards[i * 2 + 1]}</p>
+                <div className="flex min-w-0 flex-1 flex-col self-stretch">
+                  <h3 className="text-[16px] font-extrabold leading-snug text-sv-ink sm:mt-6 sm:text-[18px]">{cards[i * 2]}</h3>
+                  <p className="mt-1 flex-1 text-[13px] font-medium leading-relaxed text-sv-ink/60 sm:mt-2.5 sm:text-[14px]">{cards[i * 2 + 1]}</p>
+                </div>
+                <ArrowUpRight aria-hidden style={{ color: s.brand.hue }} className="mt-0.5 h-4 w-4 shrink-0 sm:hidden" />
                 {/* Label in ink (hues on white are 2.8–3.3:1 — below AA); the arrow keeps the category hue. */}
-                <span className="mt-4 flex items-center gap-1.5 text-[14px] font-extrabold text-sv-ink sm:mt-6">
+                <span className="hidden items-center gap-1.5 text-[14px] font-extrabold text-sv-ink sm:mt-6 sm:flex">
                   {cta}
                   <ArrowUpRight aria-hidden style={{ color: s.brand.hue }} className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
                 </span>
