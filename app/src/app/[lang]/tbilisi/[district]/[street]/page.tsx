@@ -6,7 +6,7 @@ import { SparkMark } from '@/components/SparkMark'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import ListingCard from '@/components/ListingCard'
-import { WeatherBadge } from '@/components/WeatherBadge'
+import { AirBadge, WeatherBadge } from '@/components/WeatherBadge'
 import { Chip } from '@/components/seo/SeoLanding'
 import { formatUSD, type Listing } from '@/data/listings'
 import {
@@ -431,7 +431,8 @@ function streetLd(
 
 export default async function StreetPage({ params }: PageProps) {
   const { lang: rawLang, district: d, street: s } = await params
-  const cl = cLang(isValidLang(rawLang) ? rawLang : 'ka')
+  const lang = isValidLang(rawLang) ? rawLang : 'ka'
+  const cl = cLang(lang)
   const c = C[cl]
   const ctx = await resolve(d, s)
   if (!ctx) notFound()
@@ -483,11 +484,18 @@ export default async function StreetPage({ params }: PageProps) {
             <SparkMark className="h-3.5 w-3.5" aria-hidden /> {c.badge}
           </span>
           {coords && (
-            <WeatherBadge
-              coords={coords}
-              label={distNameOf(district, cl)}
-              className="mb-3 ml-2 rounded-full border border-sv-ink/[0.06] bg-sv-surface px-3 py-1.5 text-sv-ink/60 shadow-card"
-            />
+            <>
+              <WeatherBadge
+                coords={coords}
+                label={distNameOf(district, cl)}
+                className="mb-3 ml-2 rounded-full border border-sv-ink/[0.06] bg-sv-surface px-3 py-1.5 text-sv-ink/60 shadow-card"
+              />
+              <AirBadge
+                coords={coords}
+                lang={lang}
+                className="mb-3 ml-2 rounded-full border border-sv-ink/[0.06] bg-sv-surface px-3 py-1.5 text-sv-ink/60 shadow-card"
+              />
+            </>
           )}
           <h1 className="max-w-[900px] text-balance text-[30px] font-black tracking-[-0.02em] text-sv-ink md:text-[44px]">
             {translateRaw(c.h1, { loc })}

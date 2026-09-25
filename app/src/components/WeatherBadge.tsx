@@ -71,36 +71,58 @@ export async function WeatherBadge({
 }
 
 /* AirBadge — European AQI chip, same server-rendered contract as WeatherBadge
-   (renders nothing on failure). ponytail: de-only labels; localize when a
-   non-de page adopts it. Colors are brand tokens only (sv-success/orange family). */
+   (renders nothing on failure). Labels in all 10 UI languages — adopted on the
+   Georgian surfaces first (Tbilisi PM2.5 is a real decision factor).
+   Colors are brand tokens only (sv-success/orange family). */
 
-const AQI_STYLE: Record<ReturnType<typeof aqiBand>, { text: string; label: string }> = {
-  good: { text: 'text-sv-success', label: 'Luftqualität gut' },
-  moderate: { text: 'text-sv-orange', label: 'Luftqualität mäßig' },
-  poor: { text: 'text-sv-orange-deep', label: 'Luftqualität schlecht' },
-  bad: { text: 'text-sv-orange-deep', label: 'Luftqualität sehr schlecht' },
+const AQI_TEXT: Record<ReturnType<typeof aqiBand>, string> = {
+  good: 'text-sv-success',
+  moderate: 'text-sv-orange',
+  poor: 'text-sv-orange-deep',
+  bad: 'text-sv-orange-deep',
+}
+
+const AIR_LABEL: Record<Lang, Record<ReturnType<typeof aqiBand>, string>> = {
+  ka: { good: 'ჰაერის ხარისხი: კარგი', moderate: 'ჰაერის ხარისხი: საშუალო', poor: 'ჰაერის ხარისხი: ცუდი', bad: 'ჰაერის ხარისხი: ძალიან ცუდი' },
+  en: { good: 'Air quality: good', moderate: 'Air quality: moderate', poor: 'Air quality: poor', bad: 'Air quality: very poor' },
+  ru: { good: 'Качество воздуха: хорошее', moderate: 'Качество воздуха: среднее', poor: 'Качество воздуха: плохое', bad: 'Качество воздуха: очень плохое' },
+  de: { good: 'Luftqualität gut', moderate: 'Luftqualität mäßig', poor: 'Luftqualität schlecht', bad: 'Luftqualität sehr schlecht' },
+  tr: { good: 'Hava kalitesi: iyi', moderate: 'Hava kalitesi: orta', poor: 'Hava kalitesi: kötü', bad: 'Hava kalitesi: çok kötü' },
+  he: { good: 'איכות האוויר: טובה', moderate: 'איכות האוויר: בינונית', poor: 'איכות האוויר: גרועה', bad: 'איכות האוויר: גרועה מאוד' },
+  ar: { good: 'جودة الهواء: جيدة', moderate: 'جودة الهواء: متوسطة', poor: 'جودة الهواء: سيئة', bad: 'جودة الهواء: سيئة جداً' },
+  uk: { good: 'Якість повітря: добра', moderate: 'Якість повітря: середня', poor: 'Якість повітря: погана', bad: 'Якість повітря: дуже погана' },
+  hy: { good: 'Օդի որակը՝ լավ', moderate: 'Օդի որակը՝ միջին', poor: 'Օդի որակը՝ վատ', bad: 'Օդի որակը՝ շատ վատ' },
+  az: { good: 'Hava keyfiyyəti: yaxşı', moderate: 'Hava keyfiyyəti: orta', poor: 'Hava keyfiyyəti: pis', bad: 'Hava keyfiyyəti: çox pis' },
 }
 
 export async function AirBadge({
   coords,
+  citySlug,
+  lang = 'en',
   className = '',
   iconClassName = 'h-3.5 w-3.5',
 }: {
-  coords: { lat: number; lng: number }
+  coords?: { lat: number; lng: number }
+  citySlug?: string
+  lang?: Lang
   className?: string
   iconClassName?: string
 }) {
-  const air = await getAirQuality(coords)
+  const at = coords ?? cityCoords(citySlug)
+  if (!at) return null
+  const air = await getAirQuality(at)
   if (!air) return null
-  const band = AQI_STYLE[aqiBand(air.aqi)]
+  const band = aqiBand(air.aqi)
+  const label = AIR_LABEL[lang][band]
+  const text = AQI_TEXT[band]
   return (
     <span
       className={`inline-flex items-center gap-1 text-[11px] font-bold tracking-wide ${className}`}
-      title={`${band.label} — PM2.5 ${air.pm25} µg/m³ (Europäischer AQI)`}
+      title={`${label} — PM2.5 ${air.pm25} µg/m³ (EAQI)`}
     >
-      <Wind className={`${iconClassName} ${band.text}`} aria-hidden="true" strokeWidth={2} />
-      <span className={band.text}>AQI {air.aqi}</span>
-      <span className="sr-only">{band.label}</span>
+      <Wind className={`${iconClassName} ${text}`} aria-hidden="true" strokeWidth={2} />
+      <span className={text}>AQI {air.aqi}</span>
+      <span className="sr-only">{label}</span>
     </span>
   )
 }

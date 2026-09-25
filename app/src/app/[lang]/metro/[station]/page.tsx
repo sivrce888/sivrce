@@ -6,7 +6,7 @@ import { SparkMark } from '@/components/SparkMark'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import ListingCard from '@/components/ListingCard'
-import { WeatherBadge } from '@/components/WeatherBadge'
+import { AirBadge, WeatherBadge } from '@/components/WeatherBadge'
 import { Chip } from '@/components/seo/SeoLanding'
 import { formatUSD, type Listing } from '@/data/listings'
 import {
@@ -450,7 +450,8 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function MetroStationPage({ params }: PageProps) {
   const { lang: rawLang, station: s } = await params
-  const cl = cLang(isValidLang(rawLang) ? rawLang : 'ka')
+  const lang = isValidLang(rawLang) ? rawLang : 'ka'
+  const cl = cLang(lang)
   const c = C[cl]
   const ctx = await resolve(s)
   if (!ctx) notFound()
@@ -505,6 +506,11 @@ export default async function MetroStationPage({ params }: PageProps) {
           <WeatherBadge
             coords={{ lat: station.lat, lng: station.lng }}
             label={nameOf(station, cl)}
+            className="mb-3 ml-2 rounded-full border border-sv-ink/[0.06] bg-sv-surface px-3 py-1.5 text-sv-ink/60 shadow-card"
+          />
+          <AirBadge
+            coords={{ lat: station.lat, lng: station.lng }}
+            lang={lang}
             className="mb-3 ml-2 rounded-full border border-sv-ink/[0.06] bg-sv-surface px-3 py-1.5 text-sv-ink/60 shadow-card"
           />
           <h1 className="max-w-[900px] text-balance text-[30px] font-black tracking-[-0.02em] text-sv-ink md:text-[44px]">

@@ -6,9 +6,9 @@
 
 export type AmenityHit = { category: string; meters: number }
 
-const WALK_CATS = new Set(['metro', 'bus', 'tram', 'shop', 'pharmacy', 'school', 'park'])
+const WALK_CATS = new Set(['metro', 'bus', 'tram', 'shop', 'pharmacy', 'school', 'kindergarten', 'bank', 'park'])
 const TRANSIT_CATS = new Set(['metro', 'bus', 'tram', 'rail'])
-const BIKE_CATS = new Set(['park', 'school', 'shop'])
+const BIKE_CATS = new Set(['park', 'school', 'kindergarten', 'shop'])
 
 function uniqueInRange(hits: AmenityHit[], cats: Set<string>, maxM: number): number {
   const seen = new Set<string>()

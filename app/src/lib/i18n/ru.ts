@@ -134,6 +134,8 @@ export const ru: Dict = {
   'map.poi.metro': 'Метро',
   'map.poi.pharmacy': 'Аптека',
   'map.poi.school': 'Школа',
+  'map.poi.kindergarten': 'Детский сад',
+  'map.poi.bank': 'Банк',
   'map.poi.university': 'Университет',
   'map.poi.park': 'Парк',
   'map.poi.shop': 'Магазин',

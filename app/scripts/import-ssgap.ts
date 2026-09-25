@@ -187,11 +187,16 @@ async function main() {
     }
   }
   console.log(`RESULT knownDevProjects=${knownDevProjects} newDevs=${newDevs} newProjects=${newProjects} refreshes=${refreshes} dupSkips=${skips}`)
+  await db.dataSource.updateMany({
+    where: { slug: "ge-ss-ge" },
+    data: { lastSuccessAt: new Date(), lastFetchedAt: new Date(), fetchCount: { increment: 1 } },
+  })
 }
 
 main()
-  .catch((e) => {
+  .catch(async (e) => {
     console.error(e)
+    await db.dataSource.updateMany({ where: { slug: "ge-ss-ge" }, data: { lastErrorAt: new Date(), lastError: String(e).slice(0, 500) } }).catch(() => {})
     process.exit(1)
   })
   .finally(() => db.$disconnect())

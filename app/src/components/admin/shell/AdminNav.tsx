@@ -6,6 +6,7 @@ import {
   BedDouble,
   Building2,
   CalendarCheck,
+  ClipboardList,
   CreditCard,
   Database,
   FileCheck,
@@ -96,6 +97,7 @@ export const ADMIN_SECTIONS: NavSection[] = [
       { href: "/admin/intelligence", label: "Data Platform", icon: Database, exact: true },
       { href: "/admin/intelligence/sources", label: "Sources", icon: Layers },
       { href: "/admin/intelligence/quality", label: "Quality", icon: ShieldCheck },
+      { href: "/admin/intelligence/review", label: "Review Queue", icon: ClipboardList },
     ],
   },
   {

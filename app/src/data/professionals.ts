@@ -2850,6 +2850,8 @@ Between Marshal Gelovani Ave and Bakradze St — quick access to centre, Didube 
     finish: '2026 Q4',
     flats: 240,
     rating: 4.5,
+    // ponytail: position unverified — no official lot / korter twin found (NAPR+korter+satellite check 2026-09-25);
+    // a 24-floor new build cannot sit in the old-town block the geocode gave. Re-verify against a source before trusting.
     coords: { lat: 41.6405, lng: 41.6305 },
     floors: 24,
     description: {

@@ -524,7 +524,7 @@ export const NEW_PROJECTS_2026_08: Project[] = [
     floors: 9,
     rating: 4.6,
     cadastral: '01.14.10.001.100',
-    coords: { lat: 41.7067316, lng: 44.7382045 },
+    coords: { lat: 41.70587108, lng: 44.73963339 },
     description: {
       ka: 'Parkwood 2 — 9-სართულიანი პრემიუმ კორპუსი ბაგებში, ჭავჭავაძის გამზ. 82/1. 50 ბინა მწვანე კარკასით $3 400/მ²-დან, ჩაბარება 2026 Q4. საკადასტრო 01.14.10.001.100.',
       en: 'Parkwood 2 is a 9-storey premium building in Bagebi at 82/1 Chavchavadze Ave. 50 green-frame apartments from $3,400/m², handover Q4 2026. Cadastre 01.14.10.001.100.',
@@ -735,7 +735,7 @@ export const NEW_PROJECTS_2026_08: Project[] = [
     flats: 250,
     rating: 4.7,
     // ponytail: house 285 not in OSM; Kobuleti beachfront Agmashenebeli
-    coords: { lat: 41.8204, lng: 41.7762 },
+    coords: { lat: 41.8524014, lng: 41.7787348 },
     description: {
       ka: 'Swissotel Beach Resort Kobuleti — Next Group-ისა და Archi-ის საკურორტო კომპლექსი აღმაშენებლის ქ. 285-ში, ქობულეთის სანაპიროზე. $1 750/მ²-დან.',
       en: 'Swissotel Beach Resort Kobuleti is a Next Group and Archi resort at 285 Agmashenebeli St on the Kobuleti waterfront. From $1,750/m².',
@@ -943,7 +943,7 @@ export const NEW_PROJECTS_2026_08: Project[] = [
     floors: 11,
     rating: 4.4,
     cadastral: '01.17.14.001.301',
-    coords: { lat: 41.6736225, lng: 44.8514627 },
+    coords: { lat: 41.67346, lng: 44.854476 },
     description: {
       ka: 'Isani Bilderz — 11-სართულიანი კორპუსი შოთა ნადირაშვილის ქუჩაზე, ისანის ბულვართან. 102 ბინა მწვანე კარკასით $990/მ²-დან, 39 მიწისქვეშა პარკინგი. ჩაბარება 2027 Q4. საკადასტრო 01.17.14.001.301.',
       en: 'Isani Bilderz is an 11-storey building on Shota Nadirashvili St by Isani Boulevard. 102 green-frame apartments from $990/m², 39 underground parking spaces. Handover Q4 2027. Cadastre 01.17.14.001.301.',

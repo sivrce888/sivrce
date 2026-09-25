@@ -6,7 +6,7 @@ import NeighborhoodDetail from '@/components/neighborhoods/NeighborhoodDetail'
 import { NEIGHBORHOODS, getNeighborhood, pick } from '@/data/neighborhoods'
 import { getListingsInDistricts, USD_GEL } from '@/lib/listings-db'
 import { getNeighborhoodMarketStats } from '@/lib/market-stats'
-import { WeatherBadge } from '@/components/WeatherBadge'
+import { AirBadge, WeatherBadge } from '@/components/WeatherBadge'
 import { jsonLd, ogImage } from '@/lib/utils'
 import { pageAlternates, OG_LOCALE } from '@/lib/i18n/server'
 import { isValidLang, type Lang } from '@/lib/i18n/core'
@@ -132,12 +132,20 @@ export default async function NeighborhoodPage({ params }: PageProps) {
           market={market}
           faqs={faqs}
           weather={
-            <WeatherBadge
-              coords={n.coords}
-              label={name}
-              className="text-white/80"
-              iconClassName="h-4 w-4"
-            />
+            <>
+              <WeatherBadge
+                coords={n.coords}
+                label={name}
+                className="text-white/80"
+                iconClassName="h-4 w-4"
+              />
+              <AirBadge
+                coords={n.coords}
+                lang={lang}
+                className="text-white/80"
+                iconClassName="h-4 w-4"
+              />
+            </>
           }
         />
       </main>

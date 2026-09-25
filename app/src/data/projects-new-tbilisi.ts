@@ -442,7 +442,7 @@ export const NEW_PROJECTS_TBILISI: Project[] = [
     flats: 300,
     floors: 25,
     rating: 4.6,
-    coords: { lat: 41.718045, lng: 44.7267693 },
+    coords: { lat: 41.717655, lng: 44.727017 },
     description: {
       ka: 'Archi Universe — არქის ახალი პროექტი საბურთალოზე, უნივერსიტეტის ქ. 15ა-ში (A და B კორპუსები). მშენებარე ბინები თბილისი არენასთან.',
       en: 'Archi Universe is Archi’s new project on Saburtalo at 15a University St (blocks A and B), by Tbilisi Arena.',

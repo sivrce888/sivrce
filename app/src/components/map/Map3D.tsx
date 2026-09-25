@@ -200,6 +200,7 @@ import {
   Dumbbell,
   Hospital,
   Landmark,
+  Baby,
   type LucideIcon,
 } from 'lucide-react'
 import { MetroMark } from '@/lib/map/poi-icons'
@@ -217,6 +218,8 @@ const POI_ICONS: Record<PoiCategory, LucideIcon | typeof MetroMark> = {
   gym: Dumbbell,
   hospital: Hospital,
   landmark: Landmark,
+  kindergarten: Baby,
+  bank: Landmark,
 }
 
 const SOURCE_ID = 'sivrce-buildings'

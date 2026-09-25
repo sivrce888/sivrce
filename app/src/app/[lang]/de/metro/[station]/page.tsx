@@ -237,6 +237,7 @@ export default async function BerlinMetroStationPage({ params }: PageProps) {
               className="rounded-full border border-sv-ink/[0.06] bg-sv-surface px-3 py-1.5 text-[12px] text-sv-ink/60 shadow-card"
             />
             <AirBadge
+              lang="de"
               coords={{ lat: station.lat, lng: station.lng }}
               className="rounded-full border border-sv-ink/[0.06] bg-sv-surface px-3 py-1.5 text-[12px] text-sv-ink/60 shadow-card"
             />

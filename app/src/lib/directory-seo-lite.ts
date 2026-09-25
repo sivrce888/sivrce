@@ -107,6 +107,12 @@ export const CITIES: GeoLoc[] = [
   { slug: 'sighnaghi', ka: 'სიღნაღი', loc: 'სიღნაღში', en: 'Sighnaghi', ru: 'Сигнахи' },
   { slug: 'tskaltubo', ka: 'წყალტუბო', loc: 'წყალტუბოში', en: 'Tskaltubo', ru: 'Цхалтубо' },
   { slug: 'kazbegi', ka: 'ყაზბეგი', loc: 'ყაზბეგში', en: 'Kazbegi', ru: 'Казбеги' },
+  // Resort towns with live project inventory (Chakvi tea coast, Shekvetili,
+  // Bakhmaro, Goderdzi ski).
+  { slug: 'chakvi', ka: 'ჩაქვი', loc: 'ჩაქვში', en: 'Chakvi', ru: 'Чакви' },
+  { slug: 'shekvetili', ka: 'შეკვეთილი', loc: 'შეკვეთილში', en: 'Shekvetili', ru: 'Шекветили' },
+  { slug: 'bakhmaro', ka: 'ბახმარო', loc: 'ბახმაროში', en: 'Bakhmaro', ru: 'Бахмаро' },
+  { slug: 'goderdzi', ka: 'გოდერძი', loc: 'გოდერძში', en: 'Goderdzi', ru: 'Годердзи' },
   // DE market (sivrce.de) — top 16 metros by population. Inventory-light:
   // pages self-throttle (≥1 listing rule); Berlin has city-info prose today.
   { slug: 'berlin', ka: 'ბერლინი', loc: 'ბერლინში', en: 'Berlin', ru: 'Берлин', market: 'de' },

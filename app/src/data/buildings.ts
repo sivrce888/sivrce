@@ -4,7 +4,8 @@
  * ponytail: derive from PROJECTS — one source for photo / coords / copy.
  */
 
-import { geoRaionsOf } from './georgia-locations'
+import { GEO_CITIES, geoRaionsOf, geoDistrictsOf } from './georgia-locations'
+import { canonicalizeDistrict } from '../lib/district-canon'
 import { TBILISI_QUARTERS } from './tbilisi-quarters'
 import {
   PROJECTS,
@@ -526,7 +527,7 @@ const STREET_LANDMARKS: BuildingCatalogEntry[] = [
 const PROJECT_SLUG_ALIASES = new Set(['axis-towers-vake'])
 
 const STREET_HINT =
-  /(?:\bst\.?\b|\bstreet\b|\bave\b|\bavenue\b|\bline\b|ქ\.|ქუჩ|გამზ|შესახვ|ხეივან)/i
+  /(?:\bst\.?\b|\bstreet\b|\bave\b|\bavenue\b|\bline\b|ქ\.|ქუჩ|გამზ|შესახვ|ჩიხ|ხეივან)/i
 const HOUSE_NO = /^[\d]+[a-zA-Zა-ჰ]?(?:-[\d]+[a-zA-Zა-ჰ]?)*$/
 
 function districtFrom(location: string, city: string): string {
@@ -611,13 +612,70 @@ function hintFromSlug(slug: string): { district: string; ubani?: string } | unde
   return undefined
 }
 
+/** District centroids from sibling projects that already carry a catalog
+ *  district — polygons would be exact but ~40× heavier. ponytail: lazy
+ *  per-city cache, equirectangular km² (valid under the 2.5 km catchment,
+ *  same limit as METRO_MAX_CATCHMENT_M). */
+const DISTRICT_CENTROIDS = new Map<string, Map<string, { lat: number; lng: number; n: number }>>()
+function nearestCatalogDistrict(
+  city: string,
+  lat: number,
+  lng: number,
+  names?: Set<string>,
+): string | undefined {
+  let cents = DISTRICT_CENTROIDS.get(city)
+  if (!cents) {
+    cents = new Map()
+    const catalog = new Set(geoDistrictsOf(city))
+    for (const p of PROJECTS) {
+      if (p.city !== city) continue
+      const d = p.district && canonicalizeDistrict(p.district, city)
+      if (!d || !catalog.has(d)) continue
+      const c = cents.get(d) ?? { lat: 0, lng: 0, n: 0 }
+      c.lat += p.coords.lat
+      c.lng += p.coords.lng
+      c.n++
+      cents.set(d, c)
+    }
+    DISTRICT_CENTROIDS.set(city, cents)
+  }
+  const cosLat = Math.cos((lat * Math.PI) / 180)
+  let best: string | undefined
+  let bestD = 2.5 * 2.5
+  for (const [d, c] of cents) {
+    if (names && !names.has(d)) continue
+    const dy = (c.lat / c.n - lat) * 111.32
+    const dx = (c.lng / c.n - lng) * 111.32 * cosLat
+    const dist = dy * dy + dx * dx
+    if (dist <= bestD) {
+      bestD = dist
+      best = d
+    }
+  }
+  return best
+}
+
 function placeFrom(
   location: string,
   city: string,
   slug?: string,
+  /** Project's own (check-locked) district — wins over address parsing. */
+  seed?: string,
+  coords?: { lat: number; lng: number },
 ): { district: string; ubani?: string } {
-  let district = districtFrom(location, city)
-  if (city !== 'თბილისი') return { district }
+  let district = (seed && canonicalizeDistrict(seed, city)) || districtFrom(location, city)
+  if (city !== 'თბილისი') {
+    // Outside Tbilisi, districtFrom grabs the last address part — lanes, 'რაიონი'
+    // shorthand, street names. Keep only catalog districts (check-locked); world
+    // cities have no GE catalog, so canonicalize only. When the blob names
+    // nothing catalogued, snap to the nearest district centroid — an unnamed
+    // district hides the building from district filters, a wrong one lies.
+    const canon = canonicalizeDistrict(district, city)
+    const catalog = geoDistrictsOf(city)
+    if (catalog.includes(canon)) return { district: canon }
+    if (!GEO_CITIES.includes(city)) return { district: canon }
+    return { district: (coords ? nearestCatalogDistrict(city, coords.lat, coords.lng) : undefined) ?? '' }
+  }
 
   const extra = EXTRA_PLACE[district]
   if (extra) return extra
@@ -629,13 +687,23 @@ function placeFrom(
     if (raion && (district === ubani || district === city || !TB_RAION_SET.has(district))) {
       district = raion
     }
+    if (!TB_RAION_SET.has(district) && coords) {
+      district = nearestCatalogDistrict(city, coords.lat, coords.lng, TB_RAION_SET) ?? ''
+    }
     return { district, ubani: ubani === district ? undefined : ubani }
   }
   if (TB_RAION_SET.has(district)) return { district }
 
   const hinted = slug ? hintFromSlug(slug) : undefined
   if (hinted) return hinted
-  return { district }
+  // Raw address leftovers ('სარაჯიშვილი', city echo) are not districts — snap
+  // to the nearest raion centroid, else '' (the check locks districts to the
+  // catalog; a fabricated name would be worse than none).
+  if (coords) {
+    const snap = nearestCatalogDistrict(city, coords.lat, coords.lng, TB_RAION_SET)
+    if (snap) return { district: snap }
+  }
+  return { district: '' }
 }
 
 function yearBuiltFrom(p: Project): number | undefined {
@@ -675,7 +743,7 @@ function projectToBuilding(p: Project): BuildingCatalogEntry {
   // catalog (and the city filter) is ka-keyed — normalize or the filter shows
   // both spellings as separate cities with split counts.
   const city = CITY_KEY_ALIASES[p.city] ?? p.city
-  const { district, ubani } = placeFrom(p.location, city, p.slug)
+  const { district, ubani } = placeFrom(p.location, city, p.slug, p.district, p.coords)
   return {
     slug: p.slug,
     code: projectCode(p),
@@ -706,7 +774,7 @@ function projectToBuilding(p: Project): BuildingCatalogEntry {
 
 function enrichPlace(b: BuildingCatalogEntry): BuildingCatalogEntry {
   if (b.ubani) return b
-  const { district, ubani } = placeFrom(b.address, b.city, b.slug)
+  const { district, ubani } = placeFrom(b.address, b.city, b.slug, b.district, b.coords)
   return {
     ...b,
     district: TB_RAION_SET.has(b.district) ? b.district : district,

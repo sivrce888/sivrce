@@ -832,7 +832,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     name: 'Sensa by Tempo',
     developerSlug: 'tempo',
     img: '/images/projects/tempo-sensa.webp',
-    location: 'ბათუმის ბოტანიკური ბაღი / მწვანე კონცხი, ბათუმი',
+    location: 'ბაღის I ჩიხი 29, მწვანე კონცხი, ბათუმი',
     city: 'ბათუმი',
     priceFromM2: 'მოთხოვნით',
     done: 20,
@@ -840,7 +840,7 @@ export const NEW_PROJECTS_BATUMI: Project[] = [
     flats: 150,
     floors: 13,
     rating: 4.5,
-    coords: { lat: 41.7014, lng: 41.7199 },
+    coords: { lat: 41.6909605, lng: 41.7070844 },
     description: {
       ka: 'Sensa — Tempo Holding-ის ახალი პროექტი ბათუმში, Queen’s Residence-ისა და Serenade-ის გვერდით პორტფელში.',
       en: 'Sensa is Tempo Holding’s new Batumi project, alongside Queen’s Residence and Serenade in the portfolio.',

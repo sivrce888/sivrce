@@ -6,7 +6,7 @@ import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import { METRO_LINES, METRO_STATIONS, metroByLine, type MetroStation } from '@/data/tbilisi-metro'
 import { DISTRICTS } from '@/lib/seo-pages'
-import { WeatherBadge } from '@/components/WeatherBadge'
+import { AirBadge, WeatherBadge } from '@/components/WeatherBadge'
 import { cityCoords } from '@/lib/weather'
 import { jsonLd } from '@/lib/utils'
 import { isValidLang, translateRaw, type Lang } from '@/lib/i18n/core'
@@ -172,7 +172,8 @@ function metroLd(c: Copy, cl: CopyLang) {
 
 export default async function MetroIndexPage({ params }: PageProps) {
   const { lang: rawLang } = await params
-  const cl = cLang(isValidLang(rawLang) ? rawLang : 'ka')
+  const lang = isValidLang(rawLang) ? rawLang : 'ka'
+  const cl = cLang(lang)
   const c = C[cl]
   return (
     <div className="min-h-screen bg-sv-cloud">
@@ -200,6 +201,7 @@ export default async function MetroIndexPage({ params }: PageProps) {
             <SparkMark className="h-3.5 w-3.5" aria-hidden /> {translateRaw(c.badge, { n: METRO_STATIONS.length })}
           </span>
           <WeatherBadge coords={cityCoords('tbilisi')} label={c.city} className="mb-3 ml-2 rounded-full border border-sv-ink/[0.06] bg-sv-surface px-3 py-1.5 text-sv-ink/60 shadow-card" />
+          <AirBadge citySlug="tbilisi" lang={lang} className="mb-3 ml-2 rounded-full border border-sv-ink/[0.06] bg-sv-surface px-3 py-1.5 text-sv-ink/60 shadow-card" />
           <h1 className="max-w-[900px] text-balance text-[30px] font-black tracking-[-0.02em] text-sv-ink md:text-[44px]">
             {c.h1}
           </h1>

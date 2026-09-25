@@ -85,6 +85,21 @@ const ALIAS: Record<string, string> = {
   'ძველი ბათუმი': 'ძველი ბათუმის უბანი',
   'old batumi': 'ძველი ბათუმის უბანი',
   'გიორგიწმინდა': 'გიორგიწმინდას დასახლება',
+  // ka shorthand / landmark phrases seen in import blobs (Batumi ubani + coast)
+  'ჯავახიშვილი': 'ჯავახიშვილის უბანი',
+  'ხიმშიაშვილი': 'ხიმშიაშვილის უბანი',
+  'ზღვისპირა': 'ახალი ბულვარი',
+  'ბოტანიკურ ბაღთან': 'მწვანე კონცხი',
+  'აეროპორტის გზატკეცილი': 'აეროპორტის უბანი',
+  // Wine microzones (Telavi), Sioni Lake (Tianeti), ski slopes (Bakuriani/Gudauri)
+  kisiskhevi: 'კისისხევი',
+  'kisiskhevi village': 'კისისხევი',
+  shalauri: 'შალაური',
+  'sioni lake': 'სიონის წყალსაცავი',
+  'კოხტა-მიტარბი': 'მიტარბი',
+  'new gudauri': 'ახალი გუდაური',
+  // Entrada Sarajishvili sits on Guramishvili Ave — the Didube spine
+  'სარაჯიშვილი': 'დიდუბე',
   // Nominatim genitive "X რაიონი" leftovers
   ვაკის: 'ვაკე',
   საბურთალოს: 'საბურთალო',

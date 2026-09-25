@@ -121,6 +121,12 @@ const GE_SOURCES: SourceSeed[] = [
     robotsTxtOk: false, refreshHours: 168,
     note: "ponytail: inactive pending robots.txt/terms review — do not enable without owner approval.", active: false,
   },
+  {
+    slug: "ge-property-ge", name: "property.ge listings", kind: "public_listing", reliability: "public_listing",
+    url: "https://property.ge",
+    robotsTxtOk: false, refreshHours: 168,
+    note: "Candidate source — inactive pending robots.txt/terms review + owner approval.", active: false,
+  },
 ]
 
 async function sources() {
@@ -544,8 +550,11 @@ async function geocode() {
 
 // ---- wiki: Wikidata landmarks -------------------------------------------
 
+// ponytail: direct P31 + VALUES, no /P279* — the subclass walk 500s on WDQS
+// for Georgia's full building graph (probed 2026-09-25). Widen the list instead.
 const WIKIDATA_SPARQL = `SELECT ?item ?kaLabel ?enLabel ?coord ?arch ?archLabel ?inception ?heritage ?heritageLabel WHERE {
-  ?item wdt:P17 wd:Q230 ; wdt:P625 ?coord ; wdt:P31/wdt:P279* wd:Q41176 .
+  ?item wdt:P17 wd:Q230 ; wdt:P625 ?coord ; wdt:P31 ?cls .
+  VALUES ?cls { wd:Q41176 wd:Q1175546 wd:Q27686 wd:Q11303 wd:Q16560 wd:Q12518 wd:Q16970 wd:Q11315 wd:Q570116 wd:Q847017 }
   ?item rdfs:label ?kaLabel . FILTER(LANG(?kaLabel) = "ka")
   OPTIONAL { ?item rdfs:label ?enLabel . FILTER(LANG(?enLabel) = "en") }
   OPTIONAL { ?item wdt:P84 ?arch }

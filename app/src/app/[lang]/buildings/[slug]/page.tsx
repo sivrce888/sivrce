@@ -20,6 +20,7 @@ import {
   Castle,
   Dumbbell,
   Pill,
+  Baby,
   type LucideIcon,
 } from 'lucide-react'
 import Navbar from '@/components/sections/Navbar'
@@ -215,6 +216,8 @@ const AMENITY_ICON: Record<PoiCategory, LucideIcon> = {
   gym: Dumbbell,
   pharmacy: Pill,
   landmark: Castle,
+  kindergarten: Baby,
+  bank: Landmark,
 }
 
 /** Static catalog first; DB-curated buildings (admin) as fallback so map deep-links never 404. */

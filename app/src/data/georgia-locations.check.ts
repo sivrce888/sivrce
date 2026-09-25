@@ -10,6 +10,10 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { LISTINGS, districtsOf } from './listings'
 import { GEO_ALL_PLACES, GEO_CITIES, geoDistrictsOf } from './georgia-locations'
+import { PROJECTS } from './professionals'
+import { BUILDINGS } from './buildings'
+import { CITIES, DISTRICTS } from '../lib/directory-seo-lite'
+import { NEIGHBORHOODS } from './neighborhoods'
 
 assert.ok(GEO_CITIES.length > 50, `expected a real city catalog, got ${GEO_CITIES.length}`)
 assert.ok(GEO_ALL_PLACES.length >= GEO_CITIES.length)
@@ -26,6 +30,57 @@ for (const city of [undefined, ...cities]) {
       `add them there or LocationPicker silently drops them`,
   )
 }
+
+// ——— reverse locks: every registry may only reference catalog districts ———
+// Filters/display join on the catalog ka name; an unresolvable district is a
+// silent drop for users. Missing district is fine ("not publicly verified");
+// a present-but-unresolvable one is not.
+const GE_CITIES = new Set(GEO_CITIES)
+const inCatalog = (d: string, city: string) => geoDistrictsOf(city).includes(d)
+
+const projectFails = PROJECTS.filter(
+  (p) => GE_CITIES.has(p.city) && p.district && !inCatalog(p.district, p.city),
+)
+assert.deepEqual(
+  projectFails.map((p) => `${p.slug}: '${p.district}'`),
+  [],
+  'projects with districts outside georgia-locations.json — ' +
+    're-run scripts/derive-project-districts.ts or extend district-canon ALIAS',
+)
+
+const buildingFails = BUILDINGS.filter(
+  (b) => geoDistrictsOf(b.city).length > 0 && b.district && !inCatalog(b.district, b.city),
+)
+assert.deepEqual(
+  buildingFails.map((b) => `${b.slug}: '${b.district}'`),
+  [],
+  'buildings with districts outside georgia-locations.json — ' +
+    'fix the source project or the placeFrom derivation',
+)
+
+// SEO district pages (GE markets) must resolve, else they render empty shells.
+const cityKaBySlug = new Map(CITIES.map((c) => [c.slug, c.ka] as const))
+const seoFails = DISTRICTS.filter((d) => {
+  const cka = cityKaBySlug.get(d.citySlug)
+  return cka !== undefined && GE_CITIES.has(cka) && !inCatalog(d.ka, cka) && d.ka !== cka
+})
+assert.deepEqual(
+  seoFails.map((d) => `${d.citySlug}/${d.slug}: '${d.ka}'`),
+  [],
+  'directory-seo DISTRICTS pointing outside georgia-locations.json',
+)
+
+// Neighborhood guides link their listings by these district values.
+const hoodFails = NEIGHBORHOODS.filter((n) => {
+  if (!GE_CITIES.has(n.cityKey)) return false
+  const valid = new Set([n.cityKey, ...geoDistrictsOf(n.cityKey)])
+  return n.districts.some((d) => !valid.has(d))
+})
+assert.deepEqual(
+  hoodFails.map((n) => n.slug),
+  [],
+  'neighborhood guides referencing non-catalog districts',
+)
 
 // ——— bundle lock ———
 const picker = readFileSync(

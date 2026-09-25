@@ -12,6 +12,7 @@ import {
   Building2, DoorOpen, Layers, ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut, Crown, Flame,
   MessageCircle, BadgeCheck, Calculator, TrendingDown, TrendingUp, TrainFront, TramFront, Bus, Columns2, Copy,
   Play, Camera, GraduationCap, Trees, Hospital, ShoppingBag, Landmark, Castle, Dumbbell, Pill, Leaf,
+  Baby,
   type LucideIcon,
 } from 'lucide-react'
 // ponytail: type-only via import() syntax — device-budget lock keeps pois dynamic-only
@@ -117,6 +118,8 @@ const AMENITY_ICON: Record<PoiCategory, LucideIcon> = {
   gym: Dumbbell,
   pharmacy: Pill,
   landmark: Castle,
+  kindergarten: Baby,
+  bank: Landmark,
 }
 
 type NearChip = { category: PoiCategory; name: string; dist: string; color: string; meters: number }

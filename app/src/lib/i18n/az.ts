@@ -134,6 +134,8 @@ export const az: Dict = {
   'map.poi.metro': 'Metro',
   'map.poi.pharmacy': 'Aptek',
   'map.poi.school': 'Məktəb',
+  'map.poi.kindergarten': 'Uşaq bağçası',
+  'map.poi.bank': 'Bank',
   'map.poi.university': 'Universitet',
   'map.poi.park': 'Park',
   'map.poi.shop': 'Market',

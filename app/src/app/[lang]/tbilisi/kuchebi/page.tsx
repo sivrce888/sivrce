@@ -6,7 +6,7 @@ import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import { STREETS, type TbilisiStreet } from '@/data/tbilisi-streets'
 import { DISTRICTS } from '@/lib/seo-pages'
-import { WeatherBadge } from '@/components/WeatherBadge'
+import { AirBadge, WeatherBadge } from '@/components/WeatherBadge'
 import { cityCoords } from '@/lib/weather'
 import { jsonLd } from '@/lib/utils'
 import { isValidLang, translateRaw, type Lang } from '@/lib/i18n/core'
@@ -144,7 +144,8 @@ const districtLabel = (slug: string, cl: CopyLang) => {
 
 export default async function StreetsDirectoryPage({ params }: PageProps) {
   const { lang: rawLang } = await params
-  const cl = cLang(isValidLang(rawLang) ? rawLang : 'ka')
+  const lang = isValidLang(rawLang) ? rawLang : 'ka'
+  const cl = cLang(lang)
   const c = C[cl]
   const groups = groupStreets(STREETS)
   const linked = STREETS.filter((s) => s.district !== undefined).length
@@ -208,6 +209,7 @@ export default async function StreetsDirectoryPage({ params }: PageProps) {
             <SparkMark className="h-3.5 w-3.5" aria-hidden /> {translateRaw(c.badge, { n: STREETS.length })}
           </span>
           <WeatherBadge coords={cityCoords('tbilisi')} label={c.city} className="mb-3 ml-2 rounded-full border border-sv-ink/[0.06] bg-sv-surface px-3 py-1.5 text-sv-ink/60 shadow-card" />
+          <AirBadge citySlug="tbilisi" lang={lang} className="mb-3 ml-2 rounded-full border border-sv-ink/[0.06] bg-sv-surface px-3 py-1.5 text-sv-ink/60 shadow-card" />
           <h1 className="max-w-[900px] text-balance text-[30px] font-black tracking-[-0.02em] text-sv-ink md:text-[44px]">
             {c.title}
           </h1>

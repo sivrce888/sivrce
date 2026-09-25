@@ -3,12 +3,12 @@
  * building page "nearby" + /map toggles).
  * Run: npx --yes tsx scripts/fetch-pois.ts
  * Source: OpenStreetMap via Overpass (ODbL — attribution in map footer).
- * ponytail: top-3 markets committed as JSON, no runtime fetch; base vector
- * tiles cover the rest of the country. Ceiling: Rustavi/Poti boxes + bank/ATM
- * layer when map traffic outside the big three warrants it.
+ * ponytail: cities with inventory committed as JSON, no runtime fetch; base
+ * vector tiles cover the rest of the country. Ceiling: bank/ATM layer +
+ * boxes for new inventory cities when map traffic warrants it.
  */
 
-import { writeFileSync } from 'node:fs'
+import { existsSync, readFileSync, writeFileSync } from 'node:fs'
 
 const UA = 'sivrce-maps/1.0 (sivrce888@gmail.com)'
 const ENDPOINTS = [
@@ -16,11 +16,21 @@ const ENDPOINTS = [
   'https://overpass.kumi.systems/api/interpreter',
 ]
 
-/** Top-3 listing markets — covers the bulk of inventory + map traffic. */
+/** Cities with live inventory: the big three + Rustavi, the Gonio–Chakvi–
+ *  Kobuleti coast, Poti, Zugdidi, Gori, Mtskheta, Telavi, Bakuriani, Gudauri. */
 const BOXES = {
   tbilisi: { s: 41.62, w: 44.65, n: 41.86, e: 45.08 },
   batumi: { s: 41.59, w: 41.57, n: 41.7, e: 41.74 },
   kutaisi: { s: 42.22, w: 42.66, n: 42.3, e: 42.76 },
+  rustavi: { s: 41.52, w: 44.95, n: 41.6, e: 45.07 },
+  kobuleti: { s: 41.51, w: 41.53, n: 41.9, e: 41.77 },
+  poti: { s: 42.12, w: 41.72, n: 42.22, e: 41.84 },
+  zugdidi: { s: 42.48, w: 41.84, n: 42.56, e: 41.94 },
+  gori: { s: 41.95, w: 44.04, n: 42.03, e: 44.16 },
+  mtskheta: { s: 41.82, w: 44.7, n: 41.89, e: 44.78 },
+  telavi: { s: 41.88, w: 45.4, n: 41.97, e: 45.53 },
+  bakuriani: { s: 41.73, w: 43.5, n: 41.81, e: 43.6 },
+  gudauri: { s: 42.44, w: 44.4, n: 42.52, e: 44.52 },
 } as const
 
 type BoxKey = keyof typeof BOXES
@@ -29,6 +39,8 @@ export type PoiCategory =
   | 'metro'
   | 'pharmacy'
   | 'school'
+  | 'kindergarten'
+  | 'bank'
   | 'university'
   | 'park'
   | 'shop'
@@ -106,6 +118,10 @@ function classify(tags: Record<string, string> | undefined): PoiCategory | null 
   if (tags.station === 'subway' || tags.subway === 'yes') return 'metro'
   if (tags.railway === 'station' && tags.station === 'subway') return 'metro'
   if (tags.amenity === 'pharmacy') return 'pharmacy'
+  // Georgian family filters — named kindergartens and banks stand alone;
+  // unnamed ones are address noise, not a place a parent or payer searches.
+  if (tags.amenity === 'kindergarten') return nameOf(tags) ? 'kindergarten' : null
+  if (tags.amenity === 'bank') return nameOf(tags) ? 'bank' : null
   if (tags.amenity === 'university' || tags.amenity === 'college') {
     const n = nameOf(tags) || 'უნივერსიტეტი'
     // same HE filter as runtime keepUniversityPoi
@@ -116,7 +132,7 @@ function classify(tags: Record<string, string> | undefined): PoiCategory | null 
     if (!he.test(n)) return null
     return 'university'
   }
-  if (tags.amenity === 'school' || tags.amenity === 'kindergarten') return 'school'
+  if (tags.amenity === 'school') return 'school'
   // named parks only — unnamed leisure=park floods (~thousands)
   if (tags.leisure === 'park' && nameOf(tags)) return 'park'
   // ponytail: supermarket+mall+convenience only — bare shop=* floods the map.
@@ -180,6 +196,10 @@ function fallbackName(cat: PoiCategory): string {
       return 'აფთიაქი'
     case 'school':
       return 'სკოლა'
+    case 'kindergarten':
+      return 'ბაგა-ბაღი'
+    case 'bank':
+      return 'ბანკი'
     case 'university':
       return 'უნივერსიტეტი'
     case 'park':
@@ -200,7 +220,16 @@ function fallbackName(cat: PoiCategory): string {
 }
 
 async function main() {
+  // ponytail: merge-seed from the committed JSON — Overpass throttles, and a
+  // wholesale rewrite would turn one timed-out city into lost pins. A re-run
+  // backfills and reclassifies; it can only add, never regress.
   const byId = new Map<string, Poi>()
+  const outPath = new URL('../src/data/georgia-pois.json', import.meta.url)
+  if (existsSync(outPath)) {
+    for (const prev of (JSON.parse(readFileSync(outPath, 'utf8')).pois as Poi[])) {
+      if (prev && Number.isFinite(prev.lat)) byId.set(prev.id, prev)
+    }
+  }
   for (const [city, box] of Object.entries(BOXES) as [BoxKey, (typeof BOXES)[BoxKey]][]) {
     const t = bb(box)
     // one union per city — Overpass prefers a single round-trip each
@@ -210,6 +239,7 @@ async function main() {
   node["railway"="station"]["station"="subway"](${t});
   node["public_transport"="station"]["subway"="yes"](${t});
   nwr["amenity"="pharmacy"](${t});
+  nwr["amenity"="bank"](${t});
   nwr["amenity"="school"](${t});
   nwr["amenity"="kindergarten"](${t});
   nwr["amenity"="university"](${t});
@@ -237,9 +267,14 @@ out center tags;`
     for (const el of elements) {
       const p = toPoi(el, city)
       if (!p) continue
-      // prefer named over fallback
       const prev = byId.get(p.id)
-      if (!prev || (prev.name === fallbackName(prev.category) && p.name !== fallbackName(p.category))) {
+      // New classification wins (e.g. kindergarten split from school); a named
+      // pin beats a fallback-named one.
+      if (
+        !prev ||
+        prev.category !== p.category ||
+        (prev.name === fallbackName(prev.category) && p.name !== fallbackName(p.category))
+      ) {
         byId.set(p.id, p)
       }
     }

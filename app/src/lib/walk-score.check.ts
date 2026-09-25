@@ -39,6 +39,20 @@ const dupBuses = scoreFromAmenities([
 ])
 assert.equal(dupBuses.transit, 25, 'duplicate category must not inflate score')
 
+// Georgian family signals count toward walkability — kindergarten and bank.
+const kaFamily = scoreFromAmenities([
+  { category: 'kindergarten', meters: 300 },
+  { category: 'bank', meters: 500 },
+])
+assert.equal(kaFamily.walk, 30, 'kindergarten + bank = 2 walk categories')
+assert.equal(kaFamily.transit, 0, 'neither is a transit category')
+
+const outOfRange = scoreFromAmenities([
+  { category: 'kindergarten', meters: 601 },
+  { category: 'bank', meters: 700 },
+])
+assert.equal(outOfRange.walk, 0, 'beyond the 600 m walk catchment counts nothing')
+
 assert.ok(amenityMeters(41.7151, 44.8271, 41.7151, 44.8271) < 1)
 assert.ok(amenityMeters(41.7151, 44.8271, 41.722, 44.8271) > 700)
 const box = amenityBbox(52.52, 13.405).split(',').map(Number)

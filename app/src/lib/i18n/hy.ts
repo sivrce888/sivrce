@@ -134,6 +134,8 @@ export const hy: Dict = {
   'map.poi.metro': 'Մետրո',
   'map.poi.pharmacy': 'Դեղատուն',
   'map.poi.school': 'Դպրոց',
+  'map.poi.kindergarten': 'Մանկապարտեզ',
+  'map.poi.bank': 'Բանկ',
   'map.poi.university': 'Համալսարան',
   'map.poi.park': 'Պուրակ',
   'map.poi.shop': 'Մարկետ',

@@ -6,7 +6,7 @@ import { SparkMark } from '@/components/SparkMark'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import SeoFilterableListings from '@/components/seo/SeoFilterableListings'
-import { WeatherBadge } from '@/components/WeatherBadge'
+import { AirBadge, WeatherBadge } from '@/components/WeatherBadge'
 import { cityCoords } from '@/lib/weather'
 import { formatUSD, areaSym } from '@/lib/listing-format'
 import { DISTRICT_COORDS, streetsOfDistrict } from '@/data/tbilisi-streets'
@@ -399,12 +399,19 @@ export default function SeoLanding({
             <SparkMark className="h-3.5 w-3.5" aria-hidden /> {ui.badge}
           </span>
           {weatherCoords && weatherPlace && (
-            <WeatherBadge
-              coords={weatherCoords}
-              label={weatherPlace}
-              lang={loc}
-              className="mb-3 ml-2 rounded-full border border-sv-ink/[0.06] bg-sv-surface px-3 py-1.5 text-sv-ink/60 shadow-card"
-            />
+            <>
+              <WeatherBadge
+                coords={weatherCoords}
+                label={weatherPlace}
+                lang={loc}
+                className="mb-3 ml-2 rounded-full border border-sv-ink/[0.06] bg-sv-surface px-3 py-1.5 text-sv-ink/60 shadow-card"
+              />
+              <AirBadge
+                coords={weatherCoords}
+                lang={loc}
+                className="mb-3 ml-2 rounded-full border border-sv-ink/[0.06] bg-sv-surface px-3 py-1.5 text-sv-ink/60 shadow-card"
+              />
+            </>
           )}
           <h1 className="max-w-[min(56.25rem,100%)] text-balance text-[clamp(1.75rem,1.1rem+2.4vw,2.75rem)] font-black tracking-[-0.02em] text-sv-ink">
             {h1}

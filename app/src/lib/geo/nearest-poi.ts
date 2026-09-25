@@ -18,6 +18,10 @@ const CAT_TO_KIND: Record<string, PoiKind> = {
   metro: "metro",
   pharmacy: "pharmacy",
   school: "school",
+  // DB PoiKind has no bank/kindergarten enum — school absorbs kindergartens
+  // (same walk-catchment question), banks land in other. No migration needed.
+  kindergarten: "school",
+  bank: "other",
   university: "other",
   park: "park",
   shop: "supermarket",

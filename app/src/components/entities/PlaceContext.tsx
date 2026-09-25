@@ -20,12 +20,13 @@ import {
   MapPin,
   Pill,
   ShoppingBag,
+  Baby,
   TrainFront,
   TramFront,
   Trees,
   type LucideIcon,
 } from 'lucide-react'
-import { WeatherBadge } from '@/components/WeatherBadge'
+import { AirBadge, WeatherBadge } from '@/components/WeatherBadge'
 import {
   formatMetroDist,
   nearestAmenities,
@@ -60,6 +61,8 @@ const AMENITY_ICON: Record<PoiCategory, LucideIcon> = {
   gym: Dumbbell,
   pharmacy: Pill,
   landmark: Castle,
+  kindergarten: Baby,
+  bank: Landmark,
 }
 
 const T: Record<
@@ -178,6 +181,12 @@ export async function PlaceContext({
             coords={at ?? undefined}
             citySlug={city?.slug}
             label={location ?? cityKa}
+            lang={lang}
+            className="rounded-full border border-sv-ink/[0.06] bg-sv-surface px-3 py-1.5 text-sv-ink/60 shadow-card"
+          />
+          <AirBadge
+            coords={at ?? undefined}
+            citySlug={city?.slug}
             lang={lang}
             className="rounded-full border border-sv-ink/[0.06] bg-sv-surface px-3 py-1.5 text-sv-ink/60 shadow-card"
           />

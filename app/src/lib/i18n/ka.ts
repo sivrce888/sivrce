@@ -133,6 +133,8 @@ export const ka = {
   'map.poi.metro': 'მეტრო',
   'map.poi.pharmacy': 'აფთიაქი',
   'map.poi.school': 'სკოლა',
+  'map.poi.kindergarten': 'ბაგა-ბაღი',
+  'map.poi.bank': 'ბანკი',
   'map.poi.university': 'უნივერსიტეტი',
   'map.poi.park': 'პარკი',
   'map.poi.shop': 'მარკეტი',
