@@ -104,6 +104,12 @@ const GE_SOURCES: SourceSeed[] = [
     note: "Construction permits/completions statistics — market context. Open data.", active: true,
   },
   {
+    slug: "ge-official-dev", name: "Official developer/project sites (curated)", kind: "official_company", reliability: "official_company",
+    url: "https://sivrce.ge",
+    robotsTxtOk: true, refreshHours: 720,
+    note: "Hand-curated seed rows from official developer/project websites (projects-new-*.ts). Attribute rows whose id prefix isn't a portal id.", active: true,
+  },
+  {
     slug: "ge-wikidata", name: "Wikidata (GE landmarks)", kind: "open_data", reliability: "established_institution",
     url: "https://www.wikidata.org",
     robotsTxtOk: true, refreshHours: 2160,
@@ -126,6 +132,30 @@ const GE_SOURCES: SourceSeed[] = [
     url: "https://property.ge",
     robotsTxtOk: false, refreshHours: 168,
     note: "Candidate source — inactive pending robots.txt/terms review + owner approval.", active: false,
+  },
+  {
+    slug: "ge-home-ge", name: "home.ge listings", kind: "public_listing", reliability: "public_listing",
+    url: "https://www.home.ge",
+    robotsTxtOk: true, refreshHours: 168,
+    note: "Probed 2026-09-25: robots allows crawl, but server-rendered HTML with no JSON API found — importer pending EV review.", active: false,
+  },
+  {
+    slug: "ge-binebi-ge", name: "binebi.ge listings", kind: "public_listing", reliability: "public_listing",
+    url: "https://binebi.ge",
+    robotsTxtOk: true, refreshHours: 168,
+    note: "Probed 2026-09-25: robots allows crawl, server-rendered HTML, no JSON API found — importer pending EV review.", active: false,
+  },
+  {
+    slug: "ge-archi-ge", name: "archi.ge (developer official)", kind: "official_company", reliability: "official_company",
+    url: "https://archi.ge",
+    robotsTxtOk: true, refreshHours: 720,
+    note: "Largest GE developer, robots-open with sitemap. Portfolio already covered via portals; direct importer pending EV review.", active: false,
+  },
+  {
+    slug: "ge-m2-ge", name: "m2.ge (developer official)", kind: "official_company", reliability: "official_company",
+    url: "https://m2.ge",
+    robotsTxtOk: true, refreshHours: 720,
+    note: "Major GE developer, robots-open with sitemap. Portfolio already covered via portals; direct importer pending EV review.", active: false,
   },
 ]
 
@@ -158,7 +188,11 @@ const PREFIX_TO_SOURCE: Record<string, { slug: string; confidence: "likely" | "u
   korter: { slug: "ge-korter", confidence: "likely" },
   osm: { slug: "ge-osm", confidence: "unverified" },
   napr: { slug: "ge-napr", confidence: "verified" },
+  wikidata: { slug: "ge-wikidata", confidence: "likely" },
 }
+// Any id whose prefix isn't a portal/osm id is a curated official-developer
+// seed row (projects-new-*.ts) — attribute it instead of leaving it source-less.
+const FALLBACK_SOURCE = { slug: "ge-official-dev", confidence: "likely" as const }
 
 async function provenance() {
   const rows = await db.projectDirectory.findMany({
@@ -179,17 +213,18 @@ async function provenance() {
   for (const r of rows) {
     const prefix = r.id.split(/[-_]/)[0]
     const m = PREFIX_TO_SOURCE[prefix]
-    if (!m) { unmapped++; continue }
-    const sourceId = bySlug.get(m.slug)
+    if (!m) unmapped++
+    const src = m ?? FALLBACK_SOURCE
+    const sourceId = bySlug.get(src.slug)
     if (!sourceId) continue
     if (existing.has(`${r.id}:${sourceId}`)) continue
     create.push({
       entityType: "project" as const, entityId: r.id, factKey: "identity", factValue: r.name,
-      sourceId, sourceUrl: r.sourceUrl, fetchedAt: now, confidence: m.confidence, isCurrent: true,
+      sourceId, sourceUrl: r.sourceUrl, fetchedAt: now, confidence: src.confidence, isCurrent: true,
     })
   }
   if (create.length) await db.dataProvenance.createMany({ data: create, skipDuplicates: true })
-  console.log(`provenance: +${create.length} (unmapped prefix: ${unmapped})`)
+  console.log(`provenance: +${create.length} (fallback→official-dev: ${unmapped})`)
 }
 
 // ---- graph: aliases + relationships ----------------------------------
@@ -362,8 +397,8 @@ async function quality() {
       }),
     )
   }
-  for (let i = 0; i < upserts.length; i += 250) {
-    await db.$transaction(upserts.slice(i, i + 250), { timeout: 60_000 })
+  for (let i = 0; i < upserts.length; i += 100) {
+    await db.$transaction(upserts.slice(i, i + 100), { timeout: 120_000 })
   }
 
   const withCoords = projects.filter((p) => p.lat != null && p.lng != null).length
@@ -694,6 +729,7 @@ async function osm() {
 
   const created: { id: string; name: string }[] = []
   let sites = 0
+  let buildings = 0
   let named = 0
   let skippedName = 0
 
@@ -712,7 +748,17 @@ async function osm() {
     { name: "mtskheta-tianeti", bbox: "41.90,44.30,42.55,45.40" },
   ]
   for (const reg of REGIONS) {
-    const query = `[out:json][timeout:300];(way["building"="construction"](${reg.bbox});way["landuse"="construction"](${reg.bbox}););out center tags;`
+    // ponytail: ways only — residential complexes mapped as OSM relations are an
+    // upgrade path (needs id-scheme change, breaks osm-way-* upsert keys).
+    const query = `[out:json][timeout:300];(
+      way["building"="construction"](${reg.bbox});
+      way["landuse"="construction"](${reg.bbox});
+      way["building"~"^(apartments|residential)$"]["name"](${reg.bbox});
+      way["tourism"~"^(hotel|apartment|resort)$"]["name"](${reg.bbox});
+      way["building"="commercial"]["name"](${reg.bbox});
+      way["building"="office"]["name"](${reg.bbox});
+      way["shop"="mall"]["name"](${reg.bbox});
+    );out center tags;`
     console.log(`osm: region ${reg.name}…`)
     const data = await overpass(query)
     const now = new Date()
@@ -722,15 +768,18 @@ async function osm() {
     const c = el.center ?? (el.lat && el.lon ? { lat: el.lat, lon: el.lon } : null)
     if (!c) continue
     const t = el.tags ?? {}
+    const isSite = t["building"] === "construction" || t["landuse"] === "construction"
     const name = (t["name:ka"] ?? t.name ?? "").trim()
     if (!name) continue
     named++
+    if (!isSite) buildings++
     const nKey = norm(name)
     // Same complex name already in catalog → skip (near-duplicate guard).
     if (existingNorms.has(nKey)) { skippedName++; continue }
     existingNorms.add(nKey)
     const slug = `${toLatin(name).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 90)}-osm${el.id}`.replace(/^-+/, "")
     const id = `osm-way-${el.id}`
+    const kind = t["tourism"] ?? t["shop"] ?? t["building"] ?? ""
     const row = await db.projectDirectory.upsert({
       where: { id },
       create: {
@@ -741,10 +790,14 @@ async function osm() {
         address: [t["addr:street"], t["addr:housenumber"]].filter(Boolean).join(" ") || null,
         lat: c.lat, lng: c.lon,
         sourceUrl: `https://www.openstreetmap.org/way/${el.id}`,
-        status: "construction",
+        status: isSite ? "construction" : "",
         readyBy: "",
         image: "",
-        body: t.description ? `${t.description} (OSM tags)` : null,
+        body: t.description
+          ? `${t.description} (OSM tags)`
+          : isSite
+            ? null
+            : `OSM named ${kind} (ODbL) — pending classification.`,
         features: Object.entries(t).filter(([k]) => k.startsWith("building:") || k === "levels" || k === "height" || k.startsWith("architect")).map(([k, v]) => `${k}=${v}`).slice(0, 10),
       },
       update: { lat: c.lat, lng: c.lon },
@@ -761,7 +814,7 @@ async function osm() {
   await db.dataSource.update({ where: { id: osmSource.id }, data: { lastFetchedAt: new Date(), fetchCount: { increment: 1 }, recordCount: { increment: created.length - before } } })
   }
   await db.dataSource.update({ where: { id: osmSource.id }, data: { lastSuccessAt: new Date() } })
-  console.log(`osm: ${sites} construction sites seen, ${named} named, +${created.length} new project rows (skipped ${skippedName} name-matched)`)
+  console.log(`osm: ${sites} elements seen (${sites - buildings} construction sites, ${buildings} named buildings), +${created.length} new project rows (skipped ${skippedName} name-matched)`)
 }
 
 // ---- main -------------------------------------------------------------
