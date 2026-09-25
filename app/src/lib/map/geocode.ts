@@ -254,12 +254,14 @@ export async function geocodeAddress(
   return row ? hitFromRow(row, q) : null
 }
 
-/** Autocomplete — up to 5 ranked hits. */
+/** Autocomplete — up to 5 ranked hits. `near` = map centre: typing "Chavchavadze 37"
+ *  over Tbilisi must not surface Sochi's namesake. */
 export async function suggestAddresses(
   query: string,
   city?: string,
   signal?: AbortSignal,
   countryIso?: string,
+  near?: { lat: number; lng: number },
 ): Promise<GeocodeHit[]> {
   const q = query.trim()
   if (q.length < 2 || q.length > 120) return []
@@ -270,10 +272,18 @@ export async function suggestAddresses(
     .filter(Boolean)
     .join(', ')
 
-  const rows = await nominatimSearch({ q: needle, limit: '8', ...countryParam(countryIso) }, signal)
+  // ponytail: ±1° viewbox is a soft bias (bounded=0); far rows sink, never vanish
+  // — "Berlin Alexanderplatz" typed over Tbilisi still resolves.
+  const bias: Record<string, string> = near
+    ? { viewbox: `${near.lng - 1},${near.lat + 1},${near.lng + 1},${near.lat - 1}` }
+    : {}
+  const rows = await nominatimSearch({ q: needle, limit: '8', ...countryParam(countryIso), ...bias }, signal)
+  const far = (r: NominatimRow) =>
+    !!near && (Math.abs(Number(r.lat) - near.lat) > 2 || Math.abs(Number(r.lon) - near.lng) > 2)
+  const ranked = rankRows(rows, houseNo || undefined)
   const seen = new Set<string>()
   const out: GeocodeHit[] = []
-  for (const row of rankRows(rows, houseNo || undefined)) {
+  for (const row of [...ranked.filter((r) => !far(r)), ...ranked.filter(far)]) {
     const hit = hitFromRow(row, q)
     if (!hit) continue
     const key = `${hit.lat.toFixed(5)}:${hit.lng.toFixed(5)}`

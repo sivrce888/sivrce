@@ -3352,6 +3352,7 @@ function Map3DInner({
               // so without it the chip bar below paints over the suggestion list.
               className={`relative z-10 w-full rounded-tile border p-1.5 ${chip}`}
               onPlace={(q, s) => void flyToQuery(q, s)}
+              near={() => mapRef.current?.getCenter() ?? null}
             />
             <div className={`hidden items-center gap-2 overflow-x-auto rounded-tile border p-1.5 scrollbar-hide md:flex ${chip}`}>
               <p className="shrink-0 whitespace-nowrap px-2 text-[12px] font-extrabold tabular-nums tracking-tight">

@@ -49,6 +49,14 @@ const KIND_ICON = {
   metro: TrainFront,
 } as const
 
+/** Live-address query. `near` rounds to 1 dp (~11 km) so the CDN key stays shared. */
+function liveParams(q: string, city?: string, near?: { lat: number; lng: number } | null): string {
+  const sp = new URLSearchParams({ suggest: '1', q })
+  if (city) sp.set('city', city)
+  if (near) sp.set('near', `${near.lat.toFixed(1)},${near.lng.toFixed(1)}`)
+  return sp.toString()
+}
+
 interface Props {
   variant: 'dark' | 'light' | 'auto'
   value: string
@@ -64,11 +72,13 @@ interface Props {
   size?: 'md' | 'lg'
   /** `de` hits Berlin/DE pools — never mixed with the Georgia catalog. */
   mkt?: 'de'
+  /** Map centre at query time — live address hits prefer what's on screen. */
+  near?: () => { lat: number; lng: number } | null
 }
 
 export default function SearchSuggest({
   variant, value, onChange, onPick, onSubmit, placeholder, ariaLabel,
-  className = '', inputRef, city, size = 'lg', mkt,
+  className = '', inputRef, city, size = 'lg', mkt, near,
 }: Props) {
   const dark = variant === 'dark'
   const auto = variant === 'auto'
@@ -98,7 +108,7 @@ export default function SearchSuggest({
         // worldwide, no bundle). Live for global and city-scoped search (the
         // city narrows it server-side), capped at 5.
         const live = q.length >= 3 && !mkt
-          ? fetch(`/api/geocode?suggest=1&q=${encodeURIComponent(q)}${city ? `&city=${encodeURIComponent(city)}` : ''}`, { signal: ctrl.signal })
+          ? fetch(`/api/geocode?${liveParams(q, city, near?.())}`, { signal: ctrl.signal })
               .then((r) => (r.ok ? r.json() : null))
               .catch(() => null)
           : null
@@ -129,6 +139,9 @@ export default function SearchSuggest({
       }
     }, 150)
     return () => window.clearTimeout(timer)
+    // ponytail: `near` is a getter read at fire time — a new closure each render
+    // must not refetch; the typed value drives the query.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value, city, mkt])
 
   const pick = (s: Suggestion) => {
@@ -340,10 +353,12 @@ export function ChromeSearch({
   variant,
   className = '',
   onPlace,
+  near,
 }: {
   variant: 'dark' | 'light'
   className?: string
   onPlace: (q: string, s?: Suggestion) => void | Promise<void>
+  near?: Props['near']
 }) {
   const [q, setQ] = useState('')
   const { t } = useI18n()
@@ -361,6 +376,7 @@ export function ChromeSearch({
       placeholder={t('search.keywordPlaceholder')}
       ariaLabel={t('nav.search')}
       className={className}
+      near={near}
     />
   )
 }

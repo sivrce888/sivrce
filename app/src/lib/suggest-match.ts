@@ -109,6 +109,19 @@ function dist1Prefix(w: string, n: string): boolean {
   return false
 }
 
+/** House № — 1–4 digits, no leading zero (skips catalog codes like SV-TB-0007). */
+const HOUSE_NO = /(?<!\d)[1-9]\d{0,3}(?!\d)/g
+
+/**
+ * Typed "chavchavadze 37", row is "Chavchavadze 47": one edit / one token away,
+ * but a different address. Rows without a number (streets) stay eligible.
+ */
+function wrongHouseNo(hay: readonly (string | undefined)[], cq: CompiledQuery): boolean {
+  if (!cq.nums.length) return false
+  const rowNums = hay.flatMap((h) => h?.match(HOUSE_NO) ?? [])
+  return rowNums.length > 0 && !cq.nums.some((n) => rowNums.includes(n))
+}
+
 /** Candidate words for a hay string — hoisted out of the per-row loop. */
 function fuzzyWords(s: string): string[] {
   const f = foldQuarterQuery(s)
@@ -130,6 +143,7 @@ export function suggestFuzzyPrepared(
   cq: CompiledQuery | null,
 ): boolean {
   if (!cq || cq.needle.length < 4) return false
+  if (wrongHouseNo(hay, cq)) return false
   const needles = cq.needles
   return hay.some((h) => h && fuzzyWords(h).some((w) => w && needles.some((n) => dist1Prefix(w, n))))
 }
@@ -166,6 +180,8 @@ export type CompiledQuery = {
   readonly needles: string[]
   /** Populated only for multi-token queries ("bina vake") — see matchPrepared. */
   readonly tokenVariants: { readonly tk: string; readonly nds: string[] }[]
+  /** House numbers typed ("chavchavadze 37") — the token tier must not hand back № 47. */
+  readonly nums: string[]
 }
 
 export function compileQuery(q: string): CompiledQuery | null {
@@ -179,6 +195,7 @@ export function compileQuery(q: string): CompiledQuery | null {
     needles: queryVariants(needle),
     tokenVariants:
       tokens.length > 1 ? tokens.map((tk) => ({ tk, nds: queryVariants(tk) })) : [],
+    nums: needle.match(HOUSE_NO) ?? [],
   }
 }
 
@@ -207,6 +224,7 @@ export function matchPrepared(
   // matches a place-name catalog. Per-token OR rescues the location token;
   // reverse startsWith ("vakeshi"/"ვაკეში") matches the inflected form.
   if (tokenVariants.length) {
+    if (wrongHouseNo(hs.map(([a]) => a), cq)) return null
     for (const [a, b, c, d] of hs) {
       const hit = tokenVariants.some(({ tk, nds }) =>
         (tk.startsWith(a) && a.length >= 3) ||

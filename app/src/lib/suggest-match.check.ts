@@ -69,4 +69,11 @@ assert.ok(suggestMatch(["ვაკე"], "ბინა ვაკეში"), "ka
 assert.ok(suggestMatch(chav, "bina chavchavadzis"), "generic + street token")
 assert.equal(suggestMatch(["ვაკე"], "bina saburtaloshi"), null, "wrong district stays null")
 
+const chav47 = ["ჭავჭავაძის 47", "Chavchavadze 47", "ილია ჭავჭავაძის გამზ. 47", "SV-TB-0007"]
+assert.equal(suggestMatch(chav47, "Chavchavadze 37"), null, "wrong house number rejected")
+assert.equal(suggestFuzzy(chav47, "Chavchavadze 37"), false, "fuzzy tier: 37 is not 47")
+assert.ok(suggestFuzzy(chav47, "Chavchavadze 47"), "fuzzy tier: same number hits")
+assert.ok(suggestMatch(["Chavchavadze 37"], "Chavchavadze 37"), "same house number hits")
+assert.ok(suggestMatch(["Chavchavadze Avenue"], "chavchavadze avenue 37"), "numberless street still hits")
+
 console.log("suggest-match.check: ok")

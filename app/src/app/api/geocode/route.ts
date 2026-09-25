@@ -47,7 +47,13 @@ export async function GET(req: NextRequest) {
     if (q.length < 2) {
       return cdnJson({ ok: true, hits: [] })
     }
-    const hits = await suggestAddresses(q, city, undefined, await requestCountryLock())
+    // near=lat,lng (map centre, 1-dp) — soft viewport bias; junk is ignored.
+    const [nLat, nLng] = (sp.get("near") ?? "").split(",").map(Number)
+    const near =
+      Number.isFinite(nLat) && Number.isFinite(nLng) && Math.abs(nLat) <= 85 && Math.abs(nLng) <= 180
+        ? { lat: nLat, lng: nLng }
+        : undefined
+    const hits = await suggestAddresses(q, city, undefined, await requestCountryLock(), near)
     return cdnJson({ ok: true, hits })
   }
 
