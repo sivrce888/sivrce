@@ -226,7 +226,10 @@ const SOURCE_ID = 'sivrce-buildings'
 const PTS_SOURCE_ID = 'sivrce-buildings-pts'
 const FILL_ID = 'sivrce-buildings-fill'
 const EXTRUDE_ID = 'sivrce-buildings-3d'
-const KEEP_EXTRUDE = new Set([EXTRUDE_ID, FLOORS_FILL_ID, ICONIC_LAYER_ID])
+// Tapped OSM building — Apple Maps lights the building that answered the tap.
+const PICK_SOURCE_ID = 'sivrce-pick'
+const PICK_ID = 'sivrce-pick-3d'
+const KEEP_EXTRUDE = new Set([EXTRUDE_ID, FLOORS_FILL_ID, ICONIC_LAYER_ID, PICK_ID])
 const LABEL_ID = 'sivrce-buildings-label'
 const DOT_ID = 'sivrce-buildings-dot'
 const DOT_ACTIVE_ID = 'sivrce-buildings-dot-active'
@@ -459,6 +462,19 @@ async function ensureLayers(
 
   await loadPoiImages(map)
   addPricePillImages(map)
+
+  map.addSource(PICK_SOURCE_ID, { type: 'geojson', data: DRAW_EMPTY })
+  map.addLayer({
+    id: PICK_ID,
+    type: 'fill-extrusion',
+    source: PICK_SOURCE_ID,
+    paint: {
+      'fill-extrusion-color': BRAND.colors.blue,
+      'fill-extrusion-opacity': 0.55,
+      'fill-extrusion-height': ['get', 'h'],
+      'fill-extrusion-base': ['get', 'b'],
+    },
+  })
 
   // Drawn area sits under every pin — it frames the search, it is not the result.
   map.addSource(DRAW_SOURCE_ID, { type: 'geojson', data: draw ?? DRAW_EMPTY })
@@ -2180,11 +2196,8 @@ function Map3DInner({
             return
           }
           const feats = map.queryRenderedFeatures(e.point, { layers: osmLayers })
-          const geom = pickNearestBuildingGeometry(
-            feats.map((f) => f.geometry),
-            e.lngLat.lat,
-            e.lngLat.lng,
-          )
+          const geoms = feats.map((f) => f.geometry)
+          const geom = pickNearestBuildingGeometry(geoms, e.lngLat.lat, e.lngLat.lng)
           if (!geometryRing(geom)) {
             nbhPopup.remove()
             return
@@ -2210,6 +2223,20 @@ function Map3DInner({
           sub.textContent = `${lat5}, ${lng5}`
           root.appendChild(sub)
           nbhPopup.setLngLat(e.lngLat).setDOMContent(root).addTo(map)
+          // After addTo — re-opening fires the popup's 'close', which clears the pick.
+          if (geom) {
+            const fp = feats[geoms.indexOf(geom)]?.properties ?? {}
+            const num = (v: unknown) => (Number.isFinite(Number(v)) ? Number(v) : 0)
+            // Same height rule as the basemap extrusion (render_height, else 10 m);
+            // +0.6 m clears it so the two never z-fight. 2D gets a thin slab.
+            const h = view3dRef.current ? (num(fp.render_height ?? fp.height) || 10) + 0.6 : 0.6
+            const b = view3dRef.current ? num(fp.render_min_height ?? fp.min_height) : 0
+            ;(map.getSource(PICK_SOURCE_ID) as GeoJSONSource | undefined)?.setData({
+              type: 'Feature',
+              properties: { h, b },
+              geometry: geom,
+            })
+          }
           const row = (label: string, v: string) => {
             const r = document.createElement('div')
             r.className = 'sivrce-nbh-pop-row'
@@ -2243,11 +2270,14 @@ function Map3DInner({
               if (seq !== osmSeq || !d?.ok) return
               const alkis = d.alkisParcel?.kennzeichen as string | undefined
               const code = d.parcel?.uniqCode as string | undefined
-              if (alkis) root.appendChild(row('ALKIS', alkis))
-              else if (code) root.appendChild(row('NAPR', code))
+              // Registry acronyms (NAPR/ALKIS) mean nothing to a buyer — say what it is.
+              const parcelId = alkis ?? code
+              if (parcelId) root.appendChild(row(tRef.current('add.cadastral'), parcelId))
               const area = Number(d.alkisParcel?.areaM2 ?? d.parcel?.area)
               if (Number.isFinite(area) && area > 0) {
-                root.appendChild(row('m²', String(Math.round(area))))
+                root.appendChild(
+                  row(tRef.current('cadastre.area'), `${Math.round(area).toLocaleString(lang)} m²`),
+                )
               }
               const tasN = Array.isArray(d.tasDocs) ? d.tasDocs.length : 0
               if (tasN > 0) root.appendChild(row('TAS', String(tasN)))
@@ -2337,6 +2367,9 @@ function Map3DInner({
         maxWidth: '260px',
       })
       addrPopupRef.current = nbhPopup
+      nbhPopup.on('close', () => {
+        ;(map.getSource(PICK_SOURCE_ID) as GeoJSONSource | undefined)?.setData(DRAW_EMPTY)
+      })
 
       const onNeighborhoodClick = (e: MapLayerMouseEvent) => {
         e.originalEvent.stopPropagation()
@@ -3714,7 +3747,8 @@ function Map3DInner({
 
         {/* ponytail: one row, no title card — Apple Maps / 2GIS amenity chips. */}
         <div
-          className={`absolute inset-x-3 bottom-[max(1.25rem,env(safe-area-inset-bottom))] z-20 md:inset-x-4 md:bottom-4 ${
+          // lg:right-24 — the chat launcher owns the bottom-right corner on desktop.
+          className={`absolute inset-x-3 bottom-[max(1.25rem,env(safe-area-inset-bottom))] z-20 md:inset-x-4 md:bottom-4 lg:right-24 ${
             selected ? 'max-md:hidden' : ''
           } ${filtersOpen ? 'hidden' : ''}`}
         >
