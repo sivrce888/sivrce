@@ -5,7 +5,13 @@ import { redirect } from "next/navigation"
 
 import { CrmLeadStatus, CrmTaskPriority, CrmTaskStatus } from "@/generated/prisma/enums"
 import { logAdminAction } from "@/lib/admin/audit"
-import { ACTIVITY_TYPES, CLOSED_LEAD_STATUSES } from "@/lib/admin/crm"
+import {
+  ACTIVITY_TYPES,
+  assertAssignee,
+  assigneeLeadsPath,
+  CLOSED_LEAD_STATUSES,
+  notifyAssignee,
+} from "@/lib/admin/crm"
 import { requireAdminAction } from "@/lib/admin/guard"
 import { optString, reqEnum, reqString } from "@/lib/admin/validate"
 import { db } from "@/lib/db"
@@ -26,8 +32,7 @@ export async function createLead(fd: FormData) {
   const phone = reqString(fd, "phone", 30)
   const email = optString(fd, "email", 240)
   const notes = optString(fd, "notes", 2000)
-  const agent = await db.user.findUnique({ where: { id: agentId }, select: { id: true } })
-  if (!agent) throw new Error("Agent not found")
+  const role = await assertAssignee(agentId)
   const lead = await db.crmLead.create({
     data: { agentId, name, phone, email, notes },
     select: { id: true },
@@ -36,8 +41,45 @@ export async function createLead(fd: FormData) {
     before: null,
     after: { agentId, name, phone, email },
   })
+  await notifyAssignee(
+    agentId,
+    session.user.id,
+    `New client assigned: ${name}`,
+    assigneeLeadsPath(role, `/admin/crm/${lead.id}`),
+  )
   revalidatePath("/admin/crm")
   redirect(`/admin/crm/${lead.id}`)
+}
+
+/** Hand a client to another user; their open tasks move with them. */
+export async function reassignLead(fd: FormData) {
+  const session = await requireAdminAction()
+  const id = reqString(fd, "id", 120)
+  const agentId = reqString(fd, "agentId", 120)
+  const before = await db.crmLead.findUniqueOrThrow({
+    where: { id },
+    select: { agentId: true, name: true },
+  })
+  if (before.agentId === agentId) return
+  const role = await assertAssignee(agentId)
+  await db.$transaction([
+    db.crmLead.update({ where: { id }, data: { agentId } }),
+    db.crmTask.updateMany({
+      where: { leadId: id, status: { in: [CrmTaskStatus.todo, CrmTaskStatus.in_progress] } },
+      data: { agentId },
+    }),
+  ])
+  await logAdminAction(session, "crm.reassign", "crm_lead", id, {
+    before: { agentId: before.agentId },
+    after: { agentId },
+  })
+  await notifyAssignee(
+    agentId,
+    session.user.id,
+    `Client assigned to you: ${before.name}`,
+    assigneeLeadsPath(role, `/admin/crm/${id}`),
+  )
+  revalidateLead(id)
 }
 
 export async function updateLeadStatus(fd: FormData) {

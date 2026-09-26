@@ -34,11 +34,13 @@ assert.equal(isOpenInquiryStatus("won"), false)
 assert.equal(isOpenInquiryStatus("lost"), false)
 assert.ok(OPEN_INQUIRY_STATUSES.every(isOpenInquiryStatus))
 
-const withIds = inquiryWhere(["a"], "ag@sivrce.ge")
+const withIds = inquiryWhere(["a"], "ag@sivrce.ge", ["u1"])
 assert.equal(withIds.deletedAt, null)
-assert.ok(Array.isArray(withIds.OR) && withIds.OR.length === 2)
+assert.ok(Array.isArray(withIds.OR) && withIds.OR.length === 3)
+// Staff-assigned leads reach the assignee's inbox even with no own listing.
+assert.deepEqual(withIds.OR?.[2], { assignedToId: { in: ["u1"] } })
 
-const emailOnly = inquiryWhere([], "ag@sivrce.ge")
+const emailOnly = inquiryWhere([], "ag@sivrce.ge", [])
 assert.ok(Array.isArray(emailOnly.OR) && emailOnly.OR.length === 1)
 assert.deepEqual(emailOnly.OR?.[0], { agentEmail: "ag@sivrce.ge" })
 

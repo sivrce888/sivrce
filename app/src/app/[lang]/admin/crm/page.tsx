@@ -10,12 +10,12 @@ import {
   CLOSED_LEAD_STATUSES,
   LEAD_STATUS_LABELS,
   LEAD_STATUS_ORDER,
+  listAssignees,
   listCrmBoard,
 } from "@/lib/admin/crm"
 import { fmtDate, fmtMoney, fmtNum } from "@/lib/admin/format"
 import { requireAdmin } from "@/lib/admin/guard"
 import { param, type SearchParams } from "@/lib/admin/query"
-import { db } from "@/lib/db"
 
 export const metadata = { title: "CRM" }
 
@@ -38,15 +38,11 @@ export default async function AdminCrmPage({
   await requireAdmin()
   const sp = await searchParams
   const agent = param(sp.agent)
-  const [{ byStatus, agents, total }, agentProfiles] = await Promise.all([
+  const [{ byStatus, agents, total }, assignees] = await Promise.all([
     listCrmBoard(agent),
-    db.agentProfile.findMany({
-      select: { id: true, name: true },
-      orderBy: { name: "asc" },
-      take: 200,
-    }),
+    listAssignees(),
   ])
-  const agentNames = new Map(agentProfiles.map((a) => [a.id, a.name]))
+  const agentNames = new Map(assignees.map((a) => [a.id, a.label]))
   const now = new Date()
 
   return (
@@ -56,17 +52,17 @@ export default async function AdminCrmPage({
       <div className="mb-4 flex flex-wrap items-end gap-x-6 gap-y-3">
         <FilterSelect
           name="agent"
-          label="Agent"
+          label="Owner"
           options={agents.map((id) => ({ value: id, label: agentNames.get(id) ?? id }))}
           value={agent}
         />
       </div>
 
       <form action={createLead} className="mb-5 flex flex-wrap items-center gap-x-3 gap-y-2">
-        <select name="agentId" required aria-label="Agent" className={inputCls}>
-          {agentProfiles.map((a) => (
+        <select name="agentId" required aria-label="Assign to" className={inputCls}>
+          {assignees.map((a) => (
             <option key={a.id} value={a.id}>
-              {a.name}
+              {a.label}
             </option>
           ))}
         </select>
@@ -137,6 +133,9 @@ export default async function AdminCrmPage({
                             {lead.source}
                           </span>
                         </div>
+                        <p className="mt-1.5 truncate text-[12px] text-sv-ink/60">
+                          {agentNames.get(lead.agentId) ?? "Unknown owner"}
+                        </p>
                       </article>
                     )
                   })}

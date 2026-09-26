@@ -134,7 +134,7 @@ export default async function SellerOverviewPage({ params }: { params: Promise<{
   )
 
   const listingIds = listings.map((r) => r.id)
-  const leadWhere = inquiryWhere(listingIds, user.email)
+  const leadWhere = inquiryWhere(listingIds, user.email, [user.id])
   const totalViews = listings.reduce((sum, l) => sum + l.views, 0)
   const totalReveals = listings.reduce((sum, l) => sum + phoneRevealsOf(l.extendedFields), 0)
   const activeSale = listings.filter((l) => l.status === "active" && l.dealType === "buy").length

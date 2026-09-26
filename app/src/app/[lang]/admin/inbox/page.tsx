@@ -12,6 +12,7 @@ import { StatCard } from "@/components/admin/ui/StatCard"
 import { TabLinks } from "@/components/admin/ui/TabLinks"
 import type { Prisma } from "@/generated/prisma/client"
 import { fmtNum, timeAgo } from "@/lib/admin/format"
+import { listAssignees } from "@/lib/admin/crm"
 import { requireAdmin } from "@/lib/admin/guard"
 import { INQUIRY_STATUSES, INQUIRY_STATUS_LABELS } from "@/lib/admin/inquiries"
 import { ADMIN_PAGE_SIZE, param, parsePage, type SearchParams } from "@/lib/admin/query"
@@ -36,11 +37,13 @@ export default async function AdminInboxPage({
   const tab = param(sp.tab) === "rooms" ? "rooms" : "leads"
   const stage = param(sp.stage)
   const q = param(sp.q)
+  const owner = param(sp.owner)
 
   const where: Prisma.InquiryWhereInput = { deletedAt: null }
   if (INQUIRY_STATUSES.includes(stage as (typeof INQUIRY_STATUSES)[number])) {
     where.status = stage
   }
+  if (owner) where.assignedToId = owner === "none" ? null : owner
   if (q) {
     where.OR = [
       { buyerName: { contains: q, mode: "insensitive" } },
@@ -52,7 +55,7 @@ export default async function AdminInboxPage({
   const dayAgo = new Date(new Date().getTime() - 86_400_000)
   const today = new Date(new Date().toDateString())
 
-  const [rows, total, openLeads, roomRows, roomTotal, admins] = await Promise.all([
+  const [rows, total, openLeads, roomRows, roomTotal, assignees] = await Promise.all([
     db.inquiry.findMany({
       where,
       orderBy: { updatedAt: "desc" },
@@ -77,7 +80,7 @@ export default async function AdminInboxPage({
       },
     }),
     db.chatRoom.count({ where: { status: "active" } }),
-    db.user.findMany({ where: { role: "admin" }, select: { id: true, name: true, email: true } }),
+    listAssignees(),
   ])
 
   const newToday = openLeads.filter((l) => l.createdAt >= today).length
@@ -94,8 +97,6 @@ export default async function AdminInboxPage({
     select: { id: true, title: true },
   })
   const listingTitles = new Map(listings.map((l) => [l.id, l.title]))
-
-  const adminNames = new Map(admins.map((a) => [a.id, a.name ?? a.email ?? "admin"]))
 
   return (
     <div>
@@ -124,6 +125,15 @@ export default async function AdminInboxPage({
             <SearchForm action="/admin/inbox" params={sp} placeholder="Search buyer, email, agent…" />
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
               <FilterSelect name="stage" label="Stage" options={STAGE_OPTIONS} value={stage} />
+              <FilterSelect
+                name="owner"
+                label="Assigned"
+                options={[
+                  { value: "none", label: "Unassigned" },
+                  ...assignees.map((a) => ({ value: a.id, label: a.label })),
+                ]}
+                value={owner}
+              />
             </div>
           </div>
 
@@ -200,13 +210,13 @@ export default async function AdminInboxPage({
                           <select
                             name="assignedTo"
                             defaultValue={l.assignedToId ?? ""}
-                            aria-label="Assigned staff"
+                            aria-label="Assigned to"
                             className="max-w-[130px] rounded-control border border-sv-ink/10 bg-sv-surface px-2 py-1 text-[12px] font-bold text-sv-ink"
                           >
                             <option value="">—</option>
-                            {admins.map((a) => (
+                            {assignees.map((a) => (
                               <option key={a.id} value={a.id}>
-                                {adminNames.get(a.id)}
+                                {a.label}
                               </option>
                             ))}
                           </select>

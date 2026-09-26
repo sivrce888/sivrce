@@ -158,7 +158,7 @@ export default async function AgencyOverviewPage({ params }: { params: Promise<{
       () =>
         db.inquiry.groupBy({
           by: ["status"],
-          where: inquiryWhere(listingIds, user.email),
+          where: inquiryWhere(listingIds, user.email, ownerIds),
           _count: { _all: true },
         }),
       [],

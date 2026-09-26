@@ -3,7 +3,13 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { ReactNode } from "react"
 
-import { addActivity, addTask, setTaskStatus, updateLeadStatus } from "@/app/[lang]/admin/crm/actions"
+import {
+  addActivity,
+  addTask,
+  reassignLead,
+  setTaskStatus,
+  updateLeadStatus,
+} from "@/app/[lang]/admin/crm/actions"
 import { ConfirmButton } from "@/components/admin/ui/ConfirmButton"
 import { EmptyState } from "@/components/admin/ui/EmptyState"
 import { PageHeader } from "@/components/admin/ui/PageHeader"
@@ -14,6 +20,7 @@ import {
   ACTIVITY_TYPE_LABELS,
   ACTIVITY_TYPES,
   getCrmLead,
+  listAssignees,
   LEAD_STATUS_LABELS,
   LEAD_STATUS_ORDER,
   TASK_PRIORITY_LABELS,
@@ -64,8 +71,9 @@ export default async function AdminCrmLeadPage({
 }) {
   await requireAdmin()
   const { id } = await params
-  const lead = await getCrmLead(id)
+  const [lead, assignees] = await Promise.all([getCrmLead(id), listAssignees()])
   if (!lead) notFound()
+  const owner = assignees.find((a) => a.id === lead.agentId)
 
   return (
     <>
@@ -89,7 +97,12 @@ export default async function AdminCrmLeadPage({
           </span>
         </div>
         <dl className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3 xl:grid-cols-4">
-          <Def label="Phone">{lead.phone}</Def>
+          <Def label="Owner">{owner?.label ?? "Unknown"}</Def>
+          <Def label="Phone">
+            <a href={`tel:${lead.phone}`} className="hover:text-sv-blue">
+              {lead.phone}
+            </a>
+          </Def>
           <Def label="Email">{lead.email ?? "—"}</Def>
           <Def label="Budget">{budget(lead)}</Def>
           <Def label="District">{lead.district ?? "—"}</Def>
@@ -125,6 +138,25 @@ export default async function AdminCrmLeadPage({
           <input aria-label="Close reason (optional)" name="closedReason" placeholder="Close reason (optional)" className={inputCls} />
           <button type="submit" className={submitCls}>
             Update status
+          </button>
+        </form>
+        <form action={reassignLead} className="mt-3 flex flex-wrap items-center gap-3">
+          <input type="hidden" name="id" value={lead.id} />
+          <select
+            name="agentId"
+            defaultValue={lead.agentId}
+            aria-label="Assign to"
+            className={inputCls}
+          >
+            {owner ? null : <option value={lead.agentId}>Unknown owner</option>}
+            {assignees.map((a) => (
+              <option key={a.id} value={a.id}>
+                {a.label}
+              </option>
+            ))}
+          </select>
+          <button type="submit" className={submitCls}>
+            Reassign
           </button>
         </form>
       </Section>

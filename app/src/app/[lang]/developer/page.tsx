@@ -157,7 +157,7 @@ export default async function DeveloperOverviewPage({ params }: { params: Promis
 
   const listingIds = listings.map((l) => l.id)
   const leadsCount = await safeQuery(
-    () => db.inquiry.count({ where: inquiryWhere(listingIds, user.email) }),
+    () => db.inquiry.count({ where: inquiryWhere(listingIds, user.email, [user.id]) }),
     0,
   )
 

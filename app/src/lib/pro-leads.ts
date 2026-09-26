@@ -147,24 +147,28 @@ export const DEAL_STAGES_CONFIG: Record<DealPipelineStage, DealStageMeta> = {
   },
 }
 
-/** Roles that own Inquiry rows and may change status. Buyer/tenant cannot. */
+/** Roles with a lead inbox — own Inquiry rows, may change status, may be assigned leads. */
+export const LEAD_WORKER_ROLES = ["admin", "agent", "agency", "seller", "developer"] as const
+
 export function canWorkLeads(role: string): boolean {
-  return (
-    role === "agent" ||
-    role === "agency" ||
-    role === "seller" ||
-    role === "developer" ||
-    role === "admin"
-  )
+  return (LEAD_WORKER_ROLES as readonly string[]).includes(role)
 }
 
-/** Own listings + inquiries addressed to this email. Empty ids still match email. */
-export function inquiryWhere(listingIds: string[], email: string): Prisma.InquiryWhereInput {
+/**
+ * Leads a pro may see and work: own listings, inquiries addressed to their
+ * email, and leads staff assigned to them (or, for an agency, its team).
+ */
+export function inquiryWhere(
+  listingIds: string[],
+  email: string,
+  assigneeIds: string[],
+): Prisma.InquiryWhereInput {
   return {
     deletedAt: null,
     OR: [
       ...(listingIds.length > 0 ? [{ listingId: { in: listingIds } }] : []),
       { agentEmail: email },
+      ...(assigneeIds.length > 0 ? [{ assignedToId: { in: assigneeIds } }] : []),
     ],
   }
 }
