@@ -1,6 +1,6 @@
 /**
  * IndexNow — instant Bing / Yandex / Seznam / Google ingest on publish.
- * ponytail: fire-and-forget POST. Key file lives at /{INDEXNOW_KEY}.txt.
+ * ponytail: best-effort POST (callers run it via background()). Key file lives at /{INDEXNOW_KEY}.txt.
  */
 
 export const INDEXNOW_KEY = "a8f3c91e2b7d4e6a9c1f0d5b8e4a7c2d"
@@ -11,12 +11,12 @@ export function listingIndexUrl(id: string): string {
   return `https://${INDEXNOW_HOST}/listing/${id}`
 }
 
-export function notifyIndexNow(urls: string[]): void {
+export async function notifyIndexNow(urls: string[]): Promise<void> {
   const urlList = urls
     .filter((u) => u.startsWith(`https://${INDEXNOW_HOST}/`))
     .slice(0, 10)
   if (!urlList.length) return
-  void fetch("https://api.indexnow.org/indexnow", {
+  await fetch("https://api.indexnow.org/indexnow", {
     method: "POST",
     headers: { "content-type": "application/json; charset=utf-8" },
     body: JSON.stringify({

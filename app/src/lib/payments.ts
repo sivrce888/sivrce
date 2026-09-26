@@ -854,7 +854,7 @@ export async function reindexListingById(listingId: string): Promise<void> {
     },
   })
   if (!listing || listing.deletedAt || listing.status !== "active") {
-    void deleteListing(listingId)
+    await deleteListing(listingId).catch(() => false)
     return
   }
 
@@ -909,6 +909,6 @@ export async function reindexListingById(listingId: string): Promise<void> {
     tier: tierKey,
     tierRank: tierRankOf(listing.tier, listing.tierExpiresAt),
   }
-  void indexListing(doc).catch(() => {})
+  await indexListing(doc).catch(() => false)
   revalidateTag(MAP_LISTINGS_TAG, "max")
 }

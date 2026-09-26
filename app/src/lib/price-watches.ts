@@ -164,7 +164,7 @@ export async function runPriceWatchAlerts(
           select: { id: true },
         })
         if (sub) {
-          void sendEmail({
+          await sendEmail({
             to: user.email,
             subject: title,
             html: `

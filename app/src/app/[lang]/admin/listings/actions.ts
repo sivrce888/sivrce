@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache"
 import { ListingStatus, ListingTier } from "@/generated/prisma/enums"
 import { logAdminAction } from "@/lib/admin/audit"
 import { requireAdminAction } from "@/lib/admin/guard"
+import { background } from "@/lib/background"
 import { optInt, reqEnum, reqString } from "@/lib/admin/validate"
 import { db } from "@/lib/db"
 import { attributeListing, unattributeListing } from "@/lib/map/attribution"
@@ -63,9 +64,9 @@ export async function setStatus(fd: FormData) {
   // Keep floor inventory in sync: sold/expired/withdrawn frees the unit, reactivate re-counts it.
   if (before.status === "active" && status !== "active") await unattributeListing(id)
   else if (before.status !== "active" && status === "active") await attributeListing(id)
-  // Saved-search alerts on (re)activation — fire-and-forget, never block admin.
+  // Saved-search alerts on (re)activation — after the response, never block admin.
   if (before.status !== "active" && status === "active") {
-    void runSavedSearchAlerts(id).catch(() => {})
+    background("admin.saved-search-alerts", () => runSavedSearchAlerts(id))
   }
   await logAdminAction(session, "listing.set_status", "listing", id, {
     before: { status: before.status },

@@ -8,6 +8,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import type { Prisma } from "@/generated/prisma/client"
 
 import { auth } from "@/auth"
+import { background } from "@/lib/background"
 import { ListingStatus } from "@/generated/prisma/client"
 import { db } from "@/lib/db"
 import { canonicalizeDistrict } from "@/lib/district-canon"
@@ -278,7 +279,7 @@ export async function PATCH(
 
     if (p.price !== beforePrice) {
       const eventType = p.price < beforePrice ? "price_drop" : "price_increase"
-      void db.listingPriceEvent
+      await db.listingPriceEvent
         .create({
           data: {
             listingId: id,
@@ -290,23 +291,25 @@ export async function PATCH(
         })
         .catch((e) => console.error("[listings] price event:", (e as Error).message))
       if (p.price < beforePrice) {
-        void runPriceWatchAlerts(id, beforePrice, p.price, owned.currency)
+        const newPrice = p.price
+        background("listing.price-watch", () =>
+          runPriceWatchAlerts(id, beforePrice, newPrice, owned.currency),
+        )
       }
     }
 
     const newUrls = p.images.filter((u) => !prevImages.includes(u))
     if (newUrls.length) {
-      void linkListingMedia({
-        listingId: id,
-        urls: newUrls,
-        uploadedBy: session.user.id,
-      }).catch(() => {})
+      const uploadedBy = session.user.id
+      background("listing.media", () =>
+        linkListingMedia({ listingId: id, urls: newUrls, uploadedBy }),
+      )
     }
 
-    void attributeListing(id).catch(() => {})
-    void recomputeNearestPois(id).catch(() => {})
-    void reindexListingById(id)
-    notifyIndexNow([listingIndexUrl(id)])
+    background("listing.attribute", () => attributeListing(id))
+    background("listing.nearest-poi", () => recomputeNearestPois(id))
+    background("listing.reindex", () => reindexListingById(id))
+    background("listing.indexnow", () => notifyIndexNow([listingIndexUrl(id)]))
 
     return NextResponse.json({ ok: true, id })
   }
@@ -361,7 +364,7 @@ export async function PATCH(
 
   if (typeof data.price === "number" && data.price !== beforePrice) {
     const eventType = data.price < beforePrice ? "price_drop" : "price_increase"
-    void db.listingPriceEvent
+    await db.listingPriceEvent
       .create({
         data: {
           listingId: id,
@@ -373,14 +376,17 @@ export async function PATCH(
       })
       .catch((e) => console.error("[listings] price event:", (e as Error).message))
     if (data.price < beforePrice) {
-      void runPriceWatchAlerts(id, beforePrice, data.price, owned.currency)
+      const newPrice = data.price
+      background("listing.price-watch", () =>
+        runPriceWatchAlerts(id, beforePrice, newPrice, owned.currency),
+      )
     }
   }
 
   // ponytail: sold outcome feeds price history + future sold-count stats.
   if (data.status === ListingStatus.sold && beforeStatus !== ListingStatus.sold) {
     const soldPrice = typeof data.price === "number" ? data.price : beforePrice
-    void db.listingPriceEvent
+    await db.listingPriceEvent
       .create({
         data: {
           listingId: id,
@@ -398,8 +404,8 @@ export async function PATCH(
     else if (beforeStatus !== "active" && data.status === "active") await attributeListing(id)
   }
 
-  void reindexListingById(id)
-  notifyIndexNow([listingIndexUrl(id)])
+  background("listing.reindex", () => reindexListingById(id))
+  background("listing.indexnow", () => notifyIndexNow([listingIndexUrl(id)]))
 
   return NextResponse.json({
     ok: true,
@@ -437,8 +443,8 @@ export async function DELETE(
   const deletedAt = new Date()
   await db.listing.update({ where: { id }, data: { deletedAt } })
   await unattributeListing(id)
-  void unindexListing(id)
-  notifyIndexNow([listingIndexUrl(id)])
+  background("listing.unindex", () => unindexListing(id))
+  background("listing.indexnow", () => notifyIndexNow([listingIndexUrl(id)]))
 
   return NextResponse.json({ ok: true, id, deletedAt: deletedAt.toISOString() })
 }
