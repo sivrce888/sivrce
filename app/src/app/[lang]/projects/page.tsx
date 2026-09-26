@@ -15,6 +15,7 @@ import { pageAlternates, OG_LOCALE } from '@/lib/i18n/server'
 import { PROJECTS_HUB, faqPageLd } from '@/lib/directory-seo'
 import { toCard } from './to-card'
 import { PER_PAGE, Pager } from './ProjectsGrid'
+import { hubFacets } from './card'
 import { ProjectsExplorer } from './ProjectsExplorer'
 
 export const revalidate = 3600
@@ -59,6 +60,7 @@ export default async function ProjectsPage({ params }: PageProps) {
 
   const projects = await projectsLive()
   const deltas = marketDeltas(projects)
+  const cards = projects.map((p) => toCard(p, loc, deltas))
   const totalPages = Math.max(1, Math.ceil(projects.length / PER_PAGE))
   const pageSlice = projects.slice(0, PER_PAGE)
   // Nested item = Google carousel spec; alternateName carries the other script.
@@ -119,7 +121,8 @@ export default async function ProjectsPage({ params }: PageProps) {
         <AdSlot slot="projects" lang={raw} />
         <section className="mx-auto max-w-[1440px] px-5 pb-16 md:px-10">
           <ProjectsExplorer
-            projects={projects.map((p) => toCard(p, loc, deltas))}
+            initial={cards.slice(0, PER_PAGE)}
+            facets={hubFacets(cards)}
             loc={loc}
             pager={<Pager page={1} totalPages={totalPages} loc={loc} />}
           />

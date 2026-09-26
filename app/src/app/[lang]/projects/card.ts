@@ -264,3 +264,24 @@ export function facetCounts(items: ProjectCard[]): FacetCounts {
   }
   return f
 }
+
+/** Filter-bar facets for the unfiltered hub — computed on the server so the page ships one page of cards, not the corpus. */
+export interface HubFacets {
+  total: number
+  countries: CountryFacet[]
+  cities: CityFacet[]
+  districts: { value: string; count: number }[]
+  devs: DevFacet[]
+  counts: FacetCounts
+}
+
+export function hubFacets(items: ProjectCard[]): HubFacets {
+  return {
+    total: items.length,
+    countries: facetCountries(items),
+    cities: facetCities(items),
+    districts: facetDistricts(items),
+    devs: facetDevs(items),
+    counts: facetCounts(items),
+  }
+}

@@ -14,7 +14,7 @@
  * Pure logic lives in card.ts (self-checked by card.check.ts) — this file is
  * presentation only.
  */
-import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { ChevronDown, Search } from 'lucide-react'
 import HScroll from '@/components/HScroll'
 import { Flag, type FlagCode } from '@/components/Flag'
@@ -29,6 +29,7 @@ import {
   facetDistricts,
   facetDevs,
   isQActive,
+  type HubFacets,
   matchesCard,
   parseQ,
   qToSearch,
@@ -179,17 +180,35 @@ function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; chi
 }
 
 export function ProjectsExplorer({
-  projects,
+  initial,
+  facets,
   loc,
   pager,
 }: {
-  projects: ProjectCard[]
+  /** First hub page of cards — all the unfiltered view renders. */
+  initial: ProjectCard[]
+  /** Server-computed filter-bar facets for the unfiltered corpus. */
+  facets: HubFacets
   loc: DirLoc | 'de'
   /** Server-rendered SEO pager — shown while no filter is engaged. */
   pager?: ReactNode
 }) {
   const t = L[loc]
   const [q, setQ] = useState<Q>(EMPTY_Q)
+  // Full corpus loads on intent (pointer/focus reaches the filter bar, or the
+  // URL already filters) from a static CDN JSON — never on plain page views.
+  const [projects, setProjects] = useState<ProjectCard[] | null>(null)
+  const loading = useRef(false)
+  const load = useCallback(() => {
+    if (loading.current) return
+    loading.current = true
+    fetch(`/api/project-cards/${loc}`)
+      .then((r) => (r.ok ? (r.json() as Promise<ProjectCard[]>) : Promise.reject(new Error(String(r.status)))))
+      .then(setProjects)
+      .catch(() => {
+        loading.current = false // next interaction retries
+      })
+  }, [loc])
   // Live corpus can exceed 1k rows — filtered mode renders progressively to
   // keep the DOM (and low-end devices) under the glitch lock.
   const [visibleCount, setVisibleCount] = useState(PER_PAGE)
@@ -200,7 +219,9 @@ export function ProjectsExplorer({
   // beyond the row's right edge — nudge the first active chip into view.
   useEffect(() => {
     const apply = () => {
-      setQ(parseQ(new URLSearchParams(window.location.search)))
+      const next = parseQ(new URLSearchParams(window.location.search))
+      if (isQActive(next)) load()
+      setQ(next)
       setVisibleCount(PER_PAGE)
       requestAnimationFrame(() => {
         rowRef.current
@@ -211,11 +232,12 @@ export function ProjectsExplorer({
     apply()
     window.addEventListener('popstate', apply)
     return () => window.removeEventListener('popstate', apply)
-  }, [])
+  }, [load])
 
   // Search typing uses replaceState (no history spam per keystroke); discrete
   // chip/select changes push, so the back button walks meaningful steps.
   const update = (patch: Partial<Q>, replace = false) => {
+    load()
     const next = { ...q, ...patch }
     setQ(next)
     setVisibleCount(PER_PAGE)
@@ -224,35 +246,41 @@ export function ProjectsExplorer({
     else window.history.pushState(null, '', url)
   }
 
-  const countries = useMemo(() => facetCountries(projects), [projects])
-  const activeCountryProjects = useMemo(
-    () => (q.country ? projects.filter((p) => (p.country || 'GE').toUpperCase() === q.country.toUpperCase()) : projects),
-    [projects, q.country],
-  )
-  const cities = useMemo(() => facetCities(activeCountryProjects), [activeCountryProjects])
+  // Until the corpus lands, the bar shows the server's unfiltered facets.
+  const scoped = useMemo(() => {
+    if (!projects) return null
+    const inCountry = q.country ? projects.filter((p) => (p.country || 'GE').toUpperCase() === q.country.toUpperCase()) : projects
+    return {
+      countries: facetCountries(projects),
+      cities: facetCities(inCountry),
+      districts: facetDistricts(inCountry),
+      devs: facetDevs(inCountry),
+      counts: facetCounts(inCountry),
+    }
+  }, [projects, q.country])
+  const { countries, cities, districts, devs, counts } = scoped ?? facets
   const topCitySet = useMemo(
     () => new Set(cities.filter((c) => c.value !== OTHER_CITY).map((c) => c.value)),
     [cities],
   )
-  const districts = useMemo(() => facetDistricts(activeCountryProjects), [activeCountryProjects])
-  const devs = useMemo(() => facetDevs(activeCountryProjects), [activeCountryProjects])
-  const counts = useMemo(() => facetCounts(activeCountryProjects), [activeCountryProjects])
   const otherCityCount = cities.find((c) => c.value === OTHER_CITY)?.count
 
+  const active = isQActive(q)
+  const pending = active && !projects
   const filtered = useMemo(
-    () => (isQActive(q) ? sortCards(projects.filter((p) => matchesCard(p, q, topCitySet)), q.sort) : null),
-    [projects, q, topCitySet],
+    () => (active && projects ? sortCards(projects.filter((p) => matchesCard(p, q, topCitySet)), q.sort) : null),
+    [active, projects, q, topCitySet],
   )
-  const visible = filtered ? filtered.slice(0, visibleCount) : projects.slice(0, PER_PAGE)
+  const visible = filtered ? filtered.slice(0, visibleCount) : initial
 
   return (
-    <div aria-label={t.aria}>
+    <div aria-label={t.aria} aria-busy={pending} onPointerEnter={load} onFocusCapture={load} onTouchStart={load}>
       <div className="flex items-center justify-between gap-3">
         <p aria-live="polite" className="min-w-0 truncate text-[13px] font-bold text-sv-ink/60">
-          {t.results(filtered ? filtered.length : projects.length)}
+          {t.results(filtered ? filtered.length : facets.total)}
         </p>
         <div className="flex shrink-0 items-center gap-3">
-          {filtered && (
+          {active && (
             <button
               type="button"
               onClick={() => update(EMPTY_Q)}
@@ -412,7 +440,9 @@ export function ProjectsExplorer({
         </div>
       ) : (
         <>
-          <ProjectsGrid projects={visible} loc={loc} />
+          <div className={pending ? 'opacity-50 transition-opacity' : undefined}>
+            <ProjectsGrid projects={visible} loc={loc} />
+          </div>
           {filtered && visibleCount < filtered.length && (
             <div className="mt-10 flex justify-center">
               <button
@@ -424,7 +454,7 @@ export function ProjectsExplorer({
               </button>
             </div>
           )}
-          {!filtered && pager}
+          {!active && pager}
         </>
       )}
     </div>
