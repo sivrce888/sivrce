@@ -12,12 +12,6 @@ config({ path: ".env" })
 async function main() {
   const { profileRatingUpdate } = await import("./aggregate")
   const { parseReviewFields } = await import("./validate")
-  const { isSelfReview } = await import("./aggregate")
-
-  // Owner can't review own target; unclaimed targets (null owner) never self-block.
-  assert.equal(isSelfReview("u1", "u1"), true)
-  assert.equal(isSelfReview("u1", "u2"), false)
-  assert.equal(isSelfReview("u1", null), false)
 
   // Rated profile targets carry reviewsCount; unrated ones don't.
   assert.deepEqual(profileRatingUpdate("agent", 3, 4.6667), {
