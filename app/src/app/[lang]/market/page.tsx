@@ -1,12 +1,21 @@
 import type { Metadata } from 'next'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
+import LocalizedLink from '@/components/LocalizedLink'
 import MarketView from '@/components/market/MarketView'
 import { getMarketOverview } from '@/lib/market-stats'
 import { USD_GEL } from '@/lib/listings-db'
 import { jsonLd } from '@/lib/utils'
 import { isValidLang, type Lang } from '@/lib/i18n/core'
 import {pageAlternates, OG_LOCALE,  } from '@/lib/i18n/server'
+import { ArrowUpRight } from 'lucide-react'
+
+const VALUATION_CTA: Partial<Record<Lang, string>> = {
+  ka: 'გაიგე შენი ბინის ღირებულება — უფასო შეფასება 30 წამში',
+  en: 'What is your home worth? — free instant estimate',
+  ru: 'Узнайте стоимость квартиры — бесплатная оценка за 30 секунд',
+  de: 'Was ist Ihre Wohnung wert? — kostenlose Sofortschätzung',
+}
 
 export const revalidate = 3600
 
@@ -111,6 +120,15 @@ export default async function MarketPage({ params }: { params: Promise<{ lang: s
       <Navbar />
       <main id="main">
         <MarketView data={data} updated={updated} />
+        <div className="mx-auto max-w-[1100px] px-5 pb-16 md:px-10">
+          <LocalizedLink
+            href="/valuation"
+            className="flex min-h-14 items-center justify-between gap-4 rounded-card border border-sv-ink/[0.06] bg-sv-surface px-6 py-4 text-[15px] font-extrabold text-sv-ink shadow-card transition-colors hover:text-sv-blue"
+          >
+            {VALUATION_CTA[lang] ?? VALUATION_CTA.en}
+            <ArrowUpRight className="h-5 w-5 shrink-0 text-sv-blue" aria-hidden />
+          </LocalizedLink>
+        </div>
       </main>
       <Footer />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd(datasetLd) }} />

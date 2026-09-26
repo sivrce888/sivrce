@@ -123,6 +123,7 @@ async function georgiaSitemap(): Promise<MetadataRoute.Sitemap> {
     // is the discovery path for ~140 indexed pages (agents, developers, projects).
     { path: '/mortgage-calculator', changeFrequency: 'monthly', priority: 0.7 },
     { path: '/rent-vs-buy', changeFrequency: 'monthly', priority: 0.7 },
+    { path: '/valuation', changeFrequency: 'daily', priority: 0.8 },
     { path: '/agents', changeFrequency: 'weekly', priority: 0.6 },
     { path: '/agencies', changeFrequency: 'weekly', priority: 0.6 },
     { path: '/developers', changeFrequency: 'daily', priority: 0.8 },
