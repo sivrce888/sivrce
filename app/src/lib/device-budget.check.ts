@@ -118,8 +118,10 @@ lock("src/components/map/Map3D.tsx", [
   "camMs(",
   "applyAtmosphere(",
   "setProjection(mapProjection(",
-  'reducedMotion="user"',
-], ["setWorkerCount"])
+  // Chrome motion is CSS and honours reduce-motion; framer cost ~44 KB gz here.
+  "motion-reduce:transition-none",
+  "motion-safe:animate-in",
+], ["setWorkerCount", "framer-motion"])
 lock("src/components/map/BuildingFloorsMap.tsx", ["...mapRuntimeOptions()", "bindMaplibreWorker("], ["setWorkerCount"])
 lock("src/components/search/SearchMapView.tsx", [
   "...mapRuntimeOptions()",

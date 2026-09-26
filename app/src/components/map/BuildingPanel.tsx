@@ -176,10 +176,13 @@ export default function BuildingPanel({ building, tab, onTab, floor, highlightId
 
         {isConstruction ? (
           <div
-            className="mx-5 mb-5 rounded-module border p-3"
+            // BRAND §3.3: the pastel chip flips to an 18% hue tint in dark —
+            // the fixed #EFF3FF card glowed white on the navy panel.
+            className="mx-5 mb-5 rounded-module border bg-(--chip) p-3 dark:bg-[color-mix(in_oklab,var(--hue)_18%,transparent)]"
             style={{
               borderColor: `${STATUS_BRAND.construction.hue}40`,
-              background: STATUS_BRAND.construction.chip,
+              ['--chip' as string]: STATUS_BRAND.construction.chip,
+              ['--hue' as string]: STATUS_BRAND.construction.hue,
             }}
           >
             <div className="flex items-center justify-between text-[12px] font-extrabold text-sv-ink">
@@ -190,11 +193,8 @@ export default function BuildingPanel({ building, tab, onTab, floor, highlightId
             </div>
             <div className="mt-2 h-2 overflow-hidden rounded-full bg-sv-ink/8">
               <div
-                className="h-full rounded-full"
-                style={{
-                  width: `${building.progress ?? 0}%`,
-                  background: STATUS_BRAND.construction.hue,
-                }}
+                className="h-full rounded-full bg-gradient-to-r from-sv-blue to-sv-violet"
+                style={{ width: `${building.progress ?? 0}%` }}
               />
             </div>
             {building.finish && (

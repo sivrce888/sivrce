@@ -9,7 +9,6 @@ import { useEffect, useLayoutEffect, useRef, useState, useCallback, useMemo, Sus
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useTheme } from 'next-themes'
 import { useI18n, type DictKey } from '@/lib/i18n/context'
-import { motion, MotionConfig } from 'framer-motion'
 import * as maplibregl from 'maplibre-gl'
 import {
   type Map as MlMap,
@@ -1033,11 +1032,14 @@ const KIND_FILTERS: { id: MapKindFilter; labelKey: DictKey; color: string }[] = 
   { id: 'hotel', labelKey: 'prop.hotel', color: CATEGORY_BRAND.hotels.hue },
 ]
 
+/** Bottom sheet on phones, side column on desktop — rises in with CSS (tw-animate). */
+const SHEET_CLASS =
+  'absolute inset-x-0 bottom-0 z-[60] max-h-[48%] overflow-hidden rounded-t-card border-t border-sv-ink/8 md:static md:max-h-none md:rounded-none md:border-t-0 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-9 motion-safe:duration-500 motion-safe:ease-[cubic-bezier(0.21,0.65,0.2,1)]'
+
 function MapFilterPills<T extends string>({
   items,
   value,
   onChange,
-  layoutId,
   muted,
   groupLabel,
   size = 'compact',
@@ -1045,7 +1047,6 @@ function MapFilterPills<T extends string>({
   items: { id: T; label: string; color: string; title?: string }[]
   value: T
   onChange: (id: T) => void
-  layoutId: string
   muted: string
   groupLabel: string
   size?: 'compact' | 'sheet'
@@ -1071,14 +1072,13 @@ function MapFilterPills<T extends string>({
               on ? 'text-white' : muted
             }`}
           >
-            {on && (
-              <motion.span
-                layoutId={layoutId}
-                className="absolute inset-0 rounded-full shadow-soft"
-                style={{ background: f.color }}
-                transition={{ type: 'spring', bounce: 0.18, duration: 0.45 }}
-              />
-            )}
+            {/* CSS crossfade, not a framer layoutId slide — framer was ~44 KB gz
+                of the map chunk for this and the sheet rise below. */}
+            <span
+              aria-hidden
+              className={`absolute inset-0 rounded-full shadow-soft transition-opacity duration-200 motion-reduce:transition-none ${on ? 'opacity-100' : 'opacity-0'}`}
+              style={{ background: f.color }}
+            />
             <span className="relative z-10">{f.label}</span>
           </button>
         )
@@ -3316,9 +3316,7 @@ function Map3DInner({
   const segOn = 'bg-sv-blue text-white shadow-glow-blue-sm'
 
   return (
-    // reducedMotion="user" — one wrapper covers every framer spring below
-    // (filter pills, panel slide-ups). Camera flies go through camMs().
-    <MotionConfig reducedMotion="user">
+    // Camera flies go through camMs(); chrome motion is CSS with motion-reduce off.
     <div
       ref={shellRef}
       className={`relative flex w-full overflow-hidden ${fullscreen ? 'h-dvh' : 'h-full min-h-0'} ${shellBg}`}
@@ -3381,7 +3379,6 @@ function Map3DInner({
                 items={DEAL_FILTERS.map((f) => ({ id: f.id, label: t(f.labelKey), color: f.color }))}
                 value={dealFilter}
                 onChange={pickDeal}
-                layoutId="map-deal-bar"
                 muted={chipMuted}
                 groupLabel={t('map.deal')}
               />
@@ -3398,7 +3395,6 @@ function Map3DInner({
                 }))}
                 value={kindFilter}
                 onChange={pickKind}
-                layoutId="map-kind-bar"
                 muted={chipMuted}
                 groupLabel={t('map.kind')}
               />
@@ -3528,7 +3524,6 @@ function Map3DInner({
                   items={DEAL_FILTERS.map((f) => ({ id: f.id, label: t(f.labelKey), color: f.color }))}
                   value={dealFilter}
                   onChange={pickDeal}
-                  layoutId="map-deal-sheet"
                   muted={chipMuted}
                   groupLabel={t('map.deal')}
                   size="sheet"
@@ -3547,7 +3542,6 @@ function Map3DInner({
                   }))}
                   value={kindFilter}
                   onChange={pickKind}
-                  layoutId="map-kind-sheet"
                   muted={chipMuted}
                   groupLabel={t('map.kind')}
                   size="sheet"
@@ -3805,12 +3799,7 @@ function Map3DInner({
       </div>
 
       {selected && (
-        <motion.div
-          initial={{ y: 36, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ type: 'spring', bounce: 0.12, duration: 0.5 }}
-          className="absolute inset-x-0 bottom-0 z-[60] max-h-[48%] overflow-hidden rounded-t-card border-t border-sv-ink/8 md:static md:max-h-none md:rounded-none md:border-t-0"
-        >
+        <div className={SHEET_CLASS}>
           <BuildingPanel
             building={selected}
             tab={tab}
@@ -3820,21 +3809,15 @@ function Map3DInner({
             onFloorClear={() => setFloorFilter(null)}
             onClose={() => selectBuilding(null)}
           />
-        </motion.div>
+        </div>
       )}
 
       {!selected && berlinPick && (
-        <motion.div
-          initial={{ y: 36, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ type: 'spring', bounce: 0.12, duration: 0.5 }}
-          className="absolute inset-x-0 bottom-0 z-[60] max-h-[48%] overflow-hidden rounded-t-card border-t border-sv-ink/8 md:static md:max-h-none md:rounded-none md:border-t-0"
-        >
+        <div className={SHEET_CLASS}>
           <BerlinFeaturePanel feature={berlinPick} onClose={() => setBerlinPick(null)} />
-        </motion.div>
+        </div>
       )}
     </div>
-    </MotionConfig>
   )
 }
 
