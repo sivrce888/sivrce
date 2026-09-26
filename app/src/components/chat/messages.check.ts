@@ -4,6 +4,7 @@
  */
 import assert from 'node:assert/strict'
 import {
+  chatLeadTarget,
   clockLabel,
   dayKey,
   mergeMessages,
@@ -131,5 +132,18 @@ assert.equal(
   -1,
   'my own message never opens an unread run',
 )
+
+
+// chatLeadTarget — the launcher pitches the page's own lead form.
+assert.deepEqual(chatLeadTarget('/ka/listing/100234/vake-2-otaxiani'), { type: 'listing', id: '100234' })
+assert.deepEqual(chatLeadTarget('/en/projects/m2-vake'), { type: 'project', id: 'm2-vake' })
+assert.deepEqual(chatLeadTarget('/ka/services/movers/fast-move'), { type: 'service', id: 'fast-move' })
+assert.deepEqual(chatLeadTarget('/ge/ka/agencies/%E1%83%90'), { type: 'agency', id: 'ა' })
+assert.equal(chatLeadTarget('/ka/services/movers'), null) // category index, no slug
+assert.equal(chatLeadTarget('/ka/agents'), null)
+assert.equal(chatLeadTarget('/ka/seller/listings'), null) // plural dashboard ≠ detail
+assert.equal(chatLeadTarget('/ka/agent/listings'), null)
+assert.equal(chatLeadTarget('/ka/listing/%E0%A4%A'), null) // malformed escape
+assert.equal(chatLeadTarget(null), null)
 
 console.log('chat/messages.check.ts — all green')

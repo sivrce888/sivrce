@@ -13,6 +13,7 @@
 import { CITIES as SEO_CITIES, DEALS as SEO_DEALS, DISTRICTS as SEO_DISTRICTS } from '@/lib/directory-seo-lite'
 import type { DealType, PropType } from '@/data/listings'
 import type { Lang } from '@/lib/i18n/context'
+import { toLatin } from '@/lib/ka-latin'
 
 /**
  * First letter uppercase. Georgian is excluded explicitly — V8 maps Mkhedruli
@@ -57,6 +58,68 @@ export function locIn(place: string): string {
 
 const STREET_WORDS = /(?:^|\s)(?:გამზირი|გამზ\.?|ქუჩა|ქ\.?|ბულვარი|შესახვევი|შეს\.?|ჩიხი|მოედანი|აღმართი|ხეივანი|გზატკეცილი)\s*$/i
 
+/** Street-type head word keeps the name genitive and takes the locative itself
+ *  (ss.ge/myhome style: ბელიაშვილის ქუჩაზე, not ბელიაშვილზე) — and the word
+ *  ქუჩა/გამზირი stays in the title as its own search keyword. */
+const STREET_LOC: Record<string, string> = {
+  'ქუჩა': 'ქუჩაზე', 'გამზირი': 'გამზირზე', 'მოედანი': 'მოედანზე', 'აღმართი': 'აღმართზე',
+  'ბულვარი': 'ბულვარზე', 'გზატკეცილი': 'გზატკეცილზე', 'სანაპირო': 'სანაპიროზე', 'გზა': 'გზაზე',
+  'შესახვევი': 'შესახვევში', 'ჩიხი': 'ჩიხში', 'ხეივანი': 'ხეივანში',
+}
+
+/**
+ * "on X" for a street phrase or raw address head: "ბელიაშვილის ქუჩა N24" →
+ * "ბელიაშვილის ქუჩაზე", "ჭავჭავაძის 47" → "ჭავჭავაძეზე", "ნიჩბისი" → "ნიჩბისში".
+ * ponytail: last-word inflection only — multi-word irregulars belong in the
+ * curated DISTRICTS registry (locIn hits it for bare suburb names).
+ */
+export function streetLoc(street: string): string {
+  let name = street.trim().replace(/\s+/g, ' ')
+  if (!name) return ''
+  // Curated district/city names win even in the street box (ახალი ბულვარი →
+  // ახალ ბულვარზე, not *ახალი ბულვარზე).
+  const curated =
+    SEO_DISTRICTS.find((d) => d.ka === name)?.loc ?? SEO_CITIES.find((c) => c.ka === name)?.loc
+  if (curated) return curated
+  name = name
+    .replace(/(^|\s)(ქ|გამზ|შეს)\.(?=\s|$)/g, (m, sp, ab) => `${sp}${{ 'ქ': 'ქუჩა', 'გამზ': 'გამზირი', 'შეს': 'შესახვევი' }[ab as 'ქ']}`)
+    .replace(/(?:,\s*)?(?:[N№#]\s*|კორპ(?:უსი)?\.?\s*)?\d+\s*(?:კორპ(?:უსი)?\.?|ბინა\s*\d+)?\s*$/i, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+  if (!name) return ''
+  const words = name.split(' ')
+  const last = words[words.length - 1]
+  const head = STREET_LOC[last]
+  if (head) {
+    words[words.length - 1] = head
+    return words.join(' ')
+  }
+  if (STREET_WORDS.test(name) || /[აეიოუ]ს$/.test(last)) return locOn(name)
+  return locIn(name)
+}
+
+/**
+ * ka title chain, reader order: "თბილისში დიღმის მასივში ბელიაშვილის ქუჩაზე".
+ * City drops when the district phrase already carries it (ძველ თბილისში);
+ * street drops on exact duplication or when the chain outruns the SERP budget.
+ */
+function kaWhere(city?: string, district?: string, street?: string): string {
+  const c = city?.trim() ?? ''
+  const d = district?.trim() ?? ''
+  const dPart = d && d !== c ? locIn(d) : ''
+  const stem = c.replace(/ი$/, '')
+  const cPart = c && !dPart.includes(stem) ? locIn(c) : ''
+  const parts = [cPart, dPart].filter(Boolean)
+  const stRaw = street?.trim() ?? ''
+  const stPart = streetLoc(stRaw)
+  // Street drops when its head word is already in the chain (ბათუმის ბულვარი
+  // next to district ახალი ბულვარი) or the whole phrase duplicates a part.
+  const stStem = stRaw.replace(/\d.*$/, '').trim().split(/\s+/).pop()?.replace(/ი$/, '') ?? ''
+  if (stPart && stStem && !parts.some((p) => p.includes(stStem))) parts.push(stPart)
+  if (stPart && parts[parts.length - 1] === stPart && parts.join(' ').length > 80) parts.pop()
+  return parts.join(' ')
+}
+
 /**
  * "on X street" locative: ჭავჭავაძის (გამზ.) → ჭავჭავაძეზე, პეკინის → პეკინზე.
  * Suffix euphony: stems ending in ძ/ჯ/ჭ/ც/წ take -ეზე, others -ზე.
@@ -76,10 +139,11 @@ export function locOn(street: string): string {
 
 /* ————— en/ru place names ————— */
 
+// Registry miss → national romanization: a non-ka title never carries Mkhedruli.
 const enName = (n: string): string =>
-  SEO_DISTRICTS.find((d) => d.ka === n)?.en ?? SEO_CITIES.find((c) => c.ka === n)?.en ?? n
+  SEO_DISTRICTS.find((d) => d.ka === n)?.en ?? SEO_CITIES.find((c) => c.ka === n)?.en ?? toLatin(n)
 const ruName = (n: string): string =>
-  SEO_DISTRICTS.find((d) => d.ka === n)?.ru ?? SEO_CITIES.find((c) => c.ka === n)?.ru ?? n
+  SEO_DISTRICTS.find((d) => d.ka === n)?.ru ?? SEO_CITIES.find((c) => c.ka === n)?.ru ?? toLatin(n)
 
 /* ————— title parts ————— */
 
@@ -104,28 +168,19 @@ export function seoTitleParts(o: {
       ? (SEO_DEALS[slug!]?.en ?? o.dealLabel)
       : o.lang === 'ru'
         ? (SEO_DEALS[slug!]?.ru ?? o.dealLabel)
-        : o.dealLabel
+        : o.lang === 'de'
+          ? (SEO_DEALS[slug!]?.de ?? o.dealLabel)
+          : o.dealLabel
 
   const place = o.district || o.city || ''
   let where: string
   if (o.lang === 'ka') {
-    const loc = locIn(place)
-    const st = o.street?.trim() ?? ''
-    // The street box also receives bare settlement names (cadastre villages,
-    // ski towns: ნიჩბისი, ბაკურიანი). Those keep their "in X" locative —
-    // only street-worded or genitive-marked values ("ჭავჭავაძის გამზირი")
-    // take the street -ზე. ponytail: bare nominative person-name streets
-    // (autocomplete always carries გამზირი/ქუჩა) would mis-hit -ში.
-    if (!st) where = loc
-    else if (STREET_WORDS.test(st) || /[აეიოუ]ს$/.test(st)) where = `${locOn(st)} ${loc}`.trim()
-    else where = locIn(st)
-  } else if (o.lang === 'en' || o.lang === 'ru') {
-    const name = o.lang === 'en' ? enName : ruName
+    where = kaWhere(o.city, o.district, o.street) || locIn(place)
+  } else {
+    const name = o.lang === 'ru' ? ruName : enName
     const d = o.district ? name(o.district) : ''
     const c = o.city ? name(o.city) : ''
     where = d && c && d !== c ? `${d}, ${c}` : d || c
-  } else {
-    where = place
   }
   return { deal, where: where || '—' }
 }

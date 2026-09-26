@@ -2,6 +2,8 @@ import { Prisma } from "@/generated/prisma/client"
 import { db, dbAvailable } from "@/lib/db"
 import { unstable_cache } from "next/cache"
 
+import { getTargetOwnerId } from "./owner"
+
 /**
  * CONTRACT — implemented by the Reviews_Backend worker; consumed by pages
  * that need a server-side aggregate (e.g. JSON-LD aggregateRating).
@@ -92,4 +94,48 @@ export async function syncProfileRating(
     // Display surfaces read the live aggregate; a missed sync self-heals on
     // the next review write for the same target.
   }
+}
+
+// ─── Review trust: self-review block + verified-visit stamp ─────────────────
+
+/**
+ * Server-side trust stamp for a new review. `self` = the author owns the
+ * target (fake review). `verified` = the author finished a real stay or
+ * viewing on the target listing, or on any listing its owner runs: booking
+ * completed / confirmed-and-checked-out, tour completed / confirmed-and-past.
+ * Clients can't set it; it is never trusted from input.
+ * ponytail: inquiries don't verify — a message isn't an experience. Add
+ * "agent replied + deal won" once the CRM stage is reliable.
+ */
+export async function reviewTrust(
+  authorId: string,
+  targetType: string,
+  targetId: string,
+  now: Date = new Date(),
+): Promise<{ self: boolean; verified: boolean }> {
+  const ownerId = await getTargetOwnerId(targetType, targetId)
+  if (!ownerId) return { self: false, verified: false }
+  if (ownerId === authorId) return { self: true, verified: false }
+  // A stay with a service provider's other listings says nothing about the service.
+  if (targetType === "service") return { self: false, verified: false }
+  const listing: Prisma.ListingWhereInput = targetType === "listing" ? { id: targetId } : { ownerId }
+  const [stay, tour] = await Promise.all([
+    db.dailyRentalBooking.findFirst({
+      where: {
+        guestId: authorId,
+        listing,
+        OR: [{ status: "completed" }, { status: "confirmed", checkOut: { lte: now } }],
+      },
+      select: { id: true },
+    }),
+    db.propertyTour.findFirst({
+      where: {
+        userId: authorId,
+        listing,
+        OR: [{ status: "completed" }, { status: "confirmed", tourDate: { lte: now } }],
+      },
+      select: { id: true },
+    }),
+  ])
+  return { self: false, verified: Boolean(stay || tour) }
 }

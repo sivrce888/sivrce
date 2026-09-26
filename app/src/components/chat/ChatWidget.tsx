@@ -46,7 +46,8 @@ import { useChat, type ChatRoom } from "./ChatProvider"
 import FaqView from "./FaqView"
 import GuestMessageView from "./GuestMessageView"
 import { IntentFunnel } from "@/components/lead/IntentFunnel"
-import { funnelStrings } from "@/components/lead/i18n"
+import { LeadForm } from "@/components/lead/LeadForm"
+import { funnelStrings, leadStrings } from "@/components/lead/i18n"
 import { canUnsend, presenceOf } from "@/lib/chat-policy"
 import { listingPriceLabel } from "@/lib/listing-share"
 import { useAutoGrow } from "./useAutoGrow"
@@ -55,6 +56,7 @@ import PushNudge from "./PushNudge"
 import { isValidLang } from "@/lib/i18n/core"
 import {
   clockLabel,
+  chatLeadTarget,
   clearChatDraft,
   dayKey,
   dayLabel,
@@ -88,12 +90,18 @@ function agoLabel(iso: string, t: TFunc): string {
 }
 
 /** Header presence line — "" when the heartbeat is stale or missing. */
-function presenceLabel(lastSeenAt: string | null | undefined, t: TFunc): string {
+function presenceLabel(
+  lastSeenAt: string | null | undefined,
+  t: TFunc,
+  lang: string,
+): string {
   const { state, n } = presenceOf(lastSeenAt)
   if (state === "unknown") return ""
   if (state === "online") return t("chat.presenceOnline")
   const unit = t(state === "min" ? "chat.timeMin" : state === "hour" ? "chat.timeHour" : "chat.timeDay")
-  return t("chat.presenceAgo", { ago: `${n}${unit}` })
+  // ka units are spelled-out phrases ("5 დღის წინ") needing the space; compact
+  // locales glue their letter units ("5d") and carry წინ/ago inside the template.
+  return t("chat.presenceAgo", { ago: lang === "ka" ? `${n} ${unit}` : `${n}${unit}` })
 }
 
 const CHAT_MAX = 2000
@@ -204,18 +212,37 @@ function RoomListItem({
 /** Pinned quick actions above the room list — demand funnel + help + support line. */
 function QuickTiles({
   showSupport,
+  onAsk,
   onIntent,
   onFaq,
   onSupport,
 }: {
   showSupport: boolean
+  /** Set on a listing/profile page — that target's lead form leads the tiles. */
+  onAsk?: () => void
   onIntent: () => void
   onFaq: () => void
   onSupport: () => void
 }) {
   const { t, lang } = useI18n()
+  const lead = leadStrings(lang)
   return (
     <div className="grid grid-cols-2 gap-2 px-1 pb-2.5">
+      {onAsk && (
+        <button
+          type="button"
+          onClick={onAsk}
+          className="col-span-2 flex items-center gap-2.5 rounded-control bg-sv-blue px-3 py-2.5 text-start text-white transition-colors hover:bg-sv-blue-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
+        >
+          <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-white/15">
+            <Send className="h-4 w-4 rtl:-scale-x-100" aria-hidden />
+          </span>
+          <span className="min-w-0">
+            <span className="block truncate text-[13px] font-extrabold">{lead.formTitle}</span>
+            <span className="block truncate text-[11.5px] font-semibold text-white/80">{lead.formSubtitle}</span>
+          </span>
+        </button>
+      )}
       <button
         type="button"
         onClick={onIntent}
@@ -1446,8 +1473,26 @@ export default function ChatWidget() {
   const panelRef = useRef<HTMLDivElement>(null)
   const wasOpenRef = useRef(false)
 
-  /** Room list, help assistant, demand funnel, or the guest leave-a-message form. */
-  const [view, setView] = useState<"rooms" | "faq" | "guest" | "intent">("rooms")
+  /** Listing/profile the visitor is on — its lead form is the chat's first offer. */
+  const leadTarget = useMemo(() => chatLeadTarget(pathname), [pathname])
+  /** Guests land on the page's lead form; members keep their inbox (the ask
+   *  tile leads it). Anywhere else: help for guests, rooms for members. */
+  const homeView = guest ? (leadTarget ? "ask" : "faq") : "rooms"
+  /** Explicit pick — room list, help, demand funnel, guest leave-a-message
+   *  form, or the page's lead form ("ask"); null = homeView. */
+  const [picked, setView] = useState<"rooms" | "faq" | "guest" | "intent" | "ask" | null>(null)
+  // Closing forgets the pick, so any opener (launcher or a page CTA) lands on
+  // home. Adjusted during render, not in an effect — no extra commit.
+  const [openSeen, setOpenSeen] = useState(open)
+  if (open !== openSeen) {
+    setOpenSeen(open)
+    if (!open) setView(null)
+  }
+  // Navigated off the target page with its form open → home, never a form
+  // addressed to a page the visitor already left.
+  // ponytail: members see the ask tile on their own listing too (URL can't
+  // tell ownership); harmless — the lead just reaches their own inbox.
+  const view = picked === null || (picked === "ask" && !leadTarget) ? homeView : picked
   /** Room-list filter — rendered only once the list is long enough to need it. */
   const [roomQuery, setRoomQuery] = useState("")
   const visibleRooms =
@@ -1560,7 +1605,9 @@ export default function ChatWidget() {
     ? activeRoom.isSupport
       ? t("chat.supportName")
       : activeRoom.counterpart?.name || activeRoom.listing?.title || activeRoom.title
-    : view === "faq"
+    : view === "ask"
+      ? leadStrings(lang).formTitle
+      : view === "faq"
       ? t("chat.help")
       : view === "intent"
         ? funnelStrings(lang).title
@@ -1571,7 +1618,7 @@ export default function ChatWidget() {
   // question a buyer actually has. Never shown on a blocked thread.
   const presence =
     activeRoom && !activeRoom.isSupport && !activeRoom.blocked
-      ? presenceLabel(activeRoom.counterpart?.lastSeenAt, t)
+      ? presenceLabel(activeRoom.counterpart?.lastSeenAt, t, lang)
       : ""
   const headerSub = activeRoom
     ? activeRoom.isSupport
@@ -1587,10 +1634,7 @@ export default function ChatWidget() {
     !!activeRoom && !activeRoom.isSupport && !activeRoom.blocked &&
     presenceOf(activeRoom.counterpart?.lastSeenAt).state === "online"
 
-  const close = () => {
-    closeChat()
-    setView("rooms")
-  }
+  const close = () => closeChat()
 
   /**
    * Desktop-only size toggle. A 380×560 card is right for a quick reply and
@@ -1650,7 +1694,6 @@ export default function ChatWidget() {
         onClick={() => {
           if (open) close()
           else {
-            setView(guest ? "faq" : "rooms")
             openChat()
           }
         }}
@@ -1664,14 +1707,14 @@ export default function ChatWidget() {
         } ${open ? "pointer-events-none invisible" : ""}`}
       >
         <span
-          className={`absolute transition-all duration-200 ${
+          className={`absolute transition duration-200 ${
             open ? "rotate-90 opacity-0" : "rotate-0 opacity-100"
           }`}
         >
           <MessageCircle className="h-5 w-5" aria-hidden />
         </span>
         <span
-          className={`absolute transition-all duration-200 ${
+          className={`absolute transition duration-200 ${
             open ? "rotate-0 opacity-100" : "-rotate-90 opacity-0"
           }`}
         >
@@ -1705,13 +1748,12 @@ export default function ChatWidget() {
           <div className="flex items-center gap-2.5 border-b border-sv-ink/[0.08] px-3 py-2.5">
             {/* Guests have no room list to go back to — but the guest form is
                 reached from Help, so it keeps its Back. */}
-            {activeRoomId || view === "guest" || view === "intent" || (view === "faq" && !guest) ? (
+            {activeRoomId || view !== homeView ? (
               <button
                 onClick={() => {
                   if (activeRoomId) setActiveRoom(null)
                   else if (view === "guest") setView("faq")
-                  else if (view === "intent") setView(guest ? "faq" : "rooms")
-                  else setView("rooms")
+                  else setView(homeView)
                 }}
                 aria-label={t("chat.back")}
                 className="grid h-9 w-9 shrink-0 place-items-center rounded-control text-sv-ink/60 transition-colors hover:bg-sv-ink/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue"
@@ -1741,6 +1783,10 @@ export default function ChatWidget() {
                     aria-hidden
                   />
                 )}
+              </span>
+            ) : view === "ask" ? (
+              <span className="grid h-[34px] w-[34px] shrink-0 place-items-center rounded-full bg-sv-blue/10 text-sv-blue-deep">
+                <Send className="h-4 w-4 rtl:-scale-x-100" aria-hidden />
               </span>
             ) : view === "faq" ? (
               <span className="grid h-[34px] w-[34px] shrink-0 place-items-center rounded-full bg-sv-blue/10 text-sv-blue-deep">
@@ -1803,6 +1849,24 @@ export default function ChatWidget() {
               blockedByMe={activeRoom?.blockedByMe}
               onUnblock={() => void setRoomBlocked(activeRoomId, false)}
             />
+          ) : view === "ask" && leadTarget ? (
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[env(safe-area-inset-bottom,0px)]">
+              <LeadForm
+                key={`${leadTarget.type}:${leadTarget.id}`}
+                variant="panel"
+                targetType={leadTarget.type}
+                targetId={leadTarget.id}
+              />
+              {/* The form is home for guests here — help stays one tap away. */}
+              <button
+                type="button"
+                onClick={() => setView("faq")}
+                className="mx-auto mb-3 flex min-h-11 items-center gap-1.5 rounded-control px-3 text-[13px] font-bold text-sv-ink/60 transition-colors hover:text-sv-blue-deep focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue"
+              >
+                <HelpCircle className="h-4 w-4" aria-hidden />
+                {t("chat.help")}
+              </button>
+            </div>
           ) : view === "faq" ? (
             <FaqView key={lang} onContactSupport={openSupport} onIntent={() => setView("intent")} />
           ) : view === "guest" ? (
@@ -1813,6 +1877,7 @@ export default function ChatWidget() {
             <div className="flex-1 overflow-y-auto overscroll-contain px-2.5 py-2.5">
               <QuickTiles
                 showSupport={!rooms.some((r) => r.isSupport)}
+                onAsk={leadTarget ? () => setView("ask") : undefined}
                 onIntent={() => setView("intent")}
                 onFaq={() => setView("faq")}
                 onSupport={openSupport}

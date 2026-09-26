@@ -9,7 +9,7 @@
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { LISTINGS, districtsOf } from './listings'
-import { GEO_ALL_PLACES, GEO_CITIES, geoDistrictsOf } from './georgia-locations'
+import { GEO_ALL_PLACES, GEO_CITIES, GEO_MUNICIPALITIES, geoDistrictsOf, geoMuniSeat } from './georgia-locations'
 import { PROJECTS } from './professionals'
 import { BUILDINGS } from './buildings'
 import { CITIES, DISTRICTS } from '../lib/directory-seo-lite'
@@ -95,3 +95,14 @@ assert.ok(
 console.log(
   `georgia-locations.check: ok — ${GEO_CITIES.length} cities, ${geoDistrictsOf().length} districts`,
 )
+
+// Municipality → seat city (nominative) for non-ka labels.
+{
+  assert.equal(geoMuniSeat('აბაშის მუნიციპალიტეტი'), 'აბაშა')
+  assert.equal(geoMuniSeat('ახალციხის მუნიციპალიტეტი'), 'ახალციხე')
+  assert.equal(geoMuniSeat('გარდაბნის მუნიციპალიტეტი'), 'გარდაბანი')
+  assert.equal(geoMuniSeat('საგარეჯოს მუნიციპალიტეტი'), 'საგარეჯო')
+  assert.equal(geoMuniSeat('თბილისი'), null)
+  const unresolved = GEO_MUNICIPALITIES.filter((m) => /მუნიციპალიტეტი$|რაიონი$/.test(m) && !geoMuniSeat(m))
+  assert.deepEqual(unresolved, [], 'every municipality resolves to its seat city')
+}

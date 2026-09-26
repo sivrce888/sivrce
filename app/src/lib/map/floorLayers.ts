@@ -40,8 +40,12 @@ export const STYLE_DARK =
 /** Sentinel — not a URL; loadMapBasemap builds hybrid sat style. */
 export const STYLE_SATELLITE = 'satellite:hybrid'
 
-/** streets/clean = OFM; satellite = Esri imagery + road/place labels (Apple Hybrid). */
-export type MapTerrain = 'streets' | 'clean' | 'satellite'
+/**
+ * streets/clean = OFM; satellite = Esri imagery + road/place labels (Apple Hybrid).
+ * contrast = streets (light) or dark base + max-legibility boost — low vision,
+ * older eyes, phone in sunlight. Paint-only: same tiles, zero extra bytes.
+ */
+export type MapTerrain = 'streets' | 'clean' | 'satellite' | 'contrast'
 
 /** @deprecated use mapStyleUrl(dark) — kept for one-off env lock */
 export const STYLE_URL = STYLE_DARK
@@ -53,6 +57,7 @@ export function mapStyleUrl(
 ): string {
   if (terrain === 'satellite') return STYLE_SATELLITE
   if (dark) return styles?.dark ?? STYLE_DARK
+  // contrast rides the streets base — same URL, so streets⇄contrast never refetches.
   if (terrain === 'clean') return styles?.clean ?? STYLE_CLEAN
   return styles?.light ?? STYLE_LIGHT
 }
@@ -675,6 +680,64 @@ function applyCleanPaints(map: MlMap) {
   hideOfmSuburbLabels(map)
 }
 
+/**
+ * High contrast — WCAG-minded boost over the light or dark base: every basemap
+ * label goes ink-on-paper (paper-on-navy at night) with a heavy halo, POIs
+ * stop fading, road casings turn solid so street edges read in sunlight.
+ * Generic over the style's own layers, so both OFM schemas are covered.
+ */
+const CONTRAST_SYMBOL_PROPS = ['text-color', 'text-halo-color', 'text-halo-width', 'text-opacity', 'icon-opacity'] as const
+const CONTRAST_NIGHT_ROADS = ['highway_path', 'highway_minor', 'highway_major_subtle', 'highway_major_inner'] as const
+
+/** Basemap paint the boost owns: [layer, props]. sivrce-* overlays keep their own. */
+function contrastTargets(layers: readonly { id: string; type: string }[]): [string, readonly string[]][] {
+  const out: [string, readonly string[]][] = []
+  for (const l of layers) {
+    if (l.id.startsWith('sivrce-')) continue
+    if (l.type === 'symbol') out.push([l.id, CONTRAST_SYMBOL_PROPS])
+    else if (l.type === 'line' && (l.id.includes('casing') || (CONTRAST_NIGHT_ROADS as readonly string[]).includes(l.id))) {
+      out.push([l.id, ['line-color']])
+    }
+  }
+  return out
+}
+
+function applyContrastBoost(map: MlMap, theme: MapTheme) {
+  const dark = theme === 'dark'
+  const text = dark ? BRAND.colors.paper : BRAND.colors.ink
+  const halo = dark ? BRAND.colors.navy : BRAND.colors.paper
+  for (const [id, props] of contrastTargets(map.getStyle()?.layers ?? [])) {
+    if (props === CONTRAST_SYMBOL_PROPS) {
+      trySet(map, id, 'text-color', text)
+      trySet(map, id, 'text-halo-color', halo)
+      trySet(map, id, 'text-halo-width', 2.4)
+      trySet(map, id, 'text-opacity', 1)
+      trySet(map, id, 'icon-opacity', 1)
+    } else if (id.includes('casing')) {
+      trySet(map, id, 'line-color', dark ? '#E9EDFF' : BRAND.colors.ink)
+    } else if (dark) {
+      // Night fabric one full step brighter — streets read without a legend.
+      trySet(map, id, 'line-color', id === 'highway_major_inner' ? '#E9EDFF' : '#5B688B')
+    }
+  }
+}
+
+/**
+ * streets ⇄ contrast share one style URL, so no setStyle fires. Reset the
+ * boost's paints to the cached pristine style, then brand-paint again —
+ * no refetch, no overlay remount, camera untouched.
+ */
+export async function repaintBasemap(map: MlMap, styleKey: string, theme: MapTheme, terrain: MapTerrain) {
+  const pristine = await loadMapBasemap(styleKey)
+  for (const l of pristine.layers ?? []) {
+    const targets = contrastTargets([l])
+    if (!targets.length) continue
+    const paint = ('paint' in l ? l.paint : undefined) as Record<string, unknown> | undefined
+    for (const prop of targets[0]![1]) trySet(map, l.id, prop, paint?.[prop] ?? null)
+  }
+  applyBrandPaints(map, theme, terrain)
+}
+
 function langFromDom(): Lang {
   if (typeof document === 'undefined') return DEFAULT_LANG
   const raw = document.documentElement.lang.split('-')[0] ?? ''
@@ -703,6 +766,7 @@ export function applyBrandPaints(
   } else {
     applyLightPaints(map)
   }
+  if (terrain === 'contrast') applyContrastBoost(map, theme)
   paintNature(map, nature, isLiteDevice())
   try {
     applyMapLanguage(map, langFromDom())

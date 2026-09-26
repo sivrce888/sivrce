@@ -14,9 +14,16 @@ import { SITE_META } from "./i18n/server"
 // translated block defaults: every locale-neutral-symbolic ka value is exempt;
 // every other key must exist, keep {n}/{v} vars, and months must have 12 parts.
 const SYMBOLIC_KA = /^[\d\s/+%.·-]*$/
+// Tri-part heading: locales distribute the phrase across titleA/titleAccent/
+// titleB by word order (ka "საქართველოს | ინტერაქტიული 3D რუკა", en "Interactive
+// 3D map of Georgia"), so either slot may be empty — but the heading as a whole
+// must say something in every locale.
+const HEADING_PARTS: (keyof typeof CMS_BLOCKS)[] = ["home.map.titleA", "home.map.titleAccent", "home.map.titleB"]
+const HEADING_EMPTY_OK = new Set(["home.map.titleA", "home.map.titleB"])
 for (const [lang, dict] of Object.entries(BLOCK_I18N)) {
   for (const key of CMS_BLOCK_KEYS) {
     if (SYMBOLIC_KA.test(CMS_BLOCKS[key])) continue
+    if (HEADING_EMPTY_OK.has(key)) continue
     const val = dict[key]
     assert(val != null && val.trim().length > 0, `block i18n missing: ${lang} ${key}`)
     for (const v of ["{n}", "{v}"]) {
@@ -24,6 +31,10 @@ for (const [lang, dict] of Object.entries(BLOCK_I18N)) {
         assert(val.includes(v), `block i18n lost ${v}: ${lang} ${key}`)
     }
   }
+  assert(
+    HEADING_PARTS.some((k) => (dict[k] ?? "").trim().length > 0),
+    `map heading empty: ${lang}`,
+  )
   assert(
     (dict["home.blog.months"] ?? "").split(",").length === 12,
     `block i18n months must have 12 entries: ${lang}`,
@@ -52,6 +63,7 @@ for (const key of CMS_BLOCK_KEYS) {
 assert(CMS_BLOCK_KEYS.length > 30, "expected the homepage block set")
 for (const key of CMS_BLOCK_KEYS) {
   assert(key.startsWith("home."), `block key namespaced: ${key}`)
+  if (HEADING_EMPTY_OK.has(key)) continue // phrase may live in a sibling part
   assert(CMS_BLOCKS[key].trim().length > 0, `block default non-empty: ${key}`)
 }
 // stat values stay numeric (count-up animation depends on it)

@@ -58,7 +58,7 @@ export default function BlogNewsSection({ articles }: { articles: BlogCard[] }) 
           {articles.map((art, i) => (
             <Reveal key={art.slug} delay={i * 0.08} className="h-full w-[82%] max-w-[340px] shrink-0 snap-start sm:w-auto sm:max-w-none">
               <LocalizedLink href={`/blog/${art.slug}`} className="block h-full">
-                <article className="group flex h-full flex-col overflow-hidden rounded-card border border-sv-ink/[0.08] bg-gradient-to-b from-sv-cloud to-sv-surface p-4 transition-all duration-300 hover:-translate-y-1.5 hover:border-sv-blue/30 hover:shadow-card-hover">
+                <article className="group flex h-full flex-col overflow-hidden rounded-card border border-sv-ink/[0.08] bg-gradient-to-b from-sv-cloud to-sv-surface p-4 transition duration-300 hover:-translate-y-1.5 hover:border-sv-blue/30 hover:shadow-card-hover">
                   <div className="relative h-44 w-full overflow-hidden rounded-module bg-sv-surface">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img

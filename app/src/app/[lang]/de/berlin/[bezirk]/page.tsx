@@ -208,7 +208,7 @@ export default async function BezirkPage({
               {center && (
                 <Link
                   href={`/map?lat=${center.lat}&lng=${center.lng}&city=berlin`}
-                  className="inline-flex items-center gap-2 rounded-full bg-sv-navy px-5 py-2.5 text-[13px] font-black text-white shadow-card transition-all hover:bg-sv-blue hover:shadow-card-hover active:scale-95"
+                  className="inline-flex items-center gap-2 rounded-full bg-sv-navy px-5 py-2.5 text-[13px] font-black text-white shadow-card transition hover:bg-sv-blue hover:shadow-card-hover active:scale-95"
                 >
                   <Layers className="h-4 w-4 text-sv-blue-light" aria-hidden />
                   {de ? `${b.de} auf 3D-Karte erkunden` : `Explore ${b.de} on 3D Map`}
@@ -216,7 +216,7 @@ export default async function BezirkPage({
               )}
               <Link
                 href={`/search?country=de&city=berlin`}
-                className="inline-flex items-center gap-2 rounded-full border border-sv-ink/10 bg-sv-surface px-5 py-2.5 text-[13px] font-black text-sv-ink shadow-card transition-all hover:border-sv-blue/40 hover:text-sv-blue active:scale-95"
+                className="inline-flex items-center gap-2 rounded-full border border-sv-ink/10 bg-sv-surface px-5 py-2.5 text-[13px] font-black text-sv-ink shadow-card transition hover:border-sv-blue/40 hover:text-sv-blue active:scale-95"
               >
                 <Search className="h-4 w-4 text-sv-ink/50" aria-hidden />
                 {de ? 'Berlin Angebote filtern' : 'Filter Berlin listings'}
@@ -296,7 +296,7 @@ export default async function BezirkPage({
                 <li key={d.slug}>
                   <Link
                     href={de ? `/de/developers/${d.slug}` : `/developers/${d.slug}`}
-                    className="group flex h-full items-center gap-4 rounded-module border border-sv-ink/[0.07] bg-sv-surface px-5 py-4 shadow-card transition-all duration-300 hover:-translate-y-1 hover:border-sv-blue/30 hover:shadow-card-hover"
+                    className="group flex h-full items-center gap-4 rounded-module border border-sv-ink/[0.07] bg-sv-surface px-5 py-4 shadow-card transition duration-300 hover:-translate-y-1 hover:border-sv-blue/30 hover:shadow-card-hover"
                   >
                     <span
                       aria-hidden
@@ -329,7 +329,7 @@ export default async function BezirkPage({
                   <li key={x.slug}>
                     <Link
                       href={`/de/berlin/${x.slug}`}
-                      className="flex items-center justify-between gap-3 rounded-module border border-sv-ink/[0.07] bg-sv-surface px-5 py-4 font-extrabold text-sv-ink shadow-card transition-all duration-300 hover:-translate-y-1 hover:border-sv-blue/30 hover:shadow-card-hover"
+                      className="flex items-center justify-between gap-3 rounded-module border border-sv-ink/[0.07] bg-sv-surface px-5 py-4 font-extrabold text-sv-ink shadow-card transition duration-300 hover:-translate-y-1 hover:border-sv-blue/30 hover:shadow-card-hover"
                     >
                       <span className="text-[15px]">{x.de}</span>
                       <span className="text-[12px] font-black text-sv-blue">

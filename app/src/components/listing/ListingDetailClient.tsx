@@ -22,7 +22,7 @@ import UserAvatar from '@/components/UserAvatar'
 import { FeatureGlyph } from '@/components/FeatureIcon'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
-import { monthlyPayment, estimateMonthlyRent, grossYieldPct } from '@/lib/finance'
+import { monthlyPayment, grossYieldPct } from '@/lib/finance'
 import ListingCard, { BADGE_STYLE, ExclusiveBadges, ListingStickerStack } from '@/components/ListingCard'
 import { AdCreative } from '@/components/ads/AdCreative'
 import type { PublicAd } from '@/lib/ads'
@@ -50,10 +50,10 @@ import { scoreReasonKey, sivrceScore } from '@/lib/sivrce-score'
 // ponytail: type-only — AiAdvisor ships as its own lazy chunk
 import type { PropertyCopilotContext } from '@/lib/ai-copilot'
 import { aiLabel } from '@/lib/ai-label'
-import { listingTitle, placeLabel } from '@/lib/place-label'
+import { placeLabel } from '@/lib/place-label'
 import { readableName } from '@/lib/ka-latin'
 import type { TasPublicDoc } from '@/lib/map/tas-arch'
-import { listingPath } from '@/lib/listing-slug'
+import { listingDisplayTitle, listingPath } from '@/lib/listing-slug'
 import { ShareSheet, openWhatsAppShare } from '@/components/listing/SharePack'
 import type { ListingShareInput } from '@/lib/listing-share'
 import { lt } from './i18n'
@@ -445,7 +445,7 @@ function Lightbox({
               onClick={() => onJump(i)}
               aria-label={t('detail.photo', { n: i + 1 })}
               aria-pressed={i === index}
-              className={`relative h-14 w-[84px] shrink-0 overflow-hidden rounded-lg transition-all ${
+              className={`relative h-14 w-[84px] shrink-0 overflow-hidden rounded-lg transition ${
                 i === index ? 'ring-2 ring-white' : 'opacity-50 hover:opacity-90'
               }`}
             >
@@ -615,6 +615,8 @@ export default function ListingDetailClient({
   hubLink = null,
   deCosts = null,
   geCosts = null,
+  rentEstimate = null,
+  rentSource = null,
 }: {
   listing: Listing
   similar: Listing[]
@@ -642,6 +644,11 @@ export default function ListingDetailClient({
   deCosts?: BuyerCostBreakdown | null
   /** GE sale closing fees — server-computed so costs.ts stays off this client. */
   geCosts?: GeBuyerCosts | null
+  /** Monthly market rent in the listing's native currency — server-computed so
+   *  rent-anchor (→ de.ts city catalog) stays off this client. */
+  rentEstimate?: number | null
+  /** Source credit for the rent/yield line — server-computed alongside rentEstimate. */
+  rentSource?: string | null
 }) {
   const { data: session, status: authStatus } = useSession()
   const isOwner = Boolean(ownerId && session?.user?.id === ownerId)
@@ -735,7 +742,7 @@ export default function ListingDetailClient({
   }, [l.images, photo])
 
   // Mortgage state
-  const [downPct, setDownPct] = useState(20)
+  const [downPct, setDownPct] = useState((l.country ?? 'GE') === 'GE' ? 30 : 20) // GE: NBG caps USD loans at 70% LTV
   const [years, setYears] = useState(l.country === 'DE' ? 25 : 15)
   const [rate, setRate] = useState(l.country === 'DE' ? 3.8 : 9.5)
   const [siteBoost, setSiteBoost] = useState<{
@@ -813,7 +820,7 @@ export default function ListingDetailClient({
     return () => {
       cancelled = true
     }
-  }, [l.coords.lat, l.coords.lng])
+  }, [l.coords.lat, l.coords.lng, lang])
   const recentQueryIds = useMemo(
     () => recentIds.filter((id) => id !== l.id).slice(0, 3),
     [recentIds, l.id],
@@ -825,10 +832,10 @@ export default function ListingDetailClient({
     const principal = euroNative ? l.priceOriginal! : l.priceUSD
     return monthlyPayment(principal * (1 - downPct / 100), rate, years)
   }, [l, downPct, rate, years, euroNative])
-  const rentEst = useMemo(
-    () => estimateMonthlyRent(euroNative ? l.priceOriginal! : l.priceUSD),
-    [l.priceUSD, l.priceOriginal, euroNative],
-  )
+  // Area × market rent/m² in the price's own currency; null → yield line hidden.
+  const rentEst = euroNative === (l.country === 'DE') ? rentEstimate : null
+  // USD view for USD-typed consumers; EUR listings convert at their own price ratio.
+  const rentUSD = rentEst && euroNative ? Math.round((rentEst * l.priceUSD) / l.priceOriginal!) : rentEst
   const fav = has(l.id)
   const compared = inCompare(l.id)
   const isSale = l.dealType === 'sale'
@@ -886,18 +893,18 @@ export default function ListingDetailClient({
       priceUSD: l.priceUSD,
       areaSqm: l.area,
       // Localized — the copilot interpolates it into prose ("… within Dighomi Massive").
-      district: readableName(placeLabel(l.district, lang, l.country), lang),
-      city: readableName(placeLabel(l.city, lang, l.country), lang),
+      district: placeLabel(l.district, lang, l.country),
+      city: placeLabel(l.city, lang, l.country),
       countryCode: l.country,
       // Only assert a district median when real peers exist — a circular
       // "average of $35/m²" (the listing itself) reads as a fabricated FACT.
       ...(peers.length > 0 && { districtMedianPerSqm: peers[Math.floor(peers.length / 2)] }),
-      estimatedMonthlyRentUSD: isSale ? rentEst : undefined,
+      estimatedMonthlyRentUSD: isSale ? rentUSD ?? undefined : undefined,
       sellerPhoneVerified: Boolean(l.verified || l.agent.verified),
       photosCount: l.photoCount ?? l.images.length,
       hasCadastralCode: l.hasCadastralCode,
     }
-  }, [l, lang, isSale, rentEst, peerPerM2])
+  }, [l, lang, isSale, rentUSD, peerPerM2])
 
   useEffect(() => {
     if (!Number.isFinite(l.coords.lat) || !Number.isFinite(l.coords.lng)) return
@@ -964,8 +971,9 @@ export default function ListingDetailClient({
   const displayLabel = aiLabel(displayScore, lang)
   const city = placeLabel(l.city, lang, l.country)
   // GE districts are stored in Mkhedruli — romanize for every non-ka reader.
-  const district = readableName(placeLabel(l.district, lang, l.country), lang)
-  const title = listingTitle(l.title, l.city, lang)
+  const district = placeLabel(l.district, lang, l.country)
+  const agentName = readableName(l.agent.name, lang)
+  const title = listingDisplayTitle(l, lang, t)
 
   const specs: { icon: typeof BedDouble; label: string; value: string }[] = [
     { icon: BedDouble, label: t('spec.beds'), value: l.beds > 0 ? String(l.beds) : '—' },
@@ -1016,7 +1024,7 @@ export default function ListingDetailClient({
     city,
     area: l.area,
     priceLabel: priceMain,
-    agentName: l.agent.name,
+    agentName,
     agency: l.agent.agency,
   }
   const sharePath = listingPath(l)
@@ -1107,7 +1115,7 @@ export default function ListingDetailClient({
                     src={heroSrc.card ?? heroSrc.master}
                     srcSet={heroSrc.set}
                     sizes={HERO_SIZES}
-                    alt={`${l.title} — ${t('detail.photo', { n: String(photo + 1) })}`}
+                    alt={`${title} — ${t('detail.photo', { n: String(photo + 1) })}`}
                     width={2560}
                     height={1600}
                     draggable={false}
@@ -1233,13 +1241,13 @@ export default function ListingDetailClient({
                   }}
                   aria-label={moreTile ? t('card.allPhotos', { n: l.images.length - 3 }) : t('detail.photo', { n: i + 1 })}
                   aria-pressed={!moreTile && photo === i}
-                  className={`relative aspect-[16/10] overflow-hidden rounded-module transition-all duration-300 lg:aspect-auto lg:h-full ${
+                  className={`relative aspect-[16/10] overflow-hidden rounded-module transition duration-300 lg:aspect-auto lg:h-full ${
                     !moreTile && photo === i
                       ? 'ring-2 ring-sv-blue ring-offset-2 ring-offset-sv-cloud'
                       : 'opacity-75 hover:opacity-100'
                   }`}
                 >
-                  <Image src={cardOf(src) ?? src} alt={`${l.title} — ${t('detail.photo', { n: String(i + 1) })}`} fill sizes="(max-width:1024px) 25vw, 420px" unoptimized={isCdnMedia(src)} className="object-cover" {...blurProps(src)} />
+                  <Image src={cardOf(src) ?? src} alt={`${title} — ${t('detail.photo', { n: String(i + 1) })}`} fill sizes="(max-width:1024px) 25vw, 420px" unoptimized={isCdnMedia(src)} className="object-cover" {...blurProps(src)} />
                   {moreTile && (
                     <span className="absolute inset-0 grid place-items-center bg-sv-navy/55 text-white backdrop-blur-[2px]">
                       <span className="flex flex-col items-center gap-1">
@@ -1309,11 +1317,11 @@ export default function ListingDetailClient({
                     href={streetHref}
                     className="mt-2 flex items-center gap-1.5 text-[15px] font-semibold text-sv-blue transition-colors hover:text-sv-blue-deep"
                   >
-                    <MapPin className="h-4 w-4 shrink-0" /> {l.address}
+                    <MapPin className="h-4 w-4 shrink-0" /> {readableName(l.address, lang)}
                   </LocalizedLink>
                 ) : (
                   <p className="mt-2 flex items-center gap-1.5 text-[15px] font-semibold text-sv-ink/60">
-                    <MapPin className="h-4 w-4 shrink-0 text-sv-blue" /> {l.address}
+                    <MapPin className="h-4 w-4 shrink-0 text-sv-blue" /> {readableName(l.address, lang)}
                   </p>
                 )}
               </div>
@@ -1330,7 +1338,7 @@ export default function ListingDetailClient({
                   }`}
                 >
                   <Heart
-                    className={`h-5 w-5 transition-all ${
+                    className={`h-5 w-5 transition ${
                       fav ? 'fill-sv-orange text-sv-orange sv-heart-pop' : 'group-hover:fill-sv-orange/20 group-hover:text-sv-orange'
                     }`}
                   />
@@ -1688,7 +1696,11 @@ export default function ListingDetailClient({
             {/* Description */}
             <div className="mt-8">
               <h2 className="text-[20px] font-black tracking-[-0.02em] text-sv-ink">{t('detail.description')}</h2>
-              <p className="speakable-lead mt-3 text-[15px] font-medium leading-[1.8] text-sv-ink/65">
+              {/* Owner-authored text stays as written; lang tells readers/TTS it is Georgian. */}
+              <p
+                lang={lang !== 'ka' && /[\u10A0-\u10FF]/.test(l.description ?? '') ? 'ka' : undefined}
+                className="speakable-lead mt-3 text-[15px] font-medium leading-[1.8] text-sv-ink/65"
+              >
                 {l.description}
               </p>
             </div>
@@ -1704,12 +1716,12 @@ export default function ListingDetailClient({
                       return (
                         <li
                           key={c.category}
-                          title={`${t(`map.poi.${c.category}`)}: ${c.name}`}
-                          aria-label={`${t(`map.poi.${c.category}`)}: ${c.name}, ${c.dist}`}
+                          title={`${t(`map.poi.${c.category}`)}: ${readableName(c.name, lang)}`}
+                          aria-label={`${t(`map.poi.${c.category}`)}: ${readableName(c.name, lang)}, ${c.dist}`}
                           className="flex min-w-0 max-w-full items-center gap-2 rounded-full border border-sv-ink/[0.06] bg-sv-surface py-1.5 pl-2.5 pr-3.5 shadow-card"
                         >
                           <Icon className="h-4 w-4 shrink-0" style={{ color: c.color }} aria-hidden />
-                          <span className="truncate text-[13px] font-extrabold text-sv-ink">{c.name}</span>
+                          <span className="truncate text-[13px] font-extrabold text-sv-ink">{readableName(c.name, lang)}</span>
                           <span className="shrink-0 text-[12px] font-bold text-sv-ink/60">{c.dist}</span>
                         </li>
                       )
@@ -1731,7 +1743,7 @@ export default function ListingDetailClient({
                     <div className="pointer-events-auto flex flex-wrap items-center justify-between gap-3">
                       <div className="rounded-module glass px-4 py-2.5">
                         <div className="flex items-center gap-1.5 text-[13px] font-extrabold text-white">
-                          <MapPin className="h-3.5 w-3.5 text-sv-blue-light" /> {l.address}
+                          <MapPin className="h-3.5 w-3.5 text-sv-blue-light" /> {readableName(l.address, lang)}
                         </div>
                         <div className="mt-0.5 text-[11px] font-bold text-white/55">
                           {l.coords.lat.toFixed(4)}, {l.coords.lng.toFixed(4)}
@@ -1764,12 +1776,12 @@ export default function ListingDetailClient({
                     <LocalizedLink
                       key={p.slug}
                       href={`/projects/${p.slug}`}
-                      className="group w-[220px] shrink-0 snap-start overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card transition-all duration-500 hover:-translate-y-1 hover:shadow-card-hover"
+                      className="group w-[220px] shrink-0 snap-start overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card transition duration-500 hover:-translate-y-1 hover:shadow-card-hover"
                     >
                       <div className="relative aspect-[4/3] overflow-hidden bg-sv-cloud">
                         <Image
                           src={p.img}
-                          alt={p.name}
+                          alt=""
                           fill
                           sizes="220px"
                           loading="lazy"
@@ -1785,7 +1797,7 @@ export default function ListingDetailClient({
                         </div>
                       </div>
                       <div className="p-3">
-                        <p className="truncate text-[14px] font-extrabold text-sv-ink">{p.name}</p>
+                        <p className="truncate text-[14px] font-extrabold text-sv-ink">{readableName(p.name, lang)}</p>
                         <p className="mt-0.5 truncate text-[12px] font-bold text-sv-ink/60">
                           {priceFromLabel(p.priceFromM2, lang === 'de' ? 'de' : dirLoc(lang))}
                         </p>
@@ -1879,11 +1891,14 @@ export default function ListingDetailClient({
                       {t('detail.approxPerMonth', { gel: formatGEL(Math.round(monthlyUSD * (liveRate || USD_GEL))) })}
                     </div>
                     )}
+                    {rentEst ? (
                     <div className="mt-1 text-[12px] font-bold text-sv-ink/50">
                       {lt(lang, 'yieldEst', { pct: grossYieldPct(euroNative ? l.priceOriginal! : l.priceUSD, rentEst) })}
                       {' · '}
                       {lt(lang, 'yieldRent', { rent: euroNative ? formatEur(rentEst) : formatUSD(rentEst) })}
+                      {rentSource ? ` · ${rentSource}` : ''}
                     </div>
+                    ) : null}
                   </div>
                   <div className="text-right text-[12px] font-bold leading-relaxed text-sv-ink/60">
                     {t('detail.loanAmount')}<br />
@@ -1911,17 +1926,17 @@ export default function ListingDetailClient({
             <AiAdvisor ctx={advisorCtx} isSale={isSale} />
 
             {/* 10x Institutional Valuation & 3-Scenario Terminal — income model
-                needs rentable space; raw land would fabricate NOI from a guess */}
-            {isSale && l.propType !== 'land' && l.priceUSD > 0 && l.area > 0 && (
+                needs rentable space and a market rent anchor; without them NOI is a guess */}
+            {isSale && l.propType !== 'land' && l.priceUSD > 0 && rentUSD ? (
               <ValuationTerminal
                 priceUSD={l.priceUSD}
                 areaSqm={l.area}
-                monthlyRentUSD={rentEst}
+                monthlyRentUSD={rentUSD}
                 countryCode={l.country}
                 lang={lang}
                 verdict={fairPrice?.position}
               />
-            )}
+            ) : null}
 
             {/* German Energy & Institutional Intelligence Cockpit (GEG 2026 & CO2KostAufG) */}
             {l.country === 'DE' && l.area > 0 && (
@@ -1964,12 +1979,12 @@ export default function ListingDetailClient({
                   <LocalizedLink
                     href={l.agent.profileHref}
                     className="shrink-0 transition hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
-                    aria-label={l.agent.name}
+                    aria-label={agentName}
                   >
-                    <UserAvatar name={l.agent.name} image={l.agent.image} size={56} shape="module" />
+                    <UserAvatar name={agentName} image={l.agent.image} size={56} shape="module" />
                   </LocalizedLink>
                 ) : (
-                  <UserAvatar name={l.agent.name} image={l.agent.image} size={56} shape="module" />
+                  <UserAvatar name={agentName} image={l.agent.image} size={56} shape="module" />
                 )}
                 <div className="min-w-0">
                   <div className="flex min-w-0 items-center gap-1.5 text-[16px] font-black text-sv-ink">
@@ -1978,10 +1993,10 @@ export default function ListingDetailClient({
                         href={l.agent.profileHref}
                         className="truncate transition hover:text-sv-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
                       >
-                        {l.agent.name}
+                        {agentName}
                       </LocalizedLink>
                     ) : (
-                      <span className="truncate">{l.agent.name}</span>
+                      <span className="truncate">{agentName}</span>
                     )}
                     {l.agent.verified ? (
                       <BadgeCheck className="h-4 w-4 shrink-0 text-sv-blue" aria-label={t('detail.verifiedAgent')} />
@@ -2027,7 +2042,7 @@ export default function ListingDetailClient({
                 <button
                   type="button"
                   onClick={messageOwner}
-                  className="flex h-11 min-w-0 items-center justify-center gap-2 overflow-hidden rounded-full border border-sv-blue/25 bg-sv-blue/[0.06] px-3 text-[13px] font-extrabold text-sv-blue-deep transition-all duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] hover:bg-sv-blue/10"
+                  className="flex h-11 min-w-0 items-center justify-center gap-2 overflow-hidden rounded-full border border-sv-blue/25 bg-sv-blue/[0.06] px-3 text-[13px] font-extrabold text-sv-blue-deep transition duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] hover:bg-sv-blue/10"
                 >
                   <MessageCircle className="h-4 w-4 shrink-0" />
                   <span className="truncate">{t('detail.message')}</span>
@@ -2036,7 +2051,7 @@ export default function ListingDetailClient({
                   onClick={() => toggle(l.id)}
                   // visible label IS the accessible name; state via aria-pressed
                   aria-pressed={fav}
-                  className={`flex h-11 min-w-0 items-center justify-center gap-2 overflow-hidden rounded-full border px-3 transition-all duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-orange ${
+                  className={`flex h-11 min-w-0 items-center justify-center gap-2 overflow-hidden rounded-full border px-3 transition duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-orange ${
                     fav
                       ? 'border-sv-orange/30 bg-sv-orange/10 text-sv-orange'
                       : 'border-sv-ink/10 bg-sv-surface text-sv-ink/60 hover:text-sv-orange'
@@ -2054,7 +2069,7 @@ export default function ListingDetailClient({
                 onClick={() => toggleCompare(l.id)}
                 disabled={!compared && compareFull}
                 aria-pressed={compared}
-                className={`flex h-10 w-full min-w-0 items-center justify-center gap-2 overflow-hidden rounded-full border text-[13px] font-extrabold transition-all duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] disabled:cursor-not-allowed disabled:opacity-40 ${
+                className={`flex h-10 w-full min-w-0 items-center justify-center gap-2 overflow-hidden rounded-full border text-[13px] font-extrabold transition duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] disabled:cursor-not-allowed disabled:opacity-40 ${
                   compared
                     ? 'border-sv-blue/30 bg-sv-blue/10 text-sv-blue-deep'
                     : 'border-sv-ink/10 bg-sv-cloud/50 text-sv-ink/60 hover:border-sv-blue/20 hover:text-sv-blue-deep'
@@ -2068,7 +2083,7 @@ export default function ListingDetailClient({
                 type="button"
                 onClick={() => setShareOpen(true)}
                 aria-label={t('detail.share')}
-                className="flex h-10 w-full min-w-0 items-center justify-center gap-2 overflow-hidden rounded-full border border-sv-ink/10 bg-sv-cloud/50 text-[13px] font-extrabold text-sv-ink/60 transition-all duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] hover:border-sv-blue/20 hover:text-sv-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
+                className="flex h-10 w-full min-w-0 items-center justify-center gap-2 overflow-hidden rounded-full border border-sv-ink/10 bg-sv-cloud/50 text-[13px] font-extrabold text-sv-ink/60 transition duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] hover:border-sv-blue/20 hover:text-sv-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
               >
                 <Share2 className="h-4 w-4 shrink-0" />
                 <span className="truncate">{t('detail.share')}</span>
@@ -2079,7 +2094,7 @@ export default function ListingDetailClient({
                 <button
                   type="button"
                   onClick={() => openWhatsAppShare(shareInput, sharePath, lang)}
-                  className="mt-2.5 flex h-11 w-full min-w-0 items-center justify-center gap-2 overflow-hidden rounded-full bg-sv-orange text-[13px] font-extrabold text-sv-ink shadow-glow-orange transition-all duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] hover:opacity-95"
+                  className="mt-2.5 flex h-11 w-full min-w-0 items-center justify-center gap-2 overflow-hidden rounded-full bg-sv-orange text-[13px] font-extrabold text-sv-ink shadow-glow-orange transition duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] hover:opacity-95"
                 >
                   <MessageCircle className="h-4 w-4 shrink-0" />
                   <span className="truncate">{t('detail.sendToClient')}</span>
@@ -2123,7 +2138,7 @@ export default function ListingDetailClient({
             <LeadForm
               targetType="listing"
               targetId={l.id}
-              recipientName={l.agent.name}
+              recipientName={agentName}
               className="mt-4"
             />
 

@@ -5,9 +5,10 @@ import { revalidatePath } from "next/cache"
 import type { Prisma } from "@/generated/prisma/client"
 
 import { logAdminAction } from "@/lib/admin/audit"
+import { assertAssignee, assigneeLeadsPath, notifyAssignee } from "@/lib/admin/crm"
 import { INQUIRY_STATUSES } from "@/lib/admin/inquiries"
 import { requireAdminAction } from "@/lib/admin/guard"
-import { reqEnum, reqString } from "@/lib/admin/validate"
+import { optString, reqEnum, reqString } from "@/lib/admin/validate"
 import { db } from "@/lib/db"
 
 /** Staff pipeline: move a lead's stage. */
@@ -29,31 +30,31 @@ export async function setLeadStage(formData: FormData) {
   revalidatePath(`/admin/inbox`)
 }
 
-/** Staff routing: (re)assign a lead to a team member, or unassign. */
+/** Routing: (re)assign a lead to any user who can work leads, or unassign. */
 export async function assignLead(formData: FormData) {
   const session = await requireAdminAction()
   const id = reqString(formData, "id", 120)
-  const assignedTo = reqString(formData, "assignedTo", 120)
-  if (assignedTo !== "" ) {
-    const user = await db.user.findUnique({
-      where: { id: assignedTo },
-      select: { role: true },
-    })
-    if (!user || user.role !== "admin") throw new Error("Assignee must be an admin")
-  }
+  const assignedTo = optString(formData, "assignedTo", 120)
+  const role = assignedTo ? await assertAssignee(assignedTo) : null
   const before = await db.inquiry.findUnique({
     where: { id },
-    select: { assignedToId: true },
+    select: { assignedToId: true, buyerName: true },
   })
   if (!before) throw new Error("Lead not found")
-  await db.inquiry.update({
-    where: { id },
-    data: { assignedToId: assignedTo === "" ? null : assignedTo },
-  })
+  if (before.assignedToId === assignedTo) return
+  await db.inquiry.update({ where: { id }, data: { assignedToId: assignedTo } })
   await logAdminAction(session, "inbox.assign", "Inquiry", id, {
     before: before.assignedToId,
-    after: assignedTo === "" ? null : assignedTo,
+    after: assignedTo,
   })
+  if (assignedTo && role) {
+    await notifyAssignee(
+      assignedTo,
+      session.user.id,
+      `New lead assigned: ${before.buyerName}`,
+      assigneeLeadsPath(role, "/admin/inbox"),
+    )
+  }
   revalidatePath("/admin/inbox")
 }
 

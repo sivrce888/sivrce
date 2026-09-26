@@ -70,7 +70,7 @@ export default function ValuationTerminal({
   return (
     <section
       aria-labelledby="valuation-terminal-heading"
-      className="mt-8 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-5 sm:p-6 shadow-card transition-all"
+      className="mt-8 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-5 sm:p-6 shadow-card transition"
     >
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-sv-ink/[0.06] pb-4">
         <div>
@@ -124,7 +124,7 @@ export default function ValuationTerminal({
               key={s}
               type="button"
               onClick={() => setSelectedScenario(s)}
-              className={`flex-1 rounded-lg py-1.5 text-xs font-semibold transition-all ${
+              className={`flex-1 rounded-lg py-1.5 text-xs font-semibold transition ${
                 active
                   ? 'bg-sv-surface text-sv-ink shadow-sm border border-sv-ink/[0.06]'
                   : 'text-sv-ink-soft hover:text-sv-ink'

@@ -452,7 +452,7 @@
     overflow-wrap: break-word;
     caret-color: var(--sv-blue);
     /* Apple-grade theme crossfade — surfaces with their own transitions
-       (cards, pills, glass) animate along via `transition-all` */
+       (cards, pills, glass) animate along via `transition` */
     transition: background-color 0.35s ease, color 0.35s ease;
   }
   img, video, iframe, canvas {
@@ -1017,6 +1017,53 @@ html:not(.dark) .sv-particle {
     );
 }
 
+/* Sun rays — soft conic god-rays masked into a halo; one composited rotate, 120s */
+.sv-sun-rays {
+  translate: -50% -50%;
+  border-radius: 999px;
+  /* two ray frequencies (co-prime-ish) so the fan never reads as a clip-art starburst */
+  background:
+    repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--sv-orange-light) 10%, transparent) 0deg 2deg, transparent 5deg 13deg),
+    repeating-conic-gradient(from 5deg, color-mix(in srgb, var(--sv-surface) 16%, transparent) 0deg 1deg, transparent 3deg 23deg);
+  mask-image: radial-gradient(circle, transparent 3%, black 8%, rgb(0 0 0 / 0.4) 28%, transparent 62%);
+  animation: sv-sun-spin 120s linear infinite;
+}
+@keyframes sv-sun-spin {
+  to { transform: rotate(1turn); }
+}
+/* Corona — opacity-only breathe, survives Reduce Motion like the moon halo */
+.sv-sun-corona {
+  translate: -50% -50%;
+  border-radius: 999px;
+  background: radial-gradient(circle, color-mix(in srgb, var(--sv-surface) 85%, transparent) 0 12%, color-mix(in srgb, var(--sv-orange-light) 16%, transparent) 34%, transparent 70%);
+  animation: sv-moon-halo 6s ease-in-out infinite;
+}
+
+/* Cumulus — 4 soft lobes in one element, zero children. --cx = resting spot in %
+   (Reduce Motion / lite), --cd = crossing time. Drifts full width, transform only. */
+.sv-cloud {
+  --cc: var(--sv-surface);
+  left: calc(var(--cx, 0) * 1%);
+  aspect-ratio: 3 / 1;
+  pointer-events: none;
+  background:
+    radial-gradient(closest-side, var(--cc) 50%, transparent) 20% 64% / 40% 72% no-repeat,
+    radial-gradient(closest-side, var(--cc) 50%, transparent) 46% 26% / 44% 100% no-repeat,
+    radial-gradient(closest-side, var(--cc) 50%, transparent) 74% 58% / 38% 76% no-repeat,
+    radial-gradient(closest-side, color-mix(in srgb, var(--sv-blue-light) 22%, var(--cc)) 55%, transparent) 50% 96% / 94% 48% no-repeat;
+  animation: sv-cloud-drift var(--cd, 160s) linear var(--cdl, 0s) infinite;
+}
+/* Night veil — thin moonlit wisp, blurred once then only translated */
+.sv-cloud-night {
+  --cc: color-mix(in srgb, var(--sv-blue-light) 20%, transparent);
+  aspect-ratio: 5 / 1;
+  filter: blur(6px);
+}
+@keyframes sv-cloud-drift {
+  from { transform: translate3d(calc(-100% - var(--cx, 0) * 1vw), 0, 0); }
+  to { transform: translate3d(calc(100vw - var(--cx, 0) * 1vw), 0, 0); }
+}
+
 /* ————— Whole-site ambient sun — BRAND §3.3 day sky, hero-matched corner —————
    Fixed viewport light behind all content: body bg propagates to the canvas,
    so z-index:-1 paints above the page bg and below every section — cards and
@@ -1104,10 +1151,14 @@ body::before {
   animation: sv-skyline-front 64s ease-in-out infinite;
 }
 
-/* Below-fold homepage — skip paint until near viewport (LCP stays on hero) */
-.sv-below-fold {
+/* Below-fold homepage — skip layout/paint per section until near viewport
+   (LCP stays on hero). Per section, not one wrapper: content-visibility is
+   all-or-nothing, so a single ~8000px wrapper rendered everything the moment
+   the first rail peeked in. `auto` remembers each section's real height after
+   first render; :not(:empty) keeps null CMS slots from reserving fake space. */
+.sv-below-fold > [data-cms-section]:not(:empty) {
   content-visibility: auto;
-  contain-intrinsic-size: auto 2800px;
+  contain-intrinsic-size: auto 800px;
 }
 
 /* Antenna beacon — soft breathing blink */
@@ -1253,6 +1304,13 @@ body::before {
   scale: 0.5;
 }
 
+/* Theme switch reveal — ThemeToggle drives a clip-path circle on the new snapshot */
+.sv-theme-vt::view-transition-old(root),
+.sv-theme-vt::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
 /* Project construction bar — grows once in view */
 .sv-progress {
   width: 0;
@@ -1272,7 +1330,7 @@ html[data-lite] .animate-marquee, html[data-lite] .animate-ping, html[data-lite]
 html[data-lite] .animate-scroll-hint, html[data-lite] .sv-skyline-back, html[data-lite] .sv-skyline-front,
 html[data-lite] .sv-comet, html[data-lite] .sv-birds, html[data-lite] .sv-cirrus, html[data-lite] .sv-word,
 html[data-lite] .text-gradient-shimmer, html[data-lite] .sv-sky-in, html[data-lite] .sv-nav-in,
-html[data-lite] .sv-star, html[data-lite] .sv-beacon, html[data-lite] .sv-chat-msg-in, html[data-lite] .sv-heart-pop {
+html[data-lite] .sv-star, html[data-lite] .sv-beacon, html[data-lite] .sv-sun-rays, html[data-lite] .sv-sun-corona, html[data-lite] .sv-cloud, html[data-lite] .sv-chat-msg-in, html[data-lite] .sv-heart-pop {
   animation: none !important;
 }
 html[data-lite] [data-reveal] {
@@ -1312,7 +1370,7 @@ html[data-lite] .sv-progress {
   .sv-particle, .animate-float, .animate-pin, .animate-marquee,
   .animate-ping, .sv-hero-in, .animate-scroll-hint,
   .sv-skyline-back, .sv-skyline-front, .sv-comet, .sv-birds, .sv-cirrus, .sv-word, .text-gradient-shimmer,
-  .sv-sky-in, .sv-nav-in,
+  .sv-sky-in, .sv-nav-in, .sv-sun-rays, .sv-cloud,
   .sv-spinner, .sv-spinner-sm {
     animation: none !important;
   }

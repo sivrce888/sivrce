@@ -29,14 +29,14 @@ import { blurProps, cardOf } from '@/lib/media'
 import { useCurrency } from '@/lib/currency'
 import { useI18n, type DictKey } from '@/lib/i18n/context'
 import { localizedHref } from '@/lib/i18n/core'
-import { listingPath } from '@/lib/listing-slug'
+import { listingDisplayTitle, listingPath } from '@/lib/listing-slug'
 import { CATEGORY_BRAND, DEAL_BRAND } from '@/lib/category-brand'
 import { PartyHouseIcon } from '@/components/PartyHouseIcon'
 import { FeatureGlyph } from '@/components/FeatureIcon'
 import { CONDITION_KEYS, BUILDING_STATUS_KEYS, FEATURE_KEYS, PROJECT_KEYS, FLOOR_TYPE_KEYS, featureLabel } from '@/lib/features'
 import { dealLabelKey as dealKeyFor, featuresFor, rentPeriodKey } from '@/lib/add-listing-fields'
 import { mapSearchHit } from '@/lib/map-search-hit'
-import { placeLabel, listingTitle } from '@/lib/place-label'
+import { placeLabel } from '@/lib/place-label'
 import { suggestionToFilters, splitDistricts } from '@/lib/search-location'
 import { aiParseQuery, explainPropertyMatch, nlFromSearchParams, nlHasListingConstraints, nlHasStructure, nlToSearchPatch, parseNlQuery } from '@/lib/nl-search'
 import { isExactLookupQuery } from '@/lib/listing-public-id'
@@ -148,13 +148,13 @@ function CompactCard({ l }: { l: Listing }) {
     >
       <span className="relative h-16 w-20 shrink-0 overflow-hidden rounded-control">
         {/* decorative — the title next to it carries the meaning */}
-        <Image src={cardOf(l.img) ?? l.img} alt={l.title} fill sizes="80px" className="object-cover" {...blurProps(l.img)} />
+        <Image src={cardOf(l.img) ?? l.img} alt="" fill sizes="80px" className="object-cover" {...blurProps(l.img)} />
       </span>
       <span className="min-w-0">
         <span className="block text-[14px] font-extrabold text-sv-ink transition-colors group-hover:text-sv-blue">
           {format(l.priceGEL)}{suffix}
         </span>
-        <span className="block truncate text-[12px] font-semibold text-sv-ink/70">{listingTitle(l.title, l.city, lang)}</span>
+        <span className="block truncate text-[12px] font-semibold text-sv-ink/70">{listingDisplayTitle(l, lang, t)}</span>
         <span className="block text-[12px] font-semibold text-sv-ink/60">{l.area} {t('add.areaUnit.m2')} · {placeLabel(l.city, lang, l.country)}</span>
       </span>
     </Link>
@@ -250,6 +250,7 @@ export default function SearchClient({
   const feat = useMemo(() => splitCsv(featRaw, FEATURE_KEYS), [featRaw])
   const partyLanding = deal === 'daily' && feat.length === 1 && feat[0] === 'add.f.partiesAllowed'
   const photo = params.get('photo') === '1'
+  const hasVideo = params.get('video') === '1'
   const verifiedOnly = params.get('verified') === '1'
   const tierRaw = params.get('tier')
   const tier = isSearchTier(tierRaw) ? tierRaw : undefined
@@ -457,6 +458,7 @@ export default function SearchClient({
         if (ftypeRaw) sp.set('ftype', ftypeRaw)
         if (featRaw) sp.set('feat', featRaw)
         if (photo) sp.set('photo', '1')
+        if (hasVideo) sp.set('video', '1')
         if (verifiedOnly) sp.set('verified', '1')
         if (tier) sp.set('tier', tier)
         if (pets) sp.set('pets', '1')
@@ -547,7 +549,7 @@ export default function SearchClient({
   const [sheetOpen, setSheetOpen] = useState(false)
   const moreCount = (baths !== undefined ? 1 : 0)
     + (floorMin !== undefined || floorMax !== undefined ? 1 : 0)
-    + cond.length + bstat.length + project.length + ftype.length + feat.length + (photo ? 1 : 0) + (verifiedOnly ? 1 : 0)
+    + cond.length + bstat.length + project.length + ftype.length + feat.length + (photo ? 1 : 0) + (hasVideo ? 1 : 0) + (verifiedOnly ? 1 : 0)
     + (pets ? 1 : 0) + (nearMetro ? 1 : 0) + (seller ? 1 : 0) + (tier ? 1 : 0)
   const [moreOpen, setMoreOpen] = useState(false)
   const [menu, setMenu] = useState<'price' | 'rooms' | 'area' | 'dates' | null>(null)
@@ -643,6 +645,7 @@ export default function SearchClient({
     })
   } else if (feat.length) chips.push({ key: 'feat', label: `${t('search.features')} · ${feat.length}`, clear: () => patchParams({ feat: undefined }) })
   if (photo) chips.push({ key: 'photo', label: t('search.photoOnly'), clear: () => patchParams({ photo: undefined }) })
+  if (hasVideo) chips.push({ key: 'video', label: t('search.videoOnly'), clear: () => patchParams({ video: undefined }) })
   if (verifiedOnly) chips.push({ key: 'verified', label: t('search.verifiedOnly'), clear: () => patchParams({ verified: undefined }) })
   if (tier) chips.push({ key: 'tier', label: tierKeyToBadge(tier) ?? tier, clear: () => patchParams({ tier: undefined }) })
   if (pets) chips.push({ key: 'pets', label: t('search.petsOnly'), clear: () => patchParams({ pets: undefined }) })
@@ -952,7 +955,7 @@ export default function SearchClient({
             >
               <MapPin className={`h-3.5 w-3.5 shrink-0 ${city ? 'text-sv-blue' : 'text-sv-ink/35'}`} />
               <span className="min-w-0 flex-1 truncate">
-                {distList.length > 2 ? `${city} · ${t('loc.nDistricts', { n: distList.length })}` : locationLabel(locValue, t('search.allGeorgia'))}
+                {distList.length > 2 ? `${placeLabel(city, lang)} · ${t('loc.nDistricts', { n: distList.length })}` : locationLabel(locValue, t('search.allGeorgia'), lang)}
               </span>
             </button>
           </div>
@@ -1068,7 +1071,7 @@ export default function SearchClient({
           >
             <MapPin className={`h-3.5 w-3.5 shrink-0 ${city ? 'text-sv-blue' : 'text-sv-ink/35'}`} />
             <span className="min-w-0 flex-1 truncate">
-              {distList.length > 2 ? `${city} · ${t('loc.nDistricts', { n: distList.length })}` : locationLabel(locValue, t('search.allGeorgia'))}
+              {distList.length > 2 ? `${placeLabel(city, lang)} · ${t('loc.nDistricts', { n: distList.length })}` : locationLabel(locValue, t('search.allGeorgia'), lang)}
             </span>
           </button>
 
@@ -1183,12 +1186,16 @@ export default function SearchClient({
               </div>
               <div>
                 <span className={labelClass}>{t('search.seller')}</span>
-                <div className="flex gap-1">
+                <div className="flex flex-wrap gap-1">
                   {(['owner', 'agency'] as const).map((v) => (
                     <button key={v} type="button" onClick={() => patchParams({ seller: seller === v ? undefined : v })} aria-pressed={seller === v} className={numChip(seller === v)}>
                       {t(v === 'owner' ? 'search.sellerOwner' : 'search.sellerAgency')}
                     </button>
                   ))}
+                  {/* Korter-parity: installment payments filter (sale inventory tags it via /add-listing). */}
+                  <button type="button" onClick={() => toggleCsv('feat', feat, 'add.f.installment')} aria-pressed={feat.includes('add.f.installment')} className={tagChip(feat.includes('add.f.installment'))}>
+                    {t('add.f.installment')}
+                  </button>
                 </div>
               </div>
             </div>
@@ -1272,6 +1279,9 @@ export default function SearchClient({
             <div className="flex flex-wrap gap-1">
               <button type="button" onClick={() => patchParams({ photo: photo ? undefined : '1' })} aria-pressed={photo} className={tagChip(photo)}>
                 {t('search.photoOnly')}
+              </button>
+              <button type="button" onClick={() => patchParams({ video: hasVideo ? undefined : '1' })} aria-pressed={hasVideo} className={tagChip(hasVideo)}>
+                {t('search.videoOnly')}
               </button>
               <button type="button" onClick={() => patchParams({ verified: verifiedOnly ? undefined : '1' })} aria-pressed={verifiedOnly} className={tagChip(verifiedOnly)}>
                 {t('search.verifiedOnly')}

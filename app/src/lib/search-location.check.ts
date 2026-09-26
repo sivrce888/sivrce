@@ -49,6 +49,8 @@ assert.equal(locationLabel({ city: '', district: '', street: '' }, 'მთელ
 assert.equal(locationLabel({ city: 'თბილისი', district: '', street: '' }), 'თბილისი')
 assert.equal(locationLabel({ city: 'თბილისი', district: 'ვაკე', street: '' }), 'ვაკე, თბილისი')
 assert.equal(locationLabel({ city: 'თბილისი', district: 'ვაკე,საბურთალო,დიღომი', street: '' }), 'თბილისი · 3')
+assert.equal(locationLabel({ city: 'თბილისი', district: 'ვაკე', street: '' }, '', 'en'), 'Vake, Tbilisi')
+assert.equal(locationLabel({ city: 'თბილისი', district: '', street: '' }, '', 'ru'), 'Tbilisi')
 assert.equal(
   compactDistrictParam(['ვაკე', 'ბაგები', 'წყნეთი'], { ვაკე: ['ბაგები', 'წყნეთი'] }),
   'ვაკე,ბაგები,წყნეთი',

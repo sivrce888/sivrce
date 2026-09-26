@@ -228,7 +228,7 @@ function WorldIndex({ lang }: { lang: Lang }) {
                   <li key={c.id}>
                     <a
                       href={`${COM_ORIGIN}${c.path}`}
-                      className="group flex h-full flex-col rounded-module border border-sv-ink/[0.07] bg-sv-surface px-4 py-3 shadow-card transition-all duration-300 hover:-translate-y-0.5 hover:border-sv-blue/30 hover:shadow-card-hover"
+                      className="group flex h-full flex-col rounded-module border border-sv-ink/[0.07] bg-sv-surface px-4 py-3 shadow-card transition duration-300 hover:-translate-y-0.5 hover:border-sv-blue/30 hover:shadow-card-hover"
                     >
                       <span className="truncate text-[14px] font-extrabold text-sv-ink group-hover:text-sv-blue">
                         {c.name}

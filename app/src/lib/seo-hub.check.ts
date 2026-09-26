@@ -55,3 +55,9 @@ assert.ok(
 )
 
 console.log('seo-hub: 6/6 ✓')
+
+// Non-ka listing pages get the anchor in their own locale — no Mkhedruli on /en.
+assert.ok(
+  !/[Ⴀ-ჿ]/.test(listingHubAnchor({ dealType: 'sale', propType: 'apartment', city: 'თბილისი', district: 'საბურთალო' }, 'en') ?? 'ქ'),
+  'en hub anchor must not be Georgian',
+)

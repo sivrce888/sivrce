@@ -115,6 +115,13 @@ function buildStars(): Star[] {
   })
 }
 
+/* Day cumulus: x = resting spot (reduced-motion), d = crossing time. Slow = calm. */
+const CLOUDS = [
+  { top: '7%', w: 'clamp(160px, 26vw, 420px)', x: 8, d: '150s', delay: '-40s', o: 0.95, md: false },
+  { top: '26%', w: 'clamp(120px, 18vw, 300px)', x: 58, d: '190s', delay: '-120s', o: 0.8, md: false },
+  { top: '15%', w: 'clamp(100px, 13vw, 220px)', x: 34, d: '230s', delay: '-175s', o: 0.65, md: true },
+] as const
+
 const particles = buildParticles()
 const windows = buildWindows()
 const stars = buildStars()
@@ -127,6 +134,21 @@ export default function HeroBackground() {
     >
       {/* Day sky — sun lives in the CSS field, not a sticker. Hidden in dark. */}
       <div className="sv-day-sky absolute inset-0 dark:hidden" />
+      {/* Sun — anchored on the sky-gradient disc (86% 9%): slow god-ray sweep + breathing corona */}
+      <div className="absolute left-[86%] top-[9%] dark:hidden">
+        <div className="sv-sun-rays absolute left-0 top-0 h-[72vmin] w-[72vmin]" />
+        <div className="sv-sun-corona absolute left-0 top-0 h-[20vmin] w-[20vmin]" />
+      </div>
+      {/* Cumulus drifting past — own delay per cloud so the sky is never empty on load */}
+      <div className="absolute inset-x-0 top-0 h-[42%] dark:hidden">
+        {CLOUDS.map((c, i) => (
+          <div
+            key={i}
+            className={`sv-cloud absolute${c.md ? ' max-md:hidden' : ''}`}
+            style={{ top: c.top, width: c.w, '--cx': c.x, '--cd': c.d, '--cdl': c.delay, opacity: c.o } as React.CSSProperties}
+          />
+        ))}
+      </div>
       {/* ponytail: 3 chevrons = day comet. Wrap dark:hidden so md:block can't leak into night. */}
       <div className="pointer-events-none absolute inset-0 max-md:hidden dark:hidden">
         <div className="sv-cirrus absolute left-[-12%] top-[20%] h-[20%] w-[62%]" />
@@ -150,7 +172,10 @@ export default function HeroBackground() {
 
       {/* Moon — warm gibbous carved from bg, champagne glow (brand orange-light) */}
       <div className="hidden dark:contents">
-        <div className="animate-float absolute right-[10%] top-[8%] hidden h-24 w-24 md:block">
+        {/* Moonlight — wide static wash; outside the float layer so its texture never moves */}
+        <div className="absolute right-[-14%] top-[-22%] h-[80vmin] w-[80vmin] rounded-full bg-[radial-gradient(circle,color-mix(in_srgb,var(--sv-orange-light)_11%,transparent),color-mix(in_srgb,var(--sv-blue-light)_5%,transparent)_38%,transparent_66%)] md:right-[-6%]" />
+        {/* ponytail: `scale` (not transform) shrinks the moon on phones without fighting animate-float */}
+        <div className="animate-float absolute right-[3%] top-[9%] h-24 w-24 scale-[0.62] md:right-[10%] md:top-[8%] md:scale-100">
           <div className="sv-moon-halo absolute -inset-8 rounded-full bg-[radial-gradient(circle,color-mix(in_srgb,var(--sv-orange-light)_38%,transparent),transparent_65%)] blur-3xl" />
           <div className="absolute left-4 top-3 h-14 w-14 overflow-hidden rounded-full shadow-[0_0_30px_6px_color-mix(in_srgb,var(--sv-orange-light)_36%,transparent)]">
             {/* ponytail: warm moon + 2 craters in one background shorthand — zero new tokens, zero extra divs */}
@@ -160,7 +185,9 @@ export default function HeroBackground() {
           </div>
         </div>
         {/* Comets — rare streaks; second offset so the loop never reads as a metronome */}
-        <span className="sv-comet absolute right-[6%] top-[10%] hidden h-[2px] w-[130px] rounded-full bg-[linear-gradient(90deg,transparent,var(--sv-blue-light))] opacity-0 shadow-[0_0_10px_2px_color-mix(in_srgb,var(--sv-blue-light)_60%,transparent)] md:block" />
+        {/* Night veil — thin moonlit cloud that drifts across the moon now and then */}
+        <div className="sv-cloud sv-cloud-night absolute top-[10%] w-[clamp(140px,22vw,340px)]" style={{ '--cx': 72, '--cd': '120s', '--cdl': '-52s' } as React.CSSProperties} />
+        <span className="sv-comet absolute right-[6%] top-[10%] h-[2px] w-[130px] rounded-full bg-[linear-gradient(90deg,transparent,var(--sv-blue-light))] opacity-0 shadow-[0_0_10px_2px_color-mix(in_srgb,var(--sv-blue-light)_60%,transparent)]" />
         <span className="sv-comet absolute right-[28%] top-[18%] hidden h-[1.5px] w-[90px] rounded-full bg-[linear-gradient(90deg,transparent,var(--sv-orange-light))] opacity-0 shadow-[0_0_8px_2px_color-mix(in_srgb,var(--sv-orange-light)_50%,transparent)] md:block" style={{ animationDelay: '-8s' }} />
       </div>
 
@@ -172,7 +199,7 @@ export default function HeroBackground() {
         {stars.map((s, i) => (
           <span
             key={i}
-            className={`sv-star absolute hidden rounded-full md:block${s.flare ? ' sv-star-flare' : ''}`}
+            className={`sv-star absolute rounded-full${i % 2 ? ' max-md:hidden' : ''}${s.flare ? ' sv-star-flare' : ''}`}
             style={{
               top: s.top,
               left: s.left,

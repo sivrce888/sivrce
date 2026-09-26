@@ -2,6 +2,7 @@ import { createHash } from "node:crypto"
 
 import { type NextRequest, NextResponse } from "next/server"
 
+import { auth } from "@/auth"
 import { Prisma } from "@/generated/prisma/client"
 import { db } from "@/lib/db"
 import { clientIp, rateLimitOk } from "@/lib/rate-limit"
@@ -30,10 +31,15 @@ export async function POST(req: NextRequest, ctx: Ctx) {
   try {
     const review = await db.review.findFirst({
       where: { id, status: "published", deletedAt: null },
-      select: { id: true, helpfulCount: true },
+      select: { id: true, helpfulCount: true, authorId: true },
     })
     if (!review) {
       return NextResponse.json({ error: "not_found" }, { status: 404 })
+    }
+
+    // Authors can't upvote themselves — same no-op answer as a repeat vote.
+    if (review.authorId && review.authorId === (await auth())?.user?.id) {
+      return NextResponse.json({ helpfulCount: review.helpfulCount })
     }
 
     try {

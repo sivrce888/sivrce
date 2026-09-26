@@ -31,12 +31,15 @@ assert(isFeatureKey("add.f.loggia"), "loggia key")
 {
   const grouped = new Set<string>(FEATURE_GROUPS.flatMap((g) => [...g.items]))
   for (const k of FEATURE_KEYS) {
-    if (k === "add.f.onlineView") assert(!grouped.has(k), "onlineView stays off grid")
+    if (k === "add.f.onlineView" || k === "add.f.installment") assert(!grouped.has(k), `${k} stays off grid`)
     else assert(grouped.has(k), `group covers ${k}`)
   }
 }
 assert(groupedFeatures(["add.f.balcony", "add.f.pool"]).map((g) => g.key).join() === "add.fg.space,add.fg.extra", "group order")
 assert(groupedFeatures(["add.f.onlineView"]).length === 0, "onlineView no group")
+assert(isFeatureKey("add.f.installment"), "installment is a filterable feature key")
+assert(ka["add.f.installment"] === "განვადანით", "ka installment label")
+assert(typeof ka["add.installment"] === "string" && typeof ka["add.installmentHint"] === "string", "ka installment form copy")
 assert(ka["add.f.partiesAllowed"] === "წვეულების სახლი", "feature is house-for-parties, not 'parties'")
 assert(ka["col.party"] === "სახლები წვეულებისთვის", "collection is houses for parties")
 

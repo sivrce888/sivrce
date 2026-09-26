@@ -7,7 +7,7 @@ import { db } from "@/lib/db"
 import { sendInquiryNotification } from "@/lib/email"
 import { clientIp, rateLimit } from "@/lib/rate-limit"
 import { hasHoneypot, validateInquiry } from "@/lib/inquiries/validate"
-import { getListing as getDbListing } from "@/lib/listings-db"
+import { getListing as getDbListing, getListingOwnerMeta } from "@/lib/listings-db"
 import { resolveListingPhone } from "@/lib/listings/phone-vault"
 import { getServiceBySlug } from "@/lib/services-db"
 import { isSameOrigin } from "@/lib/security/origin"
@@ -19,6 +19,8 @@ const DEAL_MAP: Record<DealType, string> = {
   daily: "daily",
   pledge: "pledge",
 }
+
+const DUP_WINDOW_MS = 24 * 60 * 60 * 1000
 
 /** LeadForm targetTypes whose lead belongs to a profile owner, not the site. */
 const PROFILE_TARGETS = new Set(["agent", "agency", "developer", "project"])
@@ -127,10 +129,14 @@ export async function POST(req: Request) {
   const profile = PROFILE_TARGETS.has(targetType)
     ? await resolveProfileTarget(targetType, targetId)
     : null
+  // Listing leads reach the listing owner too — otherwise only the site inbox
+  // hears about them and speed-to-lead dies.
+  const ownerId =
+    profile?.ownerId ?? (listing ? (await getListingOwnerMeta(listing.id))?.ownerId : null)
   let ownerEmail: string | null = null
-  if (profile?.ownerId) {
+  if (ownerId) {
     const owner = await db.user
-      .findUnique({ where: { id: profile.ownerId }, select: { email: true } })
+      .findUnique({ where: { id: ownerId }, select: { email: true } })
       .catch(() => null)
     ownerEmail = owner?.email ?? null
   }
@@ -147,11 +153,27 @@ export async function POST(req: Request) {
   // ponytail: careers always hits hi@ so a stale DB config can't lose applications.
   const notifyEmail = isCareers ? "hi@sivrce.ge" : await getConfig("site.contactEmail")
   // ponytail: non-listing rows use targetId as the bucket (e.g. careers).
-  const listingId = targetType === "listing" ? targetId : targetId || "general"
+  // Canonical id (targetId may be the public number) so the owner inbox matches.
+  const listingId = listing?.id ?? (targetId || "general")
   const buyerEmail = email || session?.user?.email || "unknown@sivrce.ge"
   // Careers form prefixes "[კარიერა · ქალაქი]" — lift city into the column.
   const cityFromCareers = isCareers ? message.match(/\[კარიერა · ([^\]]+)\]/)?.[1]?.trim() : undefined
   const city = listing?.city ?? profile?.city ?? service?.city ?? cityFromCareers ?? ""
+
+  // Double-tap / retry of the same lead: one row, one email.
+  const dup = await db.inquiry
+    .findFirst({
+      where: {
+        listingId,
+        buyerPhone: phone,
+        message,
+        deletedAt: null,
+        createdAt: { gt: new Date(Date.now() - DUP_WINDOW_MS) },
+      },
+      select: { id: true },
+    })
+    .catch(() => null)
+  if (dup) return Response.json({ ok: true })
 
   try {
     await db.inquiry.create({
@@ -159,8 +181,8 @@ export async function POST(req: Request) {
         id: crypto.randomUUID(),
         listingId,
         agentName,
-        // Profile leads carry the owner email → their /leads inbox; listings
-        // keep matching by listingId only; general → site contact.
+        // Owner email → their /leads inbox (listings also match by listingId);
+        // general → site contact.
         agentEmail: targetType === "general" ? notifyEmail : ownerEmail,
         agentPhone,
         buyerName: name,

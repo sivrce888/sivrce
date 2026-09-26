@@ -114,7 +114,8 @@ export function ReviewForm({ targetType, targetId, strings: s, locale, onSubmitt
       })
       if (!res.ok) {
         // 409 = unique [targetType, targetId, authorId] — one review per target.
-        setError(res.status === 409 ? s.errorAlready : s.errorGeneric)
+        const code = ((await res.json().catch(() => null)) as { error?: string } | null)?.error
+        setError(res.status === 409 ? s.errorAlready : code === 'self_review' ? s.errorSelf : s.errorGeneric)
         return
       }
 
@@ -271,7 +272,7 @@ export function ReviewForm({ targetType, targetId, strings: s, locale, onSubmitt
       <button
         type="submit"
         disabled={submitting}
-        className="mt-4 flex min-h-[48px] w-full items-center justify-center rounded-full bg-sv-orange px-6 text-[15px] font-extrabold text-sv-ink shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 disabled:shadow-none disabled:hover:translate-y-0"
+        className="mt-4 flex min-h-[48px] w-full items-center justify-center rounded-full bg-sv-orange px-6 text-[15px] font-extrabold text-sv-ink shadow-glow-orange transition duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 disabled:shadow-none disabled:hover:translate-y-0"
       >
         {submitting ? s.submitting : editing ? s.update : s.submit}
       </button>

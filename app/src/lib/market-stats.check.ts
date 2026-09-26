@@ -1,9 +1,17 @@
 /** Runnable check: npx tsx src/lib/market-stats.check.ts */
+import assert from 'node:assert/strict'
 import {
   medianOf,
   momDeltaPct,
   periodKey,
   statsFromRows,
+  quarterKey,
+  monthsOfQuarter,
+  prevQuarterKey,
+  quarterStats,
+  weightedTotal,
+  QUARTER_RE,
+  normalizeQuarter,
   type StatRow,
 } from "./market-stats-core"
 
@@ -54,5 +62,56 @@ console.assert(momDeltaPct(1800, 2000) === -10, "mom −10%")
 console.assert(momDeltaPct(2000, 2000) === null, "flat month → null")
 console.assert(momDeltaPct(2200, null) === null, "no history → null")
 console.assert(momDeltaPct(10_000, 100) === 99, "mom clamps at +99")
+
+
+const assertEq = (a: unknown, b: unknown, label: string) => assert.deepEqual(a, b, label)
+
+assert.equal(quarterKey(new Date('2026-09-26T12:00:00Z')), '2026-Q3', 'Sep → Q3')
+assert.equal(quarterKey(new Date('2026-01-01T00:00:00Z')), '2026-Q1', 'Jan → Q1')
+assert.equal(quarterKey(new Date('2026-12-31T23:00:00Z')), '2026-Q4', 'Dec → Q4')
+
+assertEq(monthsOfQuarter('2026-Q3'), ['2026-07', '2026-08', '2026-09'], 'Q3 months')
+assertEq(monthsOfQuarter('2026-Q1'), ['2026-01', '2026-02', '2026-03'], 'Q1 months')
+assertEq(monthsOfQuarter('2026-Q4'), ['2026-10', '2026-11', '2026-12'], 'Q4 months')
+assertEq(monthsOfQuarter('bogus'), [], 'malformed quarter → no months')
+
+assert.equal(prevQuarterKey('2026-Q3'), '2026-Q2', 'mid-year prev')
+assert.equal(prevQuarterKey('2026-Q1'), '2025-Q4', 'year rollover')
+assert.equal(prevQuarterKey('x'), null, 'malformed → null')
+
+assert.ok(QUARTER_RE.test('2026-Q3'), 'valid format')
+assert.ok(!QUARTER_RE.test('2026-Q5'), 'Q5 invalid')
+assert.ok(!QUARTER_RE.test('2026-Q0'), 'Q0 invalid')
+
+const qrow = (periodMonth: string, avgPricePerSqm: number, over: Partial<{ medianPrice: number | null; soldCount: number; avgDaysOnMarket: number; newListingsCount: number; activeListingsCount: number }> = {}) => ({
+  periodMonth, avgPricePerSqm, medianPrice: null, soldCount: 0, avgDaysOnMarket: 40,
+  newListingsCount: 0, activeListingsCount: 10, ...over,
+})
+
+const qs = quarterStats([
+  qrow('2026-07', 1000, { medianPrice: 90_000, soldCount: 2, activeListingsCount: 30 }),
+  qrow('2026-08', 1100, { medianPrice: 100_000, soldCount: 1, activeListingsCount: 20 }),
+  qrow('2026-09', 1200, { medianPrice: 110_000, soldCount: 3, newListingsCount: 5, activeListingsCount: 10 }),
+])
+assert.ok(qs, 'three months aggregate')
+assert.equal(qs!.months, 3, 'months present')
+assert.equal(qs!.avgPerM2USD, 1100, 'mean of monthly avgs')
+assert.equal(qs!.medianPriceUSD, 100_000, 'median across monthly medians')
+assert.equal(qs!.soldCount, 6, 'sold sums')
+assert.equal(qs!.newListings, 5, 'new sums')
+assert.equal(qs!.activeEnd, 10, 'active = latest month present')
+assert.equal(qs!.avgDomDays, 40, 'dom means')
+
+assert.equal(quarterStats([]), null, 'no rows → null')
+assert.equal(quarterStats([qrow('2026-07', 0)]), null, 'unpriced months → null')
+
+assert.equal(weightedTotal([{ avgPerM2USD: 1000, activeEnd: 10 }, { avgPerM2USD: 2000, activeEnd: 30 }]), 1750, 'active-weighted mean')
+assert.equal(weightedTotal([{ avgPerM2USD: 1000, activeEnd: 0 }]), null, 'no weight → null')
+
+
+assert.equal(normalizeQuarter('2026-q3'), '2026-Q3', 'lowercase URL quarter normalizes')
+assert.equal(normalizeQuarter('2026-Q3'), '2026-Q3', 'canonical form idempotent')
+assert.equal(normalizeQuarter('2026-q5'), null, 'Q5 garbage')
+assert.equal(normalizeQuarter('x'), null, 'garbage')
 
 console.log("market-stats: ok")

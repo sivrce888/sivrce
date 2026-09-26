@@ -19,12 +19,12 @@ function parseUrls(raw: string): string[] {
 
 const L = {
   ka: {
-    errPaste: 'ჩასვი ss.ge, myhome.ge ან korter.ge ბმული',
+    errPaste: 'ჩასვი განცხადების ბმული',
     errAuth: 'შესვლა საჭიროა',
     errRate: 'ცოტა ხანში სცადე',
     errImport: 'ვერ ჩაიტვირთა',
     heading: 'სხვა საიტიდან',
-    subline: 'ss.ge · myhome.ge · livo.ge · korter.ge — ფოტოების გარეშე',
+    subline: 'განცხადების იმპორტი ბმულით — ფოტოების გარეშე',
     textareaAria: 'იმპორტის ბმულები',
     loading: 'იტვირთება…',
     importBtn: 'იმპორტი',
@@ -33,12 +33,12 @@ const L = {
     bestOf: (n: number) => `★ ${n}-დან საუკეთესო`,
   },
   en: {
-    errPaste: 'Paste an ss.ge, myhome.ge or korter.ge link',
+    errPaste: 'Paste a listing URL',
     errAuth: 'Sign-in required',
     errRate: 'Try again soon',
     errImport: 'Import failed',
     heading: 'From another site',
-    subline: 'ss.ge · myhome.ge · livo.ge · korter.ge — no photos',
+    subline: 'Import from a listing URL — no photos',
     textareaAria: 'Import links',
     loading: 'Loading…',
     importBtn: 'Import',
@@ -47,12 +47,12 @@ const L = {
     bestOf: (n: number) => `★ Best of ${n}`,
   },
   de: {
-    errPaste: 'Fügen Sie einen Link von ss.ge, myhome.ge oder korter.ge ein',
+    errPaste: 'Fügen Sie einen Anzeigen-Link ein',
     errAuth: 'Anmeldung erforderlich',
     errRate: 'Versuchen Sie es später erneut',
     errImport: 'Import fehlgeschlagen',
     heading: 'Von einer anderen Website',
-    subline: 'ss.ge · myhome.ge · livo.ge · korter.ge — ohne Fotos',
+    subline: 'Import über Anzeigen-Link — ohne Fotos',
     textareaAria: 'Import-Links',
     loading: 'Wird geladen…',
     importBtn: 'Importieren',
@@ -134,7 +134,7 @@ export default function ImportCompetitorPanel() {
         value={urls}
         onChange={(e) => setUrls(e.target.value)}
         rows={2}
-        placeholder="https://ss.ge/ka/... · https://www.myhome.ge/ka/pr/... · https://korter.ge/binebis-yidva-gayidva-tbilisi/..."
+        placeholder="https://…/ka/listing/…"
         className="w-full resize-none rounded-control border border-sv-ink/10 bg-sv-cloud px-3 py-2.5 text-[13px] font-medium text-sv-ink outline-none ring-sv-blue/20 placeholder:text-sv-ink/35 focus:border-sv-blue/40 focus:ring-2"
       />
 

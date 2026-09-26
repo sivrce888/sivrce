@@ -13,8 +13,8 @@ import {
 import { daysSince } from '@/lib/price-scale'
 import { scalePeers } from '@/lib/peer-rank'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
-import { listingKeyword, listingPath, listingSlug } from '@/lib/listing-slug'
-import { listingHubAnchor, listingHubPath } from '@/lib/seo-pages'
+import { listingDisplayTitle, listingKeywordIn, listingPath, listingSlug } from '@/lib/listing-slug'
+import { listingHubAnchor, listingHubPath, seoLocOf } from '@/lib/seo-pages'
 import { isLandLease } from '@/lib/add-listing-fields'
 import { getLandInsights } from '@/lib/land'
 import { listingPublicId } from '@/lib/listing-public-id'
@@ -31,6 +31,7 @@ import { georgiaListingAlternates, surfacePathPrefix, type DomainId } from '@/li
 import { requestDomain, requestHostKind } from '@/lib/request-market'
 import { buyerCostBreakdownByCityName } from '@/lib/countries/de'
 import { geBuyerCosts } from '@/lib/countries/costs'
+import { estimateRent, rentAnchorSource } from '@/lib/rent-anchor'
 import { parseDeExpose } from '@/lib/countries/de-expose'
 
 /**
@@ -96,7 +97,7 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       ? `€${Math.round(l.priceOriginal).toLocaleString(loc)}`
       : formatUSD(l.priceUSD)
   const price = `${head}${per}`
-  const keyword = listingKeyword(l)
+  const keyword = listingKeywordIn(l, lang, t)
   // One lead only — both read "Exclusive · Exclusively on Sivrce" and ate half the
   // SERP title. Sivrce-only is the stronger (unique) claim.
   const exclusiveLead = l.isSivrceExclusive
@@ -231,6 +232,8 @@ export default async function ListingPage({ params }: PageProps) {
     .slice(0, 10)
 
   const t = getServerT(lang)
+  // Georgian-authored titles read as the localized keyword on non-ka pages.
+  const displayTitle = listingDisplayTitle(listing, lang, t)
   const amenityFeature = listing.features
     .filter((f): f is typeof f => isFeatureKey(f) && f !== 'add.f.onlineView')
     .map((f) => ({
@@ -249,7 +252,7 @@ export default async function ListingPage({ params }: PageProps) {
           : 'Place'
 
   const videoLd = listingVideoObject(listing.video, {
-    name: listing.title,
+    name: displayTitle,
     description: listing.description,
     poster: listing.images[0] ?? listing.img,
     uploadDate: `${listing.postedAt}T00:00:00Z`,
@@ -258,7 +261,8 @@ export default async function ListingPage({ params }: PageProps) {
   const listingLd = {
     '@context': 'https://schema.org',
     '@type': 'RealEstateListing',
-    name: listing.title,
+    name: displayTitle,
+    ...(displayTitle !== listing.title && { alternateName: listing.title }),
     description: listing.description,
     url: absCanonical,
     sku: String(listingPublicId(listing)),
@@ -287,7 +291,7 @@ export default async function ListingPage({ params }: PageProps) {
       availability: 'https://schema.org/InStock',
       itemOffered: {
         '@type': dwellingType,
-        name: listing.title,
+        name: displayTitle,
         numberOfBedrooms: listing.beds,
         numberOfBathroomsTotal: listing.baths,
         floorSize: { '@type': 'QuantitativeValue', value: listing.area, unitCode: 'MTK' },
@@ -346,7 +350,7 @@ export default async function ListingPage({ params }: PageProps) {
   }
 
   const hubPath = listingHubPath(listing)
-  const hubAnchor = hubPath ? listingHubAnchor(listing) : null
+  const hubAnchor = hubPath ? listingHubAnchor(listing, seoLocOf(lang)) : null
   const breadcrumbLd = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
@@ -359,7 +363,7 @@ export default async function ListingPage({ params }: PageProps) {
       {
         '@type': 'ListItem',
         position: hubPath ? 3 : 2,
-        name: listing.title,
+        name: displayTitle,
         item: absCanonical,
       },
     ],
@@ -383,6 +387,8 @@ export default async function ListingPage({ params }: PageProps) {
         hubLink={hubPath && hubAnchor ? { href: hubPath, anchor: hubAnchor } : null}
         deCosts={deCosts}
         geCosts={geCosts}
+        rentEstimate={estimateRent(listing.area, listing.country, listing.city, listing.district)}
+        rentSource={rentAnchorSource(listing.country, listing.city, listing.district)}
       />
       <script
         type="application/ld+json"

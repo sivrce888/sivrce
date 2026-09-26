@@ -121,7 +121,7 @@ const L = {
     enable: "ჩართვა",
     delete: "წაშლა",
     expires: "ვადა",
-    sendToClient: "კლიენტს",
+    sendToClient: "გაუგზავნე კლიენტს",
     rented: "გაქირავებულია",
     sold: "გაყიდულია",
     renew30: "გაგრძელება +30 დღე",
@@ -846,7 +846,7 @@ function ListingManageCard({
             </div>
             <div className="h-1.5 overflow-hidden rounded-full bg-sv-ink/[0.06]">
               <div
-                className={`h-full rounded-full transition-all ${
+                className={`h-full rounded-full transition-[width] ${
                   life > 0.25
                     ? "bg-gradient-to-r from-sv-blue to-sv-blue-light"
                     : life > 0

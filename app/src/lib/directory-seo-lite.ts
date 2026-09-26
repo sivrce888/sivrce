@@ -270,7 +270,7 @@ export const MICRO: Record<
     prev: 'წინა გვერდი',
     next: 'შემდეგი გვერდი',
     page: (n) => `გვერდი ${n}`,
-    emptyProjects: 'პროექტები ჯერ არ არის ხელმისაწვდომი — სცადე მოგვიანებით',
+    emptyProjects: 'პროექტები ჯერ არ არის ხელმისაწვდომი — გთხოვთ, სცადოთ მოგვიანებით',
   },
   en: {
     builtPct: (n) => `${n}% built`,
@@ -336,7 +336,7 @@ export const DEALS: Record<
   rent: { deal: 'rent', ka: 'ქირავდება', noun: 'ქირა', en: 'for rent', enNoun: 'rent', ru: 'в аренду', ruNoun: 'Аренда', de: 'zur Miete', deNoun: 'Miete' },
   // "ბინები დღიურად" — top Georgian real-estate query. Listings below render
   // /daily, /daily/apartments, /daily/apartments/tbilisi(/old-tbilisi), etc.
-  daily: { deal: 'daily', ka: 'დღიურად', noun: 'დღიური ქირა', en: 'for daily rent', enNoun: 'daily rent', ru: 'посуточно', ruNoun: 'Посуточная аренда', de: 'Tagesmiete', deNoun: 'Tagesmiete' },
+  daily: { deal: 'daily', ka: 'დღიურად', noun: 'დღიური ქირა', en: 'for daily rent', enNoun: 'daily rent', ru: 'посуточно', ruNoun: 'Посуточная аренда', de: 'zur Tagesmiete', deNoun: 'Tagesmiete' },
   pledge: { deal: 'pledge', ka: 'გირავდება', noun: 'გირავნება', en: 'for pledge', enNoun: 'pledge', ru: 'под залог', ruNoun: 'Залог', de: 'auf Pfand', deNoun: 'Pfand' },
   // Display/SEO alias of rent × land (Civil Code იჯარა). Not a 5th DealType.
   lease: { deal: 'rent', ka: 'გაიცემა იჯარით', noun: 'იჯარა', en: 'for lease', enNoun: 'lease', ru: 'в долгосрочную аренду', ruNoun: 'Аренда', de: 'zur Pacht', deNoun: 'Pacht' },

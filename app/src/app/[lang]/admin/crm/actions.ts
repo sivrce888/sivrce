@@ -5,10 +5,21 @@ import { redirect } from "next/navigation"
 
 import { CrmLeadStatus, CrmTaskPriority, CrmTaskStatus } from "@/generated/prisma/enums"
 import { logAdminAction } from "@/lib/admin/audit"
-import { ACTIVITY_TYPES, CLOSED_LEAD_STATUSES } from "@/lib/admin/crm"
+import {
+  ACTIVITY_TYPES,
+  assertAssignee,
+  assigneeLeadsPath,
+  CLOSED_LEAD_STATUSES,
+  CRM_CURRENCIES,
+  CRM_DEAL_TYPES,
+  notifyAssignee,
+  recordCrmTouch,
+} from "@/lib/admin/crm"
 import { requireAdminAction } from "@/lib/admin/guard"
-import { optString, reqEnum, reqString } from "@/lib/admin/validate"
+import { optInt, optString, reqEnum, reqString } from "@/lib/admin/validate"
+import { parseFollowUp } from "@/lib/crm-follow-up"
 import { db } from "@/lib/db"
+import { normalizePhone } from "@/lib/inquiries/phone"
 
 const LEAD_STATUSES = Object.values(CrmLeadStatus)
 const TASK_PRIORITIES = Object.values(CrmTaskPriority)
@@ -23,11 +34,12 @@ export async function createLead(fd: FormData) {
   const session = await requireAdminAction()
   const agentId = reqString(fd, "agentId", 120)
   const name = reqString(fd, "name", 160)
-  const phone = reqString(fd, "phone", 30)
+  const raw = reqString(fd, "phone", 30)
+  // Canonical +995/+49 form keeps tel:/wa.me links dialable; unknown formats kept as typed.
+  const phone = normalizePhone(raw) ?? raw
   const email = optString(fd, "email", 240)
   const notes = optString(fd, "notes", 2000)
-  const agent = await db.user.findUnique({ where: { id: agentId }, select: { id: true } })
-  if (!agent) throw new Error("Agent not found")
+  const role = await assertAssignee(agentId)
   const lead = await db.crmLead.create({
     data: { agentId, name, phone, email, notes },
     select: { id: true },
@@ -36,8 +48,45 @@ export async function createLead(fd: FormData) {
     before: null,
     after: { agentId, name, phone, email },
   })
+  await notifyAssignee(
+    agentId,
+    session.user.id,
+    `New client assigned: ${name}`,
+    assigneeLeadsPath(role, `/admin/crm/${lead.id}`),
+  )
   revalidatePath("/admin/crm")
   redirect(`/admin/crm/${lead.id}`)
+}
+
+/** Hand a client to another user; their open tasks move with them. */
+export async function reassignLead(fd: FormData) {
+  const session = await requireAdminAction()
+  const id = reqString(fd, "id", 120)
+  const agentId = reqString(fd, "agentId", 120)
+  const before = await db.crmLead.findUniqueOrThrow({
+    where: { id },
+    select: { agentId: true, name: true },
+  })
+  if (before.agentId === agentId) return
+  const role = await assertAssignee(agentId)
+  await db.$transaction([
+    db.crmLead.update({ where: { id }, data: { agentId } }),
+    db.crmTask.updateMany({
+      where: { leadId: id, status: { in: [CrmTaskStatus.todo, CrmTaskStatus.in_progress] } },
+      data: { agentId },
+    }),
+  ])
+  await logAdminAction(session, "crm.reassign", "crm_lead", id, {
+    before: { agentId: before.agentId },
+    after: { agentId },
+  })
+  await notifyAssignee(
+    agentId,
+    session.user.id,
+    `Client assigned to you: ${before.name}`,
+    assigneeLeadsPath(role, `/admin/crm/${id}`),
+  )
+  revalidateLead(id)
 }
 
 export async function updateLeadStatus(fd: FormData) {
@@ -47,13 +96,15 @@ export async function updateLeadStatus(fd: FormData) {
   const closedReason = optString(fd, "closedReason", 200)
   const before = await db.crmLead.findUniqueOrThrow({
     where: { id },
-    select: { status: true, closedAt: true, closedReason: true },
+    select: { status: true, closedAt: true, closedReason: true, nextFollowUp: true },
   })
   const closing = CLOSED_LEAD_STATUSES.includes(status)
   const after = {
     status,
     closedAt: closing ? new Date() : null,
     closedReason: closing ? closedReason : null,
+    // A closed lead leaves the follow-up queue.
+    ...(closing ? { nextFollowUp: null } : {}),
   }
   await db.crmLead.update({ where: { id }, data: after })
   await logAdminAction(session, "crm.update_status", "crm_lead", id, { before, after })
@@ -64,20 +115,48 @@ export async function addActivity(fd: FormData) {
   const session = await requireAdminAction()
   const leadId = reqString(fd, "leadId", 120)
   const type = reqEnum(fd, "type", ACTIVITY_TYPES)
-  const notes = reqString(fd, "notes", 2000)
+  const notes = optString(fd, "notes", 2000) ?? ""
+  const nextFollowUp = parseFollowUp(fd)
   const lead = await db.crmLead.findUniqueOrThrow({
     where: { id: leadId },
     select: { agentId: true },
   })
-  const lastContact = new Date()
-  const [activity] = await db.$transaction([
-    db.crmActivity.create({ data: { leadId, agentId: lead.agentId, type, notes } }),
-    db.crmLead.update({ where: { id: leadId }, data: { lastContact } }),
-  ])
+  const activity = await recordCrmTouch({ leadId, agentId: lead.agentId, type, notes, nextFollowUp })
   await logAdminAction(session, "crm.add_activity", "crm_lead", leadId, {
-    after: { activityId: activity.id, type },
+    after: { activityId: activity.id, type, nextFollowUp },
   })
   revalidateLead(leadId)
+}
+
+/** Qualification facts the board shows: budget, area, deal type, contact, notes. */
+export async function updateLeadDetails(fd: FormData) {
+  const session = await requireAdminAction()
+  const id = reqString(fd, "id", 120)
+  const budgetMin = optInt(fd, "budgetMin")
+  const budgetMax = optInt(fd, "budgetMax")
+  if (budgetMin !== null && budgetMax !== null && budgetMin > budgetMax) {
+    throw new Error("Budget min exceeds max")
+  }
+  const dealType = optString(fd, "dealType", 20)
+  if (dealType !== null && !(CRM_DEAL_TYPES as readonly string[]).includes(dealType)) {
+    throw new Error("Invalid deal type")
+  }
+  const after = {
+    email: optString(fd, "email", 240),
+    budgetMin,
+    budgetMax,
+    currency: reqEnum(fd, "currency", CRM_CURRENCIES),
+    dealType,
+    district: optString(fd, "district", 120),
+    notes: optString(fd, "notes", 2000),
+  }
+  const before = await db.crmLead.findUniqueOrThrow({
+    where: { id },
+    select: { email: true, budgetMin: true, budgetMax: true, currency: true, dealType: true, district: true, notes: true },
+  })
+  await db.crmLead.update({ where: { id }, data: after })
+  await logAdminAction(session, "crm.update_details", "crm_lead", id, { before, after })
+  revalidateLead(id)
 }
 
 export async function addTask(fd: FormData) {

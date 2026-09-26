@@ -50,6 +50,7 @@ const COLS: { titleKey: DictKey; links: { key: DictKey; href: string }[] }[] = [
       { key: 'footer.sv.developers', href: '/developers' },
       { key: 'footer.sv.renovation', href: '/services/renovation' },
       { key: 'footer.sv.mortgage', href: '/mortgage-calculator' },
+      { key: 'footer.sv.valuta', href: '/valuta' },
       { key: 'footer.sv.ai', href: '/services/appraisal' },
     ],
   },
@@ -86,6 +87,16 @@ const DE_CITIES = [
   { name: 'Bonn', href: '/search?country=DE&city=bonn' },
 ]
 
+/** Trust badges backed by shipped behavior: one-click consent withdrawal
+ *  (footer "Cookies" button), opt-in-only analytics, the purchase-cost
+ *  calculator, TLS. Deliberately no "konform/geprüft" certification wording. */
+const DE_TRUST_BADGES = [
+  { id: 'withdraw', Icon: ShieldCheck, tone: 'text-emerald-400', label: { de: 'Cookie-Einwilligung jederzeit widerrufbar', en: 'Cookie consent revocable anytime', ka: 'ქუქიების თანხმობა ნებისმიერ დროს გაუქმდება' } },
+  { id: 'optin', Icon: Zap, tone: 'text-amber-400', label: { de: 'Analytics nur nach Opt-in', en: 'Analytics only after opt-in', ka: 'ანალიტიკა მხოლოდ თანხმობის შემდეგ' } },
+  { id: 'costs', Icon: Building2, tone: 'text-sv-blue-light', label: { de: 'Notar- & Grunderwerbsteuer-Rechner', en: 'Notary & transfer-tax calculator', ka: 'ნოტარიუსისა და გადასახადების კალკულატორი' } },
+  { id: 'tls', Icon: Lock, tone: 'text-white/60', label: { de: 'SSL/TLS verschlüsselt', en: 'SSL/TLS encrypted', ka: 'SSL/TLS დაშიფრული' } },
+] as const
+
 /** German-specific SEO keyword and discovery columns */
 const DE_GRID_COLS = [
   {
@@ -97,7 +108,7 @@ const DE_GRID_COLS = [
       { label: { de: 'Haus kaufen Hamburg', en: 'Buy house Hamburg', ka: 'სახლი ჰამბურგში' }, href: '/search?country=DE&city=hamburg&deal=sale&type=house' },
       { label: { de: 'Mietwohnung Frankfurt', en: 'Rent flat Frankfurt', ka: 'ქირა ფრანკფურტში' }, href: '/search?country=DE&city=frankfurt&deal=rent&type=apartment' },
       { label: { de: 'Altbauwohnung Leipzig', en: 'Period flat Leipzig', ka: 'ბინა ლაიფციგში' }, href: '/search?country=DE&city=leipzig&deal=sale&type=apartment' },
-      { label: { de: 'Neubauprojekte Deutschland', en: 'New developments Germany', ka: 'ახალი პროექტები' }, href: '/de#projects' },
+      { label: { de: 'Neubauprojekte Deutschland', en: 'New developments Germany', ka: 'მშენებარე ბინები' }, href: '/de#projects' },
     ],
   },
   {
@@ -131,7 +142,7 @@ const DE_GRID_COLS = [
       { label: { de: 'AGB Plattform', en: 'Terms of Service', ka: 'წესები და პირობები' }, href: '/legal/agb' },
       { label: { de: 'Widerrufsbelehrung', en: 'Right of Withdrawal', ka: 'გაუქმების უფლება' }, href: '/legal/widerruf' },
       { label: { de: 'Verbraucherinformationen', en: 'Consumer Information', ka: 'მომხმარებლის ინფორმაცია' }, href: '/legal/verbraucherinformationen' },
-      { label: { de: 'Energieausweis (§ 87 GEG)', en: 'Energy Certificate GEG', ka: 'ენერგოპასპორტი' }, href: '/legal/partner-disclosures' },
+      { label: { de: 'Partner- & Werbekennzeichnung', en: 'Partner & ad disclosures', ka: 'პარტნიორები და რეკლამა' }, href: '/legal/partner-disclosures' },
     ],
   },
 ]
@@ -179,7 +190,8 @@ export default function Footer({
   }, [])
   // ponytail: the copyright year was frozen at 2026 in 10 dictionaries — derive it.
   const year = new Date().getFullYear()
-  const loc: SeoLoc = lang === 'en' || lang === 'ru' ? lang : 'ka'
+  // Columns ship ka/en/ru only — every other locale reads English, never Georgian.
+  const loc: SeoLoc = lang === 'ka' || lang === 'ru' ? lang : 'en'
   const deLoc: 'de' | 'en' | 'ka' = lang === 'de' ? 'de' : lang === 'ka' ? 'ka' : 'en'
   const cleanPath = stripLangPrefix(pathname)
   const market = chromeMarket(cleanPath, marketIso)
@@ -208,7 +220,7 @@ export default function Footer({
             { label: lang === 'de' ? 'Häuser zum Kauf' : lang === 'ka' ? 'სახლები იყიდება' : 'Houses for sale', href: '/search?country=DE&deal=sale&type=house' },
             { label: lang === 'de' ? 'Wohnungen zur Miete' : lang === 'ka' ? 'ბინები ქირავდება' : 'Apartments for rent', href: '/search?country=DE&deal=rent&type=apartment' },
             { label: lang === 'de' ? 'Häuser zur Miete' : lang === 'ka' ? 'სახლები ქირავდება' : 'Houses for rent', href: '/search?country=DE&deal=rent&type=house' },
-            { label: lang === 'de' ? 'Neubauprojekte' : lang === 'ka' ? 'ახალი პროექტები' : 'New developments', href: '/de#projects' },
+            { label: lang === 'de' ? 'Neubauprojekte' : lang === 'ka' ? 'მშენებარე ბინები' : 'New developments', href: '/de#projects' },
             { label: lang === 'de' ? 'Gewerbeimmobilien' : lang === 'ka' ? 'კომერციული' : 'Commercial properties', href: '/search?country=DE&type=commercial' },
             { label: lang === 'de' ? 'Grundstücke' : lang === 'ka' ? 'მიწის ნაკვეთები' : 'Plots & land', href: '/search?country=DE&type=land' },
           ],
@@ -233,7 +245,7 @@ export default function Footer({
             { label: lang === 'de' ? 'Blog & Ratgeber' : lang === 'ka' ? 'ბლოგი' : 'Blog & guides', href: '/blog' },
             { label: lang === 'de' ? 'Werben auf sivrce' : lang === 'ka' ? 'რეკლამა' : 'Advertise', href: '/advertise' },
             { label: lang === 'de' ? 'Kontakt & Support' : lang === 'ka' ? 'კონტაქტი' : 'Contact & support', href: '/contact' },
-            { label: lang === 'de' ? 'Impressum (§ 5 DDG)' : 'Impressum (§ 5 DDG)', href: '/legal/impressum' },
+            { label: lang === 'de' ? 'Impressum (§ 5 DDG)' : lang === 'ka' ? 'იმპრესუმი (§ 5 DDG)' : 'Imprint (§ 5 DDG)', href: '/legal/impressum' },
             { label: lang === 'de' ? 'Datenschutz (DSGVO)' : lang === 'ka' ? 'კონფიდენციალურობა' : 'Privacy (GDPR)', href: '/legal/datenschutz' },
           ],
         },
@@ -373,20 +385,15 @@ export default function Footer({
               </div>
             </div>
 
-            {/* German Market Trust & Standards Strip */}
+            {/* German Market Trust & Standards Strip — every badge must be
+                backed by shipped behavior; no certification-sounding claims
+                while the legal docs carry LEGAL_REVIEW_REQUIRED. */}
             <div className="mt-10 flex flex-wrap items-center gap-3 border-t border-white/[0.05] pt-6">
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-semibold text-white/70">
-                <ShieldCheck className="h-3.5 w-3.5 text-emerald-400" aria-hidden /> DSGVO Art. 7(3) konform
-              </span>
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-semibold text-white/70">
-                <Zap className="h-3.5 w-3.5 text-amber-400" aria-hidden /> § 87 GEG Energieausweis-geprüft
-              </span>
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-semibold text-white/70">
-                <Building2 className="h-3.5 w-3.5 text-sv-blue-light" aria-hidden /> Notar &amp; Grundbuch vorbereitet
-              </span>
-              <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-semibold text-white/70">
-                <Lock className="h-3.5 w-3.5 text-white/60" aria-hidden /> SSL 256-Bit verschlüsselt
-              </span>
+              {DE_TRUST_BADGES.map((b) => (
+                <span key={b.id} className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[11px] font-semibold text-white/70">
+                  <b.Icon className={`h-3.5 w-3.5 ${b.tone}`} aria-hidden /> {b.label[deLoc]}
+                </span>
+              ))}
             </div>
           </nav>
         )}
@@ -458,6 +465,7 @@ export default function Footer({
                 <Link href={localizedHref('/legal/agb', lang)} data-cms-key="footer.terms" className="rounded-sm transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy">{t('footer.terms')}</Link>
                 <Link href={localizedHref('/legal/widerruf', lang)} className="rounded-sm transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy">Widerruf</Link>
                 <Link href={localizedHref('/legal/verbraucherinformationen', lang)} className="rounded-sm transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy">Verbraucherinfo</Link>
+                <Link href={localizedHref('/legal/cookies', lang)} className="rounded-sm transition-colors hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-navy">{lang === 'de' ? 'Cookie-Richtlinie' : 'Cookie Policy'}</Link>
               </>
             ) : (
               <>

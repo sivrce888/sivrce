@@ -13,7 +13,8 @@ import { jsonLd } from '@/lib/utils'
 import { isValidLang, type Lang } from '@/lib/i18n/core'
 import { pageAlternates, OG_LOCALE } from '@/lib/i18n/server'
 import { PROJECTS_HUB, faqPageLd } from '@/lib/directory-seo'
-import { toCard } from './to-card'
+import { requestDomain, requestMarket } from '@/lib/request-market'
+import { isProjectInGeorgia, toCard } from './to-card'
 import { PER_PAGE, Pager } from './ProjectsGrid'
 import { hubFacets } from './card'
 import { ProjectsExplorer } from './ProjectsExplorer'
@@ -58,7 +59,12 @@ export default async function ProjectsPage({ params }: PageProps) {
   const c = PROJECTS_HUB[raw === 'ka' || raw === 'ru' || raw === 'de' ? raw : 'en']
   const loc = raw === 'ka' || raw === 'ru' || raw === 'de' ? raw : 'en'
 
-  const projects = await projectsLive()
+  const domain = await requestDomain()
+  const market = await requestMarket()
+  const isGeOnly = domain === 'ge' || market === 'ge'
+
+  const allProjects = await projectsLive()
+  const projects = isGeOnly ? allProjects.filter((p) => isProjectInGeorgia(p)) : allProjects
   const deltas = marketDeltas(projects)
   const cards = projects.map((p) => toCard(p, loc, deltas))
   const totalPages = Math.max(1, Math.ceil(projects.length / PER_PAGE))
@@ -125,6 +131,7 @@ export default async function ProjectsPage({ params }: PageProps) {
             facets={hubFacets(cards)}
             loc={loc}
             pager={<Pager page={1} totalPages={totalPages} loc={loc} />}
+            isGeOnly={isGeOnly}
           />
         </section>
 

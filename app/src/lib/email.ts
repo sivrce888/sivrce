@@ -88,11 +88,11 @@ export function sendInquiryNotification(params: InquiryNotificationParams): void
       ${params.buyerEmail ? `<p><strong>ელფოსტა:</strong> ${escapeHtml(params.buyerEmail)}</p>` : ""}
       ${params.buyerPhone ? `<p><strong>ტელეფონი:</strong> ${escapeHtml(params.buyerPhone)}</p>` : ""}
       ${listingLine}
-      <p><strong>მესიჯი:</strong></p>
+      <p><strong>შეტყობინება:</strong></p>
       <p>${escapeHtml(params.message)}</p>
       <hr />
       <p style="color:#888;font-size:12px">
-        ეს მოთხოვნა Sivrce-ის საშუალებით გამოიგზავნა. უპასუხე პირდაპირ მყიდველის ელფოსტაზე ან ტელეფონზე.
+        ეს მოთხოვნა Sivrce-ის საშუალებით გამოიგზავნა. უპასუხეთ პირდაპირ დაინტერესებული პირის ელფოსტაზე ან ტელეფონზე.
       </p>
     `,
   })
@@ -110,11 +110,11 @@ export function sendWelcomeEmail(params: WelcomeEmailParams): void {
     subject: "მოგესალმებით Sivrce-ში!",
     html: `
       <h2>მოგესალმებით Sivrce-ში, ${escapeHtml(params.name)}!</h2>
-      <p>შენი ანგარიში წარმატებით შეიქმნა.</p>
-      <p>დაიწყე განცხადების ძიება, შეინახე ფავორიტები და დაუკავშირდი აგენტებს მთელ საქართველოში.</p>
+      <p>თქვენი ანგარიში წარმატებით შეიქმნა.</p>
+      <p>დაიწყეთ უძრავი ქონების ძიება, შეინახეთ რჩეული ობიექტები და დაუკავშირდით მესაკუთრეებსა და აგენტებს მთელ საქართველოში.</p>
       <p>
         <a href="https://sivrce.ge" style="color:#1a56db;font-weight:600">
-          განცხადებების ნახვა &rarr;
+          განცხადებების დათვალიერება &rarr;
         </a>
       </p>
     `,
@@ -135,18 +135,18 @@ export function sendAuctionOutbidNotification(params: AuctionOutbidParams): void
   const currency = params.currency ?? "GEL"
   void sendEmail({
     to: params.to,
-    subject: `უფრო მაღალი შემოთავაზება — ${params.listingTitle}`,
+    subject: `უფრო მაღალი შეთავაზება — ${params.listingTitle}`,
     html: `
-      <h2>გადაგასწრეს</h2>
+      <h2>თქვენს შეთავაზებას გადააჭარბეს</h2>
       <p>გამარჯობა ${escapeHtml(params.userName)},</p>
       <p>
-        ვინმემ უფრო მაღალი შემოთავაზება გააკეთა —
+        დაფიქსირდა უფრო მაღალი შეთავაზება —
         <strong>${escapeHtml(String(params.outbidAmount))} ${escapeHtml(currency)}</strong>
         — <strong>${escapeHtml(params.listingTitle)}</strong>-ზე.
       </p>
       <p>
         <a href="${escapeHtml(params.listingUrl)}" style="color:#1a56db;font-weight:600">
-          ნახე განცხადება და დაამატე ახალი შემოთავაზება &rarr;
+          იხილეთ განცხადება და განაახლეთ შეთავაზება &rarr;
         </a>
       </p>
     `,

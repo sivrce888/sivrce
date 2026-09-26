@@ -114,6 +114,57 @@ function isMarketId(v: string | null | undefined): v is 'ge' | 'global' | PathCo
  * of city rows) into the navbar chunk on every route. City/district is the
  * search field's axis; country is this one's. Locked by bundle-leak.check.
  */
+const GE_NAV_CITIES = [
+  { slug: '', ka: 'ყველა საქართველო', en: 'All Georgia', ru: 'Вся Грузия', de: 'Ganz Georgien', icon: '🇬🇪' },
+  { slug: 'tbilisi', ka: 'თბილისი', en: 'Tbilisi', ru: 'Тбилиси', de: 'Tiflis', icon: '🏛️' },
+  { slug: 'batumi', ka: 'ბათუმი', en: 'Batumi', ru: 'Батуми', de: 'Batumi', icon: '🌊' },
+  { slug: 'kutaisi', ka: 'ქუთაისი', en: 'Kutaisi', ru: 'Кутаиси', de: 'Kutaisi', icon: '🏰' },
+  { slug: 'rustavi', ka: 'რუსთავი', en: 'Rustavi', ru: 'Рустави', de: 'Rustawi', icon: '🏭' },
+  { slug: 'bakuriani', ka: 'ბაკურიანი', en: 'Bakuriani', ru: 'Бакуриани', de: 'Bakuriani', icon: '⛷️' },
+  { slug: 'gudauri', ka: 'გუდაური', en: 'Gudauri', ru: 'Гудаури', de: 'Gudauri', icon: '🏔️' },
+  { slug: 'kobuleti', ka: 'ქობულეთი', en: 'Kobuleti', ru: 'Кобулети', de: 'Kobuleti', icon: '🏖️' },
+  { slug: 'telavi', ka: 'თელავი', en: 'Telavi', ru: 'Телави', de: 'Telawi', icon: '🍇' },
+  { slug: 'borjomi', ka: 'ბორჯომი', en: 'Borjomi', ru: 'Боржоми', de: 'Bordschomi', icon: '🌲' },
+]
+
+type GeNavCity = (typeof GE_NAV_CITIES)[number]
+
+function cityNavHref(c: GeNavCity, pathname: string, lang: string): string {
+  const bare = stripLangPrefix(pathname)
+  const lPrefix = lang && lang !== 'ka' ? `/${lang}` : ''
+  if (bare.startsWith('/projects')) {
+    // Explorer filters match raw catalog city values (Georgian), so the query
+    // carries c.ka — the same value the facet chips compare against.
+    return c.slug ? `${lPrefix}/projects?city=${encodeURIComponent(c.ka)}` : `${lPrefix}/projects`
+  }
+  if (bare.startsWith('/rent')) {
+    return c.slug ? `${lPrefix}/rent/${c.slug}` : `${lPrefix}/rent`
+  }
+  if (bare.startsWith('/daily')) {
+    return c.slug ? `${lPrefix}/daily/${c.slug}` : `${lPrefix}/daily`
+  }
+  if (bare.startsWith('/hotels')) {
+    // Pretty URL only for crawlable destination hubs (mirrors POPULAR_DESTINATIONS
+    // in lib/hotels — not imported: fx-server would leak into the navbar bundle).
+    return c.slug
+      ? ['tbilisi', 'batumi', 'kutaisi'].includes(c.slug)
+        ? `${lPrefix}/hotels/${c.slug}`
+        : `${lPrefix}/hotels?city=${c.slug}`
+      : `${lPrefix}/hotels`
+  }
+  if (bare.startsWith('/map')) {
+    return c.slug ? `${lPrefix}/map?city=${c.slug}` : `${lPrefix}/map`
+  }
+  return c.slug ? `${lPrefix}/sale/${c.slug}` : `${lPrefix}/sale`
+}
+
+/** City slug the current path is scoped to — /sale/tbilisi, /tbilisi/x, /rent/batumi, /projects/tbilisi. */
+function activeCitySlug(pathname: string): string {
+  const parts = stripLangPrefix(pathname).split('/')
+  const a = parts[1] ?? ''
+  return GE_NAV_CITIES.find((c) => c.slug && (c.slug === a || c.slug === (parts[2] ?? '')))?.slug ?? ''
+}
+
 export function NavLocationBadge({
   light = false,
   marketIso,
@@ -126,17 +177,20 @@ export function NavLocationBadge({
   // Tri-lang chrome strings (ka/de/en) — matches the de-market overlay ceiling.
   const T = (ka: string, de: string, en: string) => (lang === 'ka' ? ka : lang === 'de' ? de : en)
   const [open, setOpen] = useState(false)
+  // Explicit tab pick wins; default derives from market during render — no
+  // effect, no cascading re-render when countryId resolves.
+  const [tabPick, setTab] = useState<'ge' | 'world' | null>(null)
   const rootRef = useRef<HTMLDivElement>(null)
   const mounted = useSyncExternalStore(noopSubscribe, () => true, () => false)
 
   const parsed = parseCountryPath(stripLangPrefix(pathname))
   const fromProp = marketFromIso(marketIso ?? null)
 
-  // Browser-only market hints (?country, <html data-market>, cookie). Derived
-  // during render once hydrated — an effect + setState would cost a second
-  // render pass on every navigation, on every page that mounts the navbar.
   const sticky = useMemo(() => {
     if (!mounted) return null
+    // pathname never reads into the probe — it's the nav signal that re-runs
+    // it after a market switch rewrites the cookie / data-market attribute.
+    void pathname
     const sp = new URLSearchParams(window.location.search)
     const iso = sp.get('country')
     const fromIso = marketFromIso(iso)
@@ -145,16 +199,14 @@ export function NavLocationBadge({
     const raw = fromIso || (isMarketId(html) ? html : null) || cook
     const country: 'ge' | 'global' | PathCountryId = isMarketId(raw) ? raw : 'global'
     return country
-    // pathname is the invalidation signal, not a read value: navigation is what
-    // changes location.search/data-market. useSearchParams() would read them
-    // "properly" but opts every page that renders the navbar out of static.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mounted, pathname])
 
   const countryId: 'ge' | 'global' | PathCountryId =
     parsed?.country ?? (fromProp && fromProp !== 'global' ? fromProp : null) ?? sticky ?? 'global'
 
   const countryName = marketLabel(countryId, lang)
+
+  const tab: 'ge' | 'world' = tabPick ?? (countryId !== 'ge' ? 'world' : 'ge')
 
   useEffect(() => {
     if (!open) return
@@ -173,8 +225,6 @@ export function NavLocationBadge({
   }, [open])
 
   const [search, setSearch] = useState('')
-  // ponytail: list mounts on first open and stays for the exit fade — 75 closed
-  // market links were ~500 DOM nodes on every page. Sitemap + WorldDesk carry them for crawlers.
   const [armed, setArmed] = useState(false)
 
   const filteredItems = search.trim()
@@ -185,12 +235,6 @@ export function NavLocationBadge({
       })
     : TOP_ITEMS
 
-  // The wrapper is deliberately NOT `relative`: the popover anchors to the
-  // navbar's left cluster (which is), so it opens flush with the logo instead
-  // of flush with the pill. Pill-anchored, a 16rem panel started ~148px in and
-  // ran off the right edge of a 390px phone; logo-aligned it fits from 320px up
-  // with no viewport math, no JS measuring and no CSS anchor positioning
-  // (Chrome-only). ponytail: used outside Navbar, give its wrapper `relative`.
   return (
     <div ref={rootRef} className="inline-flex items-center">
       <button
@@ -203,9 +247,7 @@ export function NavLocationBadge({
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label={`${T('ბაზარი', 'Markt', 'Market')}: ${countryName}`}
-        // before: = invisible 44px touch target around the 32px pill (Apple HIG
-        // minimum) without inflating the nav row.
-        className={`group relative flex h-8 items-center gap-1.5 rounded-full border border-sv-ink/10 px-2.5 text-[11px] font-bold transition-all duration-200 before:absolute before:inset-x-0 before:-inset-y-1.5 before:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue ${
+        className={`group relative flex h-8 items-center gap-1.5 rounded-full border border-sv-ink/10 px-2.5 text-[11px] font-bold transition duration-200 before:absolute before:inset-x-0 before:-inset-y-1.5 before:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue ${
           light
             ? 'bg-sv-ink/5 text-sv-ink hover:bg-sv-ink/10'
             : 'bg-sv-ink/5 text-sv-ink hover:bg-sv-ink/10 dark:border-white/15 dark:bg-white/10 dark:text-white dark:hover:bg-white/20'
@@ -225,52 +267,118 @@ export function NavLocationBadge({
         aria-label={T('მდებარეობა და ბაზარი', 'Standort & Markt', 'Location & Market')}
         inert={!open}
         data-open={open || undefined}
-        className="sv-pop glass-light absolute start-0 top-full z-50 mt-2 max-h-[min(24rem,70vh)] w-[min(16rem,calc(100vw-2.5rem))] origin-top-start overflow-hidden rounded-module border border-sv-ink/10 p-2 shadow-card"
+        className="sv-pop glass-light absolute start-0 top-full z-50 mt-2 max-h-[min(26rem,75vh)] w-[min(17rem,calc(100vw-2.5rem))] origin-top-start overflow-hidden rounded-module border border-sv-ink/10 p-2 shadow-card"
       >
         {armed && (
           <>
-            <div className="mb-2 px-1">
-              <input
-                type="text"
-                name="country-search"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder={T('ქვეყნის ძიება…', 'Land suchen…', 'Search country…')}
-                aria-label={T('ქვეყნის ძიება', 'Land suchen', 'Search country')}
-                className="w-full rounded-control border border-sv-ink/10 bg-sv-surface px-3 py-1.5 text-[12px] font-semibold text-sv-ink placeholder:text-sv-ink/40 focus:border-sv-blue focus:outline-none focus:ring-2 focus:ring-sv-blue/20"
-                autoFocus={open}
-              />
+            {/* Apple-grade Tab Switcher: Georgia Hierarchy vs Global Hub */}
+            <div className="mb-2 flex rounded-control bg-sv-ink/[0.06] p-0.5 text-[11px] font-bold">
+              <button
+                type="button"
+                onClick={() => setTab('ge')}
+                className={`flex-1 rounded-[6px] py-1 text-center transition-colors ${
+                  tab === 'ge' ? 'bg-white text-sv-ink shadow-sm dark:bg-sv-navy dark:text-white' : 'text-sv-ink/60 hover:text-sv-ink'
+                }`}
+              >
+                🇬🇪 {T('საქართველო', 'Georgien', 'Georgia')}
+              </button>
+              <button
+                type="button"
+                onClick={() => setTab('world')}
+                className={`flex-1 rounded-[6px] py-1 text-center transition-colors ${
+                  tab === 'world' ? 'bg-white text-sv-ink shadow-sm dark:bg-sv-navy dark:text-white' : 'text-sv-ink/60 hover:text-sv-ink'
+                }`}
+              >
+                🌐 {T('მსოფლიო', 'Weltweit', 'Global')}
+              </button>
             </div>
-            <div className="max-h-[min(18rem,55vh)] overflow-y-auto overscroll-contain">
-              {filteredItems.map((m) => {
-                const on = m.id === countryId
-                const label = marketLabel(m.id, lang)
-                return (
-                  <a
-                    key={m.id}
-                    href={marketHref(m.id, lang)}
-                    role="menuitemradio"
-                    aria-checked={on}
-                    onClick={() => {
-                      document.cookie = `sv-geo-v2=${encodeURIComponent(m.id)}; path=/; max-age=31536000; SameSite=Lax`
-                      setOpen(false)
-                    }}
-                    className={`flex w-full items-center gap-2.5 rounded-control px-3 py-2 text-start text-[13px] font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue ${
-                      on ? 'bg-sv-blue/10 text-sv-blue' : 'text-sv-ink hover:bg-sv-ink/5'
-                    }`}
-                  >
-                    <Flag code={m.flag} size={16} />
-                    <span className="flex-1 truncate">{label}</span>
-                    {on && <Check className="h-4 w-4 shrink-0" />}
-                  </a>
-                )
-              })}
-              {filteredItems.length === 0 && (
-                <div className="py-4 text-center text-[12px] font-semibold text-sv-ink/50">
-                  {T('ვერ მოიძებნა', 'Kein Land gefunden', 'No country found')}
+
+            {tab === 'ge' ? (
+              <div className="max-h-[min(19rem,55vh)] overflow-y-auto overscroll-contain">
+                <div className="px-2 py-1 text-[10px] font-extrabold uppercase tracking-wider text-sv-ink/40">
+                  {T('ქალაქები და კურორტები', 'Städte & Regionen', 'Cities & Resorts')}
                 </div>
-              )}
-            </div>
+                {GE_NAV_CITIES.map((c) => {
+                  const href = cityNavHref(c, pathname, lang)
+                  const label = lang === 'ka' ? c.ka : lang === 'de' ? c.de : lang === 'ru' ? c.ru : c.en
+                  const on = countryId === 'ge' && (c.slug ? c.slug === activeCitySlug(pathname) : activeCitySlug(pathname) === '')
+                  return (
+                    <a
+                      key={c.slug}
+                      href={href}
+                      role="menuitem"
+                      onClick={() => {
+                        document.cookie = `sv-geo-v2=ge; path=/; max-age=31536000; SameSite=Lax`
+                        setOpen(false)
+                      }}
+                      className={`flex w-full items-center gap-2.5 rounded-control px-2.5 py-1.5 text-start text-[12.5px] font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue ${
+                        on ? 'bg-sv-blue/10 text-sv-blue' : 'text-sv-ink hover:bg-sv-ink/5'
+                      }`}
+                    >
+                      <span className="text-[14px]">{c.icon}</span>
+                      <span className="flex-1 truncate">{label}</span>
+                      {on && <Check className="h-3.5 w-3.5 shrink-0" />}
+                    </a>
+                  )
+                })}
+                <div className="mt-2 border-t border-sv-ink/10 pt-2">
+                  <a
+                    href="https://sivrce.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex w-full items-center gap-2 rounded-control bg-sv-blue/5 px-2.5 py-2 text-start text-[11px] font-bold text-sv-blue transition-colors hover:bg-sv-blue/10"
+                  >
+                    <Globe className="h-3.5 w-3.5 shrink-0" />
+                    <span className="flex-1">sivrce.com — {T('გლობალური პლატფორმა', 'Globale Plattform', 'Global Platform')}</span>
+                  </a>
+                </div>
+              </div>
+            ) : (
+              <>
+                <div className="mb-2 px-1">
+                  <input
+                    type="text"
+                    name="country-search"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder={T('ქვეყნის ძიება…', 'Land suchen…', 'Search country…')}
+                    aria-label={T('ქვეყნის ძიება', 'Land suchen', 'Search country')}
+                    className="w-full rounded-control border border-sv-ink/10 bg-sv-surface px-3 py-1.5 text-[12px] font-semibold text-sv-ink placeholder:text-sv-ink/40 focus:border-sv-blue focus:outline-none focus:ring-2 focus:ring-sv-blue/20"
+                    autoFocus={open}
+                  />
+                </div>
+                <div className="max-h-[min(18rem,55vh)] overflow-y-auto overscroll-contain">
+                  {filteredItems.map((m) => {
+                    const on = m.id === countryId
+                    const label = marketLabel(m.id, lang)
+                    return (
+                      <a
+                        key={m.id}
+                        href={marketHref(m.id, lang)}
+                        role="menuitemradio"
+                        aria-checked={on}
+                        onClick={() => {
+                          document.cookie = `sv-geo-v2=${encodeURIComponent(m.id)}; path=/; max-age=31536000; SameSite=Lax`
+                          setOpen(false)
+                        }}
+                        className={`flex w-full items-center gap-2.5 rounded-control px-3 py-2 text-start text-[13px] font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue ${
+                          on ? 'bg-sv-blue/10 text-sv-blue' : 'text-sv-ink hover:bg-sv-ink/5'
+                        }`}
+                      >
+                        <Flag code={m.flag} size={16} />
+                        <span className="flex-1 truncate">{label}</span>
+                        {on && <Check className="h-4 w-4 shrink-0" />}
+                      </a>
+                    )
+                  })}
+                  {filteredItems.length === 0 && (
+                    <div className="py-4 text-center text-[12px] font-semibold text-sv-ink/50">
+                      {T('ვერ მოიძებნა', 'Kein Land gefunden', 'No country found')}
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
           </>
         )}
       </div>

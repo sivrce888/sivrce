@@ -29,6 +29,15 @@ assert.equal(buildDbWhere(parseSearchParams(sp('country=AE'))).country, 'AE')
 assert.equal(buildDbWhere(parseSearchParams(sp(''))).country, undefined)
 assert.equal(buildDbWhere(parseSearchParams(sp('country=all'))).country, undefined)
 
+// Installment filter (Korter parity): whitelisted feature key flows parse → DB.
+{
+  const f = parseSearchParams(sp('feat=add.f.installment&deal=sale'))
+  assert.deepEqual(f.features, ['add.f.installment'])
+  const where = buildDbWhere(f)
+  assert.deepEqual(where.features, { hasEvery: ['add.f.installment'] })
+  assert.equal(parseSearchParams(sp('feat=add.f.notAKey')).features, undefined, 'unknown feature keys are dropped at the boundary')
+}
+
 const tbilisiWhere = buildDbWhere(parseSearchParams(sp('city=Tbilisi'))).city
 assert.ok(tbilisiWhere && typeof tbilisiWhere === 'object' && 'in' in tbilisiWhere)
 assert.ok((tbilisiWhere.in as string[]).includes('თბილისი'), 'English Tbilisi must match ka rows')

@@ -1,8 +1,10 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
-import { notFound } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import { avifCardOf, cardOf } from '@/lib/media'
+import { requestHostKind } from '@/lib/request-market'
+import { isProjectInGeorgia } from '../to-card'
 import { MapPin, BadgeCheck, Star, Phone, PhoneCall, Landmark, ArrowUpRight, Images, PlayCircle, Calculator } from 'lucide-react'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
@@ -81,14 +83,13 @@ function kaAltName(p: { name: string; nameKa?: string; city: string }, lang: str
   return p.nameKa || altName(p.name)
 }
 
-/** Portal source links name the portal — only developer/official pages are "official". */
-function sourceLabel(url: string, lang: string, isDe: boolean): string {
+/** Portal-sourced projects stay unnamed (competitor-silence lock) — only developer/official pages get a source link. */
+function officialSource(url: string, isDe: boolean): { href: string; label: string } | undefined {
   try {
     const h = new URL(url).host
-    const portal = h.endsWith('korter.ge') ? 'Korter' : h.endsWith('myhome.ge') ? 'MyHome' : h.endsWith('ss.ge') ? 'SS.ge' : undefined
-    if (portal) return lang === 'ka' ? `წყარო: ${portal}` : lang === 'ru' ? `Источник: ${portal}` : `Source: ${portal}`
-  } catch { /* not a URL — treat as official */ }
-  return isDe ? 'Offizielle Quelle' : 'Official source'
+    if (/(^|\.)korter\.ge$|(^|\.)myhome\.ge$|(^|\.)ss\.ge$/.test(h)) return undefined
+  } catch { return undefined }
+  return { href: url, label: isDe ? 'Offizielle Quelle' : 'Official source' }
 }
 
 function absImg(src: string, com = false) {
@@ -168,6 +169,12 @@ export default async function ProjectPage({ params }: PageProps) {
 
   const project = await getLiveProject(slug)
   if (!project) notFound()
+
+  // Domain constitution: non-Georgian projects 308 off production sivrce.ge to sivrce.com canonical
+  if ((await requestHostKind()) === 'ge' && !isProjectInGeorgia(project)) {
+    return permanentRedirect(`https://sivrce.com/projects/${project.slug}`)
+  }
+
   // Georgian transliteration wins on ka — matches how users actually search.
   const displayName = lang === 'ka' && project.nameKa ? project.nameKa : project.name
 
@@ -510,7 +517,7 @@ export default async function ProjectPage({ params }: PageProps) {
               <div className="mt-auto grid grid-cols-2 gap-2 pt-5">
                 <a
                   href="#contact"
-                  className="col-span-2 inline-flex min-h-12 items-center justify-center gap-2 rounded-control bg-sv-orange px-5 text-[15px] font-extrabold text-sv-ink transition-all duration-200 hover:-translate-y-0.5 hover:shadow-glow-orange-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
+                  className="col-span-2 inline-flex min-h-12 items-center justify-center gap-2 rounded-control bg-sv-orange px-5 text-[15px] font-extrabold text-sv-ink transition duration-200 hover:-translate-y-0.5 hover:shadow-glow-orange-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
                 >
                   <PhoneCall className="h-4 w-4" aria-hidden />
                   {t.requestCall}
@@ -537,7 +544,7 @@ export default async function ProjectPage({ params }: PageProps) {
                   </>
                 )}
               </div>
-              {(showMortgage || project.sourceUrl) && (
+              {(showMortgage || officialSource(project.sourceUrl ?? '', isDe)) && (
               <p className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] font-bold text-sv-ink/60">
                 {showMortgage && (
                   <Link href="/mortgage-calculator" className="inline-flex min-h-8 items-center gap-1 text-sv-blue-deep hover:underline">
@@ -545,18 +552,21 @@ export default async function ProjectPage({ params }: PageProps) {
                     {t.mortgage}
                   </Link>
                 )}
-                {project.sourceUrl && (
-                  <a
-                    href={project.sourceUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex min-h-8 items-center gap-1 hover:text-sv-ink"
-                  >
-                    <Landmark className="h-3.5 w-3.5" aria-hidden />
-                    {sourceLabel(project.sourceUrl, lang, isDe)}
-                    <ArrowUpRight className="h-3 w-3" aria-hidden />
-                  </a>
-                )}
+                {(() => {
+                  const src = officialSource(project.sourceUrl ?? '', isDe)
+                  return src ? (
+                    <a
+                      href={src.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex min-h-8 items-center gap-1 hover:text-sv-ink"
+                    >
+                      <Landmark className="h-3.5 w-3.5" aria-hidden />
+                      {src.label}
+                      <ArrowUpRight className="h-3 w-3" aria-hidden />
+                    </a>
+                  ) : null
+                })()}
               </p>
               )}
             </div>
@@ -678,7 +688,7 @@ export default async function ProjectPage({ params }: PageProps) {
                   key={p.slug}
                   href={`/projects/${p.slug}`}
                   // no aria-label: visible text (name+price) IS the accessible name
-                  className="group overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card transition-all duration-500 hover:-translate-y-1.5 hover:shadow-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue"
+                  className="group overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card transition duration-500 hover:-translate-y-1.5 hover:shadow-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue"
                 >
                   <div className="relative aspect-[16/9] overflow-hidden">
                     <Image

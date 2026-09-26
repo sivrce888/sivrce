@@ -3,8 +3,12 @@ import Link from 'next/link'
 import { ChevronRight, MapPin, Mountain } from 'lucide-react'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
-import { GEO_MUNICIPALITIES, GEO_REGIONS } from '@/data/georgia-locations'
+import { WeatherBadge } from '@/components/WeatherBadge'
+import { GEO_MUNICIPALITIES, GEO_REGIONS, geoMuniSeat } from '@/data/georgia-locations'
 import { villagesOf } from '@/data/georgia-villages'
+import { cityByName } from '@/lib/map/user-place.server'
+import { CITIES } from '@/lib/seo-pages'
+import { cityCoords, GE_TOWN_COORDS, getWeatherBatch } from '@/lib/weather'
 import { cityName } from '@/lib/directory-seo-lite'
 import { jsonLd } from '@/lib/utils'
 import { isValidLang, translateRaw, type Lang } from '@/lib/i18n/core'
@@ -13,7 +17,7 @@ import { kaOnlyAlternates, OG_LOCALE } from '@/lib/i18n/server'
 const BASE = 'https://sivrce.ge'
 const PATH = '/locations'
 
-export const revalidate = 86400
+export const revalidate = 1800 // weather chips ride the same 30-min Open-Meteo cache
 
 /** Catalog keys are ka — EN/RU labels for the 12 official regions (de → en). */
 const REGION_LABELS: Record<string, { en: string; ru: string }> = {
@@ -212,6 +216,53 @@ const REGION_ANCHOR: Record<string, string> = {
   'აფხაზეთი': 'abkhazia',
 }
 
+/** Region → administrative-center (ka) for its live chip. */
+const REGION_WX: Record<string, string> = {
+  'თბილისი': 'თბილისი',
+  'აჭარა': 'ბათუმი',
+  'გურია': 'ოზურგეთი',
+  'იმერეთი': 'ქუთაისი',
+  'კახეთი': 'თელავი',
+  'მცხეთა-მთიანეთი': 'მცხეთა',
+  'რაჭა-ლეჩხუმი და ქვემო სვანეთი': 'ამბროლაური',
+  'სამეგრელო-ზემო სვანეთი': 'ზუგდიდი',
+  'სამცხე-ჯავახეთი': 'ახალციხე',
+  'ქვემო ქართლი': 'რუსთავი',
+  'შიდა ქართლი': 'გორი',
+  'აფხაზეთი': 'სოხუმი',
+}
+
+/** ka name → coords: map-city corpus, then registered CITIES, then the
+    small-town table — so every region, city and muni seat renders live. */
+const SLUG_BY_KA = new Map(CITIES.map((c) => [c.ka, c.slug]))
+function coordsOf(name: string): { lat: number; lng: number } | undefined {
+  const c = cityByName(name)
+  if (c) return { lat: c.lat, lng: c.lng }
+  return cityCoords(SLUG_BY_KA.get(name)) ?? GE_TOWN_COORDS[name]
+}
+
+/** Weather points for every region, city and municipality on this page —
+    municipalities resolve to their seat via the existing corpus (no dup coords). */
+function wxPoints(): Record<string, { lat: number; lng: number }> {
+  const pts: Record<string, { lat: number; lng: number }> = {}
+  const add = (key: string, name: string) => {
+    if (pts[key]) return
+    const at = coordsOf(name)
+    if (at) pts[key] = at
+  }
+  for (const region of Object.keys(GEO_REGIONS)) {
+    add(`r:${region}`, REGION_WX[region])
+    for (const city of GEO_REGIONS[region]!.cities) add(`c:${city}`, city)
+    for (const m of GEO_REGIONS[region]!.munis) {
+      const seat = geoMuniSeat(m)
+      if (seat) add(`m:${m}`, seat)
+    }
+  }
+  return pts
+}
+
+const WX_CHIP = 'shrink-0 rounded-full border border-sv-ink/[0.06] bg-sv-surface px-2.5 py-1 text-sv-ink/60'
+
 function locationsLd(c: Copy, cl: CopyLang) {
   return {
     '@context': 'https://schema.org',
@@ -242,6 +293,8 @@ export default async function LocationsIndexPage({ params }: PageProps) {
   const regions = Object.keys(GEO_REGIONS)
   const regionLabel = (r: string) => (cl === 'ka' ? r : REGION_LABELS[r]?.[cl === 'de' ? 'en' : cl] ?? r)
   const cityLabel = (city: string) => (cl === 'ka' ? city : cityName(city, cl === 'de' ? 'de' : cl))
+  // One batched upstream call renders every live chip on the page (~120 places).
+  const wx = await getWeatherBatch(wxPoints(), cl)
   return (
     <div className="min-h-screen bg-sv-cloud">
       <Navbar />
@@ -315,8 +368,11 @@ export default async function LocationsIndexPage({ params }: PageProps) {
                 id={REGION_ANCHOR[region]}
                 className="scroll-mt-32 rounded-tile border border-sv-ink/[0.06] bg-sv-surface p-5 shadow-card md:p-7"
               >
-                <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
-                  <h2 className="text-[22px] font-black tracking-tight text-sv-ink md:text-[26px]">{regionLabel(region)}</h2>
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+                  <span className="flex flex-wrap items-center gap-2.5">
+                    <h2 className="text-[22px] font-black tracking-tight text-sv-ink md:text-[26px]">{regionLabel(region)}</h2>
+                    <WeatherBadge w={wx[`r:${region}`]} label={regionLabel(region)} lang={cl} className={WX_CHIP} />
+                  </span>
                   <p className="text-[12px] font-bold text-sv-ink/50">
                     {[
                       translateRaw(c.sumCities, { n: cities.length }),
@@ -336,6 +392,13 @@ export default async function LocationsIndexPage({ params }: PageProps) {
                         >
                           <MapPin className="h-3.5 w-3.5" aria-hidden />
                           {cityLabel(city)}
+                          <WeatherBadge
+                            w={wx[`c:${city}`]}
+                            label={cityLabel(city)}
+                            lang={cl}
+                            iconClassName="h-3 w-3"
+                            className="tabular-nums"
+                          />
                         </Link>
                       </li>
                     ))}
@@ -356,6 +419,7 @@ export default async function LocationsIndexPage({ params }: PageProps) {
                                   {villages.length > 0 ? translateRaw(c.villagesCount, { n: villages.length }) : c.noVillages}
                                 </span>
                               </span>
+                              <WeatherBadge w={wx[`m:${m}`]} label={m} lang={cl} className={WX_CHIP} />
                               <ChevronRight
                                 className="h-4 w-4 shrink-0 text-sv-ink/30 transition-transform duration-300 group-open:rotate-90"
                                 aria-hidden

@@ -22,6 +22,7 @@ import {
   haversineKm,
   hotelTaKey,
   keepHotelName,
+  kaIn,
   marginPct,
   mergeBrowseHotels,
   osmImage,
@@ -38,6 +39,7 @@ import {
   parseView,
   parseWikiLodging,
   placeBySlug,
+  POPULAR_DESTINATIONS,
   SEED_TA,
   wikiLodgingQuery,
   withMargin,
@@ -140,11 +142,22 @@ assert(route.includes("s-maxage=600"), "route CDN-cached")
 
 // Detail page wiring: room list + hotel JSON-LD, still server-only.
 const detail = readFileSync(
-  join(dirname(fileURLToPath(import.meta.url)), "../app/[lang]/hotels/[hotelId]/page.tsx"),
+  join(dirname(fileURLToPath(import.meta.url)), "../app/[lang]/hotels/[slug]/page.tsx"),
   "utf8",
 )
 assert(detail.includes("application/ld+json"), "detail page emits Hotel JSON-LD")
 assert(!detail.includes("'use client'"), "detail page stays server-only")
+
+// City hubs: /hotels/<slug> serves destinations, /hotels/g…-d… serves hotels.
+for (const d of POPULAR_DESTINATIONS) {
+  assert(placeBySlug(d.slug) !== null, `destination resolves in WORLD_PLACES: ${d.slug}`)
+  assert(parseTaKey(d.slug) === null, `destination slug never collides with a hotel key: ${d.slug}`)
+}
+assert(detail.includes("isPopularDestination(slug)") && detail.includes("HotelsView"), "[slug] route branches city hub vs hotel")
+assert(page.includes("canonicalCity") && page.includes('action="/hotels"'), "HotelsView pins canonical city, form submits to hub")
+assert(kaIn("თბილისი") === "თბილისში" && kaIn("ბათუმი") === "ბათუმში" && kaIn("ვენა") === "ვენაში", "ka locative")
+const sitemap = readFileSync(join(dirname(fileURLToPath(import.meta.url)), "../app/sitemap.ts"), "utf8")
+assert(sitemap.includes("POPULAR_DESTINATIONS"), "sitemap lists destination hubs")
 assert(detail.includes("notFound()") && detail.includes("redirect("), "detail guards bad ids and stays")
 
 // View params: clamped parse, pure filter+sort. Distance nulls last, cap is per-night.

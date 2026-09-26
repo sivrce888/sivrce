@@ -4,7 +4,7 @@ import { getAgencyContext } from "@/components/agency-dashboard/data"
 import { AGENCY_NAV } from "@/components/agency-dashboard/nav"
 import DashboardShell from "@/components/dashboard/DashboardShell"
 import EmptyState from "@/components/dashboard/EmptyState"
-import LeadInbox from "@/components/dashboard/LeadInbox"
+import LeadInbox, { CrmClients } from "@/components/dashboard/LeadInbox"
 import { db } from "@/lib/db"
 import { requireRole, safeQuery } from "@/lib/guards"
 import { inquiryWhere, listingOwnerWhere } from "@/lib/pro-leads"
@@ -70,7 +70,7 @@ export default async function AgencyLeadsPage({ params }: { params: Promise<{ la
   const leads = await safeQuery(
     () =>
       db.inquiry.findMany({
-        where: inquiryWhere(listingIds, user.email),
+        where: inquiryWhere(listingIds, user.email, ownerIds),
         orderBy: { createdAt: "desc" },
         take: 120,
       }),
@@ -84,6 +84,8 @@ export default async function AgencyLeadsPage({ params }: { params: Promise<{ la
       subtitle={T.subtitle}
       userLabel={user.name ?? user.email}
     >
+      <CrmClients ownerIds={ownerIds} lang={lang} />
+
       {leads.length === 0 ? (
         <EmptyState title={T.emptyTitle} body={T.emptyBody} />
       ) : (

@@ -887,7 +887,7 @@ export default async function BuildingPage({ params }: PageProps) {
                 <Link
                   key={b.slug}
                   href={`/buildings/${b.slug}`}
-                  className="group overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card transition-all duration-500 hover:-translate-y-1 hover:shadow-card-hover"
+                  className="group overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card transition duration-500 hover:-translate-y-1 hover:shadow-card-hover"
                 >
                   <div className="relative aspect-[16/10]">
                     <Image src={b.img} alt={b.name} fill sizes="400px" className="object-cover" />

@@ -5,7 +5,8 @@ import { PageHero } from '@/components/PageHero'
 import LocalizedLink from '@/components/LocalizedLink'
 import { getMarketOverview } from '@/lib/market-stats'
 import { USD_GEL } from '@/lib/listings-db'
-import { estimateMonthlyRent, grossYieldPct } from '@/lib/finance'
+import { grossYieldPct } from '@/lib/finance'
+import { estimateRent } from '@/lib/rent-anchor'
 import { calculateValuation10x } from '@/lib/valuation-10x'
 import { MIN_SAMPLE } from '@/lib/market-stats-core'
 import { DISTRICTS } from '@/lib/directory-seo-lite'
@@ -70,7 +71,7 @@ const COPY: Record<DirLoc | 'de', Copy> = {
     sellCta: 'განათავსე განცხადება',
     marketCta: 'ბაზრის სრული ანალიტიკა',
     empty: 'ამ უბანში ახლა ცოტა აქტიური განცხადებაა — ზუსტი შეფასების ნაცვლად ნახე ბაზრის ანალიტიკა. ცრუ ციფრს არ დაწერთ.',
-    disclaimer: 'შეფასება სავარაუდოა: აქტიური განცხადებების საშუალო ფასი მ²-ზე × ფართი, მდგომარეობის კორექციით. არ წარმოადგენს შეფასების აქტს და არ არის ბანკის შემოთავაზება.',
+    disclaimer: 'შეფასება სავარაუდოა: აქტიური განცხადებების საშუალო ფასი მ²-ზე × ფართი, მდგომარეობის კორექციით. ქირისა და შემოსავლიანობის შეფასება ეყრდნობა Galt & Taggart-ის მონაცემებს (2026-05). არ წარმოადგენს შეფასების აქტს და არ არის ბანკის შემოთავაზება.',
     faq: [
       { q: 'როგორ ხდება შეფასება?', a: 'უბანში აქტიური განცხადებების საშუალო ფასი მ²-ზე მრავლდება შენი ბინის ფართზე და ხდება მდგომარეობის კორექცია (სარემონტო იაფია, ახალი აშენებული — უფრო ძვირი). დიაპაზონი იმის მიხედვით ფართოვდება, რამდენი აქტიური განცხადებაა უბანში.' },
       { q: 'რამდენად ზუსტია ციფრი?', a: 'ეს საცოდავი მაჩვენებელია მოთხოვნის ფასებზე — არა რეგისტრირებული გარიგებების. სანდოობა იზრდება ნიმუშთან ერთად; როცა ნიმუში საკმარისი არ არის, ჩვენ ვაჩვენებთ ცარიელ შედეგს და არა მოგონილ რიცხვს.' },
@@ -105,7 +106,7 @@ const COPY: Record<DirLoc | 'de', Copy> = {
     sellCta: 'Post your listing',
     marketCta: 'Full market analytics',
     empty: 'Too few active listings in this district for an honest estimate — see the market analytics instead. We do not invent numbers.',
-    disclaimer: 'Indicative only: average active-listing $/m² in the district × your area, adjusted for condition. Not an appraisal report or a bank offer.',
+    disclaimer: 'Indicative only: average active-listing $/m² in the district × your area, adjusted for condition. Rent and yield estimates draw on Galt & Taggart data (2026-05). Not an appraisal report or a bank offer.',
     faq: [
       { q: 'How is the estimate calculated?', a: 'The average active-listing price per m² in the district is multiplied by your area, with a condition adjustment (needs-renovation discounts, new-build premiums). The range widens when the district has fewer active listings.' },
       { q: 'How accurate is the number?', a: 'It reflects asking prices of live listings, not registered transactions. Confidence grows with the sample; when the sample is too small we show no estimate rather than a made-up figure.' },
@@ -140,7 +141,7 @@ const COPY: Record<DirLoc | 'de', Copy> = {
     sellCta: 'Разместить объявление',
     marketCta: 'Вся аналитика рынка',
     empty: 'В этом районе слишком мало активных объявлений для честной оценки — смотрите аналитику рынка. Цифры мы не выдумываем.',
-    disclaimer: 'Оценка ориентировочная: средняя цена м² активных объявлений района × площадь, с поправкой на состояние. Не является отчётом об оценке или банковским предложением.',
+    disclaimer: 'Оценка ориентировочная: средняя цена м² активных объявлений района × площадь, с поправкой на состояние. Оценка аренды и доходности опирается на данные Galt & Taggart (05.2026). Не является отчётом об оценке или банковским предложением.',
     faq: [
       { q: 'Как считается оценка?', a: 'Средняя цена за м² по активным объявлениям района умножается на вашу площадь с поправкой на состояние (требующее ремонта — дешевле, новостройка — дороже). Диапазон шире, если в районе мало активных объявлений.' },
       { q: 'Насколько точна цифра?', a: 'Она отражает цены спроса живых объявлений, а не зарегистрированные сделки. Точность растёт с объёмом выборки; при слишком малой выборке мы не показываем оценку вообще.' },
@@ -175,7 +176,7 @@ const COPY: Record<DirLoc | 'de', Copy> = {
     sellCta: 'Inserat aufgeben',
     marketCta: 'Vollständige Marktanalyse',
     empty: 'Zu wenige aktive Inserate in diesem Bezirk für eine ehrliche Schätzung — sehen Sie sich die Marktanalyse an. Wir erfinden keine Zahlen.',
-    disclaimer: 'Nur Richtwert: durchschnittlicher Inseratspreis pro m² im Bezirk × Ihre Fläche, korrigiert nach Zustand. Kein Gutachten und kein Bankangebot.',
+    disclaimer: 'Nur Richtwert: durchschnittlicher Inseratspreis pro m² im Bezirk × Ihre Fläche, korrigiert nach Zustand. Miet- und Renditeschätzung basiert auf Daten von Galt & Taggart (05/2026). Kein Gutachten und kein Bankangebot.',
     faq: [
       { q: 'Wie wird die Schätzung berechnet?', a: 'Der durchschnittliche Inseratspreis pro m² im Bezirk wird mit Ihrer Fläche multipliziert und nach Zustand korrigiert (renovierungsbedürftig günstiger, Neubau teurer). Die Spanne weitet sich, wenn der Bezirk weniger aktive Inserate hat.' },
       { q: 'Wie genau ist die Zahl?', a: 'Sie spiegelt Angebotspreise laufender Inserate, nicht registrierte Transaktionen. Die Genauigkeit wächst mit der Stichprobe; ist diese zu klein, zeigen wir bewusst keine Schätzung.' },
@@ -245,7 +246,7 @@ export default async function ValuationPage({
 
   let result: null | {
     valueUSD: number; loUSD: number; hiUSD: number; hwPct: number
-    ppsm: number; rent: number; yieldPct: number; capPct: number
+    ppsm: number; rent: number | null; yieldPct: number; capPct: number
     y5USD: number; closingUSD: number; sample: number
   } = null
   if (row && area) {
@@ -254,9 +255,11 @@ export default async function ValuationPage({
       const valueUSD = Math.round((area * ppsm * CONDITION_FACTOR[cond]) / 100) * 100
       // ±6% at a 40-listing sample, widening to ±16% as the sample thins.
       const hwPct = 6 + Math.max(0, 10 - Math.min(row.stats.sample, 40) / 4)
-      const rent = estimateMonthlyRent(valueUSD)
+      // Anchor needs the district's city; unknown district → no rent/yield rows.
+      const city = DISTRICTS.find((d) => d.ka === districtKa)?.citySlug
+      const rent = estimateRent(area, 'GE', city, districtKa)
       const report = calculateValuation10x({
-        priceUSD: valueUSD, areaSqm: area, monthlyRentUSD: rent, countryCode: 'GE',
+        priceUSD: valueUSD, areaSqm: area, monthlyRentUSD: rent ?? 0, countryCode: 'GE',
       })
       result = {
         valueUSD,
@@ -265,7 +268,7 @@ export default async function ValuationPage({
         hwPct,
         ppsm,
         rent,
-        yieldPct: grossYieldPct(valueUSD, rent),
+        yieldPct: rent ? grossYieldPct(valueUSD, rent) : 0,
         capPct: report.scenarios.base.year1CapRatePct,
         y5USD: report.scenarios.base.year5PropertyValueUSD,
         closingUSD: report.estimatedClosingCostsUSD,
@@ -379,18 +382,22 @@ export default async function ValuationPage({
                   <dt className="text-sv-ink/55">{c.perM2}</dt>
                   <dd className="text-sv-ink">{usd(result.ppsm)}/m²</dd>
                 </div>
-                <div className="flex justify-between gap-3 sm:block">
-                  <dt className="text-sv-ink/55">{c.rent}</dt>
-                  <dd className="text-sv-ink">{usd(result.rent)}</dd>
-                </div>
-                <div className="flex justify-between gap-3 sm:block">
-                  <dt className="text-sv-ink/55">{c.yieldL}</dt>
-                  <dd className="text-sv-ink">{result.yieldPct.toFixed(1)}%</dd>
-                </div>
-                <div className="flex justify-between gap-3 sm:block">
-                  <dt className="text-sv-ink/55">{c.cap}</dt>
-                  <dd className="text-sv-ink">{result.capPct.toFixed(1)}%</dd>
-                </div>
+                {result.rent !== null && (
+                  <>
+                    <div className="flex justify-between gap-3 sm:block">
+                      <dt className="text-sv-ink/55">{c.rent}</dt>
+                      <dd className="text-sv-ink">{usd(result.rent)}</dd>
+                    </div>
+                    <div className="flex justify-between gap-3 sm:block">
+                      <dt className="text-sv-ink/55">{c.yieldL}</dt>
+                      <dd className="text-sv-ink">{result.yieldPct.toFixed(1)}%</dd>
+                    </div>
+                    <div className="flex justify-between gap-3 sm:block">
+                      <dt className="text-sv-ink/55">{c.cap}</dt>
+                      <dd className="text-sv-ink">{result.capPct.toFixed(1)}%</dd>
+                    </div>
+                  </>
+                )}
                 <div className="flex justify-between gap-3 sm:block">
                   <dt className="text-sv-ink/55">{c.y5}</dt>
                   <dd className="text-sv-ink">{usd(result.y5USD)}</dd>

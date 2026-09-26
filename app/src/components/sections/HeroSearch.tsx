@@ -420,7 +420,7 @@ export default function HeroSearch({ quick = QUICK, country }: { quick?: HeroQui
             <MapPin className={`h-4 w-4 shrink-0 ${loc.city ? 'text-sv-blue' : 'text-sv-ink/35 dark:text-white/40'}`} />
             <span className="min-w-0 flex-1">
               <span className={fieldCap}>{t('loc.where')}</span>
-              <span className={fieldVal}>{locationLabel(loc, t('search.allGeorgia'))}</span>
+              <span className={fieldVal}>{locationLabel(loc, t('search.allGeorgia'), lang)}</span>
             </span>
           </button>
           {locMounted && (
@@ -537,7 +537,7 @@ export default function HeroSearch({ quick = QUICK, country }: { quick?: HeroQui
           <button
             type="submit"
             onMouseEnter={() => router.prefetch(localizedHref('/search', lang))}
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-sv-orange px-6 text-[15px] font-extrabold text-sv-ink shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-cloud active:scale-[0.98] dark:focus-visible:ring-offset-sv-navy lg:w-auto lg:shrink-0 lg:min-w-[112px]"
+            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-sv-orange px-6 text-[15px] font-extrabold text-sv-ink shadow-glow-orange transition duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-cloud active:scale-[0.98] dark:focus-visible:ring-offset-sv-navy lg:w-auto lg:shrink-0 lg:min-w-[112px]"
           >
             <Search className="h-[18px] w-[18px]" />
             {t('nav.search')}
@@ -563,7 +563,7 @@ export default function HeroSearch({ quick = QUICK, country }: { quick?: HeroQui
             type="button"
             onClick={() => go(recent.path)}
             onMouseEnter={() => router.prefetch(localizedHref(recent.path, lang))}
-            className="sv-hero-in flex shrink-0 snap-start items-center gap-1.5 whitespace-nowrap rounded-full bg-sv-blue px-4 py-2.5 text-[13px] font-bold text-white shadow-glow-blue-sm transition-all duration-200 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-cloud dark:focus-visible:ring-offset-sv-navy"
+            className="sv-hero-in flex shrink-0 snap-start items-center gap-1.5 whitespace-nowrap rounded-full bg-sv-blue px-4 py-2.5 text-[13px] font-bold text-white shadow-glow-blue-sm transition duration-200 hover:-translate-y-0.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-cloud dark:focus-visible:ring-offset-sv-navy"
             style={{ animationDelay: '0.22s' }}
           >
             <History className="h-3.5 w-3.5" />
@@ -576,7 +576,7 @@ export default function HeroSearch({ quick = QUICK, country }: { quick?: HeroQui
         {isDaily && (
           <LocalizedLink
             href="/search?deal=daily&feat=add.f.partiesAllowed"
-            className="sv-hero-in inline-flex shrink-0 snap-start items-center gap-1.5 whitespace-nowrap rounded-full glass-hero px-4 py-2.5 text-[13px] font-bold text-sv-ink/80 transition-all duration-200 hover:bg-sv-surface hover:text-sv-ink hover:shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-cloud dark:text-white/85 dark:hover:bg-white/20 dark:hover:text-white dark:focus-visible:ring-offset-sv-navy"
+            className="sv-hero-in inline-flex shrink-0 snap-start items-center gap-1.5 whitespace-nowrap rounded-full glass-hero px-4 py-2.5 text-[13px] font-bold text-sv-ink/80 transition duration-200 hover:bg-sv-surface hover:text-sv-ink hover:shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-cloud dark:text-white/85 dark:hover:bg-white/20 dark:hover:text-white dark:focus-visible:ring-offset-sv-navy"
             style={{ animationDelay: '0.26s' }}
           >
             <PartyHouseIcon className="h-3.5 w-3.5" style={{ color: CATEGORY_BRAND.partyHouses.hue }} />
@@ -587,7 +587,7 @@ export default function HeroSearch({ quick = QUICK, country }: { quick?: HeroQui
           <LocalizedLink
             key={chip.labelKey}
             href={quickHref(chip, tab, propType)}
-            className="sv-hero-in shrink-0 snap-start whitespace-nowrap rounded-full glass-hero px-4 py-2.5 text-[13px] font-bold text-sv-ink/80 transition-all duration-200 hover:bg-sv-surface hover:text-sv-ink hover:shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-cloud dark:text-white/85 dark:hover:bg-white/20 dark:hover:text-white dark:focus-visible:ring-offset-sv-navy"
+            className="sv-hero-in shrink-0 snap-start whitespace-nowrap rounded-full glass-hero px-4 py-2.5 text-[13px] font-bold text-sv-ink/80 transition duration-200 hover:bg-sv-surface hover:text-sv-ink hover:shadow-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue-light focus-visible:ring-offset-2 focus-visible:ring-offset-sv-cloud dark:text-white/85 dark:hover:bg-white/20 dark:hover:text-white dark:focus-visible:ring-offset-sv-navy"
             style={{ animationDelay: `${0.28 + i * 0.045}s` }}
           >
             {b(chip.labelKey)}

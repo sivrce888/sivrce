@@ -31,7 +31,7 @@ export function ProjectsGrid({ projects, loc }: { projects: ProjectCard[]; loc: 
           // no aria-label: visible text (name+dev+status) IS the accessible name
           className="group block rounded-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue"
         >
-          <article className="flex h-full flex-col overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card transition-all duration-300 group-hover:-translate-y-1 group-hover:shadow-card-hover">
+          <article className="flex h-full flex-col overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card transition duration-300 group-hover:-translate-y-1 group-hover:shadow-card-hover">
             <div className="relative aspect-[16/10] overflow-hidden">
               <Image
                 src={p.img}

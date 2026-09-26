@@ -44,7 +44,7 @@ const URGENT_RE =
 const BUY_RE =
   /(ვყიდულობ|ვეძებ შესაძენად|ვარ შემსყიდველი|გასაყიდ|want to buy|i'?m (interested in )?buying|kaufen|купить|покупк)/i
 const RENT_RE =
-  /(ვქირავდე|ქირავნობა|გამოსაქირავებლად|ვარენდებ|ქირავდება|want to rent|for rent|аренд|mieten)/i
+  /(ვქირაობ|ვქირავდე|ქირავნობა|გამოსაქირავებლად|ვარენდებ|ქირავდება|დაქირავება|want to rent|for rent|аренд|mieten)/i
 const DAILY_RE =
   /(დღიურად|დღიური|daily|per night|one night|на ночь|посуточно)/i
 const INVEST_RE =

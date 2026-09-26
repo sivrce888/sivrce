@@ -157,7 +157,7 @@ export default async function AgentOverviewPage({ params }: { params: Promise<{ 
 
   const [newLeads, upcomingTours, recentLeads, nextTours] = await Promise.all([
     safeQuery(
-      () => db.inquiry.count({ where: { ...inquiryWhere(listingIds, user.email), status: "new" } }),
+      () => db.inquiry.count({ where: { ...inquiryWhere(listingIds, user.email, [user.id]), status: "new" } }),
       0,
     ),
     safeQuery(
@@ -170,7 +170,7 @@ export default async function AgentOverviewPage({ params }: { params: Promise<{ 
     safeQuery(
       () =>
         db.inquiry.findMany({
-          where: inquiryWhere(listingIds, user.email),
+          where: inquiryWhere(listingIds, user.email, [user.id]),
           orderBy: { createdAt: "desc" },
           take: 5,
         }),

@@ -3,7 +3,7 @@ import LocalizedLink from "@/components/LocalizedLink"
 
 import DashboardShell from "@/components/dashboard/DashboardShell"
 import EmptyState from "@/components/dashboard/EmptyState"
-import LeadInbox from "@/components/dashboard/LeadInbox"
+import LeadInbox, { CrmClients } from "@/components/dashboard/LeadInbox"
 import { agentNav } from "@/components/agent-dashboard/nav"
 import { db } from "@/lib/db"
 import { requireRole, safeQuery } from "@/lib/guards"
@@ -101,7 +101,7 @@ export default async function AgentLeadsPage({ params, searchParams }: LeadsPage
     () =>
       db.inquiry.findMany({
         where: {
-          ...inquiryWhere(listingIds, user.email),
+          ...inquiryWhere(listingIds, user.email, [user.id]),
           ...(activeTab.statuses ? { status: { in: [...activeTab.statuses] } } : {}),
         },
         orderBy: { createdAt: "desc" },
@@ -118,6 +118,8 @@ export default async function AgentLeadsPage({ params, searchParams }: LeadsPage
       userLabel={user.name ?? user.email}
     >
       <h1 className="mb-5 text-xl font-black tracking-tight text-sv-ink">{T.h1}</h1>
+
+      <CrmClients ownerIds={[user.id]} lang={lang} />
 
       <div className="mb-5 flex gap-2 overflow-x-auto scrollbar-hide">
         {tabs.map((tab) => (

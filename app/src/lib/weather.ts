@@ -88,6 +88,52 @@ export function cityCoords(slug?: string): { lat: number; lng: number } | undefi
   return c ? { lat: c.lat, lng: c.lng } : undefined
 }
 
+/** Georgia towns absent from the GeoNames corpus (small munis, Abkhazia) —
+    ka name → 2 dp coords. Lat/lng verified against Open-Meteo geocoding
+    2026-09; 'აფხაზეთი' as a catalog entry resolves to Sukhumi. */
+export const GE_TOWN_COORDS: Record<string, { lat: number; lng: number }> = {
+  'ქედა': { lat: 41.6, lng: 41.94 },
+  'შუახევი': { lat: 41.63, lng: 42.19 },
+  'ხელვაჩაური': { lat: 41.58, lng: 41.67 },
+  'ხულო': { lat: 41.65, lng: 42.31 },
+  'ლანჩხუთი': { lat: 42.09, lng: 42.04 },
+  'ჩოხატაური': { lat: 42.02, lng: 42.24 },
+  'ბაღდათი': { lat: 42.07, lng: 42.83 },
+  'ვანი': { lat: 42.08, lng: 42.51 },
+  'ტყიბული': { lat: 42.35, lng: 43.01 },
+  'ჭიათურა': { lat: 42.3, lng: 43.3 },
+  'ახმეტა': { lat: 42.03, lng: 45.21 },
+  'დედოფლისწყარო': { lat: 41.47, lng: 46.1 },
+  'ლაგოდეხი': { lat: 41.83, lng: 46.27 },
+  'საგარეჯო': { lat: 41.74, lng: 45.33 },
+  'წნორი': { lat: 41.62, lng: 45.98 },
+  'ახალგორი': { lat: 42.12, lng: 44.48 },
+  'მანგლისი': { lat: 41.7, lng: 44.38 },
+  'პასანაური': { lat: 42.35, lng: 44.69 },
+  'ხევსურეთი': { lat: 42.66, lng: 45.16 },
+  'წეროვანი': { lat: 41.88, lng: 44.68 },
+  'ჩხოროწყუ': { lat: 42.52, lng: 42.13 },
+  'წალენჯიხა': { lat: 42.61, lng: 42.07 },
+  'ადიგენი': { lat: 41.68, lng: 42.7 },
+  'ვალე': { lat: 41.68, lng: 43.0 },
+  'კოჯორი': { lat: 41.66, lng: 44.7 },
+  'ქარელი': { lat: 42.02, lng: 43.9 },
+  'ცხინვალი': { lat: 42.19, lng: 43.94 },
+  'ჯავა': { lat: 42.39, lng: 43.92 },
+  'აგარა': { lat: 42.04, lng: 43.82 },
+  'აფხაზეთი': { lat: 43.01, lng: 40.99 },
+  'ახალ ათონი': { lat: 43.08, lng: 40.82 },
+  'ბიჭვინთა': { lat: 43.16, lng: 40.34 },
+  'გაგრა': { lat: 43.28, lng: 40.27 },
+  'გალი': { lat: 42.63, lng: 41.74 },
+  'გუდაუთა': { lat: 43.1, lng: 40.62 },
+  'გულრიფში': { lat: 42.93, lng: 41.1 },
+  'ლესელიძე': { lat: 43.39, lng: 40.01 },
+  'ოჩამჩირე': { lat: 42.71, lng: 41.47 },
+  'სოხუმი': { lat: 43.01, lng: 40.99 },
+  'ტყვარჩელი': { lat: 42.84, lng: 41.68 },
+}
+
 /* WMO → Lucide icon name (brand: no emoji in UI) */
 export type WeatherIconName =
   | 'sun'
@@ -167,31 +213,200 @@ export function wmoLabel(code: number, lang: Lang = 'ka'): string {
   return WMO_LABELS[wmoGroup(code)][lang]
 }
 
+/* ── Canonical forecast fetch — one upstream shape for every surface ──
+   The badge chip, WeatherPanel (hero / highlight tiles / 24 h / 7-day) and any
+   future surface all derive from THIS single cached request per rounded
+   coordinate, so adding a surface never adds an upstream call. */
+
+export interface WeatherPoint {
+  t: string // 'HH:mm' — place-local
+  temp: number // °C
+  code: number // WMO code
+  pop: number // precipitation probability %
+}
+
+export interface WeatherDay {
+  date: string // 'YYYY-MM-DD'
+  code: number
+  hi: number
+  lo: number
+  pop: number
+}
+
+export interface WeatherDetail extends WeatherInfo {
+  feels: number // apparent °C
+  hi: number // today max °C
+  lo: number // today min °C
+  humidity: number // %
+  wind: number // km/h
+  pop: number // today max precipitation probability %
+  uv: number // today max UV index
+  sunrise: string // 'HH:mm'
+  sunset: string // 'HH:mm'
+  hourly: WeatherPoint[] // next 24 h
+  days: WeatherDay[] // 7-day forecast
+}
+
+const FORECAST_PARAMS =
+  'current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m' +
+  '&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max,precipitation_probability_max' +
+  '&hourly=temperature_2m,weather_code,precipitation_probability&forecast_days=7&timezone=auto'
+
+const num = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v)
+
+/** Minimal Open-Meteo response shape — loose where arrays mix numbers/ISO strings. */
+interface OpenMeteoPayload {
+  current?: {
+    time?: string
+    temperature_2m?: number
+    apparent_temperature?: number
+    relative_humidity_2m?: number
+    weather_code?: number
+    wind_speed_10m?: number
+  }
+  daily?: Record<string, (string | number)[] | undefined>
+  hourly?: Record<string, (string | number)[] | undefined>
+}
+
+/** API returns place-local ISO ('2026-09-26T07:32') — cut, never Date-parsed
+    (a server TZ shift would show the wrong sun). */
+const hhmm = (v: unknown): string => (typeof v === 'string' && v.length >= 16 ? v.slice(11, 16) : '')
+
+/** Parse the canonical payload. Pure — offline-checked in weather.check. */
+export function parseWeatherDetail(d: unknown, lang: Lang = 'ka'): WeatherDetail | null {
+  const j = d as OpenMeteoPayload | null
+  const cur = j?.current
+  const daily = j?.daily
+  const hourly = j?.hourly
+  if (!j || !num(cur?.temperature_2m) || !num(cur?.weather_code) || !Array.isArray(daily?.time)) return null
+  const temp = cur.temperature_2m as number
+  const code = cur.weather_code as number
+  // hourly window: first slot at/after now, 24 h out (arrays start at place-local 00:00)
+  let from = 0
+  const curTime = cur?.time
+  if (typeof curTime === 'string' && Array.isArray(hourly?.time)) {
+    const i = (hourly.time as string[]).findIndex((t) => t >= curTime)
+    if (i > 0) from = i
+  }
+  const hours: WeatherPoint[] = []
+  for (let k = 0; k < 24 && hourly; k++) {
+    const t = hourly.time?.[from + k]
+    const tp = hourly.temperature_2m?.[from + k]
+    const c = hourly.weather_code?.[from + k]
+    const pop = hourly.precipitation_probability?.[from + k]
+    if (typeof t !== 'string' || !num(tp) || !num(c) || !num(pop)) break
+    hours.push({ t: t.slice(11, 16), temp: Math.round(tp), code: c, pop })
+  }
+  const days: WeatherDay[] = []
+  for (let k = 0; k < 7; k++) {
+    const date = daily.time?.[k]
+    const hi = daily.temperature_2m_max?.[k]
+    const lo = daily.temperature_2m_min?.[k]
+    const c = daily.weather_code?.[k]
+    const pop = daily.precipitation_probability_max?.[k]
+    if (typeof date !== 'string' || !num(hi) || !num(lo) || !num(c) || !num(pop)) break
+    days.push({ date, code: c, hi: Math.round(hi), lo: Math.round(lo), pop })
+  }
+  return {
+    temp: Math.round(temp),
+    code,
+    label: wmoLabel(code, lang),
+    feels: num(cur.apparent_temperature) ? Math.round(cur.apparent_temperature) : Math.round(temp),
+    hi: num(daily.temperature_2m_max?.[0]) ? Math.round(daily.temperature_2m_max[0]) : Math.round(temp),
+    lo: num(daily.temperature_2m_min?.[0]) ? Math.round(daily.temperature_2m_min[0]) : Math.round(temp),
+    humidity: num(cur.relative_humidity_2m) ? Math.round(cur.relative_humidity_2m) : 0,
+    wind: num(cur.wind_speed_10m) ? Math.round(cur.wind_speed_10m) : 0,
+    pop: num(daily.precipitation_probability_max?.[0]) ? Math.round(daily.precipitation_probability_max[0]) : 0,
+    uv: num(daily.uv_index_max?.[0]) ? Math.round(daily.uv_index_max[0]) : 0,
+    sunrise: hhmm(daily.sunrise?.[0]),
+    sunset: hhmm(daily.sunset?.[0]),
+    hourly: hours,
+    days,
+  }
+}
+
 /**
- * Current weather for a coordinate. Returns null on any failure — the badge
- * is decorative and must never break a page render. No AbortSignal: passing
- * one would opt the request out of the Next data cache.
+ * Current weather + full forecast for a coordinate. Returns null on any
+ * failure — weather is decorative and must never break a page render. No
+ * AbortSignal: passing one would opt the request out of the Next data cache.
  */
-export async function getWeather(
+export async function getWeatherDetail(
   coords: { lat: number; lng: number },
   lang: Lang = 'ka',
-): Promise<WeatherInfo | null> {
-  // 2dp ≈ 1 km — nearby badges (metro stations, streets) share one cached fetch.
+): Promise<WeatherDetail | null> {
+  // 2dp ≈ 1 km — nearby surfaces (metro stations, streets) share one cached fetch.
   const lat = coords.lat.toFixed(2)
   const lng = coords.lng.toFixed(2)
   try {
     const r = await fetch(
-      `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,weather_code&timezone=auto&forecast_days=1`,
+      `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&${FORECAST_PARAMS}`,
       { next: { revalidate: 1800 } },
     )
-    const d = await r.json()
-    const temp = d?.current?.temperature_2m
-    const code = d?.current?.weather_code
-    if (typeof temp !== 'number' || typeof code !== 'number') return null
-    return { temp: Math.round(temp), code, label: wmoLabel(code, lang) }
+    return parseWeatherDetail(await r.json(), lang)
   } catch {
     return null
   }
+}
+
+/** Badge chip view — derived from the same cached fetch as the full panel. */
+export async function getWeather(
+  coords: { lat: number; lng: number },
+  lang: Lang = 'ka',
+): Promise<WeatherInfo | null> {
+  const d = await getWeatherDetail(coords, lang)
+  return d ? { temp: d.temp, code: d.code, label: d.label } : null
+}
+
+/* ── Batch — the locations index asks EVERY region, city and municipality in
+   ONE upstream call via Open-Meteo's multi-coordinate comma lists (response is
+   an array, same order as the request). 1 call / 30 min for ~120 places. ── */
+
+function parseWeatherNow(j: unknown, lang: Lang): WeatherInfo | null {
+  const cur = (j as OpenMeteoPayload | null)?.current
+  if (!num(cur?.temperature_2m) || !num(cur?.weather_code)) return null
+  return {
+    temp: Math.round(cur.temperature_2m as number),
+    code: cur.weather_code as number,
+    label: wmoLabel(cur.weather_code as number, lang),
+  }
+}
+
+/** Pure batch parser — aligns an array (or single-object) response to keys. */
+export function parseWeatherBatch(d: unknown, lang: Lang = 'ka'): (WeatherInfo | null)[] {
+  const arr = Array.isArray(d) ? d : [d]
+  return arr.map((j) => parseWeatherNow(j, lang))
+}
+
+export async function getWeatherBatch(
+  points: Record<string, { lat: number; lng: number }>,
+  lang: Lang = 'ka',
+): Promise<Record<string, WeatherInfo | null>> {
+  const out: Record<string, WeatherInfo | null> = {}
+  // dedupe by the same 2dp rounding the single fetch caches on
+  const groups = new Map<string, { lat: string; lng: string; keys: string[] }>()
+  for (const k of Object.keys(points)) {
+    const lat = points[k]!.lat.toFixed(2)
+    const lng = points[k]!.lng.toFixed(2)
+    const g = groups.get(`${lat},${lng}`)
+    if (g) g.keys.push(k)
+    else groups.set(`${lat},${lng}`, { lat, lng, keys: [k] })
+  }
+  const list = [...groups.values()]
+  if (list.length === 0) return out
+  for (const k of Object.keys(points)) out[k] = null
+  try {
+    const r = await fetch(
+      `https://api.open-meteo.com/v1/forecast?latitude=${list.map((g) => g.lat).join(',')}` +
+        `&longitude=${list.map((g) => g.lng).join(',')}&current=temperature_2m,weather_code&timezone=auto&forecast_days=1`,
+      { next: { revalidate: 1800 } },
+    )
+    parseWeatherBatch(await r.json(), lang).forEach((w, i) => {
+      for (const k of list[i]?.keys ?? []) out[k] = w
+    })
+  } catch {
+    // leave nulls — chips render nothing
+  }
+  return out
 }
 
 /* ── European AQI (Open-Meteo air-quality, keyless) — same server-chip contract:

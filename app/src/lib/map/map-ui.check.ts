@@ -17,6 +17,8 @@ import {
 assert.equal(parseTerrain('streets'), 'streets')
 assert.equal(parseTerrain('clean'), 'clean')
 assert.equal(parseTerrain('satellite'), 'satellite')
+assert.equal(parseTerrain('contrast'), 'contrast')
+assert.deepEqual(parseMapUiJson({ terrain: 'contrast' }), { terrain: 'contrast' })
 assert.equal(parseTerrain('bright'), 'streets')
 assert.equal(parseTerrain('nope'), 'streets')
 

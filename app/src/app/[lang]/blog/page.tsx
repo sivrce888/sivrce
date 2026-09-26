@@ -154,7 +154,7 @@ export default async function BlogIndex({ params }: { params: Promise<{ lang: st
         {/* Featured */}
         <LocalizedLink
           href={`/blog/${featured.slug}`}
-          className="group mb-8 grid overflow-hidden rounded-tile border border-sv-ink/[0.06] bg-sv-surface shadow-card transition-all duration-300 hover:shadow-card-hover md:grid-cols-2"
+          className="group mb-8 grid overflow-hidden rounded-tile border border-sv-ink/[0.06] bg-sv-surface shadow-card transition duration-300 hover:shadow-card-hover md:grid-cols-2"
         >
           <div className="relative aspect-[16/10] overflow-hidden bg-sv-ink/10 md:aspect-auto">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -196,7 +196,7 @@ export default async function BlogIndex({ params }: { params: Promise<{ lang: st
             <LocalizedLink
               key={p.slug}
               href={`/blog/${p.slug}`}
-              className="group flex flex-col overflow-hidden rounded-tile border border-sv-ink/[0.06] bg-sv-surface shadow-card transition-all duration-300 hover:shadow-card-hover"
+              className="group flex flex-col overflow-hidden rounded-tile border border-sv-ink/[0.06] bg-sv-surface shadow-card transition duration-300 hover:shadow-card-hover"
             >
               <div className="relative aspect-[16/10] overflow-hidden bg-sv-ink/10">
                 {/* eslint-disable-next-line @next/next/no-img-element */}

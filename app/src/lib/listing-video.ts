@@ -201,6 +201,17 @@ export function subscribeActiveVideoCard(listener: VideoListener): () => void {
   }
 }
 
+// Session sound preference: unmute once → the next card video opens unmuted.
+let preferredMuted = true
+
+export function videoMutedPreference(): boolean {
+  return preferredMuted
+}
+
+export function setVideoMutedPreference(muted: boolean): void {
+  preferredMuted = muted
+}
+
 
 export function listingVideoKind(
   raw: string | null | undefined,

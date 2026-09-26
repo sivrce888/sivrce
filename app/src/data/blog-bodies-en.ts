@@ -358,4 +358,22 @@ Utilities (heating a house in winter costs 200-400 dollars — who pays?), yard 
 ## City vs outskirts
 
 In the city (Bagebi, Vake's outskirts) — close to work and school, but the yard is small and the price high. In the outskirts (Mtskheta, Natakhtari, Tsavkisi) — a large yard, clean air, a price 30-40% lower, but a car is essential. On sivrce, house rentals are searchable on the map — measure the distance to work and school before you call.`,
+
+  'dolaris-kursi-da-binis-fasi': `The Tbilisi and Batumi markets run on two currencies: most listings are priced in dollars, while mortgages, utilities and registration fees are paid in lari. Knowing the rate is not trivia — it is part of budgeting a purchase precisely.
+
+## Which rate is "right" — official, bank or market
+
+There are three rates and they show three different numbers. The official one is published daily by the National Bank — an accounting rate. The bank buy/sell rate adds a margin to it. The third — the mid-market rate — is the real midpoint of the global market, and that is the one to compare against a listing when you work out what a dollar-priced apartment costs in lari today.
+
+## How to convert a price the right way
+
+It is simple: open the sivrce exchange-rates page (/valuta), enter the amount and direction — say, $80,000 into lari — and get the precise figure at the current rate. Every sivrce listing also shows both currencies automatically, so most of the time you never need to calculate by hand.
+
+## What a moving rate means for a buyer
+
+A stronger dollar squeezes a lari budget: the apartment you could afford last month in lari now overruns it. So when searching with a fixed lari budget, filter listings priced in lari, and if you shop in dollars keep a 5–10% reserve for rate swings. Long-horizon investors care less about the rate — yield and location decide.
+
+## Golden rules
+
+1) Always ask the price in both currencies — some sellers quietly "raise" it with a stale rate. 2) Confirm the rate with your own bank on payment day — the mid-market rate is a reference, the transaction rate carries a margin. 3) Choose your mortgage currency deliberately: a lari loan is more expensive but safe, a dollar loan is cheaper but carries currency risk.`,
 }

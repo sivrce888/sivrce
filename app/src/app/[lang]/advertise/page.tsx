@@ -27,6 +27,7 @@ type Copy = {
   brand: { kicker: string; title: string; text: string; cta: string; packs: { title: string; text: string }[] }
   stats: { icon: LucideIcon; value: string; label: string }[]
   faq: { heading: string; items: { q: string; a: string }[] }
+  pricingNote: string; termsLink: string
 }
 
 const COPY: Record<string, Copy> = {
@@ -91,6 +92,8 @@ const COPY: Record<string, Copy> = {
       { icon: TrendingUp, value: '2.50₾', label: 'VIP+ დღეში · უძრავი ქონება' },
       { icon: Star, value: formatGel(MONTHLY_RE_TETRI.vip), label: 'VIP 30 დღე · უძრავი ქონება' },
     ],
+    pricingNote: 'გადახდილი თანხა არ ბრუნდება, გარდა კანონმდებლობით გათვალისწინებული შემთხვევებისა — იხილეთ ',
+    termsLink: 'წესები და პირობები',
     faq: {
       heading: 'კითხვები განთავსების შესახებ',
       items: [
@@ -164,6 +167,8 @@ const COPY: Record<string, Copy> = {
       { icon: TrendingUp, value: '2.50₾', label: 'VIP+ per day · residential' },
       { icon: Star, value: formatGel(MONTHLY_RE_TETRI.vip), label: 'VIP 30 days · residential' },
     ],
+    pricingNote: 'Payments are non-refundable except as required by law — see the ',
+    termsLink: 'Terms & Conditions',
     faq: {
       heading: 'Questions about listing',
       items: [
@@ -237,6 +242,8 @@ const COPY: Record<string, Copy> = {
       { icon: TrendingUp, value: '2.50₾', label: 'VIP+ в день · недвижимость' },
       { icon: Star, value: formatGel(MONTHLY_RE_TETRI.vip), label: 'VIP 30 дней · недвижимость' },
     ],
+    pricingNote: 'Оплаченные суммы не возвращаются, кроме случаев, предусмотренных законом — см. ',
+    termsLink: 'Правила и условия',
     faq: {
       heading: 'Вопросы о размещении',
       items: [
@@ -310,6 +317,8 @@ const COPY: Record<string, Copy> = {
       { icon: TrendingUp, value: '2.50₾', label: 'VIP+ pro Tag · Wohnimmobilien' },
       { icon: Star, value: formatGel(MONTHLY_RE_TETRI.vip), label: 'VIP 30 Tage · Wohnimmobilien' },
     ],
+    pricingNote: 'Gezahlte Beträge sind nicht erstattungsfähig, außer gesetzlich vorgeschrieben — siehe die ',
+    termsLink: 'Bedingungen',
     faq: {
       heading: 'Fragen zum Inserieren',
       items: [
@@ -358,7 +367,7 @@ export default async function AdvertisePage({ params }: { params: Promise<{ lang
                 <LocalizedLink
                   key={a.title}
                   href={a.href}
-                  className="group flex gap-4 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-5 shadow-card transition-all duration-500 hover:-translate-y-1 hover:border-transparent hover:shadow-card-hover"
+                  className="group flex gap-4 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-5 shadow-card transition duration-500 hover:-translate-y-1 hover:border-transparent hover:shadow-card-hover"
                 >
                   <span className="grid h-12 w-12 shrink-0 place-items-center rounded-module bg-sv-blue/10 text-sv-blue-deep">
                     <a.icon className="h-5 w-5" />
@@ -427,6 +436,12 @@ export default async function AdvertisePage({ params }: { params: Promise<{ lang
 
         <section className="mx-auto max-w-7xl px-6 pb-16">
           <PromoPricingGrid lang={lang} />
+          <p className="mt-4 text-[12px] font-semibold text-sv-ink/50">
+            {c.pricingNote}{' '}
+            <LocalizedLink href="/terms" className="text-sv-blue underline-offset-4 hover:underline">
+              {c.termsLink}
+            </LocalizedLink>
+          </p>
         </section>
 
         <PriceCompare lang={lang} />

@@ -1,20 +1,11 @@
 /**
- * Careers inquiry bucket + city-prefix — pure asserts, no DB.
+ * Inquiry buckets + careers city-prefix — pure asserts, no queries.
  * Run: npx tsx src/lib/admin/inquiries-careers.check.ts
  */
 
-const BUCKET_LABELS: Record<string, string> = {
-  careers: 'კარიერა',
-  general: 'კონტაქტი',
-  contact: 'კონტაქტი',
-}
+import { inquiryBucketLabel as label, isListingRef } from './inquiries'
 
-function label(id: string) {
-  return BUCKET_LABELS[id] ?? (id.length > 16 ? `${id.slice(0, 14)}…` : id)
-}
-function isListing(id: string) {
-  return Boolean(id) && !(id in BUCKET_LABELS)
-}
+const isListing = (listingId: string) => isListingRef({ listingId })
 function cityFrom(msg: string) {
   return msg.match(/\[კარიერა · ([^\]]+)\]/)?.[1]?.trim()
 }
@@ -27,6 +18,10 @@ assert(label('careers') === 'კარიერა', 'careers label')
 assert(label('general') === 'კონტაქტი', 'general label')
 assert(!isListing('careers'), 'careers not listing')
 assert(isListing('listing_xyz'), 'real listing')
+// Every non-listing bucket the product writes must stay out of listing links.
+for (const b of ['contact', 'demand-buy', 'demand-rent', 'demand-daily', 'demand-sell']) {
+  assert(!isListing(b), `${b} not listing`)
+}
 assert(cityFrom('[კარიერა · ბათუმი]\nგანაცხადი.') === 'ბათუმი', 'city prefix')
 
 console.log('inquiries-careers.check: ok')

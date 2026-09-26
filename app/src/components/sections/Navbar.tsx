@@ -222,7 +222,7 @@ export default function Navbar({ marketIso }: { marketIso?: string } = {}) {
             href={localizedHref("/add-listing", lang)}
             data-cms-key="nav.addListing"
             aria-label={t('nav.addListing')}
-            className="group flex h-11 shrink-0 items-center gap-1.5 rounded-full bg-sv-orange px-3.5 text-[13px] font-black text-sv-ink shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-[0.98] xl:gap-2 xl:px-5 xl:text-[14px]"
+            className="group flex h-11 shrink-0 items-center gap-1.5 rounded-full bg-sv-orange px-3.5 text-[13px] font-black text-sv-ink shadow-glow-orange transition duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 active:scale-[0.98] xl:gap-2 xl:px-5 xl:text-[14px]"
           >
             <Plus className="h-4 w-4 transition-transform duration-300 group-hover:rotate-90" aria-hidden />
             <span className="hidden min-[1366px]:inline">{t('nav.addListing')}</span>

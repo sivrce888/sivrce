@@ -3,7 +3,7 @@
  * Rent-vs-buy model — wealth accounting identities, monotonicity, break-even.
  */
 import assert from 'node:assert/strict'
-import { rentVsBuy, type RentBuyInput } from './rent-buy'
+import { rentVsBuy, FIXED_ASSUMPTIONS, type RentBuyInput } from './rent-buy'
 import { monthlyPayment } from './finance'
 
 const ZERO_COSTS = {
@@ -30,10 +30,11 @@ assert.equal(flatOut.delta, flatOut.buyNetWorth - flatOut.rentNetWorth, 'delta c
 
 // ——— monotonicity: higher appreciation or higher rent favors buying ———
 const base: RentBuyInput = {
-  price: 120_000, downPct: 25, ratePct: 10, mortgageYears: 20, horizonYears: 10,
-  rentMonthly: 850, rentInflationPct: 5, appreciationPct: 4, altReturnPct: 7,
-  buyCostsPct: 2.5, sellCostsPct: 2, ownershipCostsPct: 0.8,
+  price: 120_000, downPct: 30, ratePct: 10, mortgageYears: 20, horizonYears: 10,
+  rentMonthly: 850, appreciationPct: 4, altReturnPct: 7, ...FIXED_ASSUMPTIONS,
 }
+// GE has no transfer tax and the seller pays the agent — buyer closing costs stay under 1%.
+assert.ok(FIXED_ASSUMPTIONS.buyCostsPct < 1, 'GE buyer costs: registry + notary only')
 const d0 = rentVsBuy(base).delta
 const dApp = rentVsBuy({ ...base, appreciationPct: 8 }).delta
 const dRent = rentVsBuy({ ...base, rentMonthly: 1_200 }).delta

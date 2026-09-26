@@ -3,7 +3,8 @@ import { db } from "@/lib/db"
 /**
  * Resolves the account that owns a review target — authorizes owner replies.
  * targetId conventions: profile slugs for agent/agency/developer/project/
- * service, listing id for listing. Unknown target types have no owner.
+ * service, listing id for listing, user id for account. Unknown target
+ * types have no owner.
  */
 export async function getTargetOwnerId(
   targetType: string,
@@ -12,6 +13,8 @@ export async function getTargetOwnerId(
   try {
     const bySlug = { where: { slug: targetId, deletedAt: null }, select: { ownerId: true } }
     switch (targetType) {
+      case "account":
+        return targetId
       case "agent": {
         const r = await db.agentProfile.findFirst(bySlug)
         return r?.ownerId ?? null

@@ -21,7 +21,7 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import type { Lang } from '@/lib/i18n/core'
-import { aqiBand, cityCoords, getAirQuality, getWeather, weatherIcon, type WeatherIconName } from '@/lib/weather'
+import { aqiBand, cityCoords, getAirQuality, getWeather, weatherIcon, type WeatherIconName, type WeatherInfo } from '@/lib/weather'
 
 const ICONS: Record<WeatherIconName, LucideIcon> = {
   sun: Sun,
@@ -36,6 +36,12 @@ const ICONS: Record<WeatherIconName, LucideIcon> = {
   thermometer: Thermometer,
 }
 
+/** Shared WMO-icon renderer — one map for the badge, the panel and list chips. */
+export function WeatherIconSvg({ name, className = '' }: { name: WeatherIconName; className?: string }) {
+  const Icon = ICONS[name]
+  return <Icon className={className} aria-hidden="true" strokeWidth={2} />
+}
+
 export async function WeatherBadge({
   coords,
   citySlug,
@@ -43,6 +49,7 @@ export async function WeatherBadge({
   lang = 'ka',
   className = '',
   iconClassName = 'h-3.5 w-3.5',
+  w,
 }: {
   coords?: { lat: number; lng: number }
   citySlug?: string
@@ -50,22 +57,23 @@ export async function WeatherBadge({
   lang?: Lang
   className?: string
   iconClassName?: string
+  /** Pre-fetched weather (e.g. from getWeatherBatch) — skips the per-chip await. */
+  w?: WeatherInfo | null
 }) {
   const at = coords ?? cityCoords(citySlug)
-  if (!at) return null
-  const w = await getWeather(at, lang)
-  if (!w) return null
+  const info = w ?? (at ? await getWeather(at, lang) : null)
+  if (!info) return null
 
-  const Icon = ICONS[weatherIcon(w.code)]
+  const Icon = ICONS[weatherIcon(info.code)]
 
   return (
     <span
       className={`inline-flex items-center gap-1 text-[11px] font-bold tracking-wide ${className}`}
-      title={`${w.label}, ${w.temp}°C — ${label ?? citySlug ?? ''}`}
+      title={`${info.label}, ${info.temp}°C — ${label ?? citySlug ?? ''}`}
     >
       <Icon className={iconClassName} aria-hidden="true" strokeWidth={2} />
-      <span>{w.temp}°</span>
-      <span className="sr-only">{w.label}</span>
+      <span>{info.temp}°</span>
+      <span className="sr-only">{info.label}</span>
     </span>
   )
 }

@@ -7,6 +7,7 @@ import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import SeoFilterableListings from '@/components/seo/SeoFilterableListings'
 import { AirBadge, WeatherBadge } from '@/components/WeatherBadge'
+import { WeatherPanel } from '@/components/WeatherPanel'
 import { cityCoords } from '@/lib/weather'
 import { formatUSD, areaSym } from '@/lib/listing-format'
 import { DISTRICT_COORDS, streetsOfDistrict } from '@/data/tbilisi-streets'
@@ -478,6 +479,12 @@ export default function SeoLanding({
               }}
             />
           </>
+        )}
+
+        {/* Live weather — full forecast (hero/tiles/24 h/7-day) on place pages;
+            same cached fetch the hero badge uses, so it costs no extra call. */}
+        {weatherCoords && weatherPlace && (
+          <WeatherPanel coords={weatherCoords} place={weatherPlace} lang={loc} className="mt-10" />
         )}
 
         {/* Related landings — crawlable mesh, below the working filters */}

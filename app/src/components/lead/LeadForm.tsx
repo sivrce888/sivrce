@@ -23,6 +23,9 @@ export interface LeadFormProps {
   /** Displayed as the form heading context, e.g. agent or developer name. */
   recipientName?: string
   className?: string
+  /** 'panel' = embedded in the chat sheet: no card chrome, no page anchor
+   *  (the on-page form keeps #lead-form), no "continue in chat" loop. */
+  variant?: 'card' | 'panel'
 }
 
 /** Stable anchor so StickyLeadBar can scroll to / focus the on-page form. */
@@ -30,7 +33,8 @@ export const LEAD_FORM_ID = 'lead-form'
 
 type Status = 'idle' | 'sending' | 'success'
 
-export function LeadForm({ targetType, targetId, recipientName, className }: LeadFormProps) {
+export function LeadForm({ targetType, targetId, recipientName, className, variant = 'card' }: LeadFormProps) {
+  const panel = variant === 'panel'
   const { lang } = useI18n()
   const { capture } = usePostHog()
   const s = leadStrings(lang)
@@ -60,7 +64,7 @@ export function LeadForm({ targetType, targetId, recipientName, className }: Lea
   const showErr = (field: string, bad: boolean) => (touched[field] || submitAttempted) && bad
 
   const input =
-    'w-full rounded-control border border-sv-ink/[0.08] bg-sv-surface px-4 py-3.5 text-[15px] font-semibold text-sv-ink placeholder:text-sv-ink/35 outline-none transition-all focus:border-sv-blue focus:ring-4 focus:ring-sv-blue/10'
+    'w-full rounded-control border border-sv-ink/[0.08] bg-sv-surface px-4 py-3.5 text-[15px] font-semibold text-sv-ink placeholder:text-sv-ink/35 outline-none transition focus:border-sv-blue focus:ring-4 focus:ring-sv-blue/10'
   const label = 'mb-2 block text-[13px] font-extrabold text-sv-ink/70'
   const errClass = 'border-sv-orange ring-4 ring-sv-orange/10'
 
@@ -88,7 +92,7 @@ export function LeadForm({ targetType, targetId, recipientName, className }: Lea
         return
       }
       setStatus('success')
-      capture('lead_submitted', { target_type: targetType, target_id: targetId })
+      capture('lead_submitted', { target_type: targetType, target_id: targetId, surface: panel ? 'chat' : 'page' })
       // Move focus to the confirmation so AT users don't lose context.
       requestAnimationFrame(() => successRef.current?.focus())
     } catch {
@@ -122,9 +126,11 @@ export function LeadForm({ targetType, targetId, recipientName, className }: Lea
 
   return (
     <div
-      id={LEAD_FORM_ID}
+      id={panel ? undefined : LEAD_FORM_ID}
       className={cn(
-        'scroll-mt-24 rounded-card border border-sv-ink/[0.06] bg-gradient-to-b from-sv-cloud to-sv-surface p-6 shadow-card md:p-7',
+        panel
+          ? 'p-4'
+          : 'scroll-mt-24 rounded-card border border-sv-ink/[0.06] bg-gradient-to-b from-sv-cloud to-sv-surface p-6 shadow-card md:p-7',
         className,
       )}
     >
@@ -136,11 +142,11 @@ export function LeadForm({ targetType, targetId, recipientName, className }: Lea
           <h3 className="mt-4 text-[20px] font-extrabold text-sv-ink">{s.successTitle}</h3>
           <p className="mt-2 text-[14px] font-semibold leading-relaxed text-sv-ink/60">{s.successBody(recipientName)}</p>
           <p className="mt-1 text-[14px] font-semibold leading-relaxed text-sv-ink/60">{s.successNote}</p>
-          {targetType === 'listing' ? (
+          {targetType === 'listing' && !panel ? (
             <button
               type="button"
               onClick={continueInChat}
-              className="mt-5 flex min-h-[44px] items-center gap-2 rounded-full bg-sv-blue px-5 text-[14px] font-extrabold text-white transition-all hover:bg-sv-blue-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue active:scale-[0.98]"
+              className="mt-5 flex min-h-[44px] items-center gap-2 rounded-full bg-sv-blue px-5 text-[14px] font-extrabold text-white transition hover:bg-sv-blue-deep focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue active:scale-[0.98]"
             >
               <MessageCircle className="h-4 w-4" aria-hidden />
               {s.continueChat}
@@ -149,7 +155,7 @@ export function LeadForm({ targetType, targetId, recipientName, className }: Lea
           <button
             type="button"
             onClick={reset}
-            className="mt-5 flex min-h-[44px] items-center gap-2 rounded-full border border-sv-ink/[0.08] bg-sv-surface px-5 text-[14px] font-extrabold text-sv-ink transition-all hover:border-sv-blue/40 hover:text-sv-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue active:scale-[0.98]"
+            className="mt-5 flex min-h-[44px] items-center gap-2 rounded-full border border-sv-ink/[0.08] bg-sv-surface px-5 text-[14px] font-extrabold text-sv-ink transition hover:border-sv-blue/40 hover:text-sv-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue active:scale-[0.98]"
           >
             <RotateCcw className="h-4 w-4" aria-hidden />
             {s.newMessage}
@@ -157,8 +163,9 @@ export function LeadForm({ targetType, targetId, recipientName, className }: Lea
         </div>
       ) : (
         <>
-          <h3 className="text-[20px] font-extrabold text-sv-ink">{s.formTitle}</h3>
-          <p className="mt-1 text-[13px] font-semibold text-sv-ink/60">
+          {/* Panel: the chat header already reads formTitle. */}
+          {panel ? null : <h3 className="text-[20px] font-extrabold text-sv-ink">{s.formTitle}</h3>}
+          <p className={cn('text-[13px] font-semibold text-sv-ink/60', !panel && 'mt-1')}>
             {recipientName ? s.formSubtitleTo(recipientName) : s.formSubtitle}
           </p>
 
@@ -174,7 +181,7 @@ export function LeadForm({ targetType, targetId, recipientName, className }: Lea
               <button
                 type="button"
                 onClick={() => void submit()}
-                className="flex min-h-[44px] shrink-0 items-center gap-1.5 rounded-full bg-sv-orange px-4 text-[13px] font-extrabold text-sv-ink transition-all hover:shadow-glow-orange focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-orange active:scale-[0.98]"
+                className="flex min-h-[44px] shrink-0 items-center gap-1.5 rounded-full bg-sv-orange px-4 text-[13px] font-extrabold text-sv-ink transition hover:shadow-glow-orange focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-orange active:scale-[0.98]"
               >
                 <RotateCcw className="h-3.5 w-3.5" aria-hidden />
                 {s.retry}
@@ -287,7 +294,7 @@ export function LeadForm({ targetType, targetId, recipientName, className }: Lea
             <button
               type="submit"
               disabled={status === 'sending'}
-              className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-full bg-sv-orange px-6 text-[15px] font-extrabold text-sv-ink shadow-glow-orange transition-all hover:shadow-glow-orange-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-orange active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 disabled:shadow-none"
+              className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-full bg-sv-orange px-6 text-[15px] font-extrabold text-sv-ink shadow-glow-orange transition hover:shadow-glow-orange-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-orange active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 disabled:shadow-none"
             >
               {status === 'sending' ? (
                 <Loader2 className="h-4 w-4 animate-spin" aria-hidden />

@@ -4,6 +4,9 @@
  * invented. Verified 2026-09; re-verify when NBG moves the policy rate.
  *
  * Sources:
+ *  - NBG max LTV 90% GEL / 70% FX: nbg.gov.ge/en/page/pti-and-ltv-requirements.
+ *  - NBG max PTI (same page): income in loan currency 25% / 50%, FX loan on lari
+ *    income 20% / 30%; low/high split at net income ₾1,500/month.
  *  - NBG policy rate 8.25%: nbg.gov.ge (hiked 2026-05-06, held 2026-09-09).
  *  - BasisBank bands: bb.ge/ge/personal/loans/mortgage (GEL 10.9–17.5%,
  *    USD/EUR 7.9–10.5%, term 3–240 mo GEL / 3–120 mo FX, own contribution
@@ -36,6 +39,20 @@ export const MORTGAGE_GE_AS_OF = '2026-09'
 
 /** NBG monetary policy (refinancing) rate — the anchor every GEL rate floats on. */
 export const NBG_POLICY_RATE = 8.25
+
+/** NBG max loan-to-value by loan currency (nbg.gov.ge/en/page/pti-and-ltv-requirements).
+ *  Binding on every bank — the legal floor under any published own-contribution. */
+export const NBG_MAX_LTV = { gel: 90, fx: 70 } as const
+
+/** NBG max payment-to-income, % of net monthly income. `matched` = income in the
+ *  loan's currency; `fx` = FX loan repaid from lari income (unhedged). */
+export const NBG_MAX_PTI = { matched: [25, 50], fx: [20, 30], thresholdGEL: 1_500 } as const
+
+/** Legal PTI ceiling for one borrower — above it no Georgian bank may lend. */
+export function nbgPtiCap(incomeGEL: number, fxOnLariIncome: boolean): number {
+  const [low, high] = fxOnLariIncome ? NBG_MAX_PTI.fx : NBG_MAX_PTI.matched
+  return incomeGEL < NBG_MAX_PTI.thresholdGEL ? low : high
+}
 
 export const MORTGAGE_SUBSIDY = {
   maxLoanGEL: 200_000,

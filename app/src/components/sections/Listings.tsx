@@ -91,7 +91,9 @@ export default function Listings({
 
         <HScroll aria-label={b(r.scroll)} step={420} className="gap-6 pb-2 pt-2">
           {items.map((l, i) => (
-            <ListingCard key={l.id} l={l} i={i} animate={false} />
+            // Only the first rail may claim the one fetchPriority=high card image;
+            // a second rail's eager photo contends with the real LCP on slow links.
+            <ListingCard key={l.id} l={l} i={rail === 'superVip' ? i : i + 1} animate={false} />
           ))}
         </HScroll>
       </div>

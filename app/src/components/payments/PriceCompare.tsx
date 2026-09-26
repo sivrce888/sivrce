@@ -1,22 +1,18 @@
-import { Check } from "lucide-react"
 import { Reveal } from "@/components/Reveal"
 import {
   ADDON_TETRI,
-  COMPETITOR,
-  COMPETITOR_CHECKED_AT,
   dailyRateTetri,
   formatGel,
-} from "@/lib/promo-pricing"
+} from "@/lib/promo-pricing";
 
 /**
- * Public price comparison vs SS.ge / MyHome.ge — rates come straight from
- * COMPETITOR (verified public tariffs) and our own bracket tables, so this
- * can never drift from the pricing source of truth. Server-rendered, zero JS.
+ * Public tariff table — our own daily rates straight from the pricing source
+ * of truth. Server-rendered, zero JS.
  */
 
-type CompareLang = "ka" | "en" | "ru" | "de"
+type CompareLang = "ka" | "en" | "ru" | "de";
 
-type RowCopy = { label: string; ours: number; ss: number | null; mh: number | null }
+type RowCopy = { label: string; ours: number };
 
 const STR: Record<
   CompareLang,
@@ -24,71 +20,56 @@ const STR: Record<
     kicker: string
     title: string
     sub: string
-    bestBadge: string
     rows: (vip: number, vipPlus: number, superVip: number) => RowCopy[]
-    ssNote: string
-    tieNote: string
   }
 > = {
   ka: {
-    kicker: "ფასების შედარება",
-    title: "იგივე პრემიუმ — უფრო იაფი",
-    sub: `ოფიციალური დღიური ტარიფები · უძრავი ქონება · 30 დღიანი პაკეტი · გადამოწმებულია ${COMPETITOR_CHECKED_AT}`,
-    bestBadge: "ჩვენ",
+    kicker: "ტარიფები",
+    title: "გამჭვირვალე დღიური ტარიფები",
+    sub: "დღიური განაცხადის ტარიფები · უძრავი ქონება · 30 დღიანი პაკეტი",
     rows: (vip, vipPlus, superVip) => [
-      { label: "VIP", ours: vip, ss: COMPETITOR.ss.vip_re, mh: COMPETITOR.myhome.vip_re },
-      { label: "VIP+", ours: vipPlus, ss: COMPETITOR.ss.vip_plus_re[1], mh: COMPETITOR.myhome.vip_plus_re },
-      { label: "SUPER VIP", ours: superVip, ss: COMPETITOR.ss.super_vip_re[3], mh: COMPETITOR.myhome.super_vip_re },
-      { label: "განახლება", ours: ADDON_TETRI.refresh_once, ss: null, mh: COMPETITOR.myhome.refresh_once },
-      { label: "ფერი", ours: ADDON_TETRI.color, ss: null, mh: COMPETITOR.myhome.color },
+      { label: "VIP", ours: vip },
+      { label: "VIP+", ours: vipPlus },
+      { label: "SUPER VIP", ours: superVip },
+      { label: "განახლება", ours: ADDON_TETRI.refresh_once },
+      { label: "ფერი", ours: ADDON_TETRI.color },
     ],
-    ssNote: "SS.ge-ს ცალკე განახლება/ფერი არ ყიდა — „—“.",
-    tieNote: "✓ = ყველაზე დაბალი ფასი რიგში.",
   },
   en: {
-    kicker: "Price comparison",
-    title: "Same premium, lower price",
-    sub: `Official daily rates · residential · 30-day bracket · checked ${COMPETITOR_CHECKED_AT}`,
-    bestBadge: "Us",
+    kicker: "Tariffs",
+    title: "Transparent daily rates",
+    sub: "Daily listing rates · residential · 30-day bracket",
     rows: (vip, vipPlus, superVip) => [
-      { label: "VIP", ours: vip, ss: COMPETITOR.ss.vip_re, mh: COMPETITOR.myhome.vip_re },
-      { label: "VIP+", ours: vipPlus, ss: COMPETITOR.ss.vip_plus_re[1], mh: COMPETITOR.myhome.vip_plus_re },
-      { label: "SUPER VIP", ours: superVip, ss: COMPETITOR.ss.super_vip_re[3], mh: COMPETITOR.myhome.super_vip_re },
-      { label: "Refresh", ours: ADDON_TETRI.refresh_once, ss: null, mh: COMPETITOR.myhome.refresh_once },
-      { label: "Color frame", ours: ADDON_TETRI.color, ss: null, mh: COMPETITOR.myhome.color },
+      { label: "VIP", ours: vip },
+      { label: "VIP+", ours: vipPlus },
+      { label: "SUPER VIP", ours: superVip },
+      { label: "Refresh", ours: ADDON_TETRI.refresh_once },
+      { label: "Color frame", ours: ADDON_TETRI.color },
     ],
-    ssNote: "SS.ge does not sell refresh/color separately — “—”.",
-    tieNote: "✓ = lowest price in the row.",
   },
   ru: {
-    kicker: "Сравнение цен",
-    title: "Тот же премиум — дешевле",
-    sub: `Официальные дневные тарифы · недвижимость · пакет 30 дней · проверено ${COMPETITOR_CHECKED_AT}`,
-    bestBadge: "Мы",
+    kicker: "Тарифы",
+    title: "Прозрачные дневные тарифы",
+    sub: "Дневные тарифы за объявление · недвижимость · пакет 30 дней",
     rows: (vip, vipPlus, superVip) => [
-      { label: "VIP", ours: vip, ss: COMPETITOR.ss.vip_re, mh: COMPETITOR.myhome.vip_re },
-      { label: "VIP+", ours: vipPlus, ss: COMPETITOR.ss.vip_plus_re[1], mh: COMPETITOR.myhome.vip_plus_re },
-      { label: "SUPER VIP", ours: superVip, ss: COMPETITOR.ss.super_vip_re[3], mh: COMPETITOR.myhome.super_vip_re },
-      { label: "Обновление", ours: ADDON_TETRI.refresh_once, ss: null, mh: COMPETITOR.myhome.refresh_once },
-      { label: "Цвет", ours: ADDON_TETRI.color, ss: null, mh: COMPETITOR.myhome.color },
+      { label: "VIP", ours: vip },
+      { label: "VIP+", ours: vipPlus },
+      { label: "SUPER VIP", ours: superVip },
+      { label: "Обновление", ours: ADDON_TETRI.refresh_once },
+      { label: "Цвет", ours: ADDON_TETRI.color },
     ],
-    ssNote: "SS.ge не продаёт обновление/цвет отдельно — «—».",
-    tieNote: "✓ = самая низкая цена в строке.",
   },
   de: {
-    kicker: "Preisvergleich",
-    title: "Gleiches Premium, günstigerer Preis",
-    sub: `Offizielle Tagestarife · Wohnimmobilien · 30-Tage-Paket · geprüft ${COMPETITOR_CHECKED_AT}`,
-    bestBadge: "Wir",
+    kicker: "Tarife",
+    title: "Transparente Tagestarife",
+    sub: "Tägliche Anzeigentarife · Wohnimmobilien · 30-Tage-Paket",
     rows: (vip, vipPlus, superVip) => [
-      { label: "VIP", ours: vip, ss: COMPETITOR.ss.vip_re, mh: COMPETITOR.myhome.vip_re },
-      { label: "VIP+", ours: vipPlus, ss: COMPETITOR.ss.vip_plus_re[1], mh: COMPETITOR.myhome.vip_plus_re },
-      { label: "SUPER VIP", ours: superVip, ss: COMPETITOR.ss.super_vip_re[3], mh: COMPETITOR.myhome.super_vip_re },
-      { label: "Aktualisierung", ours: ADDON_TETRI.refresh_once, ss: null, mh: COMPETITOR.myhome.refresh_once },
-      { label: "Farbframe", ours: ADDON_TETRI.color, ss: null, mh: COMPETITOR.myhome.color },
+      { label: "VIP", ours: vip },
+      { label: "VIP+", ours: vipPlus },
+      { label: "SUPER VIP", ours: superVip },
+      { label: "Aktualisierung", ours: ADDON_TETRI.refresh_once },
+      { label: "Farbframe", ours: ADDON_TETRI.color },
     ],
-    ssNote: "SS.ge verkauft Aktualisierung/Farbe nicht einzeln — „—“.",
-    tieNote: "✓ = günstigster Preis der Zeile.",
   },
 }
 
@@ -115,7 +96,7 @@ export default function PriceCompare({ lang }: { lang: string }) {
         <p className="mt-2 text-[13px] font-medium text-sv-ink/55">{t.sub}</p>
 
         <div className="mt-6 overflow-x-auto rounded-card bg-sv-surface shadow-card ring-1 ring-sv-ink/5">
-          <table className="w-full min-w-[420px] border-collapse text-[14px]">
+          <table className="w-full min-w-[320px] border-collapse text-[14px]">
             <caption className="sr-only">{t.title}</caption>
             <thead>
               <tr className="border-b border-sv-ink/5 text-left">
@@ -124,48 +105,24 @@ export default function PriceCompare({ lang }: { lang: string }) {
                   scope="col"
                   className="bg-sv-blue/[0.06] px-4 py-4 text-[13px] font-black text-sv-blue-deep"
                 >
-                  Sivrce{" "}
-                  <span className="ml-1 rounded-full bg-sv-orange/15 px-2 py-0.5 text-[10px] font-black uppercase text-sv-blue-deep">
-                    {t.bestBadge}
-                  </span>
-                </th>
-                <th scope="col" className="px-4 py-4 text-[13px] font-bold text-sv-ink/55">
-                  SS.ge
-                </th>
-                <th scope="col" className="px-4 py-4 text-[13px] font-bold text-sv-ink/55">
-                  MyHome.ge
+                  Sivrce
                 </th>
               </tr>
             </thead>
             <tbody>
-              {rows.map((r) => {
-                const min = Math.min(r.ours, ...(r.ss != null ? [r.ss] : []), ...(r.mh != null ? [r.mh] : []))
-                return (
-                  <tr key={r.label} className="border-b border-sv-ink/5 last:border-0">
-                    <th scope="row" className="px-5 py-3.5 text-left text-[13px] font-bold text-sv-ink/70">
-                      {r.label}
-                    </th>
-                    <td className="bg-sv-blue/[0.06] px-4 py-3.5">
-                      <span className="inline-flex items-center gap-1.5 text-[15px] font-black text-sv-blue-deep">
-                        {r.ours === min && <Check className="h-4 w-4 text-sv-success" aria-hidden />}
-                        {formatGel(r.ours)}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3.5 text-[14px] font-semibold text-sv-ink/50">
-                      {r.ss != null ? formatGel(r.ss) : "—"}
-                    </td>
-                    <td className="px-4 py-3.5 text-[14px] font-semibold text-sv-ink/50">
-                      {r.mh != null ? formatGel(r.mh) : "—"}
-                    </td>
-                  </tr>
-                )
-              })}
+              {rows.map((r) => (
+                <tr key={r.label} className="border-b border-sv-ink/5 last:border-0">
+                  <th scope="row" className="px-5 py-3.5 text-left text-[13px] font-bold text-sv-ink/70">
+                    {r.label}
+                  </th>
+                  <td className="bg-sv-blue/[0.06] px-4 py-3.5">
+                    <span className="text-[15px] font-black text-sv-blue-deep">{formatGel(r.ours)}</span>
+                  </td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
-        <p className="mt-3 text-[12px] font-medium text-sv-ink/50">
-          {t.tieNote} {t.ssNote}
-        </p>
       </Reveal>
     </section>
   )

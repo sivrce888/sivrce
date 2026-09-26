@@ -10,13 +10,16 @@ import { useAutoGrow } from "./useAutoGrow"
 /**
  * In-chat FAQ assistant — instant, offline answers from the /faq dataset.
  * Client-only transcript (module cache keeps it alive across open/close);
- * never persisted server-side. Unanswered questions hand off to the
- * support line via onContactSupport.
+ * never persisted server-side. A dataset miss gets one AI attempt grounded on
+ * the same dataset (POST /api/ai/search {question,lang}) before it hands off
+ * to the support line via onContactSupport.
  */
 
 interface FaqEntry {
   role: "user" | "bot"
   text: string
+  /** Answer came from the AI fallback, not a literal dataset match. */
+  ai?: boolean
 }
 
 // ponytail: session-only transcript keyed by locale — add persistence when
@@ -49,6 +52,10 @@ export default function FaqView({
   const boxRef = useAutoGrow(input, 112) // 112px = max-h-28
   /** Entries from the cached transcript (or greeting) don't replay the entrance. */
   const [animatedFrom] = useState(() => log.length)
+  /** Only the newest miss may write into the transcript — an older request
+   *  that resolves late is dropped instead of interleaving stale answers. */
+  const askSeq = useRef(0)
+  const [thinking, setThinking] = useState(false)
 
   useEffect(() => {
     transcripts.set(loc, log)
@@ -56,22 +63,49 @@ export default function FaqView({
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ block: "end" })
-  }, [log, missCta, nearby])
+  }, [log, missCta, nearby, thinking])
 
   const answer = (question: string) => {
     const hit = faqMatch(question, loc)
     setLog((prev) => [
       ...prev,
       { role: "user", text: question },
-      hit ? { role: "bot", text: hit.a } : { role: "bot", text: t("chat.faqMiss") },
+      ...(hit ? [{ role: "bot" as const, text: hit.a }] : []),
     ])
     if (hit) {
       setNearby([])
       setMissCta(false)
       return
     }
+    void askAi(question)
+  }
+
+  const askAi = async (question: string) => {
+    const seq = ++askSeq.current
+    setThinking(true)
+    setNearby([])
+    setMissCta(false)
+    let aiReply: string | null = null
+    try {
+      const res = await fetch("/api/ai/search", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question, lang }),
+        signal: AbortSignal.timeout(20_000),
+      })
+      if (res.ok) aiReply = ((await res.json()) as { answer?: string | null }).answer ?? null
+    } catch {
+      // AI unavailable → support handoff below, same as before AI existed.
+    }
+    if (seq !== askSeq.current) return
+    setThinking(false)
+    if (aiReply) {
+      setLog((prev) => [...prev, { role: "bot", text: aiReply, ai: true }])
+      return
+    }
     // A miss offers the closest entries before it offers a human — one tap
     // beats waiting for support on a question the dataset already answers.
+    setLog((prev) => [...prev, { role: "bot", text: t("chat.faqMiss") }])
     setNearby(faqSearch(question, loc))
     setMissCta(true)
   }
@@ -130,12 +164,30 @@ export default function FaqView({
                 entry.role === "user" ? "bg-sv-blue text-white" : "bg-sv-ink/[0.06] text-sv-ink"
               }`}
             >
+              {entry.ai && (
+                <span
+                  aria-hidden
+                  className="me-1.5 inline-block rounded-full bg-sv-blue/10 px-1.5 py-px align-middle text-[10px] font-extrabold tracking-wide text-sv-blue-deep"
+                >
+                  AI
+                </span>
+              )}
               <p className="whitespace-pre-wrap break-words" dir="auto">
                 {entry.text}
               </p>
             </div>
           </div>
         ))}
+        {thinking && (
+          <div className="mt-3 flex justify-start">
+            <div
+              aria-hidden
+              className="animate-pulse rounded-module bg-sv-ink/[0.06] px-3.5 py-2 text-[14px] font-bold leading-relaxed text-sv-ink/40"
+            >
+              …
+            </div>
+          </div>
+        )}
         {nearby.length > 0 && (
           <div className="mt-3">
             <p className="px-0.5 pb-1.5 text-[11.5px] font-bold text-sv-ink/60">

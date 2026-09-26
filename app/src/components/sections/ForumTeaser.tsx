@@ -39,7 +39,7 @@ export default function ForumTeaser({ topics }: { topics: ForumTopic[] }) {
           {topics.map((t, i) => (
             <Reveal key={t.slug} delay={i * 0.1} className="h-full">
               <LocalizedLink href={`/forum/${t.slug}`} className="block h-full">
-                <article className="group flex h-full flex-col justify-between rounded-card border border-sv-ink/[0.07] bg-gradient-to-b from-sv-cloud to-sv-surface p-5 transition-all md:p-6 duration-300 hover:-translate-y-1.5 hover:border-sv-blue/30 hover:shadow-card-hover">
+                <article className="group flex h-full flex-col justify-between rounded-card border border-sv-ink/[0.07] bg-gradient-to-b from-sv-cloud to-sv-surface p-5 transition md:p-6 duration-300 hover:-translate-y-1.5 hover:border-sv-blue/30 hover:shadow-card-hover">
                   {/* Threads are Georgian community posts — lang="ka" so screen readers switch voice (WCAG 3.1.2). */}
                   <div lang="ka">
                     <span className="inline-block rounded-full bg-sv-blue/10 px-3 py-1 text-[11px] font-black text-sv-blue-deep dark:text-sv-blue-light">

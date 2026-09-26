@@ -1,17 +1,17 @@
 'use client'
 
-import { useId, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { useId, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import LocalizedLink from '@/components/LocalizedLink'
 import { useInViewOnce } from '@/components/Reveal'
 import {
   Heart, BedDouble, Bath, Ruler, MapPin, Crown, Flame, Share2, Zap, DoorOpen,
   TrendingDown, TrainFront, CircleDot, Columns2, ChevronLeft, ChevronRight, Clock,
-  Layers, BadgeCheck, Play, Camera, Copy, Eye,
+  Layers, BadgeCheck, Play, Camera, Copy, Eye, X, Volume2, VolumeX,
 } from 'lucide-react'
 import type { Listing } from '@/data/listings'
 import { formatPerM2, formatFloor, postedDaysAgo, postedAgoLabel, stayCount, stayLine, priceOnRequestLabel } from '@/lib/listing-format'
-import { listingTitle, placeLabel } from '@/lib/place-label'
-import { listingPath } from '@/lib/listing-slug'
+import { placeLabel } from '@/lib/place-label'
+import { listingDisplayTitle, listingPath } from '@/lib/listing-slug'
 import { listingPublicId } from '@/lib/listing-public-id'
 import { listingShareLines, listingShareText } from '@/lib/listing-share'
 import { useCurrency, formatListingPrice } from '@/lib/currency'
@@ -35,6 +35,7 @@ import { useNearestMetro } from '@/components/use-nearest-metro'
 import { SparkMark } from '@/components/SparkMark'
 import { sivrceScore } from '@/lib/sivrce-score'
 import { aiLabel } from '@/lib/ai-label'
+import { inlineVideoEmbedFor, getActiveVideoCard, setActiveVideoCard, subscribeActiveVideoCard, videoMutedPreference, setVideoMutedPreference } from '@/lib/listing-video'
 
 /* Card lifestyle chips — central FEATURE_ICON (mirrors Collections.tsx) */
 
@@ -225,7 +226,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
   const { has: inCompare, toggle: toggleCompare, full: compareFull } = useCompare()
   const { t, lang } = useI18n()
   const districtPpsm = useDistrictPpsm()
-  // SS.ge-style price position: sale listings only, project teasers excluded
+  // Portal-standard price position: sale listings only, project teasers excluded
   // ("from" prices aren't comparable), quiet/scam bands hidden inside vsDistrict.
   const vsAvg =
     l.dealType === 'sale' && !l.projectCatalog
@@ -248,7 +249,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
   const displayLabel = aiLabel(displayScore, lang)
   const city = placeLabel(l.city, lang, l.country)
   const district = placeLabel(l.district, lang, l.country)
-  const title = listingTitle(l.title, l.city, lang)
+  const title = listingDisplayTitle(l, lang, t)
   const onRequest = Boolean(l.projectCatalog && l.priceUSD <= 0)
 
   const { photos, multi, more, total } = cardGalleryTeaser(l.images, l.img, l.photoCount)
@@ -263,6 +264,56 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
   const touchRef = useRef<{ x: number; y: number } | null>(null)
   const axisLock = useRef<'h' | 'v' | null>(null)
   const swipedRef = useRef(false)
+
+  // Inline card video — plays right on the card, photos keep their frame.
+  // ponytail: <video>/<iframe> mounts on tap only (zero bytes + decoder at rest);
+  // singleton governor = max one card playing globally.
+  const videoEmbed = l.video ? inlineVideoEmbedFor(l.video, true) : null
+  const [playing, setPlaying] = useState(false)
+  // Session-scoped: unmute once → next card videos open unmuted too.
+  const [videoMuted, setVideoMuted] = useState(videoMutedPreference)
+  const [videoReady, setVideoReady] = useState(false)
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const videoKey = useId()
+
+  useEffect(() => {
+    if (!playing) return
+    setActiveVideoCard(videoKey)
+    const unsubscribe = subscribeActiveVideoCard((id) => {
+      if (id !== videoKey) setPlaying(false)
+    })
+    return () => {
+      unsubscribe()
+      if (getActiveVideoCard() === videoKey) setActiveVideoCard(null)
+    }
+  }, [playing, videoKey])
+
+  const stopVideo = () => {
+    const v = videoRef.current
+    // Drop the decoder + buffered bytes immediately, not at GC.
+    if (v) {
+      v.pause()
+      v.removeAttribute('src')
+      v.load()
+    }
+    setPlaying(false)
+    setVideoReady(false)
+  }
+
+  const playVideo = (e: React.SyntheticEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (videoEmbed) setPlaying(true)
+  }
+
+  const toggleVideoSound = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const next = !videoMuted
+    setVideoMuted(next)
+    setVideoMutedPreference(next)
+    if (videoRef.current) videoRef.current.muted = next
+  }
 
   const priceObj = formatListingPrice({
     priceUSD: l.priceUSD,
@@ -290,7 +341,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
 
   // Hover scrub (fine pointer only) — move across photo = flip frames. Touch keeps swipe.
   const onImgPointerMove = (e: React.PointerEvent) => {
-    if (!multi || e.pointerType !== 'mouse' || !imgRef.current) return
+    if (!multi || playing || e.pointerType !== 'mouse' || !imgRef.current) return
     // Don't fight share/heart/chevrons/segments
     if ((e.target as HTMLElement).closest('button')) return
     const r = imgRef.current.getBoundingClientRect()
@@ -300,7 +351,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
   }
 
   const onImgTouchStart = (e: React.TouchEvent) => {
-    if (!multi || !imgRef.current) return
+    if (!multi || playing || !imgRef.current) return
     const t = e.touches[0]
     const r = imgRef.current.getBoundingClientRect()
     if (t.clientX < r.left || t.clientX > r.right || t.clientY < r.top || t.clientY > r.bottom) {
@@ -390,7 +441,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
             {avif ? <source srcSet={avif} type="image/avif" /> : null}
             <img
               src={card ?? src}
-              alt={idx === frame ? l.title : ''}
+              alt={idx === frame ? title : ''}
               width={800}
               height={600}
               draggable={false}
@@ -406,15 +457,81 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
       })}
       {/* Bottom-only navy tint — counter + dashes stay readable, photo stays the hero */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-sv-navy/50 to-transparent" />
-      {l.video && !(more > 0 && frame === photos.length - 1) ? (
-        <LocalizedLink
-          href={`${href}?play=1`}
+      {playing && videoEmbed ? (
+        <div className={`absolute inset-0 z-30 ${videoEmbed.type === 'native' ? '' : 'bg-sv-navy'}`}>
+          {videoEmbed.type === 'native' ? (
+            <video
+              // Safari ignores React's muted prop at autoplay evaluation — set the
+              // property synchronously at attach, before the first frame fetch.
+              ref={(el) => {
+                videoRef.current = el
+                if (el) el.muted = videoMuted
+              }}
+              src={videoEmbed.url}
+              aria-label={title}
+              autoPlay
+              muted={videoMuted}
+              loop
+              playsInline
+              preload="metadata"
+              {...{ 'webkit-playsinline': '' }}
+              onCanPlay={() => setVideoReady(true)}
+              onClick={(e) => {
+                e.preventDefault()
+                const v = videoRef.current
+                if (!v) return
+                if (v.paused) v.play().catch(() => {})
+                else v.pause()
+              }}
+              // Photo stays visible underneath until frames are decoded — the
+              // video crossfades in, no navy flash on slow networks.
+              className={`h-full w-full cursor-pointer object-cover transition-opacity duration-500 motion-reduce:transition-none ${
+                videoReady ? 'opacity-100' : 'opacity-0'
+              }`}
+            />
+          ) : (
+            <iframe
+              src={videoEmbed.url}
+              title={title}
+              allow="autoplay; encrypted-media; picture-in-picture"
+              referrerPolicy="strict-origin-when-cross-origin"
+              className="h-full w-full border-0"
+            />
+          )}
+          <button
+            type="button"
+            aria-label={t('card.closeVideo')}
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              stopVideo()
+            }}
+            className="absolute right-3 top-3 z-10 grid h-8 w-8 place-items-center rounded-full bg-sv-navy/60 text-white backdrop-blur-md transition-colors duration-200 hover:bg-sv-navy/85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+          >
+            <X className="h-4 w-4" aria-hidden />
+          </button>
+          {videoEmbed.type === 'native' ? (
+            <button
+              type="button"
+              aria-label={videoMuted ? t('card.unmute') : t('card.mute')}
+              aria-pressed={!videoMuted}
+              onClick={toggleVideoSound}
+              className="absolute right-14 top-3 z-10 grid h-8 w-8 place-items-center rounded-full bg-sv-navy/60 text-white backdrop-blur-md transition-colors duration-200 hover:bg-sv-navy/85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+            >
+              {videoMuted ? <VolumeX className="h-4 w-4" aria-hidden /> : <Volume2 className="h-4 w-4" aria-hidden />}
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+      {videoEmbed && !playing && !(more > 0 && frame === photos.length - 1) ? (
+        <button
+          type="button"
           className="group/play absolute left-1/2 top-1/2 z-20 grid h-11 w-11 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-sv-navy/60 text-white shadow-glow-blue-sm backdrop-blur-md transition-colors duration-200 hover:bg-sv-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
           aria-label={t('detail.playVideo')}
-          onClick={(e) => e.stopPropagation()}
+          onClick={playVideo}
         >
           <Play className="ml-0.5 h-4 w-4 fill-white transition-transform group-hover/play:scale-110" />
-        </LocalizedLink>
+        </button>
       ) : null}
       {more > 0 && frame === photos.length - 1 ? (
         <span className="pointer-events-none absolute inset-0 z-[5] grid place-items-center bg-sv-navy/55 text-white backdrop-blur-[2px]">
@@ -506,9 +623,11 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
         </button>
       </div>
 
-      {multi && (
+      {multi && !playing && warm && (
         <>
-          {/* Hover/focus only — touch uses swipe + dashes */}
+          {/* Hover/focus only — touch uses swipe + dashes. Mounted on first
+              pointerenter/focus (warm): the always-present heart precedes them
+              in tab order, so keyboard users still reach them; SSR skips ~8 nodes/card. */}
           <button
             type="button"
             aria-label={t('detail.prevPhoto')}
@@ -532,10 +651,22 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
         </>
       )}
 
-      {/* Bottom: hairline dashes (center) + 1 / N (right) — Renti layout, real count */}
-      {multi && (
+      {/* Bottom: video chip (left) · hairline dashes (center) + 1 / N (right) */}
+      {multi && !playing && (
         <div className="pointer-events-none absolute inset-x-0 bottom-3 z-20 grid grid-cols-[1fr_auto_1fr] items-center gap-2 px-3">
-          <span />
+          {videoEmbed ? (
+            <button
+              type="button"
+              onClick={playVideo}
+              aria-label={t('detail.playVideo')}
+              className="pointer-events-auto flex items-center gap-1 justify-self-start rounded-full bg-sv-navy/60 px-2 py-0.5 text-[10px] font-bold tracking-wide text-white/95 backdrop-blur-sm transition-colors duration-200 hover:bg-sv-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            >
+              <Play className="h-2.5 w-2.5 fill-white" aria-hidden />
+              {t('card.hasVideo')}
+            </button>
+          ) : (
+            <span />
+          )}
           <div
             className="pointer-events-auto flex w-[7.5rem] gap-[3px] sm:w-36"
             role="group"
@@ -552,7 +683,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
                   e.stopPropagation()
                   setPhoto(idx)
                 }}
-                className="-my-2 flex h-4 min-w-0 flex-1 items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                className="-my-3 flex h-6 min-w-0 flex-1 items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
               >
                 <span
                   aria-hidden
@@ -589,7 +720,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
 
   const bodyBlock = (
     <div className="flex min-w-0 flex-1 flex-col p-4 pt-3.5">
-      {/* Price first — scannable like ss.ge / myhome with locked nominal currency */}
+      {/* Price first — scannable, locked nominal currency */}
       <div className="flex min-w-0 items-baseline gap-2 text-[clamp(1.125rem,0.9rem+2.2cqi,1.375rem)] font-black tabular-nums tracking-[-0.03em] text-sv-ink dark:text-sv-blue">
         <span>{displayPrice}</span>
         <span className="text-[13px] font-semibold text-sv-ink/60 dark:text-sv-blue-light/70">{displaySecondaryPrice}</span>
@@ -683,7 +814,8 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
           className={`mt-1 flex min-w-0 items-center gap-1.5 text-[12px] font-bold text-sv-blue dark:text-sv-blue-light ${rail ? 'min-h-[1.25rem]' : ''} ${metro ? '' : 'invisible'}`}
           aria-hidden={!metro}
         >
-          <TrainFront className="h-3.5 w-3.5 shrink-0" aria-hidden />
+          {/* ponytail: invisible placeholder rows keep height via text, skip the SVG (−DOM per card) */}
+          {metro ? <TrainFront className="h-3.5 w-3.5 shrink-0" aria-hidden /> : null}
           <span className="min-w-0 flex-1 text-[12px] font-bold leading-snug">{metro ? readableName(metro.name, lang) : '\u00a0'}</span>
           <span className="shrink-0 font-semibold text-sv-blue dark:text-sv-blue-light">
             · {metro ? formatMetroDist(metro, lang) : '\u00a0'}
@@ -696,7 +828,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
         {/* ponytail: 4 reserved slots — conditional hide made rails look 2-vs-3 jagged */}
         <div className="sv-card-specs min-h-[1.5rem] gap-x-2 gap-y-1.5 border-t border-sv-ink/[0.06] pt-3 text-[13px] font-bold leading-snug text-sv-ink/70">
           <span className={`flex min-w-0 items-center gap-1 ${l.area > 0 ? '' : 'invisible'}`} aria-hidden={l.area <= 0}>
-            <Ruler className="h-3.5 w-3.5 shrink-0 text-sv-ink/60" aria-hidden />
+            {l.area > 0 ? <Ruler className="h-3.5 w-3.5 shrink-0 text-sv-ink/60" aria-hidden /> : null}
             <span>
               {l.projectCatalog ? t('card.areaFrom', { n: l.area }) : `${l.area} ${t('add.areaUnit.m2')}`}
             </span>
@@ -706,11 +838,11 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
             aria-hidden={stay.n <= 0}
             title={stay.kind === 'beds' && stay.rooms > 0 ? stayText : undefined}
           >
-            <StayIcon className="h-3.5 w-3.5 shrink-0 text-sv-ink/60" aria-hidden />
+            {stay.n > 0 ? <StayIcon className="h-3.5 w-3.5 shrink-0 text-sv-ink/60" aria-hidden /> : null}
             <span>{stayText}</span>
           </span>
           <span className={`flex min-w-0 items-center gap-1 ${l.baths > 0 ? '' : 'invisible'}`} aria-hidden={l.baths <= 0}>
-            <Bath className="h-3.5 w-3.5 shrink-0 text-sv-ink/60" aria-hidden />
+            {l.baths > 0 ? <Bath className="h-3.5 w-3.5 shrink-0 text-sv-ink/60" aria-hidden /> : null}
             {l.baths}
           </span>
           <span
@@ -719,7 +851,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
             }`}
             aria-hidden={l.projectCatalog || (l.floor <= 0 && l.totalFloors <= 0)}
           >
-            <Layers className="h-3.5 w-3.5 shrink-0 text-sv-ink/60" aria-hidden />
+            {!l.projectCatalog && (l.floor > 0 || l.totalFloors > 0) ? <Layers className="h-3.5 w-3.5 shrink-0 text-sv-ink/60" aria-hidden /> : null}
             <span>{formatFloor(l, lang)}</span>
           </span>
         </div>

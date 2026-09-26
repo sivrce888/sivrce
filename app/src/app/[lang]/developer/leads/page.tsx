@@ -2,7 +2,7 @@ import type { Metadata } from "next"
 
 import DashboardShell from "@/components/dashboard/DashboardShell"
 import EmptyState from "@/components/dashboard/EmptyState"
-import LeadInbox from "@/components/dashboard/LeadInbox"
+import LeadInbox, { CrmClients } from "@/components/dashboard/LeadInbox"
 import { developerNav } from "@/components/developer-dashboard/nav"
 import { db } from "@/lib/db"
 import { requireRole, safeQuery } from "@/lib/guards"
@@ -76,7 +76,7 @@ export default async function DeveloperLeadsPage({ params }: { params: Promise<{
   const leads = await safeQuery(
     () =>
       db.inquiry.findMany({
-        where: inquiryWhere(listingIds, user.email),
+        where: inquiryWhere(listingIds, user.email, [user.id]),
         orderBy: { createdAt: "desc" },
         take: 50,
       }),
@@ -93,6 +93,8 @@ export default async function DeveloperLeadsPage({ params }: { params: Promise<{
       <h1 className="mb-5 text-[22px] font-black tracking-tight text-sv-ink">
         {T.h1}
       </h1>
+
+      <CrmClients ownerIds={[user.id]} lang={lang} />
 
       {leads.length === 0 ? (
         <EmptyState

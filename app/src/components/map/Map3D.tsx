@@ -66,6 +66,7 @@ import {
 } from '@/lib/map/floors'
 import {
   applyBrandPaints,
+  repaintBasemap,
   bindMissingImages,
   ensureFloorLayers,
   FLOORS_FILL_ID,
@@ -185,6 +186,7 @@ import {
   X,
   Map as MapIcon,
   Circle,
+  Contrast,
   Satellite,
   SlidersHorizontal,
   Compass,
@@ -327,11 +329,12 @@ const MAP_FADE = { duration: 320 } as const
 
 type MapZoomCfg = { detailZoom: number; priceMinZoom: number; clusterMaxZoom: number }
 
-/** Top 3 people love: streets (yellow) · hybrid · clean. */
+/** Streets (yellow) · hybrid · clean · high contrast (low vision / sunlight). */
 const TERRAIN_OPTIONS_ALL: { id: MapTerrain; labelKey: DictKey; Icon: LucideIcon }[] = [
   { id: 'streets', labelKey: 'map.terrain.streets', Icon: MapIcon },
   { id: 'satellite', labelKey: 'map.terrain.satellite', Icon: Satellite },
   { id: 'clean', labelKey: 'map.terrain.clean', Icon: Circle },
+  { id: 'contrast', labelKey: 'map.terrain.contrast', Icon: Contrast },
 ]
 
 const NBH_SOURCE_ID = 'sivrce-neighborhoods'
@@ -1310,6 +1313,8 @@ function Map3DInner({
   const poiOnRef = useRef(poiOn)
   const styleGenRef = useRef(0)
   const styleUrlRef = useRef<string | null>(null)
+  /** Contrast boost last painted; null until the first swap-effect run. */
+  const paintedContrastRef = useRef<boolean | null>(null)
   const remountRef = useRef<(() => void) | null>(null)
   const refreshNoteTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   useEffect(() => { darkRef.current = isDark }, [isDark])
@@ -3173,7 +3178,17 @@ function Map3DInner({
     const map = mapRef.current
     if (!map || !ready || !themeReady) return
     const next = mapStyleUrl(isDark, terrain, styleUrls)
-    if (styleUrlRef.current === next) return
+    const contrast = terrain === 'contrast'
+    const wasContrast = paintedContrastRef.current
+    paintedContrastRef.current = contrast
+    if (styleUrlRef.current === next) {
+      if (wasContrast !== null && wasContrast !== contrast) {
+        repaintBasemap(map, next, isDark ? 'dark' : 'light', terrain).catch((err) =>
+          console.error('[Map3D] contrast repaint', err),
+        )
+      }
+      return
+    }
     styleUrlRef.current = next
     const gen = ++styleGenRef.current
     let cancelled = false
@@ -3600,7 +3615,7 @@ function Map3DInner({
             aria-label={t('map.layers')}
           >
             <p className="text-[12px] font-extrabold tracking-tight">{t('map.terrain')}</p>
-            <div className="flex gap-1" role="group" aria-label={t('map.terrain')}>
+            <div className="grid grid-cols-2 gap-1" role="group" aria-label={t('map.terrain')}>
               {terrainOptions.map((opt) => {
                 const active = terrain === opt.id
                 const Icon = opt.Icon
@@ -3610,7 +3625,7 @@ function Map3DInner({
                     type="button"
                     aria-pressed={active}
                     onClick={() => pickTerrain(opt.id)}
-                    className={`inline-flex min-h-10 flex-1 items-center justify-center gap-1 rounded-full px-2 text-[11px] font-extrabold transition ${
+                    className={`inline-flex min-h-10 min-w-0 items-center justify-center gap-1 rounded-full px-2 text-[11px] font-extrabold transition ${
                       active ? 'text-white' : chipMuted
                     }`}
                     style={active ? { background: BRAND.colors.blue } : undefined}

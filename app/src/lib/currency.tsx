@@ -13,10 +13,10 @@ import { group3 } from '@/lib/listing-format'
 
 export type Currency = 'GEL' | 'USD' | 'EUR' | 'AED'
 
-/** Hardcoded fallback when live API is unreachable */
-export const USD_GEL_FALLBACK = 2.7
-/** EUR→GEL cross fallback (≈3.03–3.05, Sept 2026) — live rate overwrites in seconds. */
-export const EUR_GEL_FALLBACK = 3.04
+/** Hardcoded fallback when live API is unreachable (2026-09-26 feed snapshot). */
+export const USD_GEL_FALLBACK = 2.61
+/** EUR→GEL cross fallback — live rate overwrites in seconds. */
+export const EUR_GEL_FALLBACK = 2.97
 /** AED is hard-pegged to USD (3.6725 since 1997) — no rate feed needed. */
 export const AED_PER_USD = 3.6725
 /** Currencies a listing can be *quoted* in. Superset of `Currency`, the

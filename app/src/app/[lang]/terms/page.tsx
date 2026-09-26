@@ -4,11 +4,19 @@ import Footer from '@/components/sections/Footer'
 import { PageHero } from '@/components/PageHero'
 import { Reveal } from '@/components/Reveal'
 import { isValidLang, panelLang } from '@/lib/i18n/core'
-import { kaOnlyAlternates, pageMeta } from '@/lib/i18n/server'
+import { pageMeta } from '@/lib/i18n/server'
 import { jsonLd } from '@/lib/utils'
 import { requestOrigin } from '@/lib/request-market'
 
 export const revalidate = 86400
+
+/** Per-locale description, shared by metadata and the WebPage JSON-LD. */
+const DESCRIPTION: Record<string, string> = {
+  ka: 'sivrce-ის გამოყენების წესები და პირობები — განცხადებების განთავსება, ვერიფიკაცია, VIP სერვისები და პასუხისმგებლობა.',
+  en: 'sivrce.ge terms of use — posting listings, verification, VIP services and liability.',
+  ru: 'Условия использования sivrce.ge — размещение объявлений, верификация, VIP-сервисы и ответственность.',
+  de: 'Nutzungsbedingungen von sivrce.ge — Inserate, Verifizierung, VIP-Services und Haftung.',
+}
 
 export async function generateMetadata({
   params,
@@ -21,18 +29,21 @@ export async function generateMetadata({
     ...pageMeta('/terms', lang, {
       ka: {
         title: 'წესები და პირობები',
-        description: 'sivrce-ის გამოყენების წესები და პირობები — განცხადებების განთავსება, ვერიფიკაცია, VIP სერვისები და პასუხისმგებლობა.',
+        description: DESCRIPTION.ka!,
       },
       en: {
         title: 'Terms & Conditions',
-        description: 'sivrce.ge terms of use — posting listings, verification, VIP services and liability.',
+        description: DESCRIPTION.en!,
       },
       ru: {
         title: 'Правила и условия',
-        description: 'Условия использования sivrce.ge — размещение объявлений, верификация, VIP-сервисы и ответственность.',
+        description: DESCRIPTION.ru!,
+      },
+      de: {
+        title: 'Allgemeine Geschäftsbedingungen',
+        description: DESCRIPTION.de!,
       },
     }),
-    alternates: kaOnlyAlternates('/terms'),
   }
 }
 
@@ -40,7 +51,7 @@ const SECTIONS_BY_LANG = {
   ka: [
   {
     title: '1. ზოგადი დებულებები',
-    text: 'წინამდებარე წესები არეგულირებს sivrce.ge პლატფორმის გამოყენებას. პლატფორმაზე რეგისტრაციით ან გამოყენებით თქვენ ადასტურებთ, რომ გაეცანით ამ წესებს და თანხმობას აცხადებთ მათ დაცვაზე. sivrce წარმოადგენს საინფორმაციო პლატფორმას, რომელიც აკავშირებს უძრავი ქონების მყიდველსა და გამყიდველს.',
+    text: 'წინამდებარე წესები არეგულირებს sivrce.ge პლატფორმის გამოყენებას. პლატფორმაზე რეგისტრაციით ან გამოყენებით თქვენ ადასტურებთ, რომ გაეცანით ამ წესებს და თანხმობას აცხადებთ მათ დაცვაზე. sivrce წარმოადგენს საინფორმაციო პლატფორმას, რომელიც აკავშირებს უძრავი ქონების მყიდველსა და გამყიდველს. ამ წესებზე ვრცელდება საქართველოს კანონმდებლობა; წესებიდან წარმოშობილი დავები განიხილება თბილისის საქალაქო სასამართლოში.',
   },
   {
     title: '2. განცხადებების განთავსება',
@@ -74,7 +85,7 @@ const SECTIONS_BY_LANG = {
   en: [
     {
       title: '1. General provisions',
-      text: 'These terms govern the use of the sivrce.ge platform. By registering on or using the platform you confirm that you have read these terms and agree to comply with them. sivrce is an information platform that connects buyers and sellers of real estate.',
+      text: 'These terms govern the use of the sivrce.ge platform. By registering on or using the platform you confirm that you have read these terms and agree to comply with them. sivrce is an information platform that connects buyers and sellers of real estate. These terms are governed by the laws of Georgia; disputes arising from them are subject to the Tbilisi City Court.',
     },
     {
       title: '2. Posting listings',
@@ -108,7 +119,7 @@ const SECTIONS_BY_LANG = {
   de: [
     {
       title: '1. Allgemeine Bestimmungen',
-      text: 'Diese Regeln regeln die Nutzung der Plattform sivrce.ge. Mit der Registrierung oder Nutzung der Plattform bestätigen Sie, dass Sie diese Regeln gelesen haben und ihrer Einhaltung zustimmen. sivrce ist eine Informationsplattform, die Käufer und Verkäufer von Immobilien verbindet.',
+      text: 'Diese Regeln regeln die Nutzung der Plattform sivrce.ge. Mit der Registrierung oder Nutzung der Plattform bestätigen Sie, dass Sie diese Regeln gelesen haben und ihrer Einhaltung zustimmen. sivrce ist eine Informationsplattform, die Käufer und Verkäufer von Immobilien verbindet. Auf diese Regeln findet georgisches Recht Anwendung; Streitigkeiten daraus werden vom Stadtsgericht Tiflis entschieden.',
     },
     {
       title: '2. Veröffentlichung von Inseraten',
@@ -145,17 +156,17 @@ const SECTIONS_BY_LANG = {
 // explicit notice (legal docs governance: full AGB/deep legal review stays
 // gated behind LEGAL_REVIEW_REQUIRED in src/lib/legal/docs.ts).
 const UI = {
-  ka: { kicker: 'იურიდიული', title: 'წესები და პირობები', updated: 'ბოლო განახლება: 2026 წელი', notice: '' },
+  ka: { kicker: 'იურიდიული', title: 'წესები და პირობები', updated: 'ბოლო განახლება: 2026-09-26', notice: '' },
   en: {
     kicker: 'Legal',
     title: 'Terms & Conditions',
-    updated: 'Last updated: 2026',
+    updated: 'Last updated: 2026-09-26',
     notice: 'This English translation is provided for convenience. The Georgian version is the legally binding text.',
   },
   de: {
     kicker: 'Rechtliches',
     title: 'Allgemeine Geschäftsbedingungen',
-    updated: 'Zuletzt aktualisiert: 2026',
+    updated: 'Zuletzt aktualisiert: 2026-09-26',
     notice: 'Diese deutsche Übersetzung dient nur der Vereinfachung. Rechtlich bindend ist die georgische Fassung.',
   },
 } as const
@@ -165,6 +176,7 @@ export default async function TermsPage({ params }: { params: Promise<{ lang: st
   const { lang: raw } = await params
   const lang = isValidLang(raw) ? raw : 'ka'
   const ui = UI[panelLang(lang)]
+  const bodyLang = panelLang(lang)
   const termsLd = {
     '@context': 'https://schema.org',
     '@graph': [
@@ -172,9 +184,9 @@ export default async function TermsPage({ params }: { params: Promise<{ lang: st
         '@type': 'WebPage',
         '@id': `${origin}/terms#webpage`,
         url: `${origin}/terms`,
-        name: 'წესები და პირობები — sivrce',
-        description: 'sivrce-ის გამოყენების წესები და პირობები — განცხადებების განთავსება, ვერიფიკაცია, VIP სერვისები და პასუხისმგებლობა.',
-        inLanguage: 'ka',
+        name: `${ui.title} — sivrce`,
+        description: DESCRIPTION[bodyLang] ?? DESCRIPTION.en,
+        inLanguage: bodyLang,
         isPartOf: { '@id': `${origin}/#website` },
         speakable: {
           '@type': 'SpeakableSpecification',
@@ -185,7 +197,7 @@ export default async function TermsPage({ params }: { params: Promise<{ lang: st
         '@type': 'BreadcrumbList',
         itemListElement: [
           { '@type': 'ListItem', position: 1, name: 'sivrce', item: origin },
-          { '@type': 'ListItem', position: 2, name: 'წესები და პირობები', item: `${origin}/terms` },
+          { '@type': 'ListItem', position: 2, name: ui.title, item: `${origin}/terms` },
         ],
       },
     ],

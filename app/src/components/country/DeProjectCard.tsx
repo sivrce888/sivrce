@@ -72,7 +72,7 @@ export default function DeProjectCard({
   return (
     <Link
       href={`${hrefPrefix}/${p.slug}`}
-      className={`group flex ${full ? 'w-full' : 'w-[300px] shrink-0'} flex-col rounded-tile border border-sv-ink/[0.07] bg-sv-surface p-5 shadow-card transition-all duration-300 hover:-translate-y-1.5 hover:border-sv-blue/30 hover:shadow-card-hover`}
+      className={`group flex ${full ? 'w-full' : 'w-[300px] shrink-0'} flex-col rounded-tile border border-sv-ink/[0.07] bg-sv-surface p-5 shadow-card transition duration-300 hover:-translate-y-1.5 hover:border-sv-blue/30 hover:shadow-card-hover`}
     >
       <div className="relative -mx-5 -mt-5 mb-4 h-[170px] overflow-hidden rounded-tile rounded-b-none border-b border-sv-ink/[0.06]">
         <Image src={p.img} alt={`${p.name} — ${dev || 'Neubau'} render`} fill sizes="300px" className="object-cover" />

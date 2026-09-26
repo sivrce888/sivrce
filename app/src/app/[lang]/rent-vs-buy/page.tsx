@@ -65,7 +65,7 @@ const COPY: Record<'ka'|'en'|'ru'|'de', {
     title: 'ქირა თუ ყიდვა? კალკულატორი საქართველოში',
     subtitle: 'შეადარეთ ქირავნობა და იპოთეკა თქვენს სიტუაციაში — რამდენი სიმდიდრე გექნებოდათ რამდენიმე წლის შემდეგ, თუ იმავე თანხას ბინაში ან დანაზოგში ათავსებდით. მოდელი გამჭვირვალეა: ყველა დაშვებას თვითონ ცვლით.',
     assumptionsNote:
-      'მოდელის ფიქსირებული დაშვებები: ქირის ზრდა 5% წელიწადში · ყიდვის ერთჯერადი ხარჯები 2.5% (გადასახადი, ნოტარიუსი, აგენტი) · გაყიდვის ხარჯები 2% · მომსახურება და გადასახადები 0.8% წელიწადში ფასის ოდენობით.',
+      'მოდელის ფიქსირებული დაშვებები: ქირის ზრდა 5% წელიწადში · ყიდვის ერთჯერადი ხარჯები 0.5% (საჯარო რეესტრი, ნოტარიუსი, იურიდიული შემოწმება — გადაცემის გადასახადი არ არსებობს) · გაყიდვის ხარჯები 2% · მომსახურება და გადასახადები 0.8% წელიწადში ფასის ოდენობით.',
     guideTitle: 'როგორ მუშაობს შედარება',
     guide: [
       'ორივე გზაზე თქვენი ფული მუშაობს: ყიდვისას — ბინის კაპიტალში (ფასი მინუს დარჩენილი სესხი), ქირისას — იმ თანხაში, რომელიც პირველ შენატანსა და ყიდვის ხარჯებს არ მიჰყვება და დეპოზიტზე ორგროსივდება. ვინც თვეში ნაკლებს ხდის, სხვაობასაც ზრდის — ასე შედარებულია ერთი და იმავე ბიუჯეტის ორი ბედი.',
@@ -90,7 +90,7 @@ const COPY: Record<'ka'|'en'|'ru'|'de', {
     title: 'Rent vs Buy Calculator Georgia',
     subtitle: 'Compare renting and buying in your situation — how much wealth you would have after a given number of years if the same money went into an apartment or into savings. The model is transparent: you change every assumption.',
     assumptionsNote:
-      'Fixed model assumptions: rent growth 5%/yr · one-off purchase costs 2.5% (transfer tax, notary, agent) · selling costs 2% · upkeep and taxes 0.8%/yr of price.',
+      'Fixed model assumptions: rent growth 5%/yr · one-off purchase costs 0.5% (registry fee, notary, title check — Georgia has no transfer tax) · selling costs 2% · upkeep and taxes 0.8%/yr of price.',
     guideTitle: 'How the comparison works',
     guide: [
       'Your money works on both paths: when buying, it sits in home equity (value minus remaining loan); when renting, the down payment and purchase costs stay invested at deposit rates. Whoever pays less per month invests the difference — so the same budget is compared on two fate paths.',
@@ -115,7 +115,7 @@ const COPY: Record<'ka'|'en'|'ru'|'de', {
     title: 'Арендовать или купить? Калькулятор для Грузии',
     subtitle: 'Сравните аренду и ипотеку в вашей ситуации — сколько капитала будет через несколько лет, если те же деньги вложить в квартиру или в сбережения. Модель прозрачна: каждое допущение меняете вы.',
     assumptionsNote:
-      'Фиксированные допущения модели: рост аренды 5% в год · разовые расходы покупки 2.5% (налог, нотариус, агент) · расходы продажи 2% · содержание и налоги 0.8% в год от цены.',
+      'Фиксированные допущения модели: рост аренды 5% в год · разовые расходы покупки 0.5% (реестр, нотариус, проверка права — налога на передачу нет) · расходы продажи 2% · содержание и налоги 0.8% в год от цены.',
     guideTitle: 'Как работает сравнение',
     guide: [
       'Ваши деньги работают на обоих путях: при покупке — в капитале квартиры (цена минус остаток кредита), при аренде — сбережениями: первый взнос и расходы покупки остаются на депозите. Кто платит в месяц меньше, тот инвестирует разницу — так один и тот же бюджет сравнивается на двух траекториях.',

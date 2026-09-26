@@ -269,7 +269,7 @@ export function CommandPalette() {
         aria-label="Command palette"
         onClick={(e) => e.stopPropagation()}
         onKeyDown={onKeyDown}
-        className={`w-full max-w-[620px] overflow-hidden rounded-[16px] border border-sv-ink/8 bg-white shadow-[0_24px_70px_-12px_rgba(15,23,42,0.35)] motion-safe:transition-all motion-safe:duration-150 motion-safe:ease-out ${
+        className={`w-full max-w-[620px] overflow-hidden rounded-[16px] border border-sv-ink/8 bg-white shadow-[0_24px_70px_-12px_rgba(15,23,42,0.35)] motion-safe:transition motion-safe:duration-150 motion-safe:ease-out ${
           shown ? "translate-y-0 scale-100 opacity-100" : "-translate-y-1 scale-[0.98] opacity-0"
         }`}
       >

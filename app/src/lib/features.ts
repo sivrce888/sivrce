@@ -57,6 +57,9 @@ export const FEATURE_KEYS = [
   'add.f.kidFriendly', 'add.f.workspace', 'add.f.smokingAllowed',
   // Seller capability (dedicated checkbox on /add-listing — not in amenity grid).
   'add.f.onlineView',
+  // Seller financing (dedicated checkbox, sale listings — not in amenity grid;
+  // renders as a lone chip in the detail feature row).
+  'add.f.installment',
 ] as const satisfies readonly DictKey[]
 
 export type FeatureKey = (typeof FEATURE_KEYS)[number]

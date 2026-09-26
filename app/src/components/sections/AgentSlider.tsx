@@ -55,7 +55,7 @@ export default function AgentSlider({
             <LocalizedLink
               key={a.slug}
               href={`/agents/${a.slug}`}
-              className="group relative flex w-[280px] shrink-0 flex-col overflow-hidden rounded-card border border-sv-ink/[0.07] bg-sv-surface p-5 transition-all duration-300 hover:-translate-y-1.5 hover:border-sv-blue/30 hover:shadow-card-hover"
+              className="group relative flex w-[280px] shrink-0 flex-col overflow-hidden rounded-card border border-sv-ink/[0.07] bg-sv-surface p-5 transition duration-300 hover:-translate-y-1.5 hover:border-sv-blue/30 hover:shadow-card-hover"
             >
               <div className="flex items-center gap-3.5">
                 <span

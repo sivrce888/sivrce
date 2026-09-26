@@ -27,7 +27,7 @@ export default function NeighborhoodCard({ n, count }: { n: NeighborhoodCardData
       href={`/neighborhoods/${n.slug}`}
       className="group block rounded-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
     >
-      <article className="overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-card-hover">
+      <article className="overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card transition duration-500 group-hover:-translate-y-2 group-hover:shadow-card-hover">
         <div className="relative aspect-[16/9] overflow-hidden">
           <Image
             src={n.img}

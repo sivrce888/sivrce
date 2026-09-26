@@ -9,6 +9,7 @@ import { requestMarket } from '@/lib/request-market'
 import { getDeveloperListingCountsBySlug } from '@/lib/listings-db'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
 import { priceM2 } from '@/app/[lang]/projects/card'
+import { cityByName } from '@/lib/map/user-place'
 import type { Developer } from '@/data/professionals'
 
 export interface RankedDeveloperCard {
@@ -39,21 +40,22 @@ export async function rankedDevelopers(page = 1): Promise<{ cards: RankedDevelop
     devStats.set(slug, hit)
   }
 
-  // ponytail: GE devs first on sivrce.ge — world devs (US/CN listings) otherwise
-  // outrank locals on count. GE = has a project inside Georgia's bbox (cities are
-  // ka-localized everywhere, so names can't tell Tbilisi from Dubai).
-  // Ceiling: GE dev with zero catalog projects ranks world; upgrade: country-scoped counts.
+  // Domain constitution: sivrce.ge only serves Georgian developers.
+  // sivrce.com serves all developers worldwide (Georgian + global).
   const geMarket = (await requestMarket()) === 'ge'
   const geDevSlugs = new Set(
     projects
       .filter((p) => p.coords.lat >= 40.9 && p.coords.lat <= 43.7 && p.coords.lng >= 39.9 && p.coords.lng <= 46.9)
       .map((p) => p.developerSlug),
   )
-  const ranked = developers
+  const devsInScope = geMarket
+    ? developers.filter((d) => geDevSlugs.has(d.slug) || cityByName(d.city)?.cc === 'GE')
+    : developers
+
+  const ranked = devsInScope
     .map((d) => ({ d, listingsCount: listingCounts[d.slug] ?? 0 }))
     .sort(
       (x, y) =>
-        (geMarket ? Number(geDevSlugs.has(y.d.slug)) - Number(geDevSlugs.has(x.d.slug)) : 0) ||
         y.listingsCount - x.listingsCount ||
         // Projects we actually list beat a self-reported portfolio size.
         (devStats.get(y.d.slug)?.count ?? 0) - (devStats.get(x.d.slug)?.count ?? 0) ||

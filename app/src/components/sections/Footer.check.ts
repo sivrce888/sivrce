@@ -33,8 +33,11 @@ assert.ok(code.includes('Berlin'), 'DE_CITIES must include Berlin')
 assert.ok(code.includes('München'), 'DE_CITIES must include München')
 assert.ok(code.includes('Hamburg'), 'DE_CITIES must include Hamburg')
 assert.ok(code.includes('Frankfurt am Main'), 'DE_CITIES must include Frankfurt am Main')
-assert.ok(code.includes('DSGVO Art. 7(3) konform'), 'Footer must surface DSGVO compliance badge')
-assert.ok(code.includes('§ 87 GEG Energieausweis-geprüft'), 'Footer must surface GEG compliance badge')
+// "konform/geprüft" certification badges deliberately removed (2872c1b0) — claiming
+// certification wording is a UWG risk. Substance is asserted above: withdrawal
+// trigger (Art. 7(3)) + the five German legal links.
+assert.ok(!code.includes('DSGVO Art. 7(3) konform'), 'Footer must not claim DSGVO certification wording (UWG risk)')
+assert.ok(!code.includes('Energieausweis-geprüft'), 'Footer must not claim GEG certification wording (UWG risk)')
 
 // 4. Device budget locks
 assert.ok(code.includes('sv-link-grid'), 'Footer must use sv-link-grid CSS grid')

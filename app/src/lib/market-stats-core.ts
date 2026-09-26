@@ -85,3 +85,81 @@ export function momDeltaPct(current: number, previous: number | null | undefined
   if (pct === 0) return null
   return Math.max(-99, Math.min(99, pct))
 }
+
+// ---- Quarterly report editions (/market/2026-Q3) — snapshot aggregates ----
+
+export interface QuarterSnapshotRow {
+  periodMonth: string
+  avgPricePerSqm: number
+  medianPrice: number | null
+  soldCount: number
+  avgDaysOnMarket: number
+  newListingsCount: number
+  activeListingsCount: number
+}
+
+export const QUARTER_RE = /^\d{4}-Q[1-4]$/
+
+/** Accept any-case quarter ('2026-q3' — the URL middleware lowercases paths)
+ *  → canonical '2026-Q3', or null for garbage. */
+export function normalizeQuarter(raw: string): string | null {
+  const m = /^(\d{4})-q([1-4])$/i.exec(raw.trim())
+  return m ? `${m[1]}-Q${m[2]}` : null
+}
+
+/** '2026-Q3' for a UTC date. */
+export function quarterKey(d: Date): string {
+  return `${d.getUTCFullYear()}-Q${Math.floor(d.getUTCMonth() / 3) + 1}`
+}
+
+/** The quarter's three 'YYYY-MM' period keys, or [] for a malformed quarter. */
+export function monthsOfQuarter(quarter: string): string[] {
+  const m = QUARTER_RE.exec(quarter)
+  if (!m) return []
+  const y = Number(quarter.slice(0, 4))
+  const qi = Number(quarter.slice(6))
+  return [1, 2, 3].map((i) => `${y}-${String((qi - 1) * 3 + i).padStart(2, '0')}`)
+}
+
+export function prevQuarterKey(quarter: string): string | null {
+  if (!QUARTER_RE.test(quarter)) return null
+  let y = Number(quarter.slice(0, 4))
+  let qi = Number(quarter.slice(6)) - 1
+  if (qi === 0) { y -= 1; qi = 4 }
+  return `${y}-Q${qi}`
+}
+
+export interface QuarterStats {
+  /** Snapshot months actually present (a live quarter has fewer than 3). */
+  months: number
+  avgPerM2USD: number
+  medianPriceUSD: number | null
+  soldCount: number
+  newListings: number
+  /** Active listings in the latest month present — caller sorts rows by periodMonth. */
+  activeEnd: number
+  avgDomDays: number
+}
+
+/** Aggregate one district's monthly snapshots; null without any priced month. */
+export function quarterStats(rows: QuarterSnapshotRow[]): QuarterStats | null {
+  const clean = rows.filter((r) => r.avgPricePerSqm > 0)
+  if (!clean.length) return null
+  const medians = clean.map((r) => r.medianPrice).filter((v): v is number => !!v && v > 0)
+  return {
+    months: clean.length,
+    avgPerM2USD: Math.round(clean.reduce((a, r) => a + r.avgPricePerSqm, 0) / clean.length),
+    medianPriceUSD: medianOf(medians),
+    soldCount: clean.reduce((a, r) => a + r.soldCount, 0),
+    newListings: clean.reduce((a, r) => a + r.newListingsCount, 0),
+    activeEnd: clean[clean.length - 1]!.activeListingsCount,
+    avgDomDays: Math.round(clean.reduce((a, r) => a + r.avgDaysOnMarket, 0) / clean.length),
+  }
+}
+
+/** City total: active-listings-weighted mean of district quarter averages. */
+export function weightedTotal(stats: { avgPerM2USD: number; activeEnd: number }[]): number | null {
+  const weight = stats.reduce((a, s) => a + s.activeEnd, 0)
+  if (weight <= 0) return null
+  return Math.round(stats.reduce((a, s) => a + s.avgPerM2USD * s.activeEnd, 0) / weight)
+}

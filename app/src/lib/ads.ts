@@ -19,6 +19,7 @@ export const AD_SLOTS = [
   "developers",
   "projects",
   "mortgage",
+  "valuta",
   "advertise",
   "services",
 ] as const
@@ -59,6 +60,7 @@ export const SLOT_META: Record<
   developers: { label: "Developers directory", format: "strip", hint: "Developer directory." },
   projects: { label: "Projects", format: "strip", hint: "New-builds hub." },
   mortgage: { label: "Mortgage calculator", format: "strip", hint: "Bank / loan product." },
+  valuta: { label: "Currency pages", format: "strip", hint: "FX hub + pair pages." },
   advertise: { label: "Advertise page", format: "billboard", hint: "Partner upsell on the pricing page." },
   services: { label: "Services directory", format: "strip", hint: "Renovation / legal / photo marketplace." },
 }

@@ -1,7 +1,12 @@
 import LocalizedLink from "@/components/LocalizedLink"
 import { MessageCircle, Phone } from "lucide-react"
 
-import { setProLeadStatus } from "@/components/dashboard/lead-actions"
+import { LEAD_STATUS_ORDER, leadStatusLabels } from "@/components/agency-dashboard/nav"
+import { CrmTouchForm } from "@/components/crm/CrmTouchForm"
+import { logCrmClientTouch, setCrmClientStatus, setProLeadStatus } from "@/components/dashboard/lead-actions"
+import { followUpState } from "@/lib/crm-follow-up"
+import { db } from "@/lib/db"
+import { safeQuery } from "@/lib/guards"
 import { INQUIRY_STATUSES, isInquiryStatus, leadWaText } from "@/lib/pro-leads"
 import { inquiryStatusLabel } from "@/components/agent-dashboard/format"
 import { telHref, waHref } from "@/lib/inquiries/phone"
@@ -204,5 +209,165 @@ export default function LeadInbox({
         <LeadCard key={lead.id} lead={lead} title={titles[lead.listingId]} t={t} statusLabel={statusLabel} />
       ))}
     </div>
+  )
+}
+
+const CLIENT_L = {
+  ka: {
+    h2: "ჩემი კლიენტები",
+    hint: "Sivrce-ის გუნდის მიერ თქვენზე გადმოცემული კლიენტები.",
+    call: "ზარი",
+    followUp: "შემდეგი კონტაქტი",
+    today: "დღეს",
+    lastContact: "ბოლო კონტაქტი",
+    log: "კონტაქტის ჩაწერა",
+    statusAria: "კლიენტის სტატუსი",
+    save: "შენახვა",
+    locale: "ka-GE",
+  },
+  en: {
+    h2: "My clients",
+    hint: "Clients the Sivrce team assigned to you.",
+    call: "Call",
+    followUp: "Next follow-up",
+    today: "today",
+    lastContact: "Last contact",
+    log: "Log contact",
+    statusAria: "Client status",
+    save: "Save",
+    locale: "en-GB",
+  },
+  de: {
+    h2: "Meine Kunden",
+    hint: "Kunden, die das Sivrce-Team Ihnen zugewiesen hat.",
+    call: "Anrufen",
+    followUp: "Nächster Kontakt",
+    today: "heute",
+    lastContact: "Letzter Kontakt",
+    log: "Kontakt erfassen",
+    statusAria: "Kundenstatus",
+    save: "Speichern",
+    locale: "de-DE",
+  },
+} as const
+
+/** CRM clients assigned to these users (agent: self; agency: whole team). Renders nothing when empty. */
+export async function CrmClients({ ownerIds, lang }: { ownerIds: string[]; lang: string }) {
+  const clients = await safeQuery(
+    () =>
+      db.crmLead.findMany({
+        where: { agentId: { in: ownerIds } },
+        orderBy: [{ nextFollowUp: { sort: "asc", nulls: "last" } }, { createdAt: "desc" }],
+        take: 60,
+      }),
+    [],
+  )
+  if (clients.length === 0) return null
+  const t = CLIENT_L[panelLang(lang)]
+  const statusLabel = leadStatusLabels(lang)
+  const dateFmt = new Intl.DateTimeFormat(t.locale, { dateStyle: "medium", timeStyle: "short" })
+  // Follow-ups are day-level at UTC noon (crm-follow-up.ts): render the date only, in UTC.
+  const dayFmt = new Intl.DateTimeFormat(t.locale, { dateStyle: "medium", timeZone: "UTC" })
+
+  return (
+    <section aria-labelledby="crm-clients-h" className="mb-8">
+      <h2 id="crm-clients-h" className="text-[17px] font-extrabold tracking-[-0.02em] text-sv-ink">
+        {t.h2} <span className="text-sv-ink/40 tabular-nums">{clients.length}</span>
+      </h2>
+      <p className="mt-0.5 mb-4 text-[12.5px] font-medium text-sv-ink/60">{t.hint}</p>
+      <div className="grid gap-3 md:grid-cols-2">
+        {clients.map((c) => {
+          const due = c.closedAt === null ? followUpState(c.nextFollowUp) : "none"
+          return (
+            <article
+              key={c.id}
+              className="rounded-card border border-sv-ink/[0.06] bg-sv-surface p-5 shadow-card"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="truncate text-[15px] font-extrabold tracking-[-0.02em] text-sv-ink">
+                    {c.name}
+                  </p>
+                  {c.district ? (
+                    <p className="mt-0.5 text-[12px] font-medium text-sv-ink/60">{c.district}</p>
+                  ) : null}
+                </div>
+                <span className="shrink-0 rounded-full bg-sv-blue/10 px-2.5 py-1 text-[11px] font-bold text-sv-blue-deep">
+                  {statusLabel[c.status]}
+                </span>
+              </div>
+              {c.notes ? (
+                <p className="mt-3 line-clamp-2 text-[13px] font-medium leading-relaxed text-sv-ink/70">
+                  {c.notes}
+                </p>
+              ) : null}
+              <div className="mt-4 flex flex-wrap items-center gap-2">
+                <a
+                  href={telHref(c.phone)}
+                  className="inline-flex h-10 items-center gap-1.5 rounded-full bg-sv-orange px-4 text-[13px] font-bold text-sv-ink shadow-glow-orange transition hover:opacity-95"
+                >
+                  <Phone size={14} strokeWidth={2.4} aria-hidden />
+                  {t.call}
+                </a>
+                <a
+                  href={waHref(c.phone, leadWaText(c.name))}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex h-10 items-center gap-1.5 rounded-full bg-sv-blue px-4 text-[13px] font-bold text-white transition hover:bg-sv-blue-deep"
+                >
+                  <MessageCircle size={14} strokeWidth={2.4} aria-hidden />
+                  WhatsApp
+                </a>
+              </div>
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-sv-ink/6 pt-3">
+                <p className="text-[11.5px] font-semibold text-sv-ink/60">
+                  {c.nextFollowUp ? (
+                    <span className={due === "overdue" ? "text-rose-600" : due === "today" ? "text-sv-blue-deep" : undefined}>
+                      {t.followUp}: {due === "today" ? t.today : dayFmt.format(c.nextFollowUp)}
+                    </span>
+                  ) : (
+                    dateFmt.format(c.createdAt)
+                  )}
+                  {c.lastContact ? (
+                    <span className="block font-medium">
+                      {t.lastContact}: {dateFmt.format(c.lastContact)}
+                    </span>
+                  ) : null}
+                </p>
+                <form action={setCrmClientStatus} className="flex items-center gap-2">
+                  <input type="hidden" name="id" value={c.id} />
+                  <select
+                    name="status"
+                    defaultValue={c.status}
+                    aria-label={t.statusAria}
+                    className="h-9 rounded-full border border-sv-ink/12 bg-sv-cloud/40 px-3 text-[12px] font-bold text-sv-ink outline-none focus:border-sv-blue"
+                  >
+                    {LEAD_STATUS_ORDER.map((s) => (
+                      <option key={s} value={s}>
+                        {statusLabel[s]}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="submit"
+                    className="rounded-full bg-sv-navy px-3.5 py-1.5 text-[12px] font-bold text-white transition hover:opacity-90"
+                  >
+                    {t.save}
+                  </button>
+                </form>
+              </div>
+              <details className="mt-3 border-t border-sv-ink/6 pt-3">
+                <summary className="cursor-pointer list-none text-[12.5px] font-bold text-sv-blue-deep marker:hidden hover:text-sv-blue">
+                  {t.log}
+                </summary>
+                <div className="mt-3">
+                  <CrmTouchForm action={logCrmClientTouch} leadId={c.id} nextFollowUp={c.nextFollowUp} lang={lang} />
+                </div>
+              </details>
+            </article>
+          )
+        })}
+      </div>
+    </section>
   )
 }

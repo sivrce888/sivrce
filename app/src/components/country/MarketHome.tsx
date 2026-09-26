@@ -103,7 +103,7 @@ function HoodsBand({ country, city, cityName }: { country: PathCountryId; city?:
               <li key={n.slug}>
                 <Link
                   href={`${prefix}/${city}/${n.slug}`}
-                  className="flex items-center justify-between gap-3 rounded-module border border-sv-ink/[0.07] bg-sv-cloud px-5 py-4 shadow-card transition-all duration-300 hover:-translate-y-1 hover:border-sv-blue/30 hover:shadow-card-hover"
+                  className="flex items-center justify-between gap-3 rounded-module border border-sv-ink/[0.07] bg-sv-cloud px-5 py-4 shadow-card transition duration-300 hover:-translate-y-1 hover:border-sv-blue/30 hover:shadow-card-hover"
                 >
                   <span className="min-w-0">
                     <span className="block truncate text-[15px] font-extrabold text-sv-ink">{n.en}</span>
@@ -141,7 +141,7 @@ function CitiesBand({ country, current }: { country: PathCountryId; current?: st
                   <Link
                     href={`${prefix}/${slug}`}
                     aria-current={here ? 'page' : undefined}
-                    className={`flex items-center justify-between gap-3 rounded-module border bg-sv-surface px-5 py-4 shadow-card transition-all duration-300 hover:-translate-y-1 hover:border-sv-blue/30 hover:shadow-card-hover ${
+                    className={`flex items-center justify-between gap-3 rounded-module border bg-sv-surface px-5 py-4 shadow-card transition duration-300 hover:-translate-y-1 hover:border-sv-blue/30 hover:shadow-card-hover ${
                       here ? 'border-sv-blue/40' : 'border-sv-ink/[0.07]'
                     }`}
                   >
@@ -332,7 +332,7 @@ function AeDeveloperRail({ citySlug, ar }: { citySlug?: string; ar: boolean }) {
               </>
             )
             const cls =
-              'group flex w-[300px] shrink-0 flex-col rounded-tile border border-sv-ink/[0.07] bg-sv-surface p-5 shadow-card transition-all duration-300 hover:-translate-y-1.5 hover:border-sv-blue/30 hover:shadow-card-hover'
+              'group flex w-[300px] shrink-0 flex-col rounded-tile border border-sv-ink/[0.07] bg-sv-surface p-5 shadow-card transition duration-300 hover:-translate-y-1.5 hover:border-sv-blue/30 hover:shadow-card-hover'
             return d.website ? (
               <a key={d.slug} href={d.website} target="_blank" rel="noopener noreferrer" className={cls}>{body}</a>
             ) : (

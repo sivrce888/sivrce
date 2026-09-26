@@ -257,7 +257,7 @@ export function DeveloperMediaGallery({
           <div
             key={item.src}
             onClick={() => setLightboxIdx(idx)}
-            className="group relative aspect-[4/3] cursor-pointer overflow-hidden rounded-module border border-sv-ink/[0.06] bg-sv-cloud shadow-sm transition-all duration-300 hover:scale-[1.02] hover:shadow-md"
+            className="group relative aspect-[4/3] cursor-pointer overflow-hidden rounded-module border border-sv-ink/[0.06] bg-sv-cloud shadow-sm transition duration-300 hover:scale-[1.02] hover:shadow-md"
           >
             <Image
               src={item.src}
@@ -286,7 +286,7 @@ export function DeveloperMediaGallery({
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 flex flex-col bg-black/95 backdrop-blur-md transition-all duration-300"
+          className="fixed inset-0 z-50 flex flex-col bg-black/95 backdrop-blur-md transition duration-300"
         >
           {/* Top Bar */}
           <div className="flex items-center justify-between px-6 py-4 text-white">
@@ -338,7 +338,7 @@ export function DeveloperMediaGallery({
               type="button"
               onClick={() => setLightboxIdx((lightboxIdx - 1 + mediaItems.length) % mediaItems.length)}
               aria-label={t.prev}
-              className="absolute left-4 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur transition-all hover:scale-110 hover:bg-white/40"
+              className="absolute left-4 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur transition hover:scale-110 hover:bg-white/40"
             >
               <ChevronLeft className="h-6 w-6" />
             </button>
@@ -347,7 +347,7 @@ export function DeveloperMediaGallery({
               type="button"
               onClick={() => setLightboxIdx((lightboxIdx + 1) % mediaItems.length)}
               aria-label={t.next}
-              className="absolute right-4 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur transition-all hover:scale-110 hover:bg-white/40"
+              className="absolute right-4 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/20 text-white backdrop-blur transition hover:scale-110 hover:bg-white/40"
             >
               <ChevronRight className="h-6 w-6" />
             </button>
@@ -360,7 +360,7 @@ export function DeveloperMediaGallery({
                 key={item.src}
                 type="button"
                 onClick={() => setLightboxIdx(idx)}
-                className={`relative h-14 w-20 shrink-0 overflow-hidden rounded-control border-2 transition-all ${
+                className={`relative h-14 w-20 shrink-0 overflow-hidden rounded-control border-2 transition ${
                   idx === lightboxIdx
                     ? 'border-sv-orange scale-105 opacity-100'
                     : 'border-transparent opacity-50 hover:opacity-80'

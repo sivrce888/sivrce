@@ -74,14 +74,14 @@ export default function Projects({
       <HScroll aria-label={b('home.projects.homesWord')} step={560} className="gap-6 pb-2 pt-2">
         {items.map((p) => {
           const dev = devNames?.[p.slug]
-          const devName = (lang === 'en' ? dev?.en : lang === 'ru' ? dev?.ru : dev?.ka) ?? p.developerSlug
+          const devName = (lang === 'ka' ? dev?.ka : lang === 'ru' ? dev?.ru : lang === 'de' ? (dev?.de ?? dev?.en) : dev?.en) ?? p.developerSlug
           return (
             <LocalizedLink
               key={p.slug}
               href={`/projects/${p.slug}`}
               className="group block w-[min(85%,520px)] shrink-0"
             >
-              <article className="flex h-full cursor-pointer flex-col overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card transition-all duration-500 hover:-translate-y-2 hover:shadow-card-hover">
+              <article className="flex h-full cursor-pointer flex-col overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card transition duration-500 hover:-translate-y-2 hover:shadow-card-hover">
                 <div className="relative aspect-[16/9] overflow-hidden">
                   {/* eslint-disable-next-line @next/next/no-img-element -- ponytail: native lazy, no next/image preload (images unoptimized per next.config) */}
                   <img

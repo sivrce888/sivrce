@@ -15,14 +15,17 @@ import { NEIGHBORHOODS } from '@/data/neighborhoods'
 import { DEVELOPERS, PROJECTS, AGENT_PROFILES } from '@/data/professionals'
 import { developersLive, projectsLive } from '@/lib/directory-live'
 import { db } from '@/lib/db'
+import { reportedQuarters } from '@/lib/market-stats'
 import { PROJECT_DISTRICTS } from '@/lib/directory-seo'
 import { listingPath } from '@/lib/listing-slug'
 import { listingVideoObject } from '@/lib/listing-video'
 import { SERVICE_CATEGORIES, SERVICE_PROVIDERS } from '@/lib/services'
+import { FX_PAIRS, pairSlug } from '@/lib/fx'
 import { COM_ORIGIN, COUNTRY_IDS } from '@/lib/markets'
 import { countrySitemapPaths, deNativeCityPack } from '@/lib/country-copy'
 import { BERLIN_BEZIRKE, DE_CITIES } from '@/lib/countries/de'
 import { AE_EMIRATES } from '@/lib/countries/ae'
+import { POPULAR_DESTINATIONS, placeBySlug } from '@/lib/hotels'
 
 const BASE = 'https://sivrce.ge'
 
@@ -105,6 +108,9 @@ async function georgiaSitemap(): Promise<MetadataRoute.Sitemap> {
     { path: '/forum', changeFrequency: 'daily', priority: 0.7 },
     { path: '/neighborhoods', changeFrequency: 'monthly', priority: 0.7 },
     { path: '/market', changeFrequency: 'weekly', priority: 0.8 },
+    // Quarterly report editions — only quarters with ≥2 district snapshots
+    // (thinner quarters are noindex on the page; never list them here).
+    ...(await reportedQuarters()).map((q) => ({ path: `/market/${q.toLowerCase()}`, changeFrequency: 'monthly' as const, priority: 0.7 })),
     // /countries is the worldwide index — it canonicalises to, and now 308s to,
     // sivrce.com, so it is listed in countrySitemap() instead.
     { path: '/projects', changeFrequency: 'daily', priority: 0.85 },
@@ -124,14 +130,22 @@ async function georgiaSitemap(): Promise<MetadataRoute.Sitemap> {
     // ponytail: crawlable hubs + detail pages previously missing — sitemap
     // is the discovery path for ~140 indexed pages (agents, developers, projects).
     { path: '/mortgage-calculator', changeFrequency: 'monthly', priority: 0.7 },
+    // FX hub + pair pages — hourly-refreshed rates, real corpus for the
+    // "დოლარის კურსი / usd to gel" query family.
+    { path: '/valuta', changeFrequency: 'daily', priority: 0.8 },
+    ...FX_PAIRS.map(([f, t]) => ({ path: `/valuta/${pairSlug(f, t)}`, changeFrequency: 'daily' as const, priority: 0.75 })),
     { path: '/rent-vs-buy', changeFrequency: 'monthly', priority: 0.7 },
     { path: '/valuation', changeFrequency: 'daily', priority: 0.8 },
     { path: '/agents', changeFrequency: 'weekly', priority: 0.6 },
     { path: '/agencies', changeFrequency: 'weekly', priority: 0.6 },
     { path: '/developers', changeFrequency: 'daily', priority: 0.8 },
     { path: '/services', changeFrequency: 'weekly', priority: 0.8 },
-    // Live GDS hotel rates (Amadeus) — worldwide, all locales.
+    // Live GDS hotel rates (Amadeus) — worldwide, all locales. GE destination
+    // hubs on the ge shard; world hubs in countrySitemap().
     { path: '/hotels', changeFrequency: 'daily', priority: 0.8 },
+    ...POPULAR_DESTINATIONS.flatMap((d) =>
+      placeBySlug(d.slug)?.cc === 'GE' ? [{ path: `/hotels/${d.slug}`, changeFrequency: 'daily' as const, priority: 0.75 }] : [],
+    ),
   ]
 
   for (const a of AGENT_PROFILES) {
@@ -301,6 +315,12 @@ async function georgiaSitemap(): Promise<MetadataRoute.Sitemap> {
 }
 
 async function countrySitemap(): Promise<MetadataRoute.Sitemap> {
+  // World hotels destination hubs — GE ones live in the georgiaSitemap().
+  const hotelHubs: MetadataRoute.Sitemap = POPULAR_DESTINATIONS.flatMap((d) => {
+    if (placeBySlug(d.slug)?.cc === 'GE') return []
+    const url = `${COM_ORIGIN}/en/hotels/${d.slug}`
+    return [{ url, changeFrequency: 'daily', priority: 0.75, alternates: { languages: { en: url, 'x-default': url } } }]
+  })
   const out: MetadataRoute.Sitemap = [
     {
       url: `${COM_ORIGIN}/`,
@@ -313,6 +333,7 @@ async function countrySitemap(): Promise<MetadataRoute.Sitemap> {
         },
       },
     },
+    ...hotelHubs,
     {
       url: `${COM_ORIGIN}/countries`,
       changeFrequency: 'weekly',

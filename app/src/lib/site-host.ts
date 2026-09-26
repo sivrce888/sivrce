@@ -20,7 +20,9 @@ export type HostKind =
   | 'preview'
   | 'dev'
 
-const GE_HOSTS = new Set(['sivrce.ge', 'www.sivrce.ge'])
+// services.sivrce.ge is the Georgia product's services front door — same
+// surface, same constitution (kind 'ge'); the proxy path-prefixes the rewrite.
+const GE_HOSTS = new Set(['sivrce.ge', 'www.sivrce.ge', 'services.sivrce.ge'])
 const COM_HOSTS = new Set(['sivrce.com', 'www.sivrce.com'])
 const DE_HOSTS = new Set(['sivrce.de', 'www.sivrce.de'])
 const AE_HOSTS = new Set(['sivrce.ae', 'www.sivrce.ae'])

@@ -3,7 +3,7 @@
  *
  * Signed in: the message is written into the user's support chat room, so it
  * lands in /admin/chats and the sender keeps a thread they can follow. Guests:
- * email only. Both paths also notify the configured contact inbox, because an
+ * an Inquiry row in /admin/inquiries (the team inbox). Both paths also notify the configured contact inbox, because an
  * unread admin panel must never be the only place a question lives.
  */
 
@@ -11,6 +11,7 @@ import { NextResponse, type NextRequest } from "next/server"
 import { auth } from "@/auth"
 import { getOrCreateSupportRoom, sendMessage } from "@/lib/chat"
 import { getConfig } from "@/lib/config"
+import { db } from "@/lib/db"
 import { sendEmail } from "@/lib/email"
 import { clientIp, rateLimit } from "@/lib/rate-limit"
 import { isSameOrigin } from "@/lib/security/origin"
@@ -74,6 +75,29 @@ export async function POST(req: NextRequest) {
   }
 
   const to = await getConfig("site.contactEmail")
+
+  // Guest → team inbox row, so a mail outage can't lose the question.
+  let stored = Boolean(roomId)
+  if (!roomId) {
+    stored = await db.inquiry
+      .create({
+        data: {
+          id: crypto.randomUUID(),
+          listingId: "contact",
+          source: "contact",
+          agentName: "Sivrce",
+          agentEmail: to,
+          buyerName: name,
+          buyerEmail: email,
+          message,
+        },
+      })
+      .then(() => true)
+      .catch((error: { code?: string }) => {
+        console.error("[api/contact] inquiry create failed", error?.code)
+        return false
+      })
+  }
   const { ok } = await sendEmail({
     to,
     subject: `sivrce — ${name}`,
@@ -82,9 +106,9 @@ export async function POST(req: NextRequest) {
     }`,
   })
 
-  // Only a total failure is an error: a stored support thread is a delivered
+  // Only a total failure is an error: a stored thread/row is a delivered
   // message even when the mail provider is down.
-  if (!ok && !roomId) {
+  if (!ok && !stored) {
     return NextResponse.json({ error: "send_failed" }, { status: 502 })
   }
   return NextResponse.json({ ok: true, roomId })

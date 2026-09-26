@@ -15,7 +15,8 @@ import { blurProps } from "@/lib/media"
 import { useCompareStrings } from "./i18n"
 import { dealLabelKey, rentPeriodKey } from "@/lib/add-listing-fields"
 import { formatUSD } from "@/lib/listing-format"
-import { estimateMonthlyRent, grossYieldPct } from "@/lib/finance"
+import { grossYieldPct } from "@/lib/finance"
+import { estimateRent } from "@/lib/rent-anchor"
 import { compareProperties } from "@/lib/10x-engine"
 import type { PropType } from "@/data/listings"
 import { cardOf } from "@/lib/media"
@@ -31,6 +32,14 @@ const PROP_KEY: Record<PropType, DictKey> = {
 }
 
 /** Find best/worst in a numeric column for highlighting. */
+/** Gross yield from the market rent anchor, in the price's own currency; undefined when no anchor. */
+function yieldOf(l: { area: number; country?: string; city: string; district: string; priceUSD: number; priceOriginal?: number | null; currencyOriginal?: string | null }) {
+  const eur = l.currencyOriginal === "EUR" && (l.priceOriginal ?? 0) > 0
+  if (eur !== (l.country === "DE")) return undefined
+  const rent = estimateRent(l.area, l.country, l.city, l.district)
+  return rent ? grossYieldPct(eur ? l.priceOriginal! : l.priceUSD, rent) : undefined
+}
+
 function findExtremes(items: { id: string; val: number }[]) {
   if (items.length < 2) return { best: null, worst: null }
   const sorted = [...items].sort((a, b) => b.val - a.val)
@@ -74,7 +83,7 @@ export default function CompareClient() {
       priceUSD: l.priceUSD,
       areaSqm: l.area,
       score: l.ai.score,
-      grossYieldPct: l.dealType === "sale" ? grossYieldPct(l.priceUSD, estimateMonthlyRent(l.priceUSD)) : undefined,
+      grossYieldPct: l.dealType === "sale" ? yieldOf(l) : undefined,
       distanceMetroM: l.metroNear?.m,
     })
     return compareProperties(toInput(items[0]), toInput(items[1]))
@@ -187,7 +196,7 @@ export default function CompareClient() {
                 <div className="flex-1">
                   <div className="h-5 overflow-hidden rounded bg-sv-ink/[0.04]">
                     <div
-                      className="h-full rounded bg-sv-blue transition-all duration-500"
+                      className="h-full rounded bg-sv-blue transition-[width] duration-500"
                       style={{ width: `${pct}%` }}
                     />
                   </div>

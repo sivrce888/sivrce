@@ -106,7 +106,7 @@ export default function GermanIntelligenceCockpit({
   return (
     <section
       aria-labelledby="de-cockpit-heading"
-      className="mt-8 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-5 sm:p-6 shadow-card transition-all"
+      className="mt-8 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-5 sm:p-6 shadow-card transition"
     >
       {/* Header with Title & Overall German SPI Score */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-sv-ink/[0.06] pb-4">
@@ -153,7 +153,7 @@ export default function GermanIntelligenceCockpit({
           role="tab"
           aria-selected={tab === 'energy'}
           onClick={() => setTab('energy')}
-          className={`flex-1 rounded-lg py-2 text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
+          className={`flex-1 rounded-lg py-2 text-xs font-black transition flex items-center justify-center gap-1.5 ${
             tab === 'energy'
               ? 'bg-sv-surface text-sv-ink shadow-sm'
               : 'text-sv-ink/60 hover:text-sv-ink'
@@ -169,7 +169,7 @@ export default function GermanIntelligenceCockpit({
             role="tab"
             aria-selected={tab === 'acquisition'}
             onClick={() => setTab('acquisition')}
-            className={`flex-1 rounded-lg py-2 text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
+            className={`flex-1 rounded-lg py-2 text-xs font-black transition flex items-center justify-center gap-1.5 ${
               tab === 'acquisition'
                 ? 'bg-sv-surface text-sv-ink shadow-sm'
                 : 'text-sv-ink/60 hover:text-sv-ink'
@@ -186,7 +186,7 @@ export default function GermanIntelligenceCockpit({
             role="tab"
             aria-selected={tab === 'scenarios'}
             onClick={() => setTab('scenarios')}
-            className={`flex-1 rounded-lg py-2 text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
+            className={`flex-1 rounded-lg py-2 text-xs font-black transition flex items-center justify-center gap-1.5 ${
               tab === 'scenarios'
                 ? 'bg-sv-surface text-sv-ink shadow-sm'
                 : 'text-sv-ink/60 hover:text-sv-ink'
@@ -420,7 +420,7 @@ export default function GermanIntelligenceCockpit({
                   key={s}
                   type="button"
                   onClick={() => setScenarioKey(s)}
-                  className={`flex-1 rounded-lg py-1.5 text-xs font-bold transition-all ${
+                  className={`flex-1 rounded-lg py-1.5 text-xs font-bold transition ${
                     active ? 'bg-sv-surface text-sv-ink shadow-sm' : 'text-sv-ink/60 hover:text-sv-ink'
                   }`}
                 >

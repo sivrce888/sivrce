@@ -6,7 +6,7 @@ import { type NextRequest, NextResponse } from "next/server"
 import { auth } from "@/auth"
 import { Prisma } from "@/generated/prisma/client"
 import { db } from "@/lib/db"
-import { syncProfileRating } from "@/lib/reviews/aggregate"
+import { reviewTrust, syncProfileRating } from "@/lib/reviews/aggregate"
 import { REVIEW_LIST_TAG, listReviews, parseSort, toDto } from "@/lib/reviews/list"
 import { clientIp, rateLimitOk } from "@/lib/rate-limit"
 import { isSameOrigin } from "@/lib/security/origin"
@@ -211,6 +211,16 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "author_name_required" }, { status: 400 })
   }
 
+  let trust
+  try {
+    trust = await reviewTrust(session.user.id, parsed.data.targetType, parsed.data.targetId)
+  } catch {
+    return NextResponse.json({ error: "db_unavailable" }, { status: 500 })
+  }
+  if (trust.self) {
+    return NextResponse.json({ error: "self_review" }, { status: 403 })
+  }
+
   try {
     const created = await db.$transaction(async (tx) => {
       const row = await tx.review.create({
@@ -222,9 +232,10 @@ export async function POST(req: NextRequest) {
           title: parsed.data.title ?? null,
           body: parsed.data.body,
           authorName,
-          authorId: session?.user?.id ?? null,
+          authorId: session.user.id,
           locale: parsed.data.locale ?? "ka",
           status: "published",
+          verified: trust.verified,
         },
       })
       await syncProfileRating(parsed.data.targetType, parsed.data.targetId, tx)

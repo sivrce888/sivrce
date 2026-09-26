@@ -177,6 +177,7 @@ export async function syncSearchIndexJob(): Promise<{
       projectCatalog?: boolean
       exclusive?: boolean
       sivrceExclusive?: boolean
+      video?: string
     } | null
     const tierKey = effectiveTierKey(tier, tierExpiresAt)
     const priceUSD = row.currency === "USD" ? row.price : Math.round(row.price / USD_GEL)
@@ -194,6 +195,8 @@ export async function syncSearchIndexJob(): Promise<{
       pricePerSqm: rawM2,
       pricePerSqmUSD,
       hasImages: row.images.length > 0,
+      video: ext?.video,
+      hasVideo: Boolean(ext?.video),
       condition: ext?.condition,
       buildingStatus: ext?.buildingStatus,
       project: ext?.project,

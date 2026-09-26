@@ -171,7 +171,7 @@ export default async function ForumIndex({
               <li key={thread.slug}>
                 <LocalizedLink
                   href={`/forum/${thread.slug}`}
-                  className="group flex flex-col gap-4 rounded-tile border border-sv-ink/[0.06] bg-sv-surface p-5 shadow-card transition-all duration-300 hover:-translate-y-0.5 hover:border-sv-blue/25 hover:shadow-card-hover sm:flex-row sm:items-center sm:justify-between sm:p-6"
+                  className="group flex flex-col gap-4 rounded-tile border border-sv-ink/[0.06] bg-sv-surface p-5 shadow-card transition duration-300 hover:-translate-y-0.5 hover:border-sv-blue/25 hover:shadow-card-hover sm:flex-row sm:items-center sm:justify-between sm:p-6"
                 >
                   <div className="min-w-0 flex-1">
                     <div className="mb-2 flex flex-wrap items-center gap-2">

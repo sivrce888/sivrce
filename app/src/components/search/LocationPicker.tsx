@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'reac
 import { createPortal } from 'react-dom'
 import { AnimatePresence, motion } from 'framer-motion'
 import { X, Search, MapPin, ChevronLeft, Route, Check, TrainFront, Globe, LocateFixed, History } from 'lucide-react'
-import { GEO_CITIES, GEO_MUNICIPALITIES, geoPickerColumns, geoRaionsOf } from '@/data/georgia-locations'
+import { GEO_CITIES, GEO_MUNICIPALITIES, geoMuniSeat, geoPickerColumns, geoRaionsOf } from '@/data/georgia-locations'
 // Client-safe leaf: the geo catalog covers every inventory district
 // (georgia-locations.check locks parity), so the picker no longer pulls
 // the ~1.1 MB LISTINGS catalog into the browser.
@@ -21,6 +21,8 @@ import {
 } from '@/lib/search-location'
 import type { Suggestion } from '@/components/search/SearchSuggest'
 import { MAP_CITIES, nearestMapCity } from '@/lib/map/user-place'
+import { placeLabel } from '@/lib/place-label'
+import { toLatin } from '@/lib/ka-latin'
 
 export type { LocationValue }
 export { locationLabel }
@@ -33,6 +35,21 @@ const POPULAR = ['თბილისი', 'ბათუმი', 'ქუთაი
 const ease = [0.21, 0.65, 0.2, 1] as const
 
 const noopSubscribe = () => () => {}
+
+/** Catalog names stay ka (filter contract); a Latin query ("vake", "batumi")
+ *  still finds them via national romanization. */
+const nameHas = (name: string, qn: string) =>
+  name.toLowerCase().includes(qn) || toLatin(name).toLowerCase().includes(qn)
+
+/** Reader-facing place name: ka verbatim; else gazetteer/romanized, and
+ *  'აბაშის მუნიციპალიტეტი' → "Abasha Municipality" via its seat city. */
+function useNm(): (x: string) => string {
+  const { t, lang } = useI18n()
+  return (x) => {
+    const seat = lang === 'ka' ? null : geoMuniSeat(x)
+    return seat ? t('loc.muniOf', { name: placeLabel(seat, lang) }) : placeLabel(x, lang)
+  }
+}
 
 type Pane = 'districts' | 'streets'
 
@@ -59,7 +76,8 @@ export default function LocationPicker({
   showMetro = false,
   nationwide = true,
 }: Props) {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
+  const nm = useNm()
   const [city, setCity] = useState(value.city)
   const [picked, setPicked] = useState<string[]>(() => splitDistricts(value.district))
   const [street, setStreet] = useState(value.street)
@@ -166,14 +184,14 @@ export default function LocationPicker({
   const qn = q.trim().toLowerCase()
   const cityHits = useMemo(() => {
     if (!qn) return []
-    const hits = [...GEO_CITIES, ...GEO_MUNICIPALITIES].filter((c) => c.toLowerCase().includes(qn)).slice(0, 12)
+    const hits = [...GEO_CITIES, ...GEO_MUNICIPALITIES].filter((c) => nameHas(c, qn)).slice(0, 12)
     const typed = q.trim()
-    if (typed && !hits.some((c) => c.toLowerCase() === qn)) hits.push(typed)
+    if (typed && !hits.some((c) => c.toLowerCase() === qn || toLatin(c).toLowerCase() === qn)) hits.push(typed)
     return hits
   }, [qn, q])
   const distHits = useMemo(() => {
     if (!qn || !city) return []
-    return districts.filter((d) => d.toLowerCase().includes(qn)).slice(0, 24)
+    return districts.filter((d) => nameHas(d, qn)).slice(0, 24)
   }, [qn, city, districts])
   const streetHits = useMemo(
     () => remote.filter((s) => s.kind === 'street').slice(0, 16),
@@ -189,23 +207,24 @@ export default function LocationPicker({
     const seen = new Set<string>()
     const out: Suggestion[] = []
     for (const s of [...streets, ...remote]) {
-      if (s.kind !== 'district' || !s.ka.toLowerCase().includes(qn) || seen.has(s.ka)) continue
+      if (s.kind !== 'district' || !nameHas(s.ka, qn) || seen.has(s.ka)) continue
       seen.add(s.ka)
       out.push(s)
     }
     return out.slice(0, 80)
   }, [qn, isMuni, streets, remote])
 
-  const muniGroups = useMemo(() => {
+  // Non-ka readers see Latin names, so group + sort by what they read.
+  // ponytail: 70 names, recomputed per render — memo only if the list grows.
+  const muniGroups = (() => {
     const map = new Map<string, string[]>()
-    for (const m of GEO_MUNICIPALITIES) {
-      const letter = m[0] ?? '#'
-      const list = map.get(letter) ?? []
-      list.push(m)
-      map.set(letter, list)
+    const munis = lang === 'ka' ? GEO_MUNICIPALITIES : [...GEO_MUNICIPALITIES].sort((x, y) => nm(x).localeCompare(nm(y)))
+    for (const m of munis) {
+      const letter = nm(m)[0] ?? '#'
+      map.set(letter, [...(map.get(letter) ?? []), m])
     }
     return [...map.entries()]
-  }, [])
+  })()
 
   const isGe = !country || country.toUpperCase() === 'GE'
   const countryCities = useMemo(() => {
@@ -341,15 +360,15 @@ export default function LocationPicker({
                 {(city || picked.length > 0 || street) && (
                   <div className="mt-2 flex max-h-[52px] flex-wrap items-center gap-1.5 overflow-y-auto">
                     {city ? (
-                      <Chip onClear={() => pickCity('')}>{city}</Chip>
+                      <Chip onClear={() => pickCity('')}>{nm(city)}</Chip>
                     ) : null}
                     {chipDistricts.map((d) => (
                       <Chip key={d} onClear={() => toggleDistrict(d)}>
-                        {d}
+                        {nm(d)}
                       </Chip>
                     ))}
                     {street ? (
-                      <Chip onClear={() => setStreet('')}>{street}</Chip>
+                      <Chip onClear={() => setStreet('')}>{nm(street)}</Chip>
                     ) : null}
                     {showMetro ? (
                       <button
@@ -448,7 +467,7 @@ export default function LocationPicker({
                         className={`h-3.5 w-3.5 shrink-0 ${city === c ? 'text-sv-blue' : 'text-sv-ink/35'}`}
                         aria-hidden
                       />
-                      {c}
+                      {nm(c)}
                     </button>
                   ))}
                 </nav>
@@ -526,7 +545,7 @@ export default function LocationPicker({
                                 className="flex w-full items-center gap-2.5 rounded-control px-3 py-2.5 text-left text-[14px] font-bold text-sv-ink transition-colors hover:bg-sv-ink/[0.04]"
                               >
                                 <History className="h-4 w-4 shrink-0 text-sv-blue" />
-                                <span className="min-w-0 truncate">{locationLabel(v)}</span>
+                                <span className="min-w-0 truncate">{locationLabel(v, undefined, lang)}</span>
                               </button>
                             </li>
                           ))}
@@ -548,7 +567,7 @@ export default function LocationPicker({
                             <span className="grid h-8 w-8 shrink-0 place-items-center rounded-control bg-sv-surface text-sv-ink/35">
                               <MapPin className="h-3.5 w-3.5" />
                             </span>
-                            {c}
+                            {nm(c)}
                           </button>
                         ))}
                       </div>
@@ -571,7 +590,7 @@ export default function LocationPicker({
                                     onClick={() => pickCity(m)}
                                     className="w-full rounded-md px-2 py-1.5 text-left text-[13px] font-semibold text-sv-ink/80 hover:bg-sv-ink/[0.04] hover:text-sv-ink"
                                   >
-                                    {m}
+                                    {nm(m)}
                                   </button>
                                 </li>
                               ))}
@@ -612,7 +631,7 @@ export default function LocationPicker({
                             {col.map((g) => (
                               <div key={g.title}>
                                 <div className="mb-1.5 px-1 text-[13px] font-extrabold tracking-tight text-sv-ink">
-                                  {g.title}
+                                  {nm(g.title)}
                                 </div>
                                 <ul className="space-y-0.5">
                                   {g.items.map((u) => (
@@ -623,7 +642,7 @@ export default function LocationPicker({
                                         className="flex w-full items-center gap-2 rounded-control px-1 py-1.5 text-left text-[13px] font-semibold text-sv-ink/80 hover:bg-sv-ink/[0.04] hover:text-sv-ink"
                                       >
                                         <Tick on={pickedSet.has(u)} />
-                                        {u}
+                                        {nm(u)}
                                       </button>
                                     </li>
                                   ))}
@@ -640,7 +659,7 @@ export default function LocationPicker({
                               className="flex w-full items-center gap-2 rounded-control px-1 py-1.5 text-left text-[13px] font-semibold text-sv-ink/80 hover:bg-sv-ink/[0.04]"
                             >
                               <Tick on={pickedSet.has(d)} />
-                              {d}
+                              {nm(d)}
                             </button>
                           </div>
                         ))}
@@ -655,7 +674,7 @@ export default function LocationPicker({
                             className="flex items-center gap-2 rounded-control px-2 py-2 text-left text-[13px] font-bold text-sv-ink hover:bg-sv-ink/[0.04]"
                           >
                             <Tick on={pickedSet.has(d)} />
-                            {d}
+                            {nm(d)}
                           </button>
                         ))}
                       </div>
@@ -799,6 +818,7 @@ function SearchResults({
   distLabel: string
   streetsLabel: string
 }) {
+  const nm = useNm()
   if (cityHits.length === 0 && distHits.length === 0 && remoteDistHits.length === 0 && streetHits.length === 0) {
     return <p className="py-10 text-center text-[14px] font-semibold text-sv-ink/60">{empty}</p>
   }
@@ -816,7 +836,7 @@ function SearchResults({
                   className="flex w-full items-center gap-2.5 rounded-control px-3 py-2.5 text-left text-[14px] font-bold text-sv-ink hover:bg-sv-ink/[0.04]"
                 >
                   <MapPin className="h-4 w-4 text-sv-blue" />
-                  {c}
+                  {nm(c)}
                 </button>
               </li>
             ))}
@@ -826,7 +846,7 @@ function SearchResults({
       {distHits.length > 0 && (
         <section>
           <h3 className="mb-2 text-[11px] font-extrabold uppercase tracking-[0.08em] text-sv-ink/60">
-            {distLabel}{city ? ` · ${city}` : ''}
+            {distLabel}{city ? ` · ${nm(city)}` : ''}
           </h3>
           <ul className="space-y-0.5">
             {distHits.map((d) => (
@@ -837,7 +857,7 @@ function SearchResults({
                   className="flex w-full items-center gap-2.5 rounded-control px-3 py-2.5 text-left text-[14px] font-bold text-sv-ink hover:bg-sv-ink/[0.04]"
                 >
                   <Tick on={pickedSet.has(d)} />
-                  {d}
+                  {nm(d)}
                 </button>
               </li>
             ))}
@@ -857,8 +877,8 @@ function SearchResults({
                 >
                   <MapPin className="h-4 w-4 text-sv-blue" />
                   <span className="min-w-0">
-                    <span className="block truncate">{s.ka}</span>
-                    {s.city ? <span className="block text-[12px] font-semibold text-sv-ink/60">{s.city}</span> : null}
+                    <span className="block truncate">{nm(s.ka)}</span>
+                    {s.city ? <span className="block text-[12px] font-semibold text-sv-ink/60">{nm(s.city)}</span> : null}
                   </span>
                 </button>
               </li>
@@ -879,9 +899,9 @@ function SearchResults({
                 >
                   <Route className="h-4 w-4 shrink-0 text-sv-blue" />
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate">{s.ka}</span>
+                    <span className="block truncate">{nm(s.ka)}</span>
                     <span className="block truncate text-[12px] font-semibold text-sv-ink/60">
-                      {[s.district, s.city].filter(Boolean).join(' · ')}
+                      {[s.district, s.city].filter((x): x is string => Boolean(x)).map(nm).join(' · ')}
                     </span>
                   </span>
                   {street === s.ka ? <Check className="h-4 w-4 text-sv-blue" /> : null}
@@ -915,6 +935,7 @@ function StreetList({
   /** Shown when a municipality browse returns no villages yet. */
   emptyVillages?: string
 }) {
+  const nm = useNm()
   if (items.length === 0) {
     return <p className="py-10 text-center text-[14px] font-semibold text-sv-ink/60">{emptyVillages || hint || empty}</p>
   }
@@ -929,9 +950,9 @@ function StreetList({
           >
             {s.kind === 'district' ? <Tick on={pickedSet.has(s.ka)} /> : <Tick on={street === s.ka} />}
             <span className="min-w-0">
-              <span className="block truncate">{s.ka}</span>
+              <span className="block truncate">{nm(s.ka)}</span>
               {s.district ? (
-                <span className="block truncate text-[12px] font-semibold text-sv-ink/60">{s.district}</span>
+                <span className="block truncate text-[12px] font-semibold text-sv-ink/60">{nm(s.district)}</span>
               ) : null}
             </span>
           </button>

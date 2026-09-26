@@ -408,7 +408,6 @@ export const NEW_DEVELOPERS_2026_08: Developer[] = [
     },
     verified: false,
     phone: '+995 500 333 111',
-    website: 'https://korter.ge/en/terrametric-development',
   },
   {
     slug: 'ratevani-development',

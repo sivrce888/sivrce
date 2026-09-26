@@ -32,7 +32,7 @@ export interface RentBuyInput {
   appreciationPct: number
   /** Annual return on invested savings, %. */
   altReturnPct: number
-  /** One-off purchase costs (transfer tax, notary/registry, agent), % of price. */
+  /** One-off purchase costs (taxes, notary/registry, agent), % of price. */
   buyCostsPct: number
   /** One-off selling costs at horizon end, % of sale value. */
   sellCostsPct: number
@@ -43,7 +43,8 @@ export interface RentBuyInput {
 /** Georgian-market assumptions the UI does not expose as sliders. */
 export const FIXED_ASSUMPTIONS = {
   rentInflationPct: 5,
-  buyCostsPct: 2.5,
+  // GE: no transfer tax; NAPR fee ₾50–350 + notary/translation + title check. Seller pays the agent.
+  buyCostsPct: 0.5,
   sellCostsPct: 2,
   ownershipCostsPct: 0.8,
 } as const

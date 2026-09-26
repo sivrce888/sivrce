@@ -256,6 +256,33 @@ export function placeBySlug(slug: string) {
   return row ?? null
 }
 
+/**
+ * Destinations promoted to crawlable /hotels/<slug> hubs (sitemap + internal
+ * links). Everything else stays behind /hotels?city= — 794 thin city pages
+ * would read as scaled content. Curated, not generated.
+ */
+export const POPULAR_DESTINATIONS = [
+  { slug: 'tbilisi', label: 'Tbilisi' },
+  { slug: 'batumi', label: 'Batumi' },
+  { slug: 'kutaisi', label: 'Kutaisi' },
+  { slug: 'berlin', label: 'Berlin' },
+  { slug: 'dubai', label: 'Dubai' },
+  { slug: 'london', label: 'London' },
+  { slug: 'paris', label: 'Paris' },
+  { slug: 'rome', label: 'Rome' },
+  { slug: 'istanbul', label: 'Istanbul' },
+  { slug: 'vienna', label: 'Vienna' },
+] as const
+
+export function isPopularDestination(slug: string): boolean {
+  return POPULAR_DESTINATIONS.some((d) => d.slug === slug)
+}
+
+/** Georgian locative for city names — თბილისი→თბილისში, ბათუმი→ბათუმში, ვენა→ვენაში. */
+export function kaIn(name: string): string {
+  return `${name.replace(/ი$/, '')}ში`
+}
+
 const amadeusBase = () =>
   process.env.AMADEUS_BASE ?? (process.env.AMADEUS_ENV === "prod" ? "https://api.amadeus.com" : "https://test.api.amadeus.com")
 

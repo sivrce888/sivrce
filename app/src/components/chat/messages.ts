@@ -201,3 +201,41 @@ export function timeAgo(iso: string, nowMs: number = Date.now()): { n: number; u
   if (hours < 24) return { n: hours, unit: "hour" }
   return { n: Math.floor(hours / 24), unit: "day" }
 }
+
+/** LeadForm target the chat can pitch from the current page. */
+export interface ChatLeadTarget {
+  type: "listing" | "project" | "developer" | "agent" | "agency" | "service"
+  id: string
+}
+
+/** Detail-page route segment → LeadForm targetType (+ path depth of the id). */
+const LEAD_ROUTES: Record<string, [ChatLeadTarget["type"], number]> = {
+  listing: ["listing", 1],
+  projects: ["project", 1],
+  developers: ["developer", 1],
+  agents: ["agent", 1],
+  agencies: ["agency", 1],
+  services: ["service", 2], // /services/[category]/[slug]
+}
+
+/**
+ * Which listing/profile the visitor is looking at, from the URL alone — the
+ * chat launcher opens that target's lead form instead of generic help.
+ * Index pages (/agents) and unknown routes → null. /listing ids may be the
+ * public number; /api/inquiries resolves it to the canonical row.
+ */
+export function chatLeadTarget(pathname: string | null | undefined): ChatLeadTarget | null {
+  const segs = (pathname ?? "").split("/").filter(Boolean)
+  for (let i = 0; i < segs.length; i++) {
+    const route = LEAD_ROUTES[segs[i]!]
+    if (!route) continue
+    const id = segs[i + route[1]]
+    if (!id) return null
+    try {
+      return { type: route[0], id: decodeURIComponent(id).slice(0, 120) }
+    } catch {
+      return null // malformed %-escape — no target beats a broken one
+    }
+  }
+  return null
+}

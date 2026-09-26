@@ -156,6 +156,7 @@ export async function POST(req: NextRequest) {
     pricePerSqm: p.price ? Math.round(p.price / p.area) : undefined,
     verified: false,
     hasImages: p.images.length > 0,
+    hasVideo: typeof p.extendedFields.video === "string" && p.extendedFields.video !== "",
     petsAllowed: p.features.includes("add.f.petsAllowed"),
     sellerType: session.user.role === "agency" || session.user.role === "agent" ? "agency" : "owner",
     condition: (p.extendedFields.condition as string | null) ?? undefined,
