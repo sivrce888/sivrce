@@ -445,7 +445,7 @@ function Lightbox({
               onClick={() => onJump(i)}
               aria-label={t('detail.photo', { n: i + 1 })}
               aria-pressed={i === index}
-              className={`relative h-14 w-[84px] shrink-0 overflow-hidden rounded-lg transition-all ${
+              className={`relative h-14 w-[84px] shrink-0 overflow-hidden rounded-lg transition ${
                 i === index ? 'ring-2 ring-white' : 'opacity-50 hover:opacity-90'
               }`}
             >
@@ -1238,7 +1238,7 @@ export default function ListingDetailClient({
                   }}
                   aria-label={moreTile ? t('card.allPhotos', { n: l.images.length - 3 }) : t('detail.photo', { n: i + 1 })}
                   aria-pressed={!moreTile && photo === i}
-                  className={`relative aspect-[16/10] overflow-hidden rounded-module transition-all duration-300 lg:aspect-auto lg:h-full ${
+                  className={`relative aspect-[16/10] overflow-hidden rounded-module transition duration-300 lg:aspect-auto lg:h-full ${
                     !moreTile && photo === i
                       ? 'ring-2 ring-sv-blue ring-offset-2 ring-offset-sv-cloud'
                       : 'opacity-75 hover:opacity-100'
@@ -1335,7 +1335,7 @@ export default function ListingDetailClient({
                   }`}
                 >
                   <Heart
-                    className={`h-5 w-5 transition-all ${
+                    className={`h-5 w-5 transition ${
                       fav ? 'fill-sv-orange text-sv-orange sv-heart-pop' : 'group-hover:fill-sv-orange/20 group-hover:text-sv-orange'
                     }`}
                   />
@@ -1773,7 +1773,7 @@ export default function ListingDetailClient({
                     <LocalizedLink
                       key={p.slug}
                       href={`/projects/${p.slug}`}
-                      className="group w-[220px] shrink-0 snap-start overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card transition-all duration-500 hover:-translate-y-1 hover:shadow-card-hover"
+                      className="group w-[220px] shrink-0 snap-start overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card transition duration-500 hover:-translate-y-1 hover:shadow-card-hover"
                     >
                       <div className="relative aspect-[4/3] overflow-hidden bg-sv-cloud">
                         <Image
@@ -2038,7 +2038,7 @@ export default function ListingDetailClient({
                 <button
                   type="button"
                   onClick={messageOwner}
-                  className="flex h-11 min-w-0 items-center justify-center gap-2 overflow-hidden rounded-full border border-sv-blue/25 bg-sv-blue/[0.06] px-3 text-[13px] font-extrabold text-sv-blue-deep transition-all duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] hover:bg-sv-blue/10"
+                  className="flex h-11 min-w-0 items-center justify-center gap-2 overflow-hidden rounded-full border border-sv-blue/25 bg-sv-blue/[0.06] px-3 text-[13px] font-extrabold text-sv-blue-deep transition duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] hover:bg-sv-blue/10"
                 >
                   <MessageCircle className="h-4 w-4 shrink-0" />
                   <span className="truncate">{t('detail.message')}</span>
@@ -2047,7 +2047,7 @@ export default function ListingDetailClient({
                   onClick={() => toggle(l.id)}
                   // visible label IS the accessible name; state via aria-pressed
                   aria-pressed={fav}
-                  className={`flex h-11 min-w-0 items-center justify-center gap-2 overflow-hidden rounded-full border px-3 transition-all duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-orange ${
+                  className={`flex h-11 min-w-0 items-center justify-center gap-2 overflow-hidden rounded-full border px-3 transition duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-orange ${
                     fav
                       ? 'border-sv-orange/30 bg-sv-orange/10 text-sv-orange'
                       : 'border-sv-ink/10 bg-sv-surface text-sv-ink/60 hover:text-sv-orange'
@@ -2065,7 +2065,7 @@ export default function ListingDetailClient({
                 onClick={() => toggleCompare(l.id)}
                 disabled={!compared && compareFull}
                 aria-pressed={compared}
-                className={`flex h-10 w-full min-w-0 items-center justify-center gap-2 overflow-hidden rounded-full border text-[13px] font-extrabold transition-all duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] disabled:cursor-not-allowed disabled:opacity-40 ${
+                className={`flex h-10 w-full min-w-0 items-center justify-center gap-2 overflow-hidden rounded-full border text-[13px] font-extrabold transition duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] disabled:cursor-not-allowed disabled:opacity-40 ${
                   compared
                     ? 'border-sv-blue/30 bg-sv-blue/10 text-sv-blue-deep'
                     : 'border-sv-ink/10 bg-sv-cloud/50 text-sv-ink/60 hover:border-sv-blue/20 hover:text-sv-blue-deep'
@@ -2079,7 +2079,7 @@ export default function ListingDetailClient({
                 type="button"
                 onClick={() => setShareOpen(true)}
                 aria-label={t('detail.share')}
-                className="flex h-10 w-full min-w-0 items-center justify-center gap-2 overflow-hidden rounded-full border border-sv-ink/10 bg-sv-cloud/50 text-[13px] font-extrabold text-sv-ink/60 transition-all duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] hover:border-sv-blue/20 hover:text-sv-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
+                className="flex h-10 w-full min-w-0 items-center justify-center gap-2 overflow-hidden rounded-full border border-sv-ink/10 bg-sv-cloud/50 text-[13px] font-extrabold text-sv-ink/60 transition duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] hover:border-sv-blue/20 hover:text-sv-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
               >
                 <Share2 className="h-4 w-4 shrink-0" />
                 <span className="truncate">{t('detail.share')}</span>
@@ -2090,7 +2090,7 @@ export default function ListingDetailClient({
                 <button
                   type="button"
                   onClick={() => openWhatsAppShare(shareInput, sharePath, lang)}
-                  className="mt-2.5 flex h-11 w-full min-w-0 items-center justify-center gap-2 overflow-hidden rounded-full bg-sv-orange text-[13px] font-extrabold text-sv-ink shadow-glow-orange transition-all duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] hover:opacity-95"
+                  className="mt-2.5 flex h-11 w-full min-w-0 items-center justify-center gap-2 overflow-hidden rounded-full bg-sv-orange text-[13px] font-extrabold text-sv-ink shadow-glow-orange transition duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] hover:opacity-95"
                 >
                   <MessageCircle className="h-4 w-4 shrink-0" />
                   <span className="truncate">{t('detail.sendToClient')}</span>

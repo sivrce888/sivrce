@@ -145,7 +145,7 @@ export default function MarketView({
                             <Mom value={d.mom} label={s.vsPrevMonth} />
                           </span>
                           <ChevronRight
-                            className="h-5 w-5 shrink-0 text-sv-ink/25 transition-all group-hover:translate-x-0.5 group-hover:text-sv-blue"
+                            className="h-5 w-5 shrink-0 text-sv-ink/25 transition group-hover:translate-x-0.5 group-hover:text-sv-blue"
                             aria-hidden
                           />
                         </LocalizedLink>
@@ -172,7 +172,7 @@ export default function MarketView({
               </p>
               <LocalizedLink
                 href="/add-listing"
-                className="mt-8 inline-flex items-center gap-2 rounded-full bg-sv-orange px-7 py-3.5 text-[15px] font-extrabold text-sv-ink shadow-glow-orange transition-all hover:-translate-y-0.5 hover:shadow-glow-orange-lg"
+                className="mt-8 inline-flex items-center gap-2 rounded-full bg-sv-orange px-7 py-3.5 text-[15px] font-extrabold text-sv-ink shadow-glow-orange transition hover:-translate-y-0.5 hover:shadow-glow-orange-lg"
               >
                 {s.ctaSearch}
                 <ArrowUpRight className="h-4 w-4" aria-hidden />

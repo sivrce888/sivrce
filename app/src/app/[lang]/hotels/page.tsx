@@ -263,7 +263,7 @@ const POPULAR_DESTINATIONS = [
 const CAPS = [100, 250, 500]
 
 const chipCls = (active: boolean) =>
-  `rounded-full px-4 py-1.5 text-[13px] font-bold transition-all shadow-sm ${
+  `rounded-full px-4 py-1.5 text-[13px] font-bold transition shadow-sm ${
     active
       ? 'bg-sv-blue text-white shadow-glow-blue-sm'
       : 'bg-sv-cloud text-sv-ink/70 hover:bg-sv-blue/10 hover:text-sv-blue'
@@ -389,7 +389,7 @@ export default async function HotelsPage({ params, searchParams }: PageProps) {
             <div className="md:col-span-12 mt-1">
               <button
                 type="submit"
-                className="w-full flex items-center justify-center gap-2 rounded-control bg-sv-orange px-6 py-3.5 text-[16px] font-black text-sv-ink shadow-glow-orange transition-all hover:scale-[1.01] hover:brightness-105 active:scale-[0.99]"
+                className="w-full flex items-center justify-center gap-2 rounded-control bg-sv-orange px-6 py-3.5 text-[16px] font-black text-sv-ink shadow-glow-orange transition hover:scale-[1.01] hover:brightness-105 active:scale-[0.99]"
               >
                 <Zap size={18} className="shrink-0" />
                 {copy.search}
@@ -403,7 +403,7 @@ export default async function HotelsPage({ params, searchParams }: PageProps) {
               <a
                 key={dest.slug}
                 href={`?${qs({ city: dest.slug })}`}
-                className={`rounded-full px-3 py-1 transition-all ${
+                className={`rounded-full px-3 py-1 transition ${
                   citySlug === dest.slug
                     ? 'bg-white text-sv-ink shadow-glow-blue-sm font-extrabold'
                     : 'bg-white/10 text-white hover:bg-white/20'

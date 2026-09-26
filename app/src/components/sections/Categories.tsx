@@ -14,6 +14,7 @@ import {
   Mountain,
   PawPrint,
   Laptop,
+  Crown,
   Gem,
   Trees,
   Bath,
@@ -50,6 +51,7 @@ type CatKey =
   | 'ski'
   | 'petFriendly'
   | 'workspace'
+  | 'penthouses'
   | 'cabins'
   | 'luxury'
 
@@ -60,7 +62,6 @@ const CATS: {
   brand: (typeof CATEGORY_BRAND)[keyof typeof CATEGORY_BRAND]
   href: string
 }[] = [
-  // 18 tiles = full rows at 3/6/9 cols. Adding one? Retire one (penthouses → search CategoryBar).
   { key: 'apartments', icon: Building, labelKey: 'home.categories.apartments', brand: CATEGORY_BRAND.apartments, href: '/sale/apartments' },
   { key: 'houses', icon: Home, labelKey: 'home.categories.houses', brand: CATEGORY_BRAND.houses, href: '/sale/houses' },
   { key: 'cottages', icon: TreePalm, labelKey: 'home.categories.cottages', brand: CATEGORY_BRAND.cottages, href: '/search?type=villa' },
@@ -76,6 +77,7 @@ const CATS: {
   { key: 'ski', icon: Mountain, labelKey: 'home.categories.ski', brand: CATEGORY_BRAND.ski, href: '/search?feat=add.f.skiAccess' },
   { key: 'petFriendly', icon: PawPrint, labelKey: 'home.categories.petFriendly', brand: CATEGORY_BRAND.petFriendly, href: '/search?feat=add.f.petsAllowed' },
   { key: 'workspace', icon: Laptop, labelKey: 'home.categories.workspace', brand: CATEGORY_BRAND.workspace, href: '/search?feat=add.f.workspace' },
+  { key: 'penthouses', icon: Crown, labelKey: 'home.categories.penthouses', brand: CATEGORY_BRAND.penthouses, href: '/search?feat=add.f.penthouse' },
   { key: 'cabins', icon: Trees, labelKey: 'home.categories.cabins', brand: CATEGORY_BRAND.cabins, href: '/search?type=house&feat=add.f.wooden' },
   { key: 'hotels', icon: Hotel, labelKey: 'home.categories.hotels', brand: CATEGORY_BRAND.hotels, href: '/hotels' },
   { key: 'newProjects', icon: Sparkles, labelKey: 'home.categories.newProjects', brand: CATEGORY_BRAND.newProjects, href: '/projects' },
@@ -103,6 +105,7 @@ const ZERO: Record<CatKey, number> = {
   ski: 0,
   petFriendly: 0,
   workspace: 0,
+  penthouses: 0,
   cabins: 0,
   luxury: 0,
 }
@@ -116,7 +119,7 @@ const readCategoryCounts = unstable_cache(
     const live = { deletedAt: null, status: 'active' as const, ...(country !== '*' ? { country } : {}) }
     const withFeature = (f: string, extra: Record<string, unknown> = {}) =>
       db.listing.count({ where: { ...live, ...extra, features: { has: f } } })
-    const [byProp, daily, partyHouses, selfCheckIn, pools, jacuzzi, seaView, ski, petFriendly, workspace, cabins, luxury] =
+    const [byProp, daily, partyHouses, selfCheckIn, pools, jacuzzi, seaView, ski, petFriendly, workspace, penthouses, cabins, luxury] =
       await Promise.all([
         db.listing.groupBy({ by: ['propertyType'], where: { ...live, dealType: 'buy' }, _count: { _all: true } }),
         db.listing.count({ where: { ...live, dealType: 'daily' } }),
@@ -128,6 +131,7 @@ const readCategoryCounts = unstable_cache(
         withFeature('add.f.skiAccess'),
         withFeature('add.f.petsAllowed'),
         withFeature('add.f.workspace'),
+        withFeature('add.f.penthouse'),
         withFeature('add.f.wooden', { propertyType: 'house' }),
         // Same where as /search?life=luxury — the tile count can't disagree with the results page.
         db.listing.count({ where: buildDbWhere({ luxury: true, country: country !== '*' ? country : undefined }) }),
@@ -151,6 +155,7 @@ const readCategoryCounts = unstable_cache(
       ski,
       petFriendly,
       workspace,
+      penthouses,
       cabins,
       luxury,
     }
@@ -192,12 +197,12 @@ export default async function Categories({
           </div>
         </Reveal>
 
-        <div className="grid grid-cols-3 gap-2 sm:gap-3 md:grid-cols-6 xl:grid-cols-9">
+        <div className="grid grid-cols-3 gap-2 sm:gap-3 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-9">
           {CATS.map((c, i) => (
             <Reveal key={c.key} delay={i * 0.03} className="h-full">
               <LocalizedLink
                 href={c.key === 'newProjects' && country !== '*' ? `${c.href}?country=${country}` : c.href}
-                className="group @container relative flex h-full flex-col items-center gap-2 rounded-card border border-sv-ink/[0.06] bg-sv-surface px-1.5 py-4 text-center sm:gap-2.5 sm:py-5 transition duration-300 hover:-translate-y-1.5 hover:border-transparent hover:shadow-card-hover"
+                className="group relative flex h-full flex-col items-center gap-2 rounded-card border border-sv-ink/[0.06] bg-sv-surface px-2 py-4 text-center sm:gap-2.5 sm:p-5 transition duration-300 hover:-translate-y-1.5 hover:border-transparent hover:shadow-card-hover"
               >
                 <span
                   className="grid h-11 w-11 place-items-center rounded-module transition-transform sm:h-12 sm:w-12 duration-300 group-hover:scale-110"
@@ -205,8 +210,7 @@ export default async function Categories({
                 >
                   <c.icon className="h-5.5 w-5.5" />
                 </span>
-                {/* Tile-relative size: one long word (ka «სათხილამურო») must never cross the border at 98px tiles. */}
-                <span className="line-clamp-2 min-h-[2.5em] w-full break-words text-[clamp(10.5px,11.5cqi,13.5px)] font-extrabold leading-[1.25] text-sv-ink">{labels[i]}</span>
+                <span className="line-clamp-2 min-h-[2.5em] text-[12.5px] font-extrabold sm:text-[13.5px] leading-[1.25] text-sv-ink">{labels[i]}</span>
                 <span className="mt-auto text-[11.5px] font-bold text-sv-ink/60">{formatCount(counts[c.key], explore)}</span>
                 <ArrowUpRight className="absolute right-3 top-3 hidden h-3.5 w-3.5 sm:block text-sv-ink/0 transition duration-300 group-hover:text-sv-ink/60" />
               </LocalizedLink>

@@ -196,7 +196,7 @@ export default function CompareClient() {
                 <div className="flex-1">
                   <div className="h-5 overflow-hidden rounded bg-sv-ink/[0.04]">
                     <div
-                      className="h-full rounded bg-sv-blue transition-all duration-500"
+                      className="h-full rounded bg-sv-blue transition-[width] duration-500"
                       style={{ width: `${pct}%` }}
                     />
                   </div>

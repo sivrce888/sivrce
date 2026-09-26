@@ -69,7 +69,7 @@ export function EntityCard({
     <Link
       href={href}
       aria-label={`${pick(name, lang)} — ${d.viewProfile}`}
-      className="group flex flex-col rounded-card border border-sv-ink/[0.06] bg-sv-surface p-5 shadow-card transition-all duration-500 hover:-translate-y-1.5 hover:shadow-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue"
+      className="group flex flex-col rounded-card border border-sv-ink/[0.06] bg-sv-surface p-5 shadow-card transition duration-500 hover:-translate-y-1.5 hover:shadow-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue"
     >
       <div className="mb-4 flex items-center gap-4">
         {kind === 'developer' ? (

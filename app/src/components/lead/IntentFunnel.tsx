@@ -35,7 +35,7 @@ const BUCKET_OF: Record<DemandIntent, string> = {
 }
 
 const chipBase =
-  'min-h-[40px] rounded-full border px-4 text-[13.5px] font-extrabold transition-all focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue active:scale-[0.98]'
+  'min-h-[40px] rounded-full border px-4 text-[13.5px] font-extrabold transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue active:scale-[0.98]'
 const chipOff =
   'border-sv-ink/[0.08] bg-sv-surface text-sv-ink hover:border-sv-blue/40 hover:text-sv-blue'
 const chipOn = 'border-sv-blue bg-sv-blue text-white'
@@ -161,7 +161,7 @@ export function IntentFunnel() {
   }
 
   const input =
-    'w-full rounded-control border border-sv-ink/[0.08] bg-sv-surface px-4 py-3 text-[15px] font-semibold text-sv-ink placeholder:text-sv-ink/35 outline-none transition-all focus:border-sv-blue focus:ring-4 focus:ring-sv-blue/10'
+    'w-full rounded-control border border-sv-ink/[0.08] bg-sv-surface px-4 py-3 text-[15px] font-semibold text-sv-ink placeholder:text-sv-ink/35 outline-none transition focus:border-sv-blue focus:ring-4 focus:ring-sv-blue/10'
   const errClass = 'border-sv-orange ring-4 ring-sv-orange/10'
 
   if (status === 'success') {
@@ -175,7 +175,7 @@ export function IntentFunnel() {
         <button
           type="button"
           onClick={reset}
-          className="mt-2 flex min-h-[44px] items-center gap-2 rounded-full border border-sv-ink/[0.08] bg-sv-surface px-5 text-[14px] font-extrabold text-sv-ink transition-all hover:border-sv-blue/40 hover:text-sv-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue active:scale-[0.98]"
+          className="mt-2 flex min-h-[44px] items-center gap-2 rounded-full border border-sv-ink/[0.08] bg-sv-surface px-5 text-[14px] font-extrabold text-sv-ink transition hover:border-sv-blue/40 hover:text-sv-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue active:scale-[0.98]"
         >
           <RotateCcw className="h-4 w-4" aria-hidden />
           {l.newMessage}
@@ -200,7 +200,7 @@ export function IntentFunnel() {
           <button
             type="button"
             onClick={() => void submit()}
-            className="flex min-h-[44px] shrink-0 items-center gap-1.5 rounded-full bg-sv-orange px-4 text-[13px] font-extrabold text-sv-ink transition-all hover:shadow-glow-orange focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-orange active:scale-[0.98]"
+            className="flex min-h-[44px] shrink-0 items-center gap-1.5 rounded-full bg-sv-orange px-4 text-[13px] font-extrabold text-sv-ink transition hover:shadow-glow-orange focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-orange active:scale-[0.98]"
           >
             <RotateCcw className="h-3.5 w-3.5" aria-hidden />
             {l.retry}
@@ -309,7 +309,7 @@ export function IntentFunnel() {
               type="button"
               onClick={() => void submit()}
               disabled={status === 'sending'}
-              className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-full bg-sv-orange px-6 text-[15px] font-extrabold text-sv-ink shadow-glow-orange transition-all hover:shadow-glow-orange-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-orange active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 disabled:shadow-none"
+              className="flex min-h-[48px] w-full items-center justify-center gap-2 rounded-full bg-sv-orange px-6 text-[15px] font-extrabold text-sv-ink shadow-glow-orange transition hover:shadow-glow-orange-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-orange active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60 disabled:shadow-none"
             >
               {status === 'sending' ? (
                 <Loader2 className="h-4 w-4 animate-spin" aria-hidden />

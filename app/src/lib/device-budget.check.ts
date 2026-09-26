@@ -1,5 +1,5 @@
 import assert from "node:assert/strict"
-import { existsSync, readFileSync } from "node:fs"
+import { existsSync, readFileSync, readdirSync } from "node:fs"
 import { join } from "node:path"
 import { FULL_TILE_CACHE, LITE_BOOT, isLiteDevice, mapRuntimeOptions } from "./device-budget"
 
@@ -184,6 +184,18 @@ for (const f of [
   "public/images/og-brand.png",
 ]) {
   assert.ok(existsSync(join(root, f)), `missing chrome asset ${f}`)
+}
+
+// `transition-all` also animates layout props (width/padding/top) and every
+// theme-switch color: paint jank on low-end phones. Tailwind `transition`
+// covers colors/opacity/shadow/transform; animate size via `transition-[width]`.
+const walk = (dir: string): string[] =>
+  readdirSync(join(root, dir), { withFileTypes: true }).flatMap((e) =>
+    e.isDirectory() ? walk(join(dir, e.name)) : /\.(tsx?|css)$/.test(e.name) ? [join(dir, e.name)] : [],
+  )
+for (const f of walk("src")) {
+  if (f.endsWith("device-budget.check.ts")) continue
+  assert.ok(!/\btransition-all\b/.test(read(f)), `${f}: use transition / transition-[prop], not transition-all`)
 }
 
 console.log("device-budget: ssr-safe + glitch locks ✓")

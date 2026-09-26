@@ -98,8 +98,8 @@ export default function MapSection({ href = '/map' }: { href?: string }) {
             <div className="mt-10 space-y-3">
               {FEATURES.map((f, i) => (
                 <Reveal key={f.titleKey} delay={0.1 + i * 0.08}>
-                  <div className="group flex gap-5 rounded-module border border-white/[0.07] bg-white/[0.03] p-5 transition-all duration-500 hover:border-sv-blue/40 hover:bg-white/[0.06]">
-                    <span className="grid h-12 w-12 shrink-0 place-items-center rounded-module bg-sv-blue/15 text-sv-blue-light transition-all duration-500 group-hover:bg-sv-blue group-hover:text-white">
+                  <div className="group flex gap-5 rounded-module border border-white/[0.07] bg-white/[0.03] p-5 transition duration-500 hover:border-sv-blue/40 hover:bg-white/[0.06]">
+                    <span className="grid h-12 w-12 shrink-0 place-items-center rounded-module bg-sv-blue/15 text-sv-blue-light transition duration-500 group-hover:bg-sv-blue group-hover:text-white">
                       <f.icon className="h-5 w-5" />
                     </span>
                     <div>
@@ -114,7 +114,7 @@ export default function MapSection({ href = '/map' }: { href?: string }) {
             <Reveal delay={0.45}>
               <LocalizedLink
                 href={href}
-                className="group mt-9 inline-flex items-center gap-2.5 rounded-full bg-white px-7 py-4 text-[15px] font-extrabold text-sv-navy transition-all duration-300 hover:-translate-y-0.5 hover:bg-sv-blue-light hover:shadow-glow-blue"
+                className="group mt-9 inline-flex items-center gap-2.5 rounded-full bg-white px-7 py-4 text-[15px] font-extrabold text-sv-navy transition duration-300 hover:-translate-y-0.5 hover:bg-sv-blue-light hover:shadow-glow-blue"
               >
                 {b('home.map.openCta')}
                 <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />

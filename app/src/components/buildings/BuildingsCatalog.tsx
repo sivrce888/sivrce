@@ -376,7 +376,7 @@ export function BuildingsCatalog({ buildings, countsBySlug, developerNames, loc 
                 href={`/buildings/${b.slug}`}
                 className="group block rounded-card focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue"
               >
-                <article className="overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card transition-all duration-500 group-hover:-translate-y-2 group-hover:shadow-card-hover">
+                <article className="overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card transition duration-500 group-hover:-translate-y-2 group-hover:shadow-card-hover">
                   <div className="relative aspect-[16/10] overflow-hidden">
                     <Image
                       src={b.img}

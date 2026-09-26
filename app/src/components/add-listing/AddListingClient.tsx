@@ -1296,7 +1296,7 @@ export default function AddListingClient() {
 
   /* ————— shared field styles ————— */
   const input =
-    'w-full rounded-control border border-sv-ink/[0.08] bg-sv-surface px-4 py-3.5 text-[16px] font-semibold text-sv-ink placeholder:text-sv-ink/35 outline-none transition-all focus:border-sv-blue focus:ring-4 focus:ring-sv-blue/10 sm:text-[15px]'
+    'w-full rounded-control border border-sv-ink/[0.08] bg-sv-surface px-4 py-3.5 text-[16px] font-semibold text-sv-ink placeholder:text-sv-ink/35 outline-none transition focus:border-sv-blue focus:ring-4 focus:ring-sv-blue/10 sm:text-[15px]'
   const label = 'mb-2 block text-[13px] font-extrabold text-sv-ink/70'
   const err = (bad: boolean) => (touched && bad ? 'border-sv-orange ring-4 ring-sv-orange/10' : '')
 
@@ -1334,14 +1334,14 @@ export default function AddListingClient() {
           >
             <Link
               href={realId ? `/listing/${publishedId}` : manageHref}
-              className="rounded-full bg-sv-orange px-8 py-4 text-[15px] font-extrabold text-sv-ink shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg"
+              className="rounded-full bg-sv-orange px-8 py-4 text-[15px] font-extrabold text-sv-ink shadow-glow-orange transition duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg"
             >
               {t('add.successViewListing')}
             </Link>
             {wasEdit ? (
               <LocalizedLink
                 href={manageHref}
-                className="rounded-full border border-sv-ink/10 bg-sv-surface px-8 py-4 text-[15px] font-extrabold text-sv-ink transition-all duration-300 hover:-translate-y-0.5 hover:shadow-card"
+                className="rounded-full border border-sv-ink/10 bg-sv-surface px-8 py-4 text-[15px] font-extrabold text-sv-ink transition duration-300 hover:-translate-y-0.5 hover:shadow-card"
               >
                 {t('add.manageListings')}
               </LocalizedLink>
@@ -1351,7 +1351,7 @@ export default function AddListingClient() {
                   try { localStorage.removeItem(DRAFT_KEY) } catch { /* ignore */ }
                   setPublishedId(null); setPhotos([]); setPrice(''); setDescription(''); setTouched(false); setDraftSavedAt(0)
                 }}
-                className="flex items-center gap-2 rounded-full border border-sv-ink/10 bg-sv-surface px-8 py-4 text-[15px] font-extrabold text-sv-ink transition-all duration-300 hover:-translate-y-0.5 hover:shadow-card"
+                className="flex items-center gap-2 rounded-full border border-sv-ink/10 bg-sv-surface px-8 py-4 text-[15px] font-extrabold text-sv-ink transition duration-300 hover:-translate-y-0.5 hover:shadow-card"
               >
                 <Plus className="h-4 w-4" /> {t('add.successNew')}
               </button>
@@ -1522,7 +1522,7 @@ export default function AddListingClient() {
                                 role="radio"
                                 aria-checked={active}
                                 onClick={() => pickDeal(d.key)}
-                                className={`flex min-h-[44px] min-w-0 flex-1 items-center justify-center gap-1.5 rounded-full px-2 py-2.5 text-[12px] font-extrabold transition-all sm:text-[13px] ${
+                                className={`flex min-h-[44px] min-w-0 flex-1 items-center justify-center gap-1.5 rounded-full px-2 py-2.5 text-[12px] font-extrabold transition sm:text-[13px] ${
                                   active ? 'bg-sv-surface text-sv-ink shadow-card' : 'text-sv-ink/60 hover:text-sv-ink'
                                 }`}
                               >
@@ -1792,7 +1792,7 @@ export default function AddListingClient() {
                               key={c.id}
                               type="button"
                               onClick={() => onCountryChange(c.id)}
-                              className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-bold transition-all ${
+                              className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-bold transition ${
                                 active
                                   ? 'bg-sv-blue text-white shadow-sm'
                                   : 'border border-sv-ink/10 bg-sv-surface text-sv-ink/75 hover:border-sv-blue/30 hover:text-sv-ink'
@@ -1926,7 +1926,7 @@ export default function AddListingClient() {
                         <button
                           type="button"
                           onClick={() => setCadastralPublic(!cadastralPublic)}
-                          className={`mt-3 flex items-center gap-2.5 rounded-control border px-4 py-3 text-[13px] font-extrabold transition-all ${
+                          className={`mt-3 flex items-center gap-2.5 rounded-control border px-4 py-3 text-[13px] font-extrabold transition ${
                             !cadastralPublic
                               ? 'border-transparent bg-sv-blue text-white shadow-glow-blue-sm'
                               : 'border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60'
@@ -2013,7 +2013,7 @@ export default function AddListingClient() {
                             <button
                               key={n}
                               onClick={() => setRentPeriod(n)}
-                              className={`rounded-full px-4 py-2.5 text-[13px] font-extrabold transition-all duration-300 ${
+                              className={`rounded-full px-4 py-2.5 text-[13px] font-extrabold transition duration-300 ${
                                 rentPeriod === n ? 'bg-sv-blue text-white shadow-glow-blue-sm' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-blue/40 hover:text-sv-blue'
                               }`}
                             >
@@ -2032,7 +2032,7 @@ export default function AddListingClient() {
                             <button
                               key={k}
                               onClick={() => setRentType(k)}
-                              className={`rounded-full px-4 py-2.5 text-[13px] font-extrabold transition-all duration-300 ${
+                              className={`rounded-full px-4 py-2.5 text-[13px] font-extrabold transition duration-300 ${
                                 rentType === k ? 'bg-sv-blue text-white shadow-glow-blue-sm' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-blue/40 hover:text-sv-blue'
                               }`}
                             >
@@ -2051,7 +2051,7 @@ export default function AddListingClient() {
                             <button
                               key={n}
                               onClick={() => setGuests(n)}
-                              className={`rounded-full px-4 py-2.5 text-[13px] font-extrabold transition-all duration-300 ${
+                              className={`rounded-full px-4 py-2.5 text-[13px] font-extrabold transition duration-300 ${
                                 guests === n ? 'bg-sv-blue text-white shadow-glow-blue-sm' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-blue/40 hover:text-sv-blue'
                               }`}
                             >
@@ -2071,7 +2071,7 @@ export default function AddListingClient() {
                               key={s}
                               type="button"
                               onClick={() => setStatus(s)}
-                              className={`rounded-full px-4 py-2.5 text-[13px] font-extrabold transition-all duration-300 ${
+                              className={`rounded-full px-4 py-2.5 text-[13px] font-extrabold transition duration-300 ${
                                 status === s ? 'bg-sv-blue text-white shadow-glow-blue-sm' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-blue/40 hover:text-sv-blue'
                               }`}
                             >
@@ -2103,7 +2103,7 @@ export default function AddListingClient() {
                               key={ex}
                               type="button"
                               onClick={() => setGegExemption(gegExemption === ex ? '' : ex)}
-                              className={`rounded-full px-3.5 py-2.5 text-[12px] font-extrabold transition-all duration-300 ${
+                              className={`rounded-full px-3.5 py-2.5 text-[12px] font-extrabold transition duration-300 ${
                                 gegExemption === ex ? 'bg-sv-blue text-white shadow-glow-blue-sm' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-blue/40 hover:text-sv-blue'
                               }`}
                             >
@@ -2120,7 +2120,7 @@ export default function AddListingClient() {
                                   key={c}
                                   type="button"
                                   onClick={() => setGegCertType(c)}
-                                  className={`rounded-full px-4 py-2.5 text-[13px] font-extrabold transition-all duration-300 ${
+                                  className={`rounded-full px-4 py-2.5 text-[13px] font-extrabold transition duration-300 ${
                                     gegCertType === c ? 'bg-sv-blue text-white shadow-glow-blue-sm' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-blue/40 hover:text-sv-blue'
                                   }`}
                                 >
@@ -2168,7 +2168,7 @@ export default function AddListingClient() {
                                     key={s}
                                     type="button"
                                     onClick={() => setGegSource(s)}
-                                    className={`rounded-full px-3.5 py-2.5 text-[12px] font-extrabold transition-all duration-300 ${
+                                    className={`rounded-full px-3.5 py-2.5 text-[12px] font-extrabold transition duration-300 ${
                                       gegSource === s ? 'bg-sv-blue text-white shadow-glow-blue-sm' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-blue/40 hover:text-sv-blue'
                                     }`}
                                   >
@@ -2187,7 +2187,7 @@ export default function AddListingClient() {
                                       key={c}
                                       type="button"
                                       onClick={() => setGegClass(c)}
-                                      className={`rounded-full px-4 py-2.5 text-[13px] font-extrabold transition-all duration-300 ${
+                                      className={`rounded-full px-4 py-2.5 text-[13px] font-extrabold transition duration-300 ${
                                         gegClass === c ? 'bg-sv-blue text-white shadow-glow-blue-sm' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-blue/40 hover:text-sv-blue'
                                       }`}
                                     >
@@ -2234,7 +2234,7 @@ export default function AddListingClient() {
                             <button
                               key={c}
                               onClick={() => setCondition(c)}
-                              className={`rounded-full px-4 py-2.5 text-[13px] font-extrabold transition-all duration-300 ${
+                              className={`rounded-full px-4 py-2.5 text-[13px] font-extrabold transition duration-300 ${
                                 condition === c ? 'bg-sv-blue text-white shadow-glow-blue-sm' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-blue/40 hover:text-sv-blue'
                               }`}
                             >
@@ -2255,7 +2255,7 @@ export default function AddListingClient() {
                               key={p}
                               type="button"
                               onClick={() => setProject(project === p ? '' : p)}
-                              className={`rounded-full px-4 py-2.5 text-[13px] font-extrabold transition-all duration-300 ${
+                              className={`rounded-full px-4 py-2.5 text-[13px] font-extrabold transition duration-300 ${
                                 project === p ? 'bg-sv-blue text-white shadow-glow-blue-sm' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-blue/40 hover:text-sv-blue'
                               }`}
                             >
@@ -2275,7 +2275,7 @@ export default function AddListingClient() {
                               key={ft}
                               type="button"
                               onClick={() => setFloorType(floorType === ft ? '' : ft)}
-                              className={`rounded-full px-4 py-2.5 text-[13px] font-extrabold transition-all duration-300 ${
+                              className={`rounded-full px-4 py-2.5 text-[13px] font-extrabold transition duration-300 ${
                                 floorType === ft ? 'bg-sv-blue text-white shadow-glow-blue-sm' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-blue/40 hover:text-sv-blue'
                               }`}
                             >
@@ -2345,7 +2345,7 @@ export default function AddListingClient() {
                                   setBeds(n)
                                   if (rooms < n) setRooms(n)
                                 }}
-                                className={`min-w-[44px] rounded-full px-3.5 py-2.5 text-[13px] font-extrabold transition-all ${
+                                className={`min-w-[44px] rounded-full px-3.5 py-2.5 text-[13px] font-extrabold transition ${
                                   beds === n ? 'bg-sv-blue text-white shadow-glow-blue-sm' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-blue/40 hover:text-sv-blue'
                                 }`}
                               >
@@ -2365,7 +2365,7 @@ export default function AddListingClient() {
                                   setRooms(n)
                                   if (beds > n) setBeds(n)
                                 }}
-                                className={`min-w-[44px] rounded-full px-3.5 py-2.5 text-[13px] font-extrabold transition-all ${
+                                className={`min-w-[44px] rounded-full px-3.5 py-2.5 text-[13px] font-extrabold transition ${
                                   rooms === n ? 'bg-sv-blue text-white shadow-glow-blue-sm' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-blue/40 hover:text-sv-blue'
                                 }`}
                               >
@@ -2385,7 +2385,7 @@ export default function AddListingClient() {
                                 key={n}
                                 type="button"
                                 onClick={() => setBaths(n)}
-                                className={`min-w-[44px] rounded-full px-3.5 py-2.5 text-[13px] font-extrabold transition-all ${
+                                className={`min-w-[44px] rounded-full px-3.5 py-2.5 text-[13px] font-extrabold transition ${
                                   baths === n ? 'bg-sv-blue text-white shadow-glow-blue-sm' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-blue/40 hover:text-sv-blue'
                                 }`}
                               >
@@ -2446,7 +2446,7 @@ export default function AddListingClient() {
                                     key={f}
                                     type="button"
                                     onClick={() => setFeatures(on ? features.filter((x) => x !== f) : [...features, f])}
-                                    className={`flex items-center gap-1.5 rounded-full px-4 py-2.5 text-[13px] font-extrabold transition-all duration-300 ${
+                                    className={`flex items-center gap-1.5 rounded-full px-4 py-2.5 text-[13px] font-extrabold transition duration-300 ${
                                       on ? 'bg-sv-blue text-white shadow-glow-blue-sm' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-blue/40 hover:text-sv-blue'
                                     }`}
                                   >
@@ -2468,7 +2468,7 @@ export default function AddListingClient() {
                     <button
                       type="button"
                       onClick={() => setOnlineView(!onlineView)}
-                      className={`flex w-full items-start gap-3 rounded-module border p-4 text-left transition-all ${
+                      className={`flex w-full items-start gap-3 rounded-module border p-4 text-left transition ${
                         onlineView
                           ? 'border-transparent bg-sv-blue text-white shadow-glow-blue-sm'
                           : 'border-sv-ink/[0.08] bg-sv-cloud/60 hover:border-sv-blue/30'
@@ -2506,7 +2506,7 @@ export default function AddListingClient() {
                             key={mode}
                             type="button"
                             onClick={() => setPriceMode(mode)}
-                            className={`rounded-full px-4 py-2 text-[13px] font-extrabold transition-all ${
+                            className={`rounded-full px-4 py-2 text-[13px] font-extrabold transition ${
                               priceMode === mode ? 'bg-sv-blue text-white shadow-glow-blue-sm' : 'border border-sv-ink/[0.08] text-sv-ink/60 hover:border-sv-blue/40 hover:text-sv-blue'
                             }`}
                           >
@@ -2521,7 +2521,7 @@ export default function AddListingClient() {
                               key={c}
                               type="button"
                               onClick={() => setPriceCur(c)}
-                              className={`rounded-full px-4 py-2 text-[13px] font-extrabold transition-all ${
+                              className={`rounded-full px-4 py-2 text-[13px] font-extrabold transition ${
                                 priceCur === c ? 'bg-sv-blue text-white' : 'border border-sv-ink/[0.08] text-sv-ink/60'
                               }`}
                             >
@@ -2561,7 +2561,7 @@ export default function AddListingClient() {
                           <button
                             type="button"
                             onClick={() => setNegotiable(!negotiable)}
-                            className={`flex items-center gap-2.5 rounded-control border px-4 py-3.5 text-[14px] font-extrabold transition-all duration-300 ${
+                            className={`flex items-center gap-2.5 rounded-control border px-4 py-3.5 text-[14px] font-extrabold transition duration-300 ${
                               negotiable ? 'border-transparent bg-sv-blue text-white shadow-glow-blue-sm' : 'border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-blue/40'
                             }`}
                           >
@@ -2574,7 +2574,7 @@ export default function AddListingClient() {
                             <button
                               type="button"
                               onClick={() => setExchangeable(!exchangeable)}
-                              className={`flex items-center gap-2.5 rounded-control border px-4 py-3.5 text-[14px] font-extrabold transition-all duration-300 ${
+                              className={`flex items-center gap-2.5 rounded-control border px-4 py-3.5 text-[14px] font-extrabold transition duration-300 ${
                                 exchangeable ? 'border-transparent bg-sv-blue text-white shadow-glow-blue-sm' : 'border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-blue/40'
                               }`}
                             >
@@ -2590,7 +2590,7 @@ export default function AddListingClient() {
                         <button
                           type="button"
                           onClick={() => setExclusive(!exclusive)}
-                          className={`flex items-start gap-2.5 rounded-control border px-4 py-3.5 text-left transition-all duration-300 ${
+                          className={`flex items-start gap-2.5 rounded-control border px-4 py-3.5 text-left transition duration-300 ${
                             exclusive ? 'border-transparent bg-sv-blue text-white shadow-glow-blue-sm' : 'border-sv-ink/[0.08] bg-sv-surface text-sv-ink/70 hover:border-sv-blue/40'
                           }`}
                         >
@@ -2605,7 +2605,7 @@ export default function AddListingClient() {
                         <button
                           type="button"
                           onClick={() => setSivrceExclusive(!sivrceExclusive)}
-                          className={`flex items-start gap-2.5 rounded-control border px-4 py-3.5 text-left transition-all duration-300 ${
+                          className={`flex items-start gap-2.5 rounded-control border px-4 py-3.5 text-left transition duration-300 ${
                             sivrceExclusive ? 'border-transparent bg-sv-navy text-white shadow-glow-navy' : 'border-sv-ink/[0.08] bg-sv-surface text-sv-ink/70 hover:border-sv-blue/40'
                           }`}
                         >
@@ -2655,7 +2655,7 @@ export default function AddListingClient() {
                               setPrice(String(priceCur === 'GEL' ? Math.round(shown * USD_GEL) : shown))
                               setNegotiable(false)
                             }}
-                            className="mt-4 rounded-full bg-sv-blue px-6 py-2.5 text-[13px] font-extrabold text-white shadow-glow-blue-sm transition-all duration-300 hover:-translate-y-0.5"
+                            className="mt-4 rounded-full bg-sv-blue px-6 py-2.5 text-[13px] font-extrabold text-white shadow-glow-blue-sm transition duration-300 hover:-translate-y-0.5"
                           >
                             {t('add.aiApply')} · {formatUSD(estimate.mid)}
                           </button>
@@ -2672,7 +2672,7 @@ export default function AddListingClient() {
                         <button
                           onClick={aiWrite}
                           disabled={aiBusy || !propType || !city}
-                          className={`mb-2 flex items-center gap-1.5 rounded-full bg-gradient-to-r from-sv-blue to-sv-violet px-4 py-2 text-[12px] font-extrabold text-white transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-blue-sm disabled:opacity-40 disabled:hover:translate-y-0 ${aiBusy ? 'animate-pulse' : ''}`}
+                          className={`mb-2 flex items-center gap-1.5 rounded-full bg-gradient-to-r from-sv-blue to-sv-violet px-4 py-2 text-[12px] font-extrabold text-white transition duration-300 hover:-translate-y-0.5 hover:shadow-glow-blue-sm disabled:opacity-40 disabled:hover:translate-y-0 ${aiBusy ? 'animate-pulse' : ''}`}
                         >
                           <SparkMark className="h-3.5 w-3.5" mono /> {t('add.aiWrite')}
                         </button>
@@ -2798,7 +2798,7 @@ export default function AddListingClient() {
                             <button
                               key={m}
                               onClick={() => setMessengers(on ? messengers.filter((x) => x !== m) : [...messengers, m])}
-                              className={`flex items-center gap-2 rounded-full px-4 py-2.5 text-[13px] font-extrabold transition-all duration-300 ${
+                              className={`flex items-center gap-2 rounded-full px-4 py-2.5 text-[13px] font-extrabold transition duration-300 ${
                                 on ? 'bg-sv-blue text-white shadow-glow-blue-sm' : 'border border-sv-ink/[0.08] bg-sv-surface text-sv-ink/60 hover:border-sv-blue/40 hover:text-sv-blue'
                               }`}
                             >
@@ -2813,7 +2813,7 @@ export default function AddListingClient() {
                       onClick={() => setTerms(!terms)}
                       className="flex items-start gap-3 rounded-module border border-sv-ink/[0.08] bg-sv-cloud/60 p-4 text-left transition-colors hover:border-sv-blue/30"
                     >
-                      <span className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-md border transition-all ${terms ? 'border-sv-blue bg-sv-blue text-white' : 'border-sv-ink/25 bg-sv-surface'} ${touched && !terms ? 'border-sv-orange ring-4 ring-sv-orange/10' : ''}`}>
+                      <span className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-md border transition ${terms ? 'border-sv-blue bg-sv-blue text-white' : 'border-sv-ink/25 bg-sv-surface'} ${touched && !terms ? 'border-sv-orange ring-4 ring-sv-orange/10' : ''}`}>
                         {terms && <Check className="h-3.5 w-3.5" />}
                       </span>
                       <span className="text-[13px] font-semibold leading-relaxed text-sv-ink/60">{t('add.terms')}</span>
@@ -2840,7 +2840,7 @@ export default function AddListingClient() {
                   type="button"
                   onClick={publish}
                   disabled={busy}
-                  className="min-h-[44px] rounded-full bg-gradient-to-r from-sv-orange-light via-sv-orange to-sv-orange-deep px-8 py-3 text-[14px] font-extrabold text-sv-ink shadow-glow-orange transition-all duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg disabled:opacity-60"
+                  className="min-h-[44px] rounded-full bg-gradient-to-r from-sv-orange-light via-sv-orange to-sv-orange-deep px-8 py-3 text-[14px] font-extrabold text-sv-ink shadow-glow-orange transition duration-300 hover:-translate-y-0.5 hover:shadow-glow-orange-lg disabled:opacity-60"
                 >
                   {busy
                     ? (editId ? t('add.saving') : t('add.publishing'))

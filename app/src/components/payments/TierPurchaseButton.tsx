@@ -224,7 +224,7 @@ export default function TierPurchaseButton({
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-1.5 rounded-control bg-gradient-to-r from-sv-blue to-sv-violet px-4 py-2 text-[13px] font-extrabold text-white shadow-glow-blue-sm transition-all hover:shadow-glow-blue active:scale-95"
+        className="flex items-center gap-1.5 rounded-control bg-gradient-to-r from-sv-blue to-sv-violet px-4 py-2 text-[13px] font-extrabold text-white shadow-glow-blue-sm transition hover:shadow-glow-blue active:scale-95"
       >
         <Rocket className="h-4 w-4" />
         {s.boost}
@@ -278,7 +278,7 @@ export default function TierPurchaseButton({
                       type="button"
                       onClick={() => purchase({ tier: tier.key, days })}
                       disabled={loading !== null}
-                      className={`flex w-full items-center gap-3 rounded-module border p-3 text-left transition-all ${
+                      className={`flex w-full items-center gap-3 rounded-module border p-3 text-left transition ${
                         loading === tier.key
                           ? "border-sv-blue/30 bg-sv-blue/[0.06]"
                           : "border-sv-ink/[0.06] hover:border-sv-blue/20 hover:bg-sv-blue/[0.04]"
@@ -329,7 +329,7 @@ export default function TierPurchaseButton({
                 type="button"
                 onClick={() => purchase({ addon: a.key })}
                 disabled={loading !== null}
-                className={`flex w-full items-center gap-3 rounded-module border p-2.5 text-left transition-all ${
+                className={`flex w-full items-center gap-3 rounded-module border p-2.5 text-left transition ${
                   loading === a.key
                     ? "border-sv-blue/30 bg-sv-blue/[0.06]"
                     : "border-sv-ink/[0.06] hover:border-sv-blue/20 hover:bg-sv-blue/[0.04]"

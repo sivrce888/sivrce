@@ -1701,14 +1701,14 @@ export default function ChatWidget() {
         } ${open ? "pointer-events-none invisible" : ""}`}
       >
         <span
-          className={`absolute transition-all duration-200 ${
+          className={`absolute transition duration-200 ${
             open ? "rotate-90 opacity-0" : "rotate-0 opacity-100"
           }`}
         >
           <MessageCircle className="h-5 w-5" aria-hidden />
         </span>
         <span
-          className={`absolute transition-all duration-200 ${
+          className={`absolute transition duration-200 ${
             open ? "rotate-0 opacity-100" : "-rotate-90 opacity-0"
           }`}
         >

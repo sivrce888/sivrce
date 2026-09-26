@@ -148,7 +148,7 @@ export default function GermanyMetroPage() {
           </p>
           <Link
             href="/de/metro"
-            className="inline-flex items-center gap-2 rounded-module bg-sv-blue px-5 py-2.5 text-[13px] font-black text-white shadow-card transition-all hover:shadow-card-hover"
+            className="inline-flex items-center gap-2 rounded-module bg-sv-blue px-5 py-2.5 text-[13px] font-black text-white shadow-card transition hover:shadow-card-hover"
           >
             Alle Berliner Stationen
             <ExternalLink className="h-3.5 w-3.5" aria-hidden />
@@ -168,7 +168,7 @@ export default function GermanyMetroPage() {
                 <Link
                   key={sys.citySlug}
                   href={`/de/${sys.citySlug}`}
-                  className="group block rounded-card border border-sv-ink/[0.06] bg-sv-surface p-5 shadow-card transition-all hover:border-sv-blue/20 hover:shadow-card-hover"
+                  className="group block rounded-card border border-sv-ink/[0.06] bg-sv-surface p-5 shadow-card transition hover:border-sv-blue/20 hover:shadow-card-hover"
                 >
                   <div className="mb-3 flex items-start justify-between gap-3">
                     <div>

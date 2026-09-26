@@ -217,7 +217,7 @@ export default async function CountriesPage({ params }: PageProps) {
             <p className="mt-2 max-w-2xl text-[15px] font-semibold text-sv-ink/65">{t.deepSub}</p>
             <Link
               href="/ge"
-              className="mt-8 flex flex-col gap-1 rounded-module border border-sv-blue/30 bg-sv-surface px-5 py-4 shadow-card transition-all duration-300 hover:-translate-y-1 hover:border-sv-blue/50 hover:shadow-card-hover"
+              className="mt-8 flex flex-col gap-1 rounded-module border border-sv-blue/30 bg-sv-surface px-5 py-4 shadow-card transition duration-300 hover:-translate-y-1 hover:border-sv-blue/50 hover:shadow-card-hover"
             >
               <span className="flex items-center gap-2 text-[15px] font-extrabold text-sv-ink">
                 <Building2 className="h-4 w-4 text-sv-blue" aria-hidden /> {t.georgia}
@@ -229,7 +229,7 @@ export default async function CountriesPage({ params }: PageProps) {
                 <li key={d.id}>
                   <Link
                     href={`${COM_ORIGIN}${d.market.pathPrefix}`}
-                    className="flex h-full flex-col gap-1 rounded-module border border-sv-ink/[0.07] bg-sv-surface px-5 py-4 shadow-card transition-all duration-300 hover:-translate-y-1 hover:border-sv-blue/30 hover:shadow-card-hover"
+                    className="flex h-full flex-col gap-1 rounded-module border border-sv-ink/[0.07] bg-sv-surface px-5 py-4 shadow-card transition duration-300 hover:-translate-y-1 hover:border-sv-blue/30 hover:shadow-card-hover"
                   >
                     <span className="flex items-center gap-2 text-[15px] font-extrabold text-sv-ink">
                       <Building2 className="h-4 w-4 text-sv-blue" aria-hidden /> {d.name}

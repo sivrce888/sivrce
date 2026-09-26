@@ -46,7 +46,7 @@ export default async function Services({ lang = 'ka' }: { lang?: Lang }) {
             <Reveal key={s.titleKey} delay={i * 0.08} className="h-full">
               <LocalizedLink
                 href={s.href}
-                className="group relative flex h-full items-start gap-4 overflow-hidden rounded-card border border-sv-ink/[0.06] bg-gradient-to-b from-sv-cloud to-sv-surface p-4 transition-all duration-500 hover:-translate-y-2 hover:border-transparent hover:shadow-card-hover sm:flex-col sm:gap-0 sm:p-7"
+                className="group relative flex h-full items-start gap-4 overflow-hidden rounded-card border border-sv-ink/[0.06] bg-gradient-to-b from-sv-cloud to-sv-surface p-4 transition duration-500 hover:-translate-y-2 hover:border-transparent hover:shadow-card-hover sm:flex-col sm:gap-0 sm:p-7"
               >
                 {/* Phones: compact row (icon | text | arrow) — six tall cards were ~1.4k px of scroll. */}
                 <span

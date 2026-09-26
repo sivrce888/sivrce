@@ -180,7 +180,7 @@ export default function DePropTechOS({ citySlug = 'berlin', de = true }: DePropT
                 aria-selected={active}
                 aria-controls={`de-os-panel-${tab.id}`}
                 onClick={() => setActiveTab(tab.id)}
-                className={`inline-flex items-center gap-2 rounded-control px-4 py-2.5 text-[13px] font-black transition-all ${
+                className={`inline-flex items-center gap-2 rounded-control px-4 py-2.5 text-[13px] font-black transition ${
                   active
                     ? 'bg-sv-navy text-white shadow-glow-navy'
                     : 'bg-sv-surface text-sv-ink/70 hover:bg-sv-cloud hover:text-sv-ink border border-sv-ink/[0.06]'

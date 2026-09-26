@@ -146,7 +146,7 @@ export default function BerlinMetroIndexPage() {
                       <Link
                         key={s.slug}
                         href={`/de/metro/${s.slug}`}
-                        className="group flex items-center justify-between gap-3 rounded-control border border-transparent px-3 py-2 transition-all hover:border-sv-ink/[0.06] hover:bg-sv-cloud"
+                        className="group flex items-center justify-between gap-3 rounded-control border border-transparent px-3 py-2 transition hover:border-sv-ink/[0.06] hover:bg-sv-cloud"
                       >
                         <span className="min-w-0">
                           <span className="block truncate text-[14px] font-extrabold text-sv-ink group-hover:text-sv-blue">
@@ -197,7 +197,7 @@ export default function BerlinMetroIndexPage() {
                       <Link
                         key={s.slug}
                         href={`/de/metro/${s.slug}`}
-                        className="group flex items-center justify-between gap-3 rounded-control border border-transparent px-3 py-2 transition-all hover:border-sv-ink/[0.06] hover:bg-sv-cloud"
+                        className="group flex items-center justify-between gap-3 rounded-control border border-transparent px-3 py-2 transition hover:border-sv-ink/[0.06] hover:bg-sv-cloud"
                       >
                         <span className="min-w-0">
                           <span className="block truncate text-[14px] font-extrabold text-sv-ink group-hover:text-sv-blue">

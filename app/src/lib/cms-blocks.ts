@@ -168,7 +168,7 @@ export const CMS_BLOCKS = {
   'home.categories.land': 'მიწის ნაკვეთები',
   'home.categories.commercial': 'კომერციული',
   'home.categories.dailyRent': 'ბინები დღიურად',
-  'home.categories.partyHouses': 'საწვეულებო სახლები', // tile label: longest word must fit a 98px tile
+  'home.categories.partyHouses': 'სახლები წვეულებისთვის',
   'home.categories.selfCheckIn': 'უკონტაქტო ჩექინი',
   'home.categories.hotels': 'სასტუმროები',
   'home.categories.newProjects': 'მშენებარე ბინები',

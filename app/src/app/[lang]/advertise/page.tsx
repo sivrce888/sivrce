@@ -358,7 +358,7 @@ export default async function AdvertisePage({ params }: { params: Promise<{ lang
                 <LocalizedLink
                   key={a.title}
                   href={a.href}
-                  className="group flex gap-4 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-5 shadow-card transition-all duration-500 hover:-translate-y-1 hover:border-transparent hover:shadow-card-hover"
+                  className="group flex gap-4 rounded-card border border-sv-ink/[0.06] bg-sv-surface p-5 shadow-card transition duration-500 hover:-translate-y-1 hover:border-transparent hover:shadow-card-hover"
                 >
                   <span className="grid h-12 w-12 shrink-0 place-items-center rounded-module bg-sv-blue/10 text-sv-blue-deep">
                     <a.icon className="h-5 w-5" />

@@ -510,7 +510,7 @@ export default async function ProjectPage({ params }: PageProps) {
               <div className="mt-auto grid grid-cols-2 gap-2 pt-5">
                 <a
                   href="#contact"
-                  className="col-span-2 inline-flex min-h-12 items-center justify-center gap-2 rounded-control bg-sv-orange px-5 text-[15px] font-extrabold text-sv-ink transition-all duration-200 hover:-translate-y-0.5 hover:shadow-glow-orange-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
+                  className="col-span-2 inline-flex min-h-12 items-center justify-center gap-2 rounded-control bg-sv-orange px-5 text-[15px] font-extrabold text-sv-ink transition duration-200 hover:-translate-y-0.5 hover:shadow-glow-orange-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2"
                 >
                   <PhoneCall className="h-4 w-4" aria-hidden />
                   {t.requestCall}
@@ -678,7 +678,7 @@ export default async function ProjectPage({ params }: PageProps) {
                   key={p.slug}
                   href={`/projects/${p.slug}`}
                   // no aria-label: visible text (name+price) IS the accessible name
-                  className="group overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card transition-all duration-500 hover:-translate-y-1.5 hover:shadow-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue"
+                  className="group overflow-hidden rounded-card border border-sv-ink/[0.06] bg-sv-surface shadow-card transition duration-500 hover:-translate-y-1.5 hover:shadow-card-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue"
                 >
                   <div className="relative aspect-[16/9] overflow-hidden">
                     <Image

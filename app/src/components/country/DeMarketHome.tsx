@@ -174,7 +174,7 @@ function BezirkeBand({ de }: { de: boolean }) {
               <li key={b.slug}>
                 <Link
                   href={`${de ? '/de/de' : '/de'}/berlin/${b.slug}`}
-                  className="flex items-center justify-between gap-3 rounded-module border border-sv-ink/[0.07] bg-sv-surface px-5 py-4 font-extrabold text-sv-ink shadow-card transition-all duration-300 hover:-translate-y-1 hover:border-sv-blue/30 hover:shadow-card-hover"
+                  className="flex items-center justify-between gap-3 rounded-module border border-sv-ink/[0.07] bg-sv-surface px-5 py-4 font-extrabold text-sv-ink shadow-card transition duration-300 hover:-translate-y-1 hover:border-sv-blue/30 hover:shadow-card-hover"
                 >
                   <span className="text-[15px]">{b.de}</span>
                   <span className="text-[12px] font-black text-sv-blue">
@@ -194,7 +194,7 @@ function CityTile({ c, de, base }: { c: (typeof DE_CITIES)[number]; de: boolean;
   return (
     <Link
       href={`${base}/${c.slug}`}
-      className="flex flex-col gap-1.5 rounded-module border border-sv-ink/[0.07] bg-sv-surface px-5 py-4 font-extrabold text-sv-ink shadow-card transition-all duration-300 hover:-translate-y-1 hover:border-sv-blue/30 hover:shadow-card-hover"
+      className="flex flex-col gap-1.5 rounded-module border border-sv-ink/[0.07] bg-sv-surface px-5 py-4 font-extrabold text-sv-ink shadow-card transition duration-300 hover:-translate-y-1 hover:border-sv-blue/30 hover:shadow-card-hover"
     >
       <span className="flex items-center justify-between gap-3">
         <span className="text-[15px]">{c.de}</span>
@@ -294,7 +294,7 @@ function ToolsBand({ de }: { de: boolean }) {
               <li key={t.href}>
                 <Link
                   href={t.href}
-                  className="flex h-full flex-col gap-2 rounded-module border border-sv-ink/[0.07] bg-sv-surface p-5 shadow-card transition-all duration-300 hover:-translate-y-1 hover:border-sv-blue/30 hover:shadow-card-hover"
+                  className="flex h-full flex-col gap-2 rounded-module border border-sv-ink/[0.07] bg-sv-surface p-5 shadow-card transition duration-300 hover:-translate-y-1 hover:border-sv-blue/30 hover:shadow-card-hover"
                 >
                   <t.icon className="h-5 w-5 text-sv-blue" aria-hidden />
                   <span className="text-[16px] font-black tracking-tight text-sv-ink">{t.title}</span>
@@ -307,7 +307,7 @@ function ToolsBand({ de }: { de: boolean }) {
         <Reveal delay={0.04}>
           <LocalizedLink
             href="/search?country=DE"
-            className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-module border border-sv-ink/[0.07] bg-sv-navy px-5 py-4 text-white shadow-glow-navy transition-all duration-300 hover:-translate-y-0.5"
+            className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-module border border-sv-ink/[0.07] bg-sv-navy px-5 py-4 text-white shadow-glow-navy transition duration-300 hover:-translate-y-0.5"
           >
             <span className="inline-flex items-center gap-3 text-[14px] font-bold">
               <Calculator className="h-4 w-4 shrink-0 text-sv-blue-light" aria-hidden />
@@ -455,7 +455,7 @@ function DeveloperRail({ citySlug, de }: { citySlug?: string; de: boolean }) {
               </>
             )
             const cls =
-              'group flex w-[300px] shrink-0 flex-col rounded-tile border border-sv-ink/[0.07] bg-sv-surface p-5 shadow-card transition-all duration-300 hover:-translate-y-1.5 hover:border-sv-blue/30 hover:shadow-card-hover'
+              'group flex w-[300px] shrink-0 flex-col rounded-tile border border-sv-ink/[0.07] bg-sv-surface p-5 shadow-card transition duration-300 hover:-translate-y-1.5 hover:border-sv-blue/30 hover:shadow-card-hover'
             return (
               <LocalizedLink key={d.slug} href={`/developers/${d.slug}`} className={cls}>
                 {body}

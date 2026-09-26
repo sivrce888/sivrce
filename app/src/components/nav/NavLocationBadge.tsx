@@ -205,7 +205,7 @@ export function NavLocationBadge({
         aria-label={`${T('ბაზარი', 'Markt', 'Market')}: ${countryName}`}
         // before: = invisible 44px touch target around the 32px pill (Apple HIG
         // minimum) without inflating the nav row.
-        className={`group relative flex h-8 items-center gap-1.5 rounded-full border border-sv-ink/10 px-2.5 text-[11px] font-bold transition-all duration-200 before:absolute before:inset-x-0 before:-inset-y-1.5 before:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue ${
+        className={`group relative flex h-8 items-center gap-1.5 rounded-full border border-sv-ink/10 px-2.5 text-[11px] font-bold transition duration-200 before:absolute before:inset-x-0 before:-inset-y-1.5 before:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue ${
           light
             ? 'bg-sv-ink/5 text-sv-ink hover:bg-sv-ink/10'
             : 'bg-sv-ink/5 text-sv-ink hover:bg-sv-ink/10 dark:border-white/15 dark:bg-white/10 dark:text-white dark:hover:bg-white/20'

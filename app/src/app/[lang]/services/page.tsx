@@ -165,7 +165,7 @@ export default async function ServicesPage({ params }: { params: Promise<{ lang:
                 <Reveal key={c.id} delay={i * 0.04} className="h-full">
                   <LocalizedLink
                     href={`/services/${c.id}`}
-                    className="group flex h-full flex-col rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 transition-all duration-500 hover:-translate-y-1.5 hover:border-transparent hover:shadow-card-hover"
+                    className="group flex h-full flex-col rounded-card border border-sv-ink/[0.06] bg-sv-surface p-6 transition duration-500 hover:-translate-y-1.5 hover:border-transparent hover:shadow-card-hover"
                   >
                     <span
                       className="grid h-12 w-12 place-items-center rounded-module"

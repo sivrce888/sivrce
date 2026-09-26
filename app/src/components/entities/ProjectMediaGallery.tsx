@@ -270,7 +270,7 @@ export function ProjectMediaGallery({
           <button
             type="button"
             onClick={() => setActiveTab('all')}
-            className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-bold transition-all ${
+            className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-bold transition ${
               activeTab === 'all'
                 ? 'bg-sv-ink text-white shadow-sm'
                 : 'text-sv-ink/70 hover:bg-sv-ink/[0.06] hover:text-sv-ink'
@@ -284,7 +284,7 @@ export function ProjectMediaGallery({
             <button
               type="button"
               onClick={() => setActiveTab('architecture')}
-              className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-bold transition-all ${
+              className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-bold transition ${
                 activeTab === 'architecture'
                   ? 'bg-sv-ink text-white shadow-sm'
                   : 'text-sv-ink/70 hover:bg-sv-ink/[0.06] hover:text-sv-ink'
@@ -299,7 +299,7 @@ export function ProjectMediaGallery({
             <button
               type="button"
               onClick={() => setActiveTab('video')}
-              className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-bold transition-all ${
+              className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-bold transition ${
                 activeTab === 'video'
                   ? 'bg-sv-orange text-white shadow-sm'
                   : 'text-sv-ink/70 hover:bg-sv-ink/[0.06] hover:text-sv-ink'
@@ -314,7 +314,7 @@ export function ProjectMediaGallery({
             <button
               type="button"
               onClick={() => setActiveTab('virtualTour')}
-              className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-bold transition-all ${
+              className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-bold transition ${
                 activeTab === 'virtualTour'
                   ? 'bg-sv-blue text-white shadow-sm'
                   : 'text-sv-ink/70 hover:bg-sv-ink/[0.06] hover:text-sv-ink'
@@ -329,7 +329,7 @@ export function ProjectMediaGallery({
             <button
               type="button"
               onClick={() => setActiveTab('construction')}
-              className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-bold transition-all ${
+              className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-bold transition ${
                 activeTab === 'construction'
                   ? 'bg-sv-ink text-white shadow-sm'
                   : 'text-sv-ink/70 hover:bg-sv-ink/[0.06] hover:text-sv-ink'
@@ -344,7 +344,7 @@ export function ProjectMediaGallery({
             <button
               type="button"
               onClick={() => setActiveTab('floorplans')}
-              className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-bold transition-all ${
+              className={`flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] font-bold transition ${
                 activeTab === 'floorplans'
                   ? 'bg-sv-ink text-white shadow-sm'
                   : 'text-sv-ink/70 hover:bg-sv-ink/[0.06] hover:text-sv-ink'
@@ -503,7 +503,7 @@ export function ProjectMediaGallery({
               <div
                 key={item.src}
                 onClick={() => setLightboxIdx(globalIndex >= 0 ? globalIndex : 0)}
-                className="group relative aspect-[4/3] cursor-pointer overflow-hidden rounded-module border border-sv-ink/[0.06] bg-sv-cloud shadow-sm transition-all duration-300 hover:scale-[1.02] hover:shadow-md"
+                className="group relative aspect-[4/3] cursor-pointer overflow-hidden rounded-module border border-sv-ink/[0.06] bg-sv-cloud shadow-sm transition duration-300 hover:scale-[1.02] hover:shadow-md"
               >
                 <Image
                   src={item.src}
@@ -534,7 +534,7 @@ export function ProjectMediaGallery({
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 flex flex-col bg-black/95 backdrop-blur-md transition-all duration-300"
+          className="fixed inset-0 z-50 flex flex-col bg-black/95 backdrop-blur-md transition duration-300"
         >
           {/* Top Bar */}
           <div className="flex items-center justify-between px-6 py-4 text-white">
@@ -576,7 +576,7 @@ export function ProjectMediaGallery({
                 <button
                   type="button"
                   onClick={() => setLightboxIdx((prev) => (prev !== null ? (prev - 1 + mediaItems.length) % mediaItems.length : 0))}
-                  className="absolute left-6 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur-sm transition-all hover:scale-110 hover:bg-white/30"
+                  className="absolute left-6 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur-sm transition hover:scale-110 hover:bg-white/30"
                   aria-label={t.prev}
                 >
                   <ChevronLeft className="h-6 w-6" />
@@ -584,7 +584,7 @@ export function ProjectMediaGallery({
                 <button
                   type="button"
                   onClick={() => setLightboxIdx((prev) => (prev !== null ? (prev + 1) % mediaItems.length : 0))}
-                  className="absolute right-6 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur-sm transition-all hover:scale-110 hover:bg-white/30"
+                  className="absolute right-6 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-white/15 text-white backdrop-blur-sm transition hover:scale-110 hover:bg-white/30"
                   aria-label={t.next}
                 >
                   <ChevronRight className="h-6 w-6" />
@@ -615,7 +615,7 @@ export function ProjectMediaGallery({
                 key={item.src}
                 type="button"
                 onClick={() => setLightboxIdx(idx)}
-                className={`relative h-14 w-20 flex-shrink-0 overflow-hidden rounded-control border-2 transition-all ${
+                className={`relative h-14 w-20 flex-shrink-0 overflow-hidden rounded-control border-2 transition ${
                   lightboxIdx === idx ? 'border-sv-orange ring-2 ring-sv-orange/40' : 'border-transparent opacity-60 hover:opacity-100'
                 }`}
               >

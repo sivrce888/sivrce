@@ -452,7 +452,7 @@
     overflow-wrap: break-word;
     caret-color: var(--sv-blue);
     /* Apple-grade theme crossfade — surfaces with their own transitions
-       (cards, pills, glass) animate along via `transition-all` */
+       (cards, pills, glass) animate along via `transition` */
     transition: background-color 0.35s ease, color 0.35s ease;
   }
   img, video, iframe, canvas {

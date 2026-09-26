@@ -145,8 +145,8 @@ export default function HScroll({
     ? 'border-white/15 bg-white/[0.12] text-white backdrop-blur-md focus-visible:ring-offset-sv-navy'
     : 'border-sv-ink/10 bg-sv-surface/95 text-sv-ink shadow-card'
   const btnBase = sm
-    ? `absolute top-1/2 z-20 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full ${btnTone} transition-all duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2`
-    : `absolute z-20 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full ${btnTone} transition-all duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 ${arrowY == null ? 'top-[7.5rem]' : ''}`
+    ? `absolute top-1/2 z-20 grid h-9 w-9 -translate-y-1/2 place-items-center rounded-full ${btnTone} transition duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2`
+    : `absolute z-20 grid h-11 w-11 -translate-y-1/2 place-items-center rounded-full ${btnTone} transition duration-300 ease-[cubic-bezier(0.21,0.65,0.2,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 ${arrowY == null ? 'top-[7.5rem]' : ''}`
   const btnOn = invert
     ? 'opacity-100 hover:scale-105 hover:bg-white/20 active:scale-95'
     : 'opacity-100 hover:scale-105 hover:border-sv-blue hover:text-sv-blue hover:shadow-card-hover active:scale-95'
