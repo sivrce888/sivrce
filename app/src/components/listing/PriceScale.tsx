@@ -36,7 +36,7 @@ const LABELS: Record<Lang, Record<PriceScaleBand, string> & { heading: string; t
   },
   de: {
     heading: "Preisskala",
-    ticks: ["Niedrig", "Unterchnittlich", "Durchschnitt", "Überdurchschnittlich", "Hoch"],
+    ticks: ["Niedrig", "Unterdurchschnittlich", "Durchschnitt", "Überdurchschnittlich", "Hoch"],
     low: "Niedriger Preis",
     mediumLow: "Unter dem Durchschnitt",
     average: "Durchschnittspreis",

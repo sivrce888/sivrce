@@ -798,7 +798,8 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
           className={`mt-1 flex min-w-0 items-center gap-1.5 text-[12px] font-bold text-sv-blue dark:text-sv-blue-light ${rail ? 'min-h-[1.25rem]' : ''} ${metro ? '' : 'invisible'}`}
           aria-hidden={!metro}
         >
-          <TrainFront className="h-3.5 w-3.5 shrink-0" aria-hidden />
+          {/* ponytail: invisible placeholder rows keep height via text, skip the SVG (−DOM per card) */}
+          {metro ? <TrainFront className="h-3.5 w-3.5 shrink-0" aria-hidden /> : null}
           <span className="min-w-0 flex-1 text-[12px] font-bold leading-snug">{metro ? readableName(metro.name, lang) : '\u00a0'}</span>
           <span className="shrink-0 font-semibold text-sv-blue dark:text-sv-blue-light">
             · {metro ? formatMetroDist(metro, lang) : '\u00a0'}
@@ -811,7 +812,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
         {/* ponytail: 4 reserved slots — conditional hide made rails look 2-vs-3 jagged */}
         <div className="sv-card-specs min-h-[1.5rem] gap-x-2 gap-y-1.5 border-t border-sv-ink/[0.06] pt-3 text-[13px] font-bold leading-snug text-sv-ink/70">
           <span className={`flex min-w-0 items-center gap-1 ${l.area > 0 ? '' : 'invisible'}`} aria-hidden={l.area <= 0}>
-            <Ruler className="h-3.5 w-3.5 shrink-0 text-sv-ink/60" aria-hidden />
+            {l.area > 0 ? <Ruler className="h-3.5 w-3.5 shrink-0 text-sv-ink/60" aria-hidden /> : null}
             <span>
               {l.projectCatalog ? t('card.areaFrom', { n: l.area }) : `${l.area} ${t('add.areaUnit.m2')}`}
             </span>
@@ -821,11 +822,11 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
             aria-hidden={stay.n <= 0}
             title={stay.kind === 'beds' && stay.rooms > 0 ? stayText : undefined}
           >
-            <StayIcon className="h-3.5 w-3.5 shrink-0 text-sv-ink/60" aria-hidden />
+            {stay.n > 0 ? <StayIcon className="h-3.5 w-3.5 shrink-0 text-sv-ink/60" aria-hidden /> : null}
             <span>{stayText}</span>
           </span>
           <span className={`flex min-w-0 items-center gap-1 ${l.baths > 0 ? '' : 'invisible'}`} aria-hidden={l.baths <= 0}>
-            <Bath className="h-3.5 w-3.5 shrink-0 text-sv-ink/60" aria-hidden />
+            {l.baths > 0 ? <Bath className="h-3.5 w-3.5 shrink-0 text-sv-ink/60" aria-hidden /> : null}
             {l.baths}
           </span>
           <span
@@ -834,7 +835,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
             }`}
             aria-hidden={l.projectCatalog || (l.floor <= 0 && l.totalFloors <= 0)}
           >
-            <Layers className="h-3.5 w-3.5 shrink-0 text-sv-ink/60" aria-hidden />
+            {!l.projectCatalog && (l.floor > 0 || l.totalFloors > 0) ? <Layers className="h-3.5 w-3.5 shrink-0 text-sv-ink/60" aria-hidden /> : null}
             <span>{formatFloor(l, lang)}</span>
           </span>
         </div>
