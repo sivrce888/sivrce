@@ -15,6 +15,7 @@ import { NEIGHBORHOODS } from '@/data/neighborhoods'
 import { DEVELOPERS, PROJECTS, AGENT_PROFILES } from '@/data/professionals'
 import { developersLive, projectsLive } from '@/lib/directory-live'
 import { db } from '@/lib/db'
+import { reportedQuarters } from '@/lib/market-stats'
 import { PROJECT_DISTRICTS } from '@/lib/directory-seo'
 import { listingPath } from '@/lib/listing-slug'
 import { listingVideoObject } from '@/lib/listing-video'
@@ -105,6 +106,9 @@ async function georgiaSitemap(): Promise<MetadataRoute.Sitemap> {
     { path: '/forum', changeFrequency: 'daily', priority: 0.7 },
     { path: '/neighborhoods', changeFrequency: 'monthly', priority: 0.7 },
     { path: '/market', changeFrequency: 'weekly', priority: 0.8 },
+    // Quarterly report editions — only quarters with ≥2 district snapshots
+    // (thinner quarters are noindex on the page; never list them here).
+    ...(await reportedQuarters()).map((q) => ({ path: `/market/${q}`, changeFrequency: 'monthly' as const, priority: 0.7 })),
     // /countries is the worldwide index — it canonicalises to, and now 308s to,
     // sivrce.com, so it is listed in countrySitemap() instead.
     { path: '/projects', changeFrequency: 'daily', priority: 0.85 },

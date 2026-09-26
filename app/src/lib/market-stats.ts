@@ -18,7 +18,14 @@ import {
   statsFromRows,
   momDeltaPct,
   medianOf,
+  QUARTER_RE,
+  monthsOfQuarter,
+  prevQuarterKey,
+  quarterStats,
+  weightedTotal,
   type DistrictStats,
+  type QuarterStats,
+  type QuarterSnapshotRow,
   type StatRow,
 } from "./market-stats-core"
 
@@ -222,6 +229,136 @@ export async function writeMonthlySnapshots(): Promise<{ districts: number; writ
     written += 1
   }
   return { districts: pairs.length, written }
+}
+
+// ---- Quarterly report editions (/market/2026-Q3) ----
+
+export interface QuarterDistrictReport {
+  district: string
+  stats: QuarterStats
+  qoq: number | null
+}
+
+export interface QuarterReport {
+  quarter: string
+  prevQuarter: string | null
+  /** Snapshot months present for the quarter, sorted. */
+  monthsPresent: string[]
+  total: QuarterStats | null
+  totalQoq: number | null
+  /** Real freshness stamp: latest snapshot updatedAt in the quarter. */
+  dataAsOf: Date | null
+  districts: QuarterDistrictReport[]
+}
+
+/** Snapshot row + the grouping/stamp fields quarterStats doesn't need. */
+interface SnapRow extends QuarterSnapshotRow {
+  district: string | null
+  updatedAt: Date
+}
+
+async function districtRows(city: string, months: string[]) {
+  return safeQuery(
+    async () =>
+      db.marketSnapshot.findMany({
+        where: { city, periodMonth: { in: months } },
+        orderBy: { periodMonth: "asc" },
+      }),
+    [] as SnapRow[],
+  )
+}
+
+/** Georgia-first: the report edition is Tbilisi (city rows are ka-named). */
+export async function getQuarterReport(quarter: string): Promise<QuarterReport | null> {
+  if (!QUARTER_RE.test(quarter)) return null
+  const cached = unstable_cache(
+    async (): Promise<QuarterReport> => {
+      const months = monthsOfQuarter(quarter)
+      const prev = prevQuarterKey(quarter)
+      const [rows, prevRows] = await Promise.all([
+        districtRows("თბილისი", months),
+        prev ? districtRows("თბილისი", monthsOfQuarter(prev)) : Promise.resolve([]),
+      ])
+      const monthsPresent = [...new Set(rows.map((r) => r.periodMonth))].sort()
+
+      const byDistrict = new Map<string, QuarterSnapshotRow[]>()
+      for (const r of rows) {
+        const list = byDistrict.get(r.district ?? "")
+        if (list) list.push(r)
+        else byDistrict.set(r.district ?? "", [r])
+      }
+      const prevByDistrict = new Map<string, QuarterSnapshotRow[]>()
+      for (const r of prevRows) {
+        const list = prevByDistrict.get(r.district ?? "")
+        if (list) list.push(r)
+        else prevByDistrict.set(r.district ?? "", [r])
+      }
+
+      const districts: QuarterDistrictReport[] = []
+      for (const [district, rows] of byDistrict) {
+        if (!district) continue
+        const stats = quarterStats(rows)
+        if (!stats) continue
+        const prevStats = quarterStats(prevByDistrict.get(district) ?? [])
+        districts.push({ district, stats, qoq: momDeltaPct(stats.avgPerM2USD, prevStats?.avgPerM2USD) })
+      }
+      districts.sort((a, b) => b.stats.activeEnd - a.stats.activeEnd)
+
+      // City total: weighted $/m² mean, sums elsewhere; no city median —
+      // district medians don't re-median honestly.
+      const statsList = districts.map((d) => d.stats)
+      const weight = statsList.reduce((a, s) => a + s.activeEnd, 0)
+      const total: QuarterStats | null = statsList.length ? {
+        months: Math.max(...statsList.map((s) => s.months)),
+        avgPerM2USD: weightedTotal(statsList)!,
+        medianPriceUSD: null,
+        soldCount: statsList.reduce((a, s) => a + s.soldCount, 0),
+        newListings: statsList.reduce((a, s) => a + s.newListings, 0),
+        activeEnd: weight,
+        avgDomDays: Math.round(statsList.reduce((a, s) => a + s.avgDomDays * s.activeEnd, 0) / Math.max(1, weight)),
+      } : null
+      const prevTotal = (() => {
+        const prevStats = [...prevByDistrict.values()]
+          .map((rows) => quarterStats(rows))
+          .filter((s): s is QuarterStats => !!s)
+        return prevStats.length ? weightedTotal(prevStats) : null
+      })()
+
+      const dataAsOf = rows.reduce<Date | null>((acc, r) => (!acc || r.updatedAt > acc ? r.updatedAt : acc), null)
+
+      return {
+        quarter, prevQuarter: prev, monthsPresent,
+        total, totalQoq: total ? momDeltaPct(total.avgPerM2USD, prevTotal) : null,
+        dataAsOf,
+        districts,
+      }
+    },
+    ["quarter-report", quarter],
+    { revalidate: 3600 },
+  )
+  return cached()
+}
+
+/** Quarters with ≥2 Tbilisi district snapshots — sitemap lists only real
+ *  editions (a thinner quarter is noindex on the page; never list it here). */
+export async function reportedQuarters(): Promise<string[]> {
+  return safeQuery(async () => {
+    const rows = await db.marketSnapshot.groupBy({
+      by: ["periodMonth", "district"],
+      where: { city: "თბილისი", district: { not: null } },
+    })
+    const districtsPerQuarter = new Map<string, Set<string>>()
+    for (const { periodMonth, district } of rows) {
+      const q = `${periodMonth.slice(0, 4)}-Q${Math.floor((Number(periodMonth.slice(5)) - 1) / 3) + 1}`
+      const set = districtsPerQuarter.get(q) ?? new Set<string>()
+      if (district) set.add(district)
+      districtsPerQuarter.set(q, set)
+    }
+    return [...districtsPerQuarter.entries()]
+      .filter(([, set]) => set.size >= 2)
+      .map(([q]) => q)
+      .sort()
+  }, [])
 }
 
 // ---- Tbilisi raion medians from the new-development directory (price map) ---

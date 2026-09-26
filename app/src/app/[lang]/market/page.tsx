@@ -5,6 +5,7 @@ import LocalizedLink from '@/components/LocalizedLink'
 import MarketView from '@/components/market/MarketView'
 import TbilisiPriceMap from '@/components/market/TbilisiPriceMap'
 import { getMarketOverview, getProjectRaionMedians } from '@/lib/market-stats'
+import { quarterKey } from '@/lib/market-stats-core'
 import { USD_GEL } from '@/lib/listings-db'
 import { jsonLd } from '@/lib/utils'
 import { isValidLang, type Lang } from '@/lib/i18n/core'
@@ -125,7 +126,20 @@ export default async function MarketPage({ params }: { params: Promise<{ lang: s
           <TbilisiPriceMap rows={raions} loc={lang === 'ka' ? 'ka' : lang === 'ru' ? 'ru' : lang === 'de' ? 'de' : 'en'} />
         </div>
         <MarketView data={data} updated={updated} />
-        <div className="mx-auto max-w-[1100px] px-5 pb-16 md:px-10">
+        <div className="mx-auto max-w-[1100px] space-y-2 px-5 pb-16 md:px-10">
+          <LocalizedLink
+            href={`/market/${quarterKey(new Date())}`}
+            className="flex min-h-14 items-center justify-between gap-4 rounded-card border border-sv-ink/[0.06] bg-sv-surface px-6 py-4 text-[15px] font-extrabold text-sv-ink shadow-card transition-colors hover:text-sv-blue"
+          >
+            {lang === 'ka'
+              ? `კვარტალური ანგარიში: ${quarterKey(new Date())}`
+              : lang === 'ru'
+                ? `Квартальный отчёт: ${quarterKey(new Date())}`
+                : lang === 'de'
+                  ? `Quartalsbericht: ${quarterKey(new Date())}`
+                  : `Quarterly report: ${quarterKey(new Date())}`}
+            <ArrowUpRight className="h-5 w-5 shrink-0 text-sv-blue" aria-hidden />
+          </LocalizedLink>
           <LocalizedLink
             href="/valuation"
             className="flex min-h-14 items-center justify-between gap-4 rounded-card border border-sv-ink/[0.06] bg-sv-surface px-6 py-4 text-[15px] font-extrabold text-sv-ink shadow-card transition-colors hover:text-sv-blue"
