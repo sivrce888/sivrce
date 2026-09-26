@@ -2,7 +2,8 @@
 
 import { useMemo, useState } from 'react'
 import { monthlyPayment, dtiPct } from '@/lib/finance'
-import { NBG_MAX_LTV } from '@/data/mortgage-ge'
+import { NBG_MAX_LTV, nbgPtiCap } from '@/data/mortgage-ge'
+import { useLiveRate } from '@/lib/currency'
 import { formatUSD } from '@/lib/listing-format'
 import type { DirLoc } from '@/lib/directory-seo'
 
@@ -12,7 +13,7 @@ const L: Record<DirLoc | 'de', {
   interest: string; total: string; disclaimer: string
   income: string; debts: string; burden: string
   verdictOk: string; verdictMid: string; verdictNo: string
-  downWarn: string
+  downWarn: string; gelHint: (cap: number) => string
 }> = {
   ka: {
     price: 'ბინის ფასი', down: (pct) => `პირველი შენატანი (${pct}%)`, rate: 'წლიური პროცენტი',
@@ -21,8 +22,9 @@ const L: Record<DirLoc | 'de', {
     disclaimer:
       'მაჩვენებელი გამოთვლილია სტანდარტული ანუიტეტის ფორმულით და არ წარმოადგენს საბანკო შემოთავაზებას.',
     income: 'თვიური შემოსავალი', debts: 'სხვა თვიური ვალდებულებები', burden: 'დატვირთვა',
-    verdictOk: 'დამტკიცება სავარაუდოა', verdictMid: 'სასაზღვრო — ბანკი განიხილავს', verdictNo: 'ნაკლებად სავარაუდო — მაღალი დატვირთვა',
+    verdictOk: 'ეროვნული ბანკის ლიმიტის ფარგლებში', verdictMid: 'ლიმიტთან ახლოს — ბანკი გადაწყვეტს', verdictNo: 'ეროვნული ბანკის ლიმიტს აჭარბებს — ბანკი ვერ გასცემს',
     downWarn: 'ეროვნული ბანკის ლიმიტი: დოლარში/ევროში სესხზე მინ. 30% შენატანი (ლარში — 10%)',
+    gelHint: (cap) => `ლარის სესხზე ლიმიტი ${cap}%-ია — ასე ჯდება`,
   },
   en: {
     price: 'Apartment price', down: (pct) => `Down payment (${pct}%)`, rate: 'Annual interest',
@@ -31,8 +33,9 @@ const L: Record<DirLoc | 'de', {
     disclaimer:
       'Indicative figure calculated with the standard annuity formula — not a bank offer.',
     income: 'Monthly income', debts: 'Other monthly debt', burden: 'Debt burden',
-    verdictOk: 'Likely approvable', verdictMid: 'Borderline — bank review', verdictNo: 'Unlikely — burden too high',
+    verdictOk: 'Within the NBG limit', verdictMid: 'Near the NBG limit — bank decides', verdictNo: 'Above the NBG limit — banks can’t lend',
     downWarn: 'NBG rule: USD/EUR mortgages need at least 30% down (10% if the loan is in lari)',
+    gelHint: (cap) => `A lari loan has a ${cap}% limit — it fits that way`,
   },
   ru: {
     price: 'Стоимость квартиры', down: (pct) => `Первый взнос (${pct}%)`, rate: 'Годовая ставка',
@@ -41,8 +44,9 @@ const L: Record<DirLoc | 'de', {
     disclaimer:
       'Расчёт по стандартной аннуитетной формуле — не является банковским предложением.',
     income: 'Доход в месяц', debts: 'Другие платежи в месяц', burden: 'Долговая нагрузка',
-    verdictOk: 'Одобрение вероятно', verdictMid: 'На грани — банк решит', verdictNo: 'Маловероятно — нагрузка высока',
+    verdictOk: 'В пределах лимита НБГ', verdictMid: 'Близко к лимиту НБГ — решит банк', verdictNo: 'Выше лимита НБГ — банк не может выдать',
     downWarn: 'Правило НБГ: для кредита в USD/EUR — минимум 30% взноса (в лари — 10%)',
+    gelHint: (cap) => `Для кредита в лари лимит ${cap}% — так проходит`,
   },
   de: {
     price: 'Wohnungspreis', down: (pct) => `Anzahlung (${pct}%)`, rate: 'Jahreszins',
@@ -51,8 +55,9 @@ const L: Record<DirLoc | 'de', {
     disclaimer:
       'Richtwert, berechnet mit der Standard-Annuitätenformel — kein Bankangebot.',
     income: 'Monatseinkommen', debts: 'Sonstige monatliche Schulden', burden: 'Schuldenlast',
-    verdictOk: 'Bewilligung wahrscheinlich', verdictMid: 'Grenzwertig — Bank prüft', verdictNo: 'Unwahrscheinlich — Last zu hoch',
+    verdictOk: 'Innerhalb der NBG-Grenze', verdictMid: 'Nahe der NBG-Grenze — Bank entscheidet', verdictNo: 'Über der NBG-Grenze — Banken dürfen nicht leihen',
     downWarn: 'NBG-Regel: Kredite in USD/EUR erfordern mind. 30 % Anzahlung (in Lari 10 %)',
+    gelHint: (cap) => `Ein Lari-Kredit hat ${cap} % Grenze — so passt es`,
   },
 }
 
@@ -63,11 +68,10 @@ const PRESETS = [
   { label: '$250,000', price: 250_000 },
 ]
 
-/** Payment-to-income verdict bands (Georgian banks commonly decline >~45% DTI).
+/** Verdict = PTI vs the NBG legal cap (nbgPtiCap); "near" = within 5 points of it.
  *  Down floor = NBG max LTV for FX loans (70%; lari loans 90%) — this calc is in USD.
  */
-const DTI_OK = 35
-const DTI_MID = 45
+const PTI_NEAR = 5
 const DOWN_FLOOR = 100 - NBG_MAX_LTV.fx
 
 export default function MortgageCalcClient({
@@ -85,6 +89,9 @@ export default function MortgageCalcClient({
   const [years, setYears] = useState(initial?.years ?? 20)
   const [income, setIncome] = useState(0)
   const [debts, setDebts] = useState(0)
+  // Income + debts are entered in this currency; the loan itself is USD.
+  const [incomeCur, setIncomeCur] = useState<'GEL' | 'USD'>(loc === 'ka' ? 'GEL' : 'USD')
+  const usdGel = useLiveRate()
 
   const { monthly, principal, totalInterest, totalPaid } = useMemo(() => {
     const principal = Math.max(0, price * (1 - downPct / 100))
@@ -96,8 +103,14 @@ export default function MortgageCalcClient({
 
   // Eligibility pre-check: hidden until the user enters an income — a verdict
   // without income would be noise. downPct < 5 reads as "just exploring".
-  const dti = dtiPct(monthly, debts, income)
-  const verdict = dti === null ? null : dti <= DTI_OK ? 'ok' : dti <= DTI_MID ? 'mid' : 'no'
+  const lari = incomeCur === 'GEL'
+  const toUSD = (v: number) => (lari ? v / usdGel : v)
+  const dti = dtiPct(monthly, toUSD(debts), toUSD(income))
+  // USD loan on lari income = unhedged FX → the stricter NBG grid applies.
+  const cap = nbgPtiCap(lari ? income : income * usdGel, lari)
+  const verdict = dti === null ? null : dti <= cap - PTI_NEAR ? 'ok' : dti <= cap ? 'mid' : 'no'
+  const gelCap = nbgPtiCap(lari ? income : income * usdGel, false)
+  const sym = lari ? '₾' : '$'
 
   return (
     <div className="rounded-tile border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card md:p-10">
@@ -182,12 +195,30 @@ export default function MortgageCalcClient({
 
           <div className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label htmlFor="mc-income" className="mb-2 block text-[13px] font-black uppercase tracking-wide text-sv-ink/70">
-                {t.income}
-              </label>
+              <div className="mb-2 flex items-center justify-between">
+                <label htmlFor="mc-income" className="text-[13px] font-black uppercase tracking-wide text-sv-ink/70">
+                  {t.income}
+                </label>
+                <div role="group" aria-label={t.income} className="flex rounded-full border border-sv-ink/[0.12] p-0.5 text-[15px] font-extrabold">
+                  {(['GEL', 'USD'] as const).map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      aria-pressed={incomeCur === c}
+                      aria-label={c}
+                      onClick={() => setIncomeCur(c)}
+                      className={`grid h-8 min-w-9 place-items-center rounded-full px-1 transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue ${
+                        incomeCur === c ? 'bg-sv-navy text-white' : 'text-sv-ink/60 hover:text-sv-ink'
+                      }`}
+                    >
+                      {c === 'GEL' ? '₾' : '$'}
+                    </button>
+                  ))}
+                </div>
+              </div>
               <input
                 id="mc-income"
-                type="number" min={0} max={100_000} step={100} placeholder="$0"
+                type="number" min={0} max={1_000_000} step={100} placeholder={`${sym}0`}
                 value={income || ''}
                 onChange={(e) => setIncome(Math.max(0, Number(e.target.value) || 0))}
                 className="w-full rounded-control border border-sv-ink/[0.12] bg-white px-3 py-2.5 text-[14px] font-bold text-sv-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue"
@@ -199,7 +230,7 @@ export default function MortgageCalcClient({
               </label>
               <input
                 id="mc-debts"
-                type="number" min={0} max={100_000} step={50} placeholder="$0"
+                type="number" min={0} max={1_000_000} step={50} placeholder={`${sym}0`}
                 value={debts || ''}
                 onChange={(e) => setDebts(Math.max(0, Number(e.target.value) || 0))}
                 className="w-full rounded-control border border-sv-ink/[0.12] bg-white px-3 py-2.5 text-[14px] font-bold text-sv-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue"
@@ -234,7 +265,7 @@ export default function MortgageCalcClient({
             <div className="mt-6 border-t border-white/10 pt-4">
               <div className="flex items-center justify-between text-[12px]">
                 <span className="font-black uppercase tracking-wider text-white/55">{t.burden}</span>
-                <span className="tabular-nums text-white/70">{Math.round(dti)}%</span>
+                <span className="tabular-nums text-white/70">{Math.round(dti)}% / {cap}%</span>
               </div>
               <p
                 role="status"
@@ -248,6 +279,9 @@ export default function MortgageCalcClient({
               >
                 {verdict === 'ok' ? t.verdictOk : verdict === 'mid' ? t.verdictMid : t.verdictNo}
               </p>
+              {verdict === 'no' && lari && dti <= gelCap && (
+                <p className="mt-2 text-[12px] font-bold text-sv-blue-light">{t.gelHint(gelCap)}</p>
+              )}
               {downPct > 0 && downPct < DOWN_FLOOR && (
                 <p className="mt-2 text-[12px] font-bold text-sv-orange">{t.downWarn}</p>
               )}
