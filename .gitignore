@@ -63,6 +63,7 @@ research/*.log
 research/*.mjs
 research/*.zip
 research/*probe*.json
+research/*.md
 research/osm-*.json
 research/package.json
 research/package-lock.json

@@ -19,7 +19,7 @@ Keep the repo lean. **Deletion over addition** for artifacts.
 | Tool caches | `.playwright-mcp/`, `supabase/.temp/`, `.vercel/`, `__pycache__/` |
 | Root scratch PNGs | `Screenshot *.png`, `v-*.png`, `*.docx` |
 | Oversize new files | \>512 KB unless under `app/src/data/`, `logo/`, `app/public/`, or mobile `res/` assets |
-| Git tree | **>96 MiB** or **>5101** tracked files (pre-commit + pre-push + prebuild) |
+| Git tree | **>96 MiB** or **>5106** tracked files (pre-commit + pre-push + prebuild) |
 | Vercel output | **>100 MiB** `.next/server`+`static` after map strip (`postbuild --build`) |
 
 ## Agent rules
@@ -36,7 +36,7 @@ Keep the repo lean. **Deletion over addition** for artifacts.
 ./scripts/setup-hooks.sh
 ```
 
-- **pre-commit** — banned paths, oversize new files, **96 MiB / 5101-file tree cap**
+- **pre-commit** — banned paths, oversize new files, **96 MiB / 5106-file tree cap**
 - **pre-push** — full tracked-tree scan (catches `--no-verify` commits)
 - **CI / Vercel** — `prebuild` `--ci` then `postbuild --build` (100 MiB deploy cap; strips `*.map`)
 - **install** — `prepare` runs `./scripts/setup-hooks.sh` automatically

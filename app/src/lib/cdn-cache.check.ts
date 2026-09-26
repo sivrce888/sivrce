@@ -170,7 +170,7 @@ lock(".npmrc", ["legacy-peer-deps=true"])
 lock(".vercelignore", ["ios", "android", "e2e", "playwright-report"])
 lock("../scripts/check-repo-weight.mjs", [
   "MAX_TRACKED_BYTES = 96 * 1024 * 1024",
-  "MAX_TRACKED_FILES = 5101",
+  "MAX_TRACKED_FILES = 5106",
   "MAX_DEPLOY_BYTES = 100 * 1024 * 1024",
   "MAX_SERVER_BYTES = 80 * 1024 * 1024",
   "MAX_STATIC_BYTES = 24 * 1024 * 1024",

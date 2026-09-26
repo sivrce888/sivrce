@@ -20,7 +20,8 @@ const MAX_TRACKED_BYTES = 96 * 1024 * 1024 // 96 MiB git tree (now ~59) — the 
  * is untouched. Owner sign-off pending in the directory-refresh report.
  */
 // 2026-09-26: 5100 -> 5101. +1 listing-view-days SQL migration (9 lines).
-const MAX_TRACKED_FILES = 5101
+// 2026-09-27: 5101 -> 5106. +5 FX currency converter pages, fx.check & WeatherPanel (~84 KB).
+const MAX_TRACKED_FILES = 5106
 const MAX_DEPLOY_BYTES = 100 * 1024 * 1024 // 100 MiB .next server+static, no maps/cache
 const MAX_SERVER_BYTES = 80 * 1024 * 1024
 const MAX_STATIC_BYTES = 24 * 1024 * 1024
@@ -240,7 +241,7 @@ function selfCheck() {
   if (!BANNED.some((re) => re.test('app/scripts/probe-home.mjs'))) throw new Error('banned probe scripts')
   if (!BANNED.some((re) => re.test('app/visual-audit.mjs'))) throw new Error('banned visual-audit')
   if (MAX_TRACKED_BYTES !== 96 * 1024 * 1024) throw new Error('tracked cap unlocked')
-  if (MAX_TRACKED_FILES !== 5101) throw new Error('file-count cap unlocked')
+  if (MAX_TRACKED_FILES !== 5106) throw new Error('file-count cap unlocked')
   if (MAX_DEPLOY_BYTES !== 100 * 1024 * 1024) throw new Error('deploy cap unlocked')
   if (MAX_SERVER_BYTES !== 80 * 1024 * 1024) throw new Error('server cap unlocked')
   if (MAX_STATIC_BYTES !== 24 * 1024 * 1024) throw new Error('static cap unlocked')

@@ -3,11 +3,13 @@
 /**
  * SIVRCE — theme toggle. iOS-style pill switch with a sliding thumb,
  * sun/moon morph, tiny stars in the dark track, spring physics.
+ * Switching paints the new theme as a circle growing from the toggle
+ * (native View Transitions; instant swap on old browsers / Reduce Motion / lite).
  * SSR-safe: renders an inert placeholder of identical size until mounted,
  * so server HTML and first client paint always match.
  */
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type MouseEvent } from 'react'
 import { Moon, Sun } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useI18n } from '@/lib/i18n/context'
@@ -29,6 +31,40 @@ export function ThemeToggle({ light = false }: { light?: boolean }) {
 
   const isDark = resolvedTheme === 'dark'
 
+  const flip = (e: MouseEvent<HTMLButtonElement>) => {
+    const next = isDark ? 'light' : 'dark'
+    const root = document.documentElement
+    if (
+      !document.startViewTransition ||
+      root.hasAttribute('data-lite') ||
+      matchMedia('(prefers-reduced-motion: reduce)').matches
+    ) {
+      setTheme(next)
+      return
+    }
+    const r = e.currentTarget.getBoundingClientRect()
+    const x = r.left + r.width / 2
+    const y = r.top + r.height / 2
+    const end = Math.hypot(Math.max(x, innerWidth - x), Math.max(y, innerHeight - y))
+    root.classList.add('sv-theme-vt')
+    // next-themes applies the class in an effect — too late for the snapshot, so flip it here too
+    const vt = document.startViewTransition(() => {
+      root.classList.toggle('dark', next === 'dark')
+      root.style.colorScheme = next
+      setTheme(next)
+    })
+    vt.ready
+      .then(() =>
+        root.animate(
+          { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${end}px at ${x}px ${y}px)`] },
+          { duration: 620, easing: 'cubic-bezier(0.21, 0.65, 0.2, 1)', pseudoElement: '::view-transition-new(root)' },
+        ),
+      )
+      .catch(() => {})
+    const done = () => root.classList.remove('sv-theme-vt')
+    vt.finished.then(done, done)
+  }
+
   // Placeholder keeps navbar layout rock-steady through hydration
   if (!mounted) {
     return (
@@ -48,7 +84,7 @@ export function ThemeToggle({ light = false }: { light?: boolean }) {
       role="switch"
       aria-checked={isDark}
       aria-label={t('nav.themeToggle')}
-      onClick={() => setTheme(isDark ? 'light' : 'dark')}
+      onClick={flip}
       className={`group relative inline-flex shrink-0 items-center rounded-full transition-colors duration-300 before:absolute before:-inset-[7px] before:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue focus-visible:ring-offset-2 ${
         light ? 'bg-sv-ink/[0.07]' : 'bg-sv-ink/[0.07] dark:bg-white/10'
       }`}

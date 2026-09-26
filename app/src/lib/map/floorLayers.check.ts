@@ -5,6 +5,7 @@
 
 import assert from 'node:assert/strict'
 import {
+  applyBrandPaints,
   BUILDING_PALETTE,
   loadMapBasemap,
   mapStyleUrl,
@@ -39,6 +40,36 @@ async function main() {
   assert.equal(mapStyleUrl(true, 'clean'), STYLE_DARK)
   assert.equal(mapStyleUrl(true, 'satellite'), STYLE_SATELLITE)
   assert.equal(mapStyleUrl(false), STYLE_LIGHT)
+  // Contrast rides the streets/night base — same URL, so the swap never refetches.
+  assert.equal(mapStyleUrl(false, 'contrast'), STYLE_LIGHT)
+  assert.equal(mapStyleUrl(true, 'contrast'), STYLE_DARK)
+
+  // Contrast boost: every basemap label ink-on-paper, casings solid ink,
+  // sivrce-* overlays untouched. Proxy map = no-op for everything else.
+  for (const theme of ['light', 'dark'] as const) {
+    const layers = [
+      { id: 'label_city', type: 'symbol' },
+      { id: 'poi_r20', type: 'symbol' },
+      { id: 'road_minor_casing', type: 'line' },
+      { id: 'road_minor', type: 'line' },
+      { id: 'sivrce-pois-label', type: 'symbol' },
+    ]
+    const paint: Record<string, unknown> = {}
+    const fake = new Proxy({} as Record<string, unknown>, {
+      get: (_t, k) =>
+        k === 'getStyle' ? () => ({ layers })
+        : k === 'getLayer' ? (id: string) => layers.find((l) => l.id === id)
+        : k === 'setPaintProperty' ? (id: string, prop: string, v: unknown) => { paint[`${id}.${prop}`] = v }
+        : () => undefined,
+    }) as unknown as MlMap
+    applyBrandPaints(fake, theme, 'contrast')
+    const ink = theme === 'dark' ? '#FFFFFF' : '#0A1030'
+    assert.equal(paint['label_city.text-color'], ink, `${theme} label ink`)
+    assert.equal(paint['poi_r20.text-opacity'], 1, `${theme} POIs stop fading`)
+    assert.equal(paint['label_city.text-halo-width'], 2.4)
+    assert.equal(paint['road_minor_casing.line-color'], theme === 'dark' ? '#E9EDFF' : '#0A1030')
+    assert.notEqual(paint['sivrce-pois-label.text-color'], ink, 'overlays keep their own paint')
+  }
 
   const sat = satelliteStyle()
   assert.equal(sat.version, 8)

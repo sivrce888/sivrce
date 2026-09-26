@@ -5,6 +5,10 @@
 
 import type { MapTerrain } from '@/lib/map/floorLayers'
 
+// Literal here, not in floorLayers — importing that runtime module would drag
+// the MapLibre paint code into every bundle that only reads prefs.
+const MAP_TERRAINS: readonly MapTerrain[] = ['streets', 'satellite', 'clean', 'contrast']
+
 export const MAP_UI_COOKIE = 'sivrce_map_ui'
 export const MAP_UI_LS_KEY = 'sivrce.map.ui'
 /** 1 year */
@@ -21,7 +25,7 @@ export type MapUiSave = {
 }
 
 export function parseTerrain(v: unknown): MapTerrain {
-  return v === 'clean' || v === 'satellite' || v === 'streets' ? v : 'streets'
+  return parseTerrainLoose(v) ?? 'streets'
 }
 
 /**
@@ -69,7 +73,7 @@ export function parseMapUiJson(raw: unknown): MapUiSave {
 }
 
 function parseTerrainLoose(v: unknown): MapTerrain | undefined {
-  return v === 'clean' || v === 'satellite' || v === 'streets' ? v : undefined
+  return MAP_TERRAINS.includes(v as MapTerrain) ? (v as MapTerrain) : undefined
 }
 
 export function parseMapUiRaw(s: string | null | undefined): MapUiSave {

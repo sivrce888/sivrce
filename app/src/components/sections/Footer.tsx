@@ -50,6 +50,7 @@ const COLS: { titleKey: DictKey; links: { key: DictKey; href: string }[] }[] = [
       { key: 'footer.sv.developers', href: '/developers' },
       { key: 'footer.sv.renovation', href: '/services/renovation' },
       { key: 'footer.sv.mortgage', href: '/mortgage-calculator' },
+      { key: 'footer.sv.valuta', href: '/valuta' },
       { key: 'footer.sv.ai', href: '/services/appraisal' },
     ],
   },

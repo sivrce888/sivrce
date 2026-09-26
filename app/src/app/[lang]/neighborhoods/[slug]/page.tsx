@@ -7,6 +7,7 @@ import { NEIGHBORHOODS, getNeighborhood, pick } from '@/data/neighborhoods'
 import { getListingsInDistricts, USD_GEL } from '@/lib/listings-db'
 import { getNeighborhoodMarketStats } from '@/lib/market-stats'
 import { AirBadge, WeatherBadge } from '@/components/WeatherBadge'
+import { WeatherPanel } from '@/components/WeatherPanel'
 import { nearestAmenities } from '@/lib/map/pois'
 import { AmenityChips } from '@/components/places/AmenityChips'
 import { jsonLd, ogImage } from '@/lib/utils'
@@ -145,6 +146,7 @@ export default async function NeighborhoodPage({ params }: PageProps) {
           n={n}
           listings={listings}
           market={market}
+          forecast={<WeatherPanel coords={n.coords} place={name} lang={lang} />}
           faqs={faqs}
           amenities={amenitiesNode}
           weather={

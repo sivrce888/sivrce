@@ -45,7 +45,7 @@ Levels: `/ponytail lite|full|ultra`. Off only on "stop ponytail" / "normal mode"
 
 Never commit build caches, `.perf/` duplicates, `shots/`, research scrapes,
 logo refs, or files \>512 KB (except data/logo/public/mobile assets). Git tree
-**≤96 MiB / 5101 files**. Vercel deploy **≤100 MiB** (`.next/server`+`static`,
+**≤96 MiB / 5106 files**. Vercel deploy **≤100 MiB** (`.next/server`+`static`,
 maps stripped). Full ban list: `.cursor/rules/repo-lightweight-lock.mdc` ·
 `.cursor/rules/perf-cost-lock.mdc` · enforced by `scripts/check-repo-weight.mjs`.
 

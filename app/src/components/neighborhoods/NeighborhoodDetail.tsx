@@ -20,6 +20,7 @@ export default function NeighborhoodDetail({
   listings,
   market = null,
   weather = null,
+  forecast = null,
   faqs = [],
   amenities = null,
 }: {
@@ -29,6 +30,8 @@ export default function NeighborhoodDetail({
   market?: { stats: DistrictStats | null; mom: number | null } | null
   /** Server-rendered <WeatherBadge> slot — fetched on the server, shown in the hero. */
   weather?: ReactNode
+  /** Server-rendered <WeatherPanel> slot — full 7-day forecast under the stats. */
+  forecast?: ReactNode
   /** Server-rendered "around you" amenity section — computed from the OSM corpus. */
   amenities?: ReactNode
   faqs?: { q: string; a: string }[]
@@ -137,6 +140,13 @@ export default function NeighborhoodDetail({
           </LocalizedLink>
         </div>
       </section>
+
+      {/* live forecast — server-rendered slot, zero client JS */}
+      {forecast && (
+        <section className="border-b border-sv-ink/[0.06] bg-sv-surface pb-10">
+          <div className="mx-auto max-w-[1440px] px-5 md:px-10">{forecast}</div>
+        </section>
+      )}
 
       {/* description + scores */}
       <section className="bg-sv-cloud py-16 md:py-20">
