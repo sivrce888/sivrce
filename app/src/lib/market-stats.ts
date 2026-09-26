@@ -11,11 +11,13 @@
 import { db } from "@/lib/db"
 import { safeQuery } from "@/lib/guards"
 import { unstable_cache } from "next/cache"
+import projectDistricts from "@/data/project-districts.gen.json"
 import {
   MIN_SAMPLE,
   periodKey,
   statsFromRows,
   momDeltaPct,
+  medianOf,
   type DistrictStats,
   type StatRow,
 } from "./market-stats-core"
@@ -220,4 +222,51 @@ export async function writeMonthlySnapshots(): Promise<{ districts: number; writ
     written += 1
   }
   return { districts: pairs.length, written }
+}
+
+// ---- Tbilisi raion medians from the new-development directory (price map) ---
+
+const TBILISI_RAIONS = [
+  "მთაწმინდა", "ვაკე", "საბურთალო", "კრწანისი", "ისანი",
+  "სამგორი", "ჩუღურეთი", "დიდუბე", "ნაძალადევი", "გლდანი",
+] as const
+
+export interface RaionMedian {
+  district: string
+  median: number
+  n: number
+}
+
+/** Median asking $/m² of active new-development projects per Tbilisi raion.
+ *  Raions come from the coord-derived overrides (project-districts.gen.json) —
+ *  the raw district column mixes in street strings. Cached daily. */
+export async function getProjectRaionMedians(): Promise<RaionMedian[]> {
+  const cached = unstable_cache(
+    async () => {
+      const rows = await safeQuery(
+        async () =>
+          db.projectDirectory.findMany({
+            where: { deletedAt: null, city: "თბილისი", pricePerSqmFrom: { gt: 0 } },
+            select: { slug: true, pricePerSqmFrom: true },
+          }),
+        [],
+      )
+      const byRaion = new Map<string, number[]>()
+      for (const r of rows) {
+        const raion = (projectDistricts as Record<string, string>)[r.slug]
+        if (!raion || !(TBILISI_RAIONS as readonly string[]).includes(raion)) continue
+        const list = byRaion.get(raion) ?? []
+        list.push(r.pricePerSqmFrom)
+        byRaion.set(raion, list)
+      }
+      return TBILISI_RAIONS.flatMap((name) => {
+        const vals = byRaion.get(name)
+        if (!vals || vals.length < MIN_SAMPLE) return []
+        return [{ district: name, median: Math.round(medianOf(vals) ?? 0), n: vals.length }]
+      })
+    },
+    ["ge-project-raion-medians"],
+    { revalidate: 86_400 },
+  )
+  return cached()
 }

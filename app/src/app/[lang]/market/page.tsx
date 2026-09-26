@@ -3,7 +3,8 @@ import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import LocalizedLink from '@/components/LocalizedLink'
 import MarketView from '@/components/market/MarketView'
-import { getMarketOverview } from '@/lib/market-stats'
+import TbilisiPriceMap from '@/components/market/TbilisiPriceMap'
+import { getMarketOverview, getProjectRaionMedians } from '@/lib/market-stats'
 import { USD_GEL } from '@/lib/listings-db'
 import { jsonLd } from '@/lib/utils'
 import { isValidLang, type Lang } from '@/lib/i18n/core'
@@ -86,7 +87,7 @@ export async function generateMetadata({
 export default async function MarketPage({ params }: { params: Promise<{ lang: string }> }) {
   const { lang: raw } = await params
   const lang = isValidLang(raw) ? raw : 'ka'
-  const [data] = await Promise.all([getMarketOverview(USD_GEL)])
+  const [data, raions] = await Promise.all([getMarketOverview(USD_GEL), getProjectRaionMedians()])
   const updated = new Intl.DateTimeFormat(INTL_LOCALE[lang], {
     month: 'long',
     year: 'numeric',
@@ -119,6 +120,10 @@ export default async function MarketPage({ params }: { params: Promise<{ lang: s
     <div className="min-h-screen bg-sv-surface">
       <Navbar />
       <main id="main">
+        <div className="mx-auto max-w-[1100px] px-5 pt-10 md:px-10">
+          {/* SSR choropleth — server component feeding off the same cached stats */}
+          <TbilisiPriceMap rows={raions} loc={lang === 'ka' ? 'ka' : lang === 'ru' ? 'ru' : lang === 'de' ? 'de' : 'en'} />
+        </div>
         <MarketView data={data} updated={updated} />
         <div className="mx-auto max-w-[1100px] px-5 pb-16 md:px-10">
           <LocalizedLink
