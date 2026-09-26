@@ -90,12 +90,18 @@ function agoLabel(iso: string, t: TFunc): string {
 }
 
 /** Header presence line — "" when the heartbeat is stale or missing. */
-function presenceLabel(lastSeenAt: string | null | undefined, t: TFunc): string {
+function presenceLabel(
+  lastSeenAt: string | null | undefined,
+  t: TFunc,
+  lang: string,
+): string {
   const { state, n } = presenceOf(lastSeenAt)
   if (state === "unknown") return ""
   if (state === "online") return t("chat.presenceOnline")
   const unit = t(state === "min" ? "chat.timeMin" : state === "hour" ? "chat.timeHour" : "chat.timeDay")
-  return t("chat.presenceAgo", { ago: `${n}${unit}` })
+  // ka units are spelled-out phrases ("5 დღის წინ") needing the space; compact
+  // locales glue their letter units ("5d") and carry წინ/ago inside the template.
+  return t("chat.presenceAgo", { ago: lang === "ka" ? `${n} ${unit}` : `${n}${unit}` })
 }
 
 const CHAT_MAX = 2000
@@ -1612,7 +1618,7 @@ export default function ChatWidget() {
   // question a buyer actually has. Never shown on a blocked thread.
   const presence =
     activeRoom && !activeRoom.isSupport && !activeRoom.blocked
-      ? presenceLabel(activeRoom.counterpart?.lastSeenAt, t)
+      ? presenceLabel(activeRoom.counterpart?.lastSeenAt, t, lang)
       : ""
   const headerSub = activeRoom
     ? activeRoom.isSupport
