@@ -179,7 +179,8 @@ export default function Footer({
   }, [])
   // ponytail: the copyright year was frozen at 2026 in 10 dictionaries — derive it.
   const year = new Date().getFullYear()
-  const loc: SeoLoc = lang === 'en' || lang === 'ru' ? lang : 'ka'
+  // Columns ship ka/en/ru only — every other locale reads English, never Georgian.
+  const loc: SeoLoc = lang === 'ka' || lang === 'ru' ? lang : 'en'
   const deLoc: 'de' | 'en' | 'ka' = lang === 'de' ? 'de' : lang === 'ka' ? 'ka' : 'en'
   const cleanPath = stripLangPrefix(pathname)
   const market = chromeMarket(cleanPath, marketIso)

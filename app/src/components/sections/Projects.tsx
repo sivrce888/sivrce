@@ -74,7 +74,7 @@ export default function Projects({
       <HScroll aria-label={b('home.projects.homesWord')} step={560} className="gap-6 pb-2 pt-2">
         {items.map((p) => {
           const dev = devNames?.[p.slug]
-          const devName = (lang === 'en' ? dev?.en : lang === 'ru' ? dev?.ru : dev?.ka) ?? p.developerSlug
+          const devName = (lang === 'ka' ? dev?.ka : lang === 'ru' ? dev?.ru : lang === 'de' ? (dev?.de ?? dev?.en) : dev?.en) ?? p.developerSlug
           return (
             <LocalizedLink
               key={p.slug}
