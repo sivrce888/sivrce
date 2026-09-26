@@ -502,7 +502,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
               aria-label={videoMuted ? t('card.unmute') : t('card.mute')}
               aria-pressed={!videoMuted}
               onClick={toggleVideoSound}
-              className="absolute bottom-3 right-3 z-10 grid h-8 w-8 place-items-center rounded-full bg-sv-navy/60 text-white backdrop-blur-md transition-colors duration-200 hover:bg-sv-navy/85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+              className="absolute right-14 top-3 z-10 grid h-8 w-8 place-items-center rounded-full bg-sv-navy/60 text-white backdrop-blur-md transition-colors duration-200 hover:bg-sv-navy/85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
             >
               {videoMuted ? <VolumeX className="h-4 w-4" aria-hidden /> : <Volume2 className="h-4 w-4" aria-hidden />}
             </button>
