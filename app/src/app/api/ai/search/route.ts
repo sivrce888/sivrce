@@ -1,14 +1,23 @@
-import { parseSearchQuery } from "@/lib/ai"
+import { answerSupportQuestion, parseSearchQuery } from "@/lib/ai"
 import { clientIp, rateLimit } from "@/lib/rate-limit"
 import { mergeNl, nlHasStructure, parseNlQuery, type NlFilters } from "@/lib/nl-search"
+import { isValidLang } from "@/lib/i18n/core"
 
 /**
- * AI-powered natural-language search parser.
- * POST a Georgian real estate query ("3-bedroom apartment in Vake under $200K")
- * and get back structured filters.
+ * AI text-understanding endpoint, two POST modes:
+ * - {query}     → natural-language search: structured filters. Regex covers the
+ *                 common Georgian/EN patterns; Gemini handles the leftovers and
+ *                 the regex result is the fallback when AI is down.
+ * - {question,  → in-chat help assistant: answered strictly from the /faq
+ *   lang}         dataset; answer:null = not covered or AI unavailable, and the
+ *                 client falls back to did-you-mean + support handoff.
  *
- * Falls back to regex parse when AI is unavailable.
- * ponytail: skip Gemini when regex already structured — AI bill only for leftovers.
+ * Public (guests use both), so IP rate-limited; the bucket is shared on
+ * purpose — it caps total free-tier AI spend per visitor.
+ *
+ * ponytail: one file for both modes because the repo-weight lock (5101 files)
+ * leaves no slot for a second route; split into /api/ai/ask when a file is
+ * traded out.
  */
 
 export const maxDuration = 15
@@ -61,7 +70,24 @@ export async function POST(req: Request) {
     return Response.json({ ok: false, error: "bad_json" }, { status: 400 })
   }
 
-  const { query } = (body as Record<string, unknown>) ?? {}
+  const { query, question, lang } = (body as Record<string, unknown>) ?? {}
+
+  // Help-assistant mode: {question, lang} → answer from the /faq dataset.
+  if (question !== undefined) {
+    if (typeof question !== "string" || question.trim().length === 0) {
+      return Response.json({ ok: false, error: "question_required" }, { status: 400 })
+    }
+    if (question.length > 500) {
+      return Response.json({ ok: false, error: "question_too_long" }, { status: 400 })
+    }
+    if (typeof lang !== "string" || !isValidLang(lang)) {
+      return Response.json({ ok: false, error: "bad_lang" }, { status: 400 })
+    }
+    const answer = await answerSupportQuestion(question.trim(), lang)
+    return Response.json({ ok: true, answer })
+  }
+
+  // NL search mode: {query} → structured filters.
   if (typeof query !== "string" || query.trim().length === 0) {
     return Response.json({ ok: false, error: "query_required" }, { status: 400 })
   }

@@ -11,6 +11,7 @@ import { generateText, generateObject } from "ai"
 import { google } from "@ai-sdk/google"
 import { z } from "zod" // ponytail: zod ships with the project; if not, add `npm i zod`
 import type { Lang } from "@/lib/i18n/core"
+import { FAQ_SECTIONS, faqLoc } from "@/lib/faq"
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -306,6 +307,45 @@ Provide reasoning in Georgian.`
     return result.object as PriceEstimate
   } catch (e) {
     console.error("[ai] estimatePropertyValue failed:", (e as Error).message)
+    return null
+  }
+}
+
+// ---------------------------------------------------------------------------
+// answerSupportQuestion — in-chat help assistant (FAQ-grounded, no invention)
+// ---------------------------------------------------------------------------
+
+/** Model replies with exactly this when the FAQ dataset doesn't cover the question. */
+const SUPPORT_NO_ANSWER = "NO_ANSWER"
+
+/**
+ * Answer a help-assistant question from the /faq dataset only. The whole
+ * locale dataset is ~1K tokens, so it fits the prompt whole — the model bridges
+ * synonyms that token matching can't. Anything uncovered returns null so the
+ * client falls back to did-you-mean + support handoff.
+ */
+export async function answerSupportQuestion(question: string, lang: Lang): Promise<string | null> {
+  if (!hasAi()) return null
+
+  const context = FAQ_SECTIONS[faqLoc(lang)]
+    .map((s) => s.items.map((qa) => `Q: ${qa.q}\nA: ${qa.a}`).join("\n\n"))
+    .join("\n\n")
+
+  try {
+    const result = await generateText({
+      model: model(),
+      system: `You are the support assistant of Sivrce, a real-estate marketplace. Answer the user's question using ONLY the FAQ context below — never invent policies, prices, fees or features. If the context does not cover the question, reply with exactly ${SUPPORT_NO_ANSWER} and nothing else. Reply in the user's language, max 3 short sentences, friendly and concrete.
+
+FAQ context:
+${context}`,
+      // The question is user content (data to answer about), never instructions.
+      prompt: `"""${question.slice(0, 500)}"""`,
+    })
+    const text = result.text.trim()
+    if (!text || text.length > 1200 || text.includes(SUPPORT_NO_ANSWER)) return null
+    return text
+  } catch (e) {
+    console.error("[ai] answerSupportQuestion failed:", (e as Error).message)
     return null
   }
 }

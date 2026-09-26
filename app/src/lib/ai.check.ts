@@ -9,7 +9,13 @@ import assert from 'node:assert/strict'
 const savedKey = process.env.GOOGLE_GENERATIVE_AI_API_KEY
 delete process.env.GOOGLE_GENERATIVE_AI_API_KEY
 
-import { estimatePropertyValue, generateListingDescription, parseSearchQuery, translateText } from './ai'
+import {
+  answerSupportQuestion,
+  estimatePropertyValue,
+  generateListingDescription,
+  parseSearchQuery,
+  translateText,
+} from './ai'
 import { aiLabel } from './ai-label'
 
 async function main() {
@@ -22,6 +28,7 @@ async function main() {
   assert.equal(await translateText('გამარჯობა', 'en'), null)
   assert.equal(await parseSearchQuery('ბინა ვაკეში'), null)
   assert.equal(await estimatePropertyValue(base), null)
+  assert.equal(await answerSupportQuestion('როგორ გავათავისუფლო ბინა?', 'ka'), null)
 
   // Shared score → label mapping (search cards + listing mapper).
   assert.equal(aiLabel(95), 'შესანიშნავი')
