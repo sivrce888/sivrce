@@ -1,8 +1,10 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
-import { notFound } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import { avifCardOf, cardOf } from '@/lib/media'
+import { requestHostKind } from '@/lib/request-market'
+import { isProjectInGeorgia } from '../to-card'
 import { MapPin, BadgeCheck, Star, Phone, PhoneCall, Landmark, ArrowUpRight, Images, PlayCircle, Calculator } from 'lucide-react'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
@@ -168,6 +170,12 @@ export default async function ProjectPage({ params }: PageProps) {
 
   const project = await getLiveProject(slug)
   if (!project) notFound()
+
+  // Domain constitution: non-Georgian projects 308 off production sivrce.ge to sivrce.com canonical
+  if ((await requestHostKind()) === 'ge' && !isProjectInGeorgia(project)) {
+    return permanentRedirect(`https://sivrce.com/projects/${project.slug}`)
+  }
+
   // Georgian transliteration wins on ka — matches how users actually search.
   const displayName = lang === 'ka' && project.nameKa ? project.nameKa : project.name
 

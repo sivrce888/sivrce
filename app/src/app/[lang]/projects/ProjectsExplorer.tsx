@@ -61,6 +61,7 @@ type Labels = {
   searchAria: string
   searchPh: string
   allCountries: string
+  allCities: string
   statusBuild: string
   statusDone: string
   other: string
@@ -90,6 +91,7 @@ const L: Record<DirLoc | 'de', Labels> = {
     searchAria: 'ძიება',
     searchPh: 'პროექტი, უბანი, დეველოპერი…',
     allCountries: 'ყველა ქვეყანა',
+    allCities: 'ყველა ქალაქი',
     statusBuild: 'მშენებარე',
     statusDone: 'ჩაბარებული',
     other: 'სხვა',
@@ -109,6 +111,7 @@ const L: Record<DirLoc | 'de', Labels> = {
     searchAria: 'Search',
     searchPh: 'Project, district, developer…',
     allCountries: 'All countries',
+    allCities: 'All cities',
     statusBuild: 'Under construction',
     statusDone: 'Delivered',
     other: 'Other',
@@ -128,6 +131,7 @@ const L: Record<DirLoc | 'de', Labels> = {
     searchAria: 'Поиск',
     searchPh: 'Проект, район, застройщик…',
     allCountries: 'Все страны',
+    allCities: 'Все города',
     statusBuild: 'Строятся',
     statusDone: 'Сданы',
     other: 'Другие',
@@ -147,6 +151,7 @@ const L: Record<DirLoc | 'de', Labels> = {
     searchAria: 'Suche',
     searchPh: 'Projekt, Viertel, Bauträger…',
     allCountries: 'Alle Länder',
+    allCities: 'Alle Städte',
     statusBuild: 'Im Bau',
     statusDone: 'Fertiggestellt',
     other: 'Weitere',
@@ -184,6 +189,7 @@ export function ProjectsExplorer({
   facets,
   loc,
   pager,
+  isGeOnly = false,
 }: {
   /** First hub page of cards — all the unfiltered view renders. */
   initial: ProjectCard[]
@@ -192,6 +198,7 @@ export function ProjectsExplorer({
   loc: DirLoc | 'de'
   /** Server-rendered SEO pager — shown while no filter is engaged. */
   pager?: ReactNode
+  isGeOnly?: boolean
 }) {
   const t = L[loc]
   const [q, setQ] = useState<Q>(EMPTY_Q)
@@ -202,13 +209,14 @@ export function ProjectsExplorer({
   const load = useCallback(() => {
     if (loading.current) return
     loading.current = true
-    fetch(`/api/project-cards/${loc}`)
+    const qStr = isGeOnly ? '?country=GE' : ''
+    fetch(`/api/project-cards/${loc}${qStr}`)
       .then((r) => (r.ok ? (r.json() as Promise<ProjectCard[]>) : Promise.reject(new Error(String(r.status)))))
       .then(setProjects)
       .catch(() => {
         loading.current = false // next interaction retries
       })
-  }, [loc])
+  }, [loc, isGeOnly])
   // Live corpus can exceed 1k rows — filtered mode renders progressively to
   // keep the DOM (and low-end devices) under the glitch lock.
   const [visibleCount, setVisibleCount] = useState(PER_PAGE)
@@ -249,15 +257,20 @@ export function ProjectsExplorer({
   // Until the corpus lands, the bar shows the server's unfiltered facets.
   const scoped = useMemo(() => {
     if (!projects) return null
-    const inCountry = q.country ? projects.filter((p) => (p.country || 'GE').toUpperCase() === q.country.toUpperCase()) : projects
+    const inCountry = q.country
+      ? projects.filter((p) => (p.country || 'GE').toUpperCase() === q.country.toUpperCase())
+      : isGeOnly
+        ? projects.filter((p) => (p.country || 'GE').toUpperCase() === 'GE')
+        : projects
+    const inCity = q.city && q.city !== OTHER_CITY ? inCountry.filter((p) => p.city === q.city) : inCountry
     return {
       countries: facetCountries(projects),
-      cities: facetCities(inCountry),
-      districts: facetDistricts(inCountry),
-      devs: facetDevs(inCountry),
+      cities: facetCities(inCountry, 8),
+      districts: facetDistricts(inCity),
+      devs: facetDevs(inCity),
       counts: facetCounts(inCountry),
     }
-  }, [projects, q.country])
+  }, [projects, q.country, q.city, isGeOnly])
   const { countries, cities, districts, devs, counts } = scoped ?? facets
   const topCitySet = useMemo(
     () => new Set(cities.filter((c) => c.value !== OTHER_CITY).map((c) => c.value)),
@@ -326,7 +339,7 @@ export function ProjectsExplorer({
             />
           </div>
 
-          {countries.length > 1 && (
+          {!isGeOnly && countries.length > 1 && (
             <div className="flex shrink-0 items-center gap-1.5 rounded-control bg-sv-ink/[0.04] p-1">
               <button
                 type="button"
@@ -358,6 +371,25 @@ export function ProjectsExplorer({
             </div>
           )}
 
+          {/* City filter chips — prominent on Georgia, scoped on global */}
+          {cities.length > 0 && (
+            <div className="flex shrink-0 items-center gap-1">
+              <Chip on={!q.city} onClick={() => update({ city: '', district: '' })}>
+                {t.allCities}
+                <span className={chipCount(!q.city)}>{filtered ? filtered.length : facets.total}</span>
+              </Chip>
+              {cities.map((c) => {
+                const on = q.city === c.value
+                return (
+                  <Chip key={c.value} on={on} onClick={() => update({ city: on ? '' : c.value, district: '' })}>
+                    {c.value === OTHER_CITY ? t.other : cityName(c.value, loc)}
+                    <span className={chipCount(on)}>{c.value === OTHER_CITY ? otherCityCount : counts.city.get(c.value)}</span>
+                  </Chip>
+                )
+              })}
+            </div>
+          )}
+
           <Chip on={q.status === 'build'} onClick={() => update({ status: q.status === 'build' ? '' : 'build' })}>
             {t.statusBuild}
             <span className={chipCount(q.status === 'build')}>{counts.build}</span>
@@ -366,16 +398,6 @@ export function ProjectsExplorer({
             {t.statusDone}
             <span className={chipCount(q.status === 'done')}>{counts.done}</span>
           </Chip>
-
-          {cities.map((c) => {
-            const on = q.city === c.value
-            return (
-              <Chip key={c.value} on={on} onClick={() => update({ city: on ? '' : c.value })}>
-                {c.value === OTHER_CITY ? t.other : cityName(c.value, loc)}
-                <span className={chipCount(on)}>{c.value === OTHER_CITY ? otherCityCount : counts.city.get(c.value)}</span>
-              </Chip>
-            )
-          })}
 
           <select
             aria-label={t.districtAria}

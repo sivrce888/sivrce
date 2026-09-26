@@ -12,12 +12,28 @@ import { cityByName, nearestMapCity } from '@/lib/map/user-place'
 import { scopeLabel, type marketDeltas } from '@/lib/project-insights'
 import type { ProjectCard } from './card'
 
+/**
+ * Strict Georgia geography verification.
+ * A project is in Georgia only if its known city or coordinates are inside Georgia.
+ */
+export function isProjectInGeorgia(p: { city?: string; coords?: { lat: number; lng: number } }): boolean {
+  const pin = p.city ? cityByName(p.city) : null
+  if (pin && pin.cc !== 'GE') return false
+  if (p.coords && (p.coords.lat !== 0 || p.coords.lng !== 0)) {
+    const near = nearestMapCity(p.coords.lat, p.coords.lng)
+    if (near && near.cc !== 'GE') return false
+    return p.coords.lat >= 41.05 && p.coords.lat <= 43.6 && p.coords.lng >= 40.0 && p.coords.lng <= 46.75
+  }
+  return pin?.cc === 'GE'
+}
+
 /** Server-side projection: resolves dev name + delivered once so the client grid never imports the catalog. */
 export function toCard(p: Project, loc: DirLoc | 'de', deltas?: ReturnType<typeof marketDeltas>): ProjectCard {
   const vs = deltas?.get(p.slug)
   const dev = getDeveloper(p.developerSlug)
   const pin = cityByName(p.city)
-  const cc = pin?.cc ?? (p.coords ? nearestMapCity(p.coords.lat, p.coords.lng)?.cc : null) ?? 'GE'
+  const isGe = isProjectInGeorgia(p)
+  const cc = isGe ? 'GE' : (pin?.cc ?? (p.coords ? nearestMapCity(p.coords.lat, p.coords.lng)?.cc : null) ?? 'OTHER')
   return {
     slug: p.slug,
     name: loc === 'ka' && p.nameKa ? p.nameKa : p.name,

@@ -12,7 +12,8 @@ import {pageAlternates, OG_LOCALE  } from '@/lib/i18n/server'
 import { isValidLang, type Lang } from '@/lib/i18n/core'
 import { MICRO, PROJECTS_HUB, dirLoc } from '@/lib/directory-seo'
 import { MICRO_DE } from '@/lib/directory-seo-lite'
-import { toCard } from '../../to-card'
+import { requestDomain, requestMarket } from '@/lib/request-market'
+import { isProjectInGeorgia, toCard } from '../../to-card'
 import { PER_PAGE, Pager, ProjectsGrid } from '../../ProjectsGrid'
 
 export const revalidate = 3600
@@ -59,7 +60,12 @@ export default async function ProjectsPageN({ params }: PageProps) {
   const c = PROJECTS_HUB[raw === 'ka' || raw === 'ru' || raw === 'de' ? raw : 'en']
   const loc = raw === 'ka' || raw === 'ru' || raw === 'de' ? raw : 'en'
 
-  const projects = await projectsLive()
+  const domain = await requestDomain()
+  const market = await requestMarket()
+  const isGeOnly = domain === 'ge' || market === 'ge'
+
+  const allProjects = await projectsLive()
+  const projects = isGeOnly ? allProjects.filter((p) => isProjectInGeorgia(p)) : allProjects
   const deltas = marketDeltas(projects)
   const totalPages = Math.max(1, Math.ceil(projects.length / PER_PAGE))
   if (pg > totalPages) notFound()

@@ -195,7 +195,7 @@ export interface CityFacet {
 }
 
 /** Top-N cities by project count; everything else folds into OTHER_CITY. */
-export function facetCities(items: ProjectCard[], keep = 3): CityFacet[] {
+export function facetCities(items: ProjectCard[], keep = 8): CityFacet[] {
   const byCity = new Map<string, number>()
   for (const p of items) byCity.set(p.city, (byCity.get(p.city) ?? 0) + 1)
   const top = [...byCity.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, keep)

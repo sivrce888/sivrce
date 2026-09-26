@@ -1,8 +1,11 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 import Image from 'next/image'
-import { notFound } from 'next/navigation'
+import { notFound, permanentRedirect } from 'next/navigation'
 import { avifCardOf, cardOf } from '@/lib/media'
+import { requestHostKind } from '@/lib/request-market'
+import { isProjectInGeorgia } from '@/app/[lang]/projects/to-card'
+import { cityByName } from '@/lib/map/user-place'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import ListingCard from '@/components/ListingCard'
@@ -162,6 +165,15 @@ export default async function DeveloperPage({ params }: PageProps) {
     getReviewAggregate('developer', slug),
     projectsLiveByDeveloper(slug),
   ])
+
+  // Domain constitution: foreign developers 308 off production sivrce.ge to sivrce.com canonical
+  if ((await requestHostKind()) === 'ge') {
+    const isGeDev = projects.some((p) => isProjectInGeorgia(p)) || cityByName(dev.city)?.cc === 'GE'
+    if (!isGeDev) {
+      return permanentRedirect(`https://sivrce.com/developers/${dev.slug}`)
+    }
+  }
+
   const listings = await getListingsForDeveloper(
     slug,
     projects.map((p) => p.slug),
