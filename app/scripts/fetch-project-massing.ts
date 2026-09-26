@@ -8,6 +8,7 @@
  */
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { geoJsonRound } from '../src/lib/map/map-geo'
 import { PROJECTS } from '../src/data/professionals'
 
 type Ring = [number, number][]
@@ -198,7 +199,7 @@ function saveFootprints(out: Record<string, Footprint | null>) {
         attribution: '© OpenStreetMap contributors (ODbL); TAS ARCHITECTURE_LR; NAPR CadRepGeo',
         footprints: out,
       },
-      null,
+      geoJsonRound,
       1,
     ),
   )

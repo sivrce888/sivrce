@@ -9,6 +9,7 @@
  */
 
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { geoJsonRound } from '../src/lib/map/map-geo'
 import { BUILDINGS } from '../src/data/buildings'
 import { LISTINGS } from '../src/data/listings'
 import { PROJECTS } from '../src/data/professionals'
@@ -469,7 +470,7 @@ function loadOut(): Record<string, Footprint | null> {
 function saveOut(out: Record<string, Footprint | null>) {
   writeFileSync(
     OUT,
-    JSON.stringify({ attribution: '© OpenStreetMap contributors (ODbL); TAS ARCHITECTURE_LR; NAPR CadRepGeo', footprints: out }, null, 1),
+    JSON.stringify({ attribution: '© OpenStreetMap contributors (ODbL); TAS ARCHITECTURE_LR; NAPR CadRepGeo', footprints: out }, geoJsonRound, 1),
   )
 }
 

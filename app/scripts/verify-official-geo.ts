@@ -5,6 +5,7 @@
  * Without --write: audit only, no files touched.
  */
 import { readFileSync, writeFileSync, existsSync } from 'node:fs'
+import { geoJsonRound } from '../src/lib/map/map-geo'
 import { PROJECTS } from '../src/data/professionals'
 import { fetchNaprParcelAt, fetchNaprParcelByCode, type NaprParcel } from '../src/lib/map/napr-parcel'
 import { haversineM } from '../src/lib/map/buildings'
@@ -111,7 +112,7 @@ async function main() {
           updatedAt: new Date().toISOString(),
           overrides,
         },
-        null,
+        geoJsonRound,
         2,
       ) + '\n',
     )

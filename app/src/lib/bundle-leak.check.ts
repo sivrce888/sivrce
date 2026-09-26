@@ -159,6 +159,16 @@ const BANNED: { entry: string; forbidden: string; why: string }[] = [
     forbidden: "lib/map/user-place.ts",
     why: "the hero island must not reach data/world-places; locationLabel comes from lib/search-location (leaf)",
   },
+  {
+    entry: "components/map/Map3D.tsx",
+    forbidden: "data/tbilisi-streets.ts",
+    why: "one formatGeocodeAddress import from map/geocode shipped the 740 KB street catalog to every map visitor; client code imports map/geocode-format (leaf)",
+  },
+  {
+    entry: "components/add-listing/AddListingClient.tsx",
+    forbidden: "data/tbilisi-streets.ts",
+    why: "splitStreetHouse/knownCityCenter live in map/geocode-format (leaf), not map/geocode",
+  },
 ]
 
 for (const { entry, forbidden, why } of BANNED) {

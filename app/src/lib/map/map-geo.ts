@@ -191,3 +191,12 @@ export const MAP_BRAND_LAND = BRAND.colors.navy
 
 /** Build-time import lock — device-budget.check.ts verifies this symbol exists. */
 export const mapGeoLock = true
+
+/**
+ * JSON.stringify replacer for committed geo data: 7 dp ≈ 1 cm. Cadastre/TAS
+ * rings arrive with 15-digit floats — nanometres the map can't draw, shipped
+ * to every map visitor. Integers (floors, ids) pass through untouched.
+ */
+export function geoJsonRound(_key: string, value: unknown): unknown {
+  return typeof value === 'number' && !Number.isInteger(value) ? Math.round(value * 1e7) / 1e7 : value
+}

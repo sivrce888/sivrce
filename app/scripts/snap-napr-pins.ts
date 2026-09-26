@@ -6,6 +6,7 @@
  */
 
 import { writeFileSync } from 'node:fs'
+import { geoJsonRound } from '../src/lib/map/map-geo'
 import { PROJECTS } from '../src/data/professionals'
 import { fetchNaprParcelByCode, probeNaprCadRep } from '../src/lib/map/napr-parcel'
 
@@ -53,7 +54,7 @@ async function main() {
         updatedAt: new Date().toISOString(),
         overrides,
       },
-      null,
+      geoJsonRound,
       2,
     ) + '\n',
   )

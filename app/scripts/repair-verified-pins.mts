@@ -5,6 +5,7 @@
  * Run: npx --yes tsx scripts/repair-verified-pins.mts
  */
 import { readFileSync, writeFileSync } from 'node:fs'
+import { geoJsonRound } from '../src/lib/map/map-geo'
 import { fetchNaprParcelAt } from '../src/lib/map/napr-parcel'
 import { haversineM, ringBboxHalfM } from '../src/lib/map/buildings'
 
@@ -93,11 +94,11 @@ async function main() {
 
   writeFileSync(
     NAPR_OUT,
-    JSON.stringify({ attribution: 'NAPR CadRepGeo (reestri.gov.ge) via maps.gov.ge', updatedAt: new Date().toISOString(), overrides: naprFile.overrides }, null, 2) + '\n',
+    JSON.stringify({ attribution: 'NAPR CadRepGeo (reestri.gov.ge) via maps.gov.ge', updatedAt: new Date().toISOString(), overrides: naprFile.overrides }, geoJsonRound, 2) + '\n',
   )
   writeFileSync(
     TAS_OUT,
-    JSON.stringify({ attribution: 'Tbilisi Architecture Service ARCHITECTURE_LR (tas.ge / mgis.tbilisi.gov.ge)', updatedAt: new Date().toISOString(), overrides: tasFile.overrides }, null, 2) + '\n',
+    JSON.stringify({ attribution: 'Tbilisi Architecture Service ARCHITECTURE_LR (tas.ge / mgis.tbilisi.gov.ge)', updatedAt: new Date().toISOString(), overrides: tasFile.overrides }, geoJsonRound, 2) + '\n',
   )
   console.log('repair-verified-pins: done')
 }

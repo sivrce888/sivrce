@@ -5,6 +5,7 @@
  */
 import dns from 'node:dns'
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { geoJsonRound } from '../src/lib/map/map-geo'
 import { PROJECTS } from '../src/data/professionals'
 import { fetchNaprParcelAt, fetchNaprParcelByCode, probeNaprCadRep } from '../src/lib/map/napr-parcel'
 import {
@@ -279,7 +280,7 @@ async function main() {
         attribution: '© OpenStreetMap contributors (ODbL); TAS ARCHITECTURE_LR; NAPR CadRepGeo',
         footprints,
       },
-      null,
+      geoJsonRound,
       1,
     ),
   )
@@ -291,7 +292,7 @@ async function main() {
         updatedAt: new Date().toISOString(),
         overrides: tasOverrides,
       },
-      null,
+      geoJsonRound,
       2,
     ) + '\n',
   )
@@ -304,7 +305,7 @@ async function main() {
           updatedAt: new Date().toISOString(),
           overrides: naprOverrides,
         },
-        null,
+        geoJsonRound,
         2,
       ) + '\n',
     )

@@ -51,7 +51,8 @@ async function main() {
   const pin = footprintPin({ slug: 'next-downtown' }, at)
   assert.ok(pin, 'next-downtown footprint pin resolves')
   assert.ok(pin!.ring.length >= 5, 'ring present')
-  assert.equal(pin!.ring[0]![0], 41.64318859577179, 'verified ring wins over hand-drawn neighbour')
+  // ≤1e-6° (~10 cm): committed geo is rounded to 7 dp (geoJsonRound).
+  assert.ok(Math.abs(pin!.ring[0]![0] - 41.6431886) < 1e-6, 'verified ring wins over hand-drawn neighbour')
   assert.ok(ringContains(pin!.ring, pin!.lng, pin!.lat), 'pin inside its own ring')
   // Catalog coords were snapped onto the verified ring (≤25 m policy) — pin must stay glued.
   assert.ok(haversineM(at.lat, at.lng, pin!.lat, pin!.lng) < 30, 'pin glued to snapped catalog pin')
