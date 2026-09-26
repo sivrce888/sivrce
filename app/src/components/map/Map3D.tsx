@@ -2075,6 +2075,10 @@ function Map3DInner({
         console.error('[Map3D] style', err)
         try {
           style = withLiveProbe(await loadMapBasemap(STYLE_SATELLITE))
+          // Say what is really drawn. Left at "streets", the chip lied and a tap
+          // on Streets was a no-op state change — the only retry path was dead.
+          styleUrlRef.current = STYLE_SATELLITE
+          if (!cancelled) setTerrain('satellite')
         } catch {
           if (!cancelled) setError(tRef.current('map.error'))
           return
