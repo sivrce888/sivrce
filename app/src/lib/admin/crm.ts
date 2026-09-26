@@ -1,6 +1,8 @@
 import type { CrmLead, Prisma } from "@/generated/prisma/client"
 import { CrmLeadStatus, CrmTaskPriority, CrmTaskStatus, type UserRole } from "@/generated/prisma/enums"
 
+import { fmtMoney } from "@/lib/admin/format"
+import { endOfToday } from "@/lib/crm-follow-up"
 import { db } from "@/lib/db"
 import { dashboardPathFor } from "@/lib/guards"
 import { canWorkLeads, LEAD_WORKER_ROLES } from "@/lib/pro-leads"
@@ -92,6 +94,10 @@ export const TASK_PRIORITY_LABELS: Record<CrmTaskPriority, string> = {
 export const ACTIVITY_TYPES = ["call", "email", "sms", "meeting", "viewing", "note"] as const
 export type ActivityType = (typeof ACTIVITY_TYPES)[number]
 
+export function isActivityType(v: string): v is ActivityType {
+  return (ACTIVITY_TYPES as readonly string[]).includes(v)
+}
+
 export const ACTIVITY_TYPE_LABELS: Record<ActivityType, string> = {
   call: "Call",
   email: "Email",
@@ -101,13 +107,61 @@ export const ACTIVITY_TYPE_LABELS: Record<ActivityType, string> = {
   note: "Note",
 }
 
+export const CRM_CURRENCIES = ["GEL", "USD", "EUR"] as const
+export const CRM_DEAL_TYPES = ["buy", "rent", "daily", "mortgage"] as const
+
+export function budgetLabel(lead: Pick<CrmLead, "budgetMin" | "budgetMax" | "currency">): string {
+  const { budgetMin, budgetMax, currency } = lead
+  if (budgetMin === null && budgetMax === null) return "—"
+  if (budgetMin === null) return `≤ ${fmtMoney(budgetMax, currency)}`
+  if (budgetMax === null) return `${fmtMoney(budgetMin, currency)}+`
+  return `${fmtMoney(budgetMin, currency)}–${fmtMoney(budgetMax, currency)}`
+}
+
+const OPEN_LEAD: Prisma.CrmLeadWhereInput = { status: { notIn: [...CLOSED_LEAD_STATUSES] } }
+const OPEN_TASK = { in: [CrmTaskStatus.todo, CrmTaskStatus.in_progress] }
+
+/**
+ * One touch = activity row + lastContact + the next follow-up, atomically.
+ * Shared by staff and pros so both keep the same client history.
+ */
+export async function recordCrmTouch(input: {
+  leadId: string
+  agentId: string
+  type: ActivityType
+  notes: string
+  nextFollowUp: Date | null
+}) {
+  const { leadId, agentId, type, notes, nextFollowUp } = input
+  const [activity] = await db.$transaction([
+    db.crmActivity.create({ data: { leadId, agentId, type, notes }, select: { id: true } }),
+    db.crmLead.update({
+      where: { id: leadId },
+      // Forms prefill only a future follow-up, so a touch resolves a due one and keeps a plan.
+      data: { lastContact: new Date(), nextFollowUp },
+    }),
+  ])
+  return activity
+}
+
 /** Pipeline board: leads grouped by status + the distinct agent list for the filter. */
-export async function listCrmBoard(agent: string) {
-  const where: Prisma.CrmLeadWhereInput = agent ? { agentId: agent } : {}
+export async function listCrmBoard(agent: string, q: string) {
+  const where: Prisma.CrmLeadWhereInput = {
+    ...(agent ? { agentId: agent } : {}),
+    ...(q
+      ? {
+          OR: [
+            { name: { contains: q, mode: "insensitive" } },
+            { phone: { contains: q } },
+            { email: { contains: q, mode: "insensitive" } },
+          ],
+        }
+      : {}),
+  }
   const [leads, agents] = await Promise.all([
     db.crmLead.findMany({
       where,
-      orderBy: [{ nextFollowUp: "asc" }, { createdAt: "desc" }],
+      orderBy: [{ nextFollowUp: { sort: "asc", nulls: "last" } }, { createdAt: "desc" }],
       take: 500,
     }),
     db.crmLead.findMany({
@@ -123,6 +177,27 @@ export async function listCrmBoard(agent: string) {
     if (bucket) bucket.push(lead)
   }
   return { byStatus, agents: agents.map((a) => a.agentId), total: leads.length }
+}
+
+/** "Due now" queue: open leads whose follow-up is today or late + open tasks due by tonight. */
+export async function listCrmDue(agent: string) {
+  const by = agent ? { agentId: agent } : {}
+  const cutoff = endOfToday()
+  const [leads, tasks] = await Promise.all([
+    db.crmLead.findMany({
+      where: { ...by, ...OPEN_LEAD, nextFollowUp: { lte: cutoff } },
+      select: { id: true, name: true, phone: true, nextFollowUp: true, agentId: true },
+      orderBy: { nextFollowUp: "asc" },
+      take: 50,
+    }),
+    db.crmTask.findMany({
+      where: { ...by, status: OPEN_TASK, dueDate: { lte: cutoff } },
+      select: { id: true, title: true, dueDate: true, priority: true, lead: { select: { id: true, name: true } } },
+      orderBy: { dueDate: "asc" },
+      take: 50,
+    }),
+  ])
+  return { leads, tasks }
 }
 
 export async function getCrmLead(id: string) {

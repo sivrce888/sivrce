@@ -2,7 +2,9 @@ import LocalizedLink from "@/components/LocalizedLink"
 import { MessageCircle, Phone } from "lucide-react"
 
 import { LEAD_STATUS_ORDER, leadStatusLabels } from "@/components/agency-dashboard/nav"
-import { setCrmClientStatus, setProLeadStatus } from "@/components/dashboard/lead-actions"
+import { CrmTouchForm } from "@/components/crm/CrmTouchForm"
+import { logCrmClientTouch, setCrmClientStatus, setProLeadStatus } from "@/components/dashboard/lead-actions"
+import { followUpState } from "@/lib/crm-follow-up"
 import { db } from "@/lib/db"
 import { safeQuery } from "@/lib/guards"
 import { INQUIRY_STATUSES, isInquiryStatus, leadWaText } from "@/lib/pro-leads"
@@ -216,6 +218,9 @@ const CLIENT_L = {
     hint: "Sivrce-ის გუნდის მიერ თქვენზე გადმოცემული კლიენტები.",
     call: "ზარი",
     followUp: "შემდეგი კონტაქტი",
+    today: "დღეს",
+    lastContact: "ბოლო კონტაქტი",
+    log: "კონტაქტის ჩაწერა",
     statusAria: "კლიენტის სტატუსი",
     save: "შენახვა",
     locale: "ka-GE",
@@ -225,6 +230,9 @@ const CLIENT_L = {
     hint: "Clients the Sivrce team assigned to you.",
     call: "Call",
     followUp: "Next follow-up",
+    today: "today",
+    lastContact: "Last contact",
+    log: "Log contact",
     statusAria: "Client status",
     save: "Save",
     locale: "en-GB",
@@ -234,6 +242,9 @@ const CLIENT_L = {
     hint: "Kunden, die das Sivrce-Team Ihnen zugewiesen hat.",
     call: "Anrufen",
     followUp: "Nächster Kontakt",
+    today: "heute",
+    lastContact: "Letzter Kontakt",
+    log: "Kontakt erfassen",
     statusAria: "Kundenstatus",
     save: "Speichern",
     locale: "de-DE",
@@ -255,7 +266,8 @@ export async function CrmClients({ ownerIds, lang }: { ownerIds: string[]; lang:
   const t = CLIENT_L[panelLang(lang)]
   const statusLabel = leadStatusLabels(lang)
   const dateFmt = new Intl.DateTimeFormat(t.locale, { dateStyle: "medium", timeStyle: "short" })
-  const now = new Date()
+  // Follow-ups are day-level at UTC noon (crm-follow-up.ts): render the date only, in UTC.
+  const dayFmt = new Intl.DateTimeFormat(t.locale, { dateStyle: "medium", timeZone: "UTC" })
 
   return (
     <section aria-labelledby="crm-clients-h" className="mb-8">
@@ -265,7 +277,7 @@ export async function CrmClients({ ownerIds, lang }: { ownerIds: string[]; lang:
       <p className="mt-0.5 mb-4 text-[12.5px] font-medium text-sv-ink/60">{t.hint}</p>
       <div className="grid gap-3 md:grid-cols-2">
         {clients.map((c) => {
-          const overdue = c.nextFollowUp !== null && c.nextFollowUp < now && c.closedAt === null
+          const due = c.closedAt === null ? followUpState(c.nextFollowUp) : "none"
           return (
             <article
               key={c.id}
@@ -308,8 +320,19 @@ export async function CrmClients({ ownerIds, lang }: { ownerIds: string[]; lang:
                 </a>
               </div>
               <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-sv-ink/6 pt-3">
-                <p className={`text-[11.5px] font-semibold ${overdue ? "text-rose-600" : "text-sv-ink/60"}`}>
-                  {c.nextFollowUp ? `${t.followUp}: ${dateFmt.format(c.nextFollowUp)}` : dateFmt.format(c.createdAt)}
+                <p className="text-[11.5px] font-semibold text-sv-ink/60">
+                  {c.nextFollowUp ? (
+                    <span className={due === "overdue" ? "text-rose-600" : due === "today" ? "text-sv-blue-deep" : undefined}>
+                      {t.followUp}: {due === "today" ? t.today : dayFmt.format(c.nextFollowUp)}
+                    </span>
+                  ) : (
+                    dateFmt.format(c.createdAt)
+                  )}
+                  {c.lastContact ? (
+                    <span className="block font-medium">
+                      {t.lastContact}: {dateFmt.format(c.lastContact)}
+                    </span>
+                  ) : null}
                 </p>
                 <form action={setCrmClientStatus} className="flex items-center gap-2">
                   <input type="hidden" name="id" value={c.id} />
@@ -333,6 +356,14 @@ export async function CrmClients({ ownerIds, lang }: { ownerIds: string[]; lang:
                   </button>
                 </form>
               </div>
+              <details className="mt-3 border-t border-sv-ink/6 pt-3">
+                <summary className="cursor-pointer list-none text-[12.5px] font-bold text-sv-blue-deep marker:hidden hover:text-sv-blue">
+                  {t.log}
+                </summary>
+                <div className="mt-3">
+                  <CrmTouchForm action={logCrmClientTouch} leadId={c.id} nextFollowUp={c.nextFollowUp} lang={lang} />
+                </div>
+              </details>
             </article>
           )
         })}

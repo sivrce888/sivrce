@@ -1,4 +1,4 @@
-import { ArrowLeft, ClipboardList, ListTodo } from "lucide-react"
+import { ArrowLeft, ClipboardList, ListTodo, Mail, MessageCircle, Phone } from "lucide-react"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { ReactNode } from "react"
@@ -8,17 +8,20 @@ import {
   addTask,
   reassignLead,
   setTaskStatus,
+  updateLeadDetails,
   updateLeadStatus,
 } from "@/app/[lang]/admin/crm/actions"
 import { ConfirmButton } from "@/components/admin/ui/ConfirmButton"
 import { EmptyState } from "@/components/admin/ui/EmptyState"
 import { PageHeader } from "@/components/admin/ui/PageHeader"
+import { CrmTouchForm } from "@/components/crm/CrmTouchForm"
 import { StatusPill } from "@/components/admin/ui/StatusPill"
 import { CrmTaskPriority } from "@/generated/prisma/enums"
-import type { CrmLead } from "@/generated/prisma/client"
 import {
   ACTIVITY_TYPE_LABELS,
-  ACTIVITY_TYPES,
+  budgetLabel,
+  CRM_CURRENCIES,
+  CRM_DEAL_TYPES,
   getCrmLead,
   listAssignees,
   LEAD_STATUS_LABELS,
@@ -26,8 +29,11 @@ import {
   TASK_PRIORITY_LABELS,
   type ActivityType,
 } from "@/lib/admin/crm"
-import { fmtDate, fmtDateTime, fmtMoney, timeAgo } from "@/lib/admin/format"
+import { fmtDate, fmtDateTime, timeAgo } from "@/lib/admin/format"
 import { requireAdmin } from "@/lib/admin/guard"
+import { followUpState } from "@/lib/crm-follow-up"
+import { telHref, waHref } from "@/lib/inquiries/phone"
+import { leadWaText } from "@/lib/pro-leads"
 
 export const metadata = { title: "Lead detail" }
 
@@ -56,13 +62,8 @@ function Def({ label, children }: { label: string; children: ReactNode }) {
   )
 }
 
-function budget(lead: CrmLead): string {
-  const { budgetMin, budgetMax, currency } = lead
-  if (budgetMin === null && budgetMax === null) return "—"
-  if (budgetMin === null) return `≤ ${fmtMoney(budgetMax, currency)}`
-  if (budgetMax === null) return `${fmtMoney(budgetMin, currency)}+`
-  return `${fmtMoney(budgetMin, currency)}–${fmtMoney(budgetMax, currency)}`
-}
+const contactCls =
+  "inline-flex h-10 items-center gap-1.5 rounded-full px-4 text-[13px] font-bold transition-colors"
 
 export default async function AdminCrmLeadPage({
   params,
@@ -74,6 +75,7 @@ export default async function AdminCrmLeadPage({
   const [lead, assignees] = await Promise.all([getCrmLead(id), listAssignees()])
   if (!lead) notFound()
   const owner = assignees.find((a) => a.id === lead.agentId)
+  const due = followUpState(lead.nextFollowUp)
 
   return (
     <>
@@ -95,21 +97,46 @@ export default async function AdminCrmLeadPage({
           <span className="rounded-full bg-sv-cloud px-2.5 py-1 text-[12px] font-semibold text-sv-ink/60">
             {lead.source}
           </span>
+          <span className="flex-1" />
+          <a href={telHref(lead.phone)} className={`${contactCls} bg-sv-blue text-white hover:bg-sv-blue-deep`}>
+            <Phone className="h-3.5 w-3.5" aria-hidden /> Call
+          </a>
+          <a
+            href={waHref(lead.phone, leadWaText(lead.name))}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={`${contactCls} border border-sv-ink/12 bg-white text-sv-ink/80 hover:border-sv-blue hover:text-sv-blue-deep`}
+          >
+            <MessageCircle className="h-3.5 w-3.5" aria-hidden /> WhatsApp
+          </a>
+          {lead.email ? (
+            <a
+              href={`mailto:${lead.email}`}
+              className={`${contactCls} border border-sv-ink/12 bg-white text-sv-ink/80 hover:border-sv-blue hover:text-sv-blue-deep`}
+            >
+              <Mail className="h-3.5 w-3.5" aria-hidden /> Email
+            </a>
+          ) : null}
         </div>
         <dl className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-3 xl:grid-cols-4">
           <Def label="Owner">{owner?.label ?? "Unknown"}</Def>
           <Def label="Phone">
-            <a href={`tel:${lead.phone}`} className="hover:text-sv-blue">
+            <a href={telHref(lead.phone)} className="hover:text-sv-blue">
               {lead.phone}
             </a>
           </Def>
           <Def label="Email">{lead.email ?? "—"}</Def>
-          <Def label="Budget">{budget(lead)}</Def>
+          <Def label="Budget">{budgetLabel(lead)}</Def>
           <Def label="District">{lead.district ?? "—"}</Def>
           <Def label="Deal type">{lead.dealType ?? "—"}</Def>
           <Def label="Created">{fmtDateTime(lead.createdAt)}</Def>
           <Def label="Last contact">{fmtDateTime(lead.lastContact)}</Def>
-          <Def label="Next follow-up">{fmtDateTime(lead.nextFollowUp)}</Def>
+          <Def label="Next follow-up">
+            <span className={due === "overdue" ? "text-rose-600" : due === "today" ? "text-sv-blue-deep" : undefined}>
+              {due === "today" ? "Today" : fmtDate(lead.nextFollowUp)}
+              {due === "overdue" ? " · overdue" : ""}
+            </span>
+          </Def>
           {lead.closedAt ? <Def label="Closed">{fmtDateTime(lead.closedAt)}</Def> : null}
           {lead.closedReason ? <Def label="Close reason">{lead.closedReason}</Def> : null}
         </dl>
@@ -159,6 +186,58 @@ export default async function AdminCrmLeadPage({
             Reassign
           </button>
         </form>
+        <details className="mt-4 border-t border-sv-ink/8 pt-4">
+          <summary className="cursor-pointer text-[13px] font-bold text-sv-blue-deep hover:text-sv-blue">
+            Edit qualification
+          </summary>
+          <form action={updateLeadDetails} className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+            <input type="hidden" name="id" value={lead.id} />
+            <label className="grid gap-1 text-[12px] font-semibold text-sv-ink/60">
+              Budget from
+              <input name="budgetMin" type="number" min={0} step={1000} inputMode="numeric" defaultValue={lead.budgetMin ?? ""} className={inputCls} />
+            </label>
+            <label className="grid gap-1 text-[12px] font-semibold text-sv-ink/60">
+              Budget to
+              <input name="budgetMax" type="number" min={0} step={1000} inputMode="numeric" defaultValue={lead.budgetMax ?? ""} className={inputCls} />
+            </label>
+            <label className="grid gap-1 text-[12px] font-semibold text-sv-ink/60">
+              Currency
+              <select name="currency" defaultValue={lead.currency} className={inputCls}>
+                {CRM_CURRENCIES.map((c) => (
+                  <option key={c}>{c}</option>
+                ))}
+              </select>
+            </label>
+            <label className="grid gap-1 text-[12px] font-semibold text-sv-ink/60">
+              Deal type
+              <select name="dealType" defaultValue={lead.dealType ?? ""} className={inputCls}>
+                <option value="">—</option>
+                {CRM_DEAL_TYPES.map((d) => (
+                  <option key={d} value={d}>
+                    {d}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label className="grid gap-1 text-[12px] font-semibold text-sv-ink/60">
+              District
+              <input name="district" maxLength={120} defaultValue={lead.district ?? ""} className={inputCls} />
+            </label>
+            <label className="grid gap-1 text-[12px] font-semibold text-sv-ink/60">
+              Email
+              <input name="email" type="email" maxLength={240} defaultValue={lead.email ?? ""} className={inputCls} />
+            </label>
+            <label className="grid gap-1 text-[12px] font-semibold text-sv-ink/60 sm:col-span-2 xl:col-span-4">
+              Notes
+              <textarea name="notes" rows={3} maxLength={2000} defaultValue={lead.notes ?? ""} className={textareaCls} />
+            </label>
+            <div>
+              <button type="submit" className={submitCls}>
+                Save details
+              </button>
+            </div>
+          </form>
+        </details>
       </Section>
 
       <div className="mt-6 grid items-start gap-6 lg:grid-cols-2">
@@ -187,26 +266,9 @@ export default async function AdminCrmLeadPage({
               ))}
             </ol>
           )}
-          <form action={addActivity} className="mt-5 space-y-3 border-t border-sv-ink/8 pt-4">
-            <input type="hidden" name="leadId" value={lead.id} />
-            <select name="type" aria-label="Activity type" className={inputCls}>
-              {ACTIVITY_TYPES.map((t) => (
-                <option key={t} value={t}>
-                  {ACTIVITY_TYPE_LABELS[t]}
-                </option>
-              ))}
-            </select>
-            <textarea aria-label="What happened?"
-              name="notes"
-              required
-              rows={3}
-              placeholder="What happened?"
-              className={textareaCls}
-            />
-            <button type="submit" className={submitCls}>
-              Add activity
-            </button>
-          </form>
+          <div className="mt-5 border-t border-sv-ink/8 pt-4">
+            <CrmTouchForm action={addActivity} leadId={lead.id} nextFollowUp={lead.nextFollowUp} lang="en" />
+          </div>
         </Section>
 
         <Section title={`Tasks (${lead.tasks.length})`}>
