@@ -20,18 +20,15 @@ import {
   type TbilisiQuarter,
 } from '@/data/tbilisi-quarters'
 import { districtKaForStreet } from '@/data/tbilisi-streets'
+import {
+  formatGeocodeAddress,
+  knownCityCenter,
+  splitStreetHouse,
+  type GeocodeHit,
+} from '@/lib/map/geocode-format'
 
-export type GeocodeHit = {
-  lat: number
-  lng: number
-  label: string
-  city?: string
-  district?: string
-  street?: string
-  houseNo?: string
-  /** OSM building outer ring [lng,lat]… when Nominatim returns polygon_geojson. */
-  ring?: [number, number][]
-}
+export { formatGeocodeAddress, knownCityCenter, splitStreetHouse, type GeocodeHit }
+
 
 const NOMINATIM_UA = 'Sivrce/1.0 (https://sivrce.ge; maps@sivrce.ge)'
 
@@ -65,15 +62,6 @@ export function cityCenter(city: string): { lat: number; lng: number } {
   return knownCityCenter(city) ?? MAP_CENTER
 }
 
-/** Catalog pin only — unknown city must not snap to Tbilisi. */
-export function knownCityCenter(city: string): { lat: number; lng: number } | null {
-  const needle = city.trim().toLowerCase()
-  if (!needle) return null
-  const hit = MAP_CITIES.find(
-    (c) => c.ka.toLowerCase() === needle || c.slug === needle || c.en.toLowerCase() === needle,
-  )
-  return hit ? { lat: hit.lat, lng: hit.lng } : null
-}
 
 /** Nominatim city (ka/en/slug) → Sivrce ka city label. */
 export function matchCityKa(name?: string | null): string | undefined {
@@ -122,13 +110,6 @@ export function normalizeDistrict(a?: NominatimRow['address']): string | undefin
   return fallback
 }
 
-/** "ჭავჭავაძის გამზ. 47" → street + houseNo (keeps casing). */
-export function splitStreetHouse(raw: string): { street: string; houseNo: string } {
-  const head = (raw.split(',')[0] ?? raw).trim()
-  const m = head.match(/^(.*?)\s+(\d+[a-zA-Zა-ჰ]?)\s*$/u)
-  if (!m?.[1] || !m[2]) return { street: head, houseNo: '' }
-  return { street: m[1].trim(), houseNo: m[2] }
-}
 
 export function nearestCity(lat: number, lng: number): MapCity | null {
   let best: MapCity | null = null
@@ -427,15 +408,6 @@ export async function resolveListingCoords(
   if (!city) return null
   const named = await geocodeAddress(city, signal)
   return named ? { lat: named.lat, lng: named.lng } : null
-}
-
-/** UI line from a geocode hit — street + house № first. */
-export function formatGeocodeAddress(
-  hit: Pick<GeocodeHit, 'street' | 'houseNo' | 'district' | 'city' | 'label'>,
-): string {
-  const street = [hit.street, hit.houseNo].filter(Boolean).join(' ').trim()
-  const line = [street || null, hit.district, hit.city].filter(Boolean).join(', ')
-  return line || hit.label
 }
 
 /** Click-to-address — reverse Nominatim at building zoom. */

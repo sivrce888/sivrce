@@ -54,7 +54,7 @@ import { VIDEO_ACCEPT,
   youtubeId,
   youtubePoster,
 } from '@/lib/listing-video'
-import { knownCityCenter, splitStreetHouse, type GeocodeHit } from '@/lib/map/geocode'
+import { knownCityCenter, splitStreetHouse, type GeocodeHit } from '@/lib/map/geocode-format'
 import { naprUniqDigits, ringAreaM2 } from '@/lib/map/napr-parcel'
 import { canonicalizeDistrict } from '@/lib/district-canon'
 import {

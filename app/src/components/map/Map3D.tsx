@@ -167,7 +167,7 @@ import {
   type MapCity,
 } from '@/lib/map/user-place'
 import { countryIsoForMarket, type MarketId } from '@/lib/markets'
-import { formatGeocodeAddress, type GeocodeHit } from '@/lib/map/geocode'
+import { formatGeocodeAddress, type GeocodeHit } from '@/lib/map/geocode-format'
 import { readableName } from '@/lib/ka-latin'
 import { ChromeSearch, type Suggestion } from '@/components/search/SearchSuggest'
 // ponytail: construction photo-wrap retired — MapLibre TAS massing only.
