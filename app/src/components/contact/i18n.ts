@@ -25,7 +25,7 @@ export interface ContactStrings {
 const STRINGS: Record<Lang, ContactStrings> = {
   ka: {
     nameLabel: 'სახელი',
-    namePh: 'შენი სახელი',
+    namePh: 'თქვენი სახელი',
     emailLabel: 'ელ. ფოსტა',
     emailPh: 'name@example.com',
     messageLabel: 'შეტყობინება',
@@ -36,7 +36,7 @@ const STRINGS: Record<Lang, ContactStrings> = {
     successBody: 'გმადლობთ! ჩვენი გუნდი გიპასუხებთ 24 საათის განმავლობაში.',
     openChat: 'ჩატში გახსნა',
     newMessage: 'ახალი შეტყობინება',
-    error: 'გაგზავნა ვერ მოხერხდა. სცადე თავიდან ან მოგვწერე ელ. ფოსტაზე.',
+    error: 'გაგზავნა ვერ მოხერხდა. გთხოვთ, სცადოთ თავიდან ან მოგვწეროთ ელფოსტაზე.',
   },
   en: {
     nameLabel: 'Name',

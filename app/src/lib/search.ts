@@ -81,6 +81,8 @@ export interface SearchFilters {
   floorTypes?: string[]
   features?: string[]
   hasPhoto?: boolean
+  /** extendedFields.video is a non-empty playable URL. */
+  hasVideo?: boolean
   verifiedOnly?: boolean
   petsOnly?: boolean
   sellerType?: "owner" | "agency"
@@ -151,6 +153,7 @@ export interface ListingDocument {
   pricePerSqm?: number
   verified: boolean
   hasImages: boolean
+  hasVideo?: boolean
   petsAllowed?: boolean
   sellerType?: string
   /** Vocabulary keys from src/lib/features.ts (from extendedFields) */
@@ -246,6 +249,7 @@ async function ensureIndex(): Promise<boolean> {
       "floorType",
       "verified",
       "hasImages",
+      "hasVideo",
       "petsAllowed",
       "sellerType",
       "metroM",
@@ -377,6 +381,7 @@ function buildMeiliFilter(filters: SearchFilters): string {
   // AND semantics: every selected feature must be present.
   for (const f of filters.features ?? []) parts.push(`features = ${esc(f)}`)
   if (filters.hasPhoto) parts.push("hasImages = true")
+  if (filters.hasVideo) parts.push("hasVideo = true")
   if (filters.verifiedOnly) parts.push("verified = true")
   if (filters.petsOnly) parts.push("petsAllowed = true")
   if (filters.sellerType) parts.push(`sellerType = ${esc(filters.sellerType)}`)

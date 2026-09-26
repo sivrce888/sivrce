@@ -45,7 +45,7 @@ export function pushLocRecent(v: LocationValue): LocationValue[] {
 }
 
 /** Compact label for the location trigger. */
-export function locationLabel(v: LocationValue, empty = 'აირჩიე ქალაქი', lang = 'ka'): string {
+export function locationLabel(v: LocationValue, empty = 'აირჩიეთ ქალაქი', lang = 'ka'): string {
   // Values stay ka (URL/filter contract); only the label is localized.
   const city = placeLabel(v.city, lang)
   const districts = splitDistricts(v.district).map((d) => placeLabel(d, lang))

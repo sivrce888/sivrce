@@ -13,6 +13,7 @@ try {
 }
 
 import { deleteListing, indexListing, meiliCountryClause, searchListings, type ListingDocument } from "./search"
+import { buildDbWhere, parseSearchParams } from "./search-filters"
 
 function assert(cond: unknown, msg: string): asserts cond {
   if (!cond) {
@@ -21,9 +22,28 @@ function assert(cond: unknown, msg: string): asserts cond {
   }
 }
 
+function videoFilterContract() {
+  const f = parseSearchParams(new URLSearchParams("video=1"))
+  assert(f.hasVideo === true, "video=1 must parse to hasVideo")
+  const andsOf = (w: ReturnType<typeof buildDbWhere>) =>
+    w.AND === undefined ? [] : Array.isArray(w.AND) ? w.AND : [w.AND]
+  assert(
+    andsOf(buildDbWhere(f)).some((c) => JSON.stringify(c).includes('"video"')),
+    "DB where must constrain extendedFields.video",
+  )
+  assert(
+    !andsOf(buildDbWhere(parseSearchParams(new URLSearchParams()))).some((c) =>
+      JSON.stringify(c).includes('"video"'),
+    ),
+    "no video=1 → no video clause",
+  )
+  console.log("ok: video filter contract (parse + DB where)")
+}
+
 async function main() {
   assert(meiliCountryClause("GE") === '(country = "GE" OR country NOT EXISTS)', "GE meili clause must keep unindexed docs")
   assert(meiliCountryClause("DE") === 'country = "DE"', "DE meili clause is exact")
+  videoFilterContract()
 
   if (!process.env.MEILISEARCH_HOST) {
     const r = await searchListings({ q: "ვაკე" })

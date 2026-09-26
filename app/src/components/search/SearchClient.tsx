@@ -250,6 +250,7 @@ export default function SearchClient({
   const feat = useMemo(() => splitCsv(featRaw, FEATURE_KEYS), [featRaw])
   const partyLanding = deal === 'daily' && feat.length === 1 && feat[0] === 'add.f.partiesAllowed'
   const photo = params.get('photo') === '1'
+  const hasVideo = params.get('video') === '1'
   const verifiedOnly = params.get('verified') === '1'
   const tierRaw = params.get('tier')
   const tier = isSearchTier(tierRaw) ? tierRaw : undefined
@@ -457,6 +458,7 @@ export default function SearchClient({
         if (ftypeRaw) sp.set('ftype', ftypeRaw)
         if (featRaw) sp.set('feat', featRaw)
         if (photo) sp.set('photo', '1')
+        if (hasVideo) sp.set('video', '1')
         if (verifiedOnly) sp.set('verified', '1')
         if (tier) sp.set('tier', tier)
         if (pets) sp.set('pets', '1')
@@ -547,7 +549,7 @@ export default function SearchClient({
   const [sheetOpen, setSheetOpen] = useState(false)
   const moreCount = (baths !== undefined ? 1 : 0)
     + (floorMin !== undefined || floorMax !== undefined ? 1 : 0)
-    + cond.length + bstat.length + project.length + ftype.length + feat.length + (photo ? 1 : 0) + (verifiedOnly ? 1 : 0)
+    + cond.length + bstat.length + project.length + ftype.length + feat.length + (photo ? 1 : 0) + (hasVideo ? 1 : 0) + (verifiedOnly ? 1 : 0)
     + (pets ? 1 : 0) + (nearMetro ? 1 : 0) + (seller ? 1 : 0) + (tier ? 1 : 0)
   const [moreOpen, setMoreOpen] = useState(false)
   const [menu, setMenu] = useState<'price' | 'rooms' | 'area' | 'dates' | null>(null)
@@ -643,6 +645,7 @@ export default function SearchClient({
     })
   } else if (feat.length) chips.push({ key: 'feat', label: `${t('search.features')} · ${feat.length}`, clear: () => patchParams({ feat: undefined }) })
   if (photo) chips.push({ key: 'photo', label: t('search.photoOnly'), clear: () => patchParams({ photo: undefined }) })
+  if (hasVideo) chips.push({ key: 'video', label: t('search.videoOnly'), clear: () => patchParams({ video: undefined }) })
   if (verifiedOnly) chips.push({ key: 'verified', label: t('search.verifiedOnly'), clear: () => patchParams({ verified: undefined }) })
   if (tier) chips.push({ key: 'tier', label: tierKeyToBadge(tier) ?? tier, clear: () => patchParams({ tier: undefined }) })
   if (pets) chips.push({ key: 'pets', label: t('search.petsOnly'), clear: () => patchParams({ pets: undefined }) })
@@ -1276,6 +1279,9 @@ export default function SearchClient({
             <div className="flex flex-wrap gap-1">
               <button type="button" onClick={() => patchParams({ photo: photo ? undefined : '1' })} aria-pressed={photo} className={tagChip(photo)}>
                 {t('search.photoOnly')}
+              </button>
+              <button type="button" onClick={() => patchParams({ video: hasVideo ? undefined : '1' })} aria-pressed={hasVideo} className={tagChip(hasVideo)}>
+                {t('search.videoOnly')}
               </button>
               <button type="button" onClick={() => patchParams({ verified: verifiedOnly ? undefined : '1' })} aria-pressed={verifiedOnly} className={tagChip(verifiedOnly)}>
                 {t('search.verifiedOnly')}

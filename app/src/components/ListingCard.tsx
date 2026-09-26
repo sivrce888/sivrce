@@ -1,12 +1,12 @@
 'use client'
 
-import { useId, useRef, useState, type CSSProperties, type ReactNode } from 'react'
+import { useId, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import LocalizedLink from '@/components/LocalizedLink'
 import { useInViewOnce } from '@/components/Reveal'
 import {
   Heart, BedDouble, Bath, Ruler, MapPin, Crown, Flame, Share2, Zap, DoorOpen,
   TrendingDown, TrainFront, CircleDot, Columns2, ChevronLeft, ChevronRight, Clock,
-  Layers, BadgeCheck, Play, Camera, Copy, Eye,
+  Layers, BadgeCheck, Play, Camera, Copy, Eye, X, Volume2, VolumeX,
 } from 'lucide-react'
 import type { Listing } from '@/data/listings'
 import { formatPerM2, formatFloor, postedDaysAgo, postedAgoLabel, stayCount, stayLine, priceOnRequestLabel } from '@/lib/listing-format'
@@ -35,6 +35,7 @@ import { useNearestMetro } from '@/components/use-nearest-metro'
 import { SparkMark } from '@/components/SparkMark'
 import { sivrceScore } from '@/lib/sivrce-score'
 import { aiLabel } from '@/lib/ai-label'
+import { inlineVideoEmbedFor, getActiveVideoCard, setActiveVideoCard, subscribeActiveVideoCard } from '@/lib/listing-video'
 
 /* Card lifestyle chips — central FEATURE_ICON (mirrors Collections.tsx) */
 
@@ -264,6 +265,52 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
   const axisLock = useRef<'h' | 'v' | null>(null)
   const swipedRef = useRef(false)
 
+  // Inline card video — plays right on the card, photos keep their frame.
+  // ponytail: <video>/<iframe> mounts on tap only (zero bytes + decoder at rest);
+  // singleton governor = max one card playing globally.
+  const videoEmbed = l.video ? inlineVideoEmbedFor(l.video, true) : null
+  const [playing, setPlaying] = useState(false)
+  const [videoMuted, setVideoMuted] = useState(true)
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const videoKey = useId()
+
+  useEffect(() => {
+    if (!playing) return
+    setActiveVideoCard(videoKey)
+    const unsubscribe = subscribeActiveVideoCard((id) => {
+      if (id !== videoKey) setPlaying(false)
+    })
+    return () => {
+      unsubscribe()
+      if (getActiveVideoCard() === videoKey) setActiveVideoCard(null)
+    }
+  }, [playing, videoKey])
+
+  const stopVideo = () => {
+    const v = videoRef.current
+    // Drop the decoder + buffered bytes immediately, not at GC.
+    if (v) {
+      v.pause()
+      v.removeAttribute('src')
+      v.load()
+    }
+    setPlaying(false)
+  }
+
+  const playVideo = (e: React.SyntheticEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (videoEmbed) setPlaying(true)
+  }
+
+  const toggleVideoSound = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const next = !videoMuted
+    setVideoMuted(next)
+    if (videoRef.current) videoRef.current.muted = next
+  }
+
   const priceObj = formatListingPrice({
     priceUSD: l.priceUSD,
     priceGEL: l.priceGEL,
@@ -290,7 +337,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
 
   // Hover scrub (fine pointer only) — move across photo = flip frames. Touch keeps swipe.
   const onImgPointerMove = (e: React.PointerEvent) => {
-    if (!multi || e.pointerType !== 'mouse' || !imgRef.current) return
+    if (!multi || playing || e.pointerType !== 'mouse' || !imgRef.current) return
     // Don't fight share/heart/chevrons/segments
     if ((e.target as HTMLElement).closest('button')) return
     const r = imgRef.current.getBoundingClientRect()
@@ -300,7 +347,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
   }
 
   const onImgTouchStart = (e: React.TouchEvent) => {
-    if (!multi || !imgRef.current) return
+    if (!multi || playing || !imgRef.current) return
     const t = e.touches[0]
     const r = imgRef.current.getBoundingClientRect()
     if (t.clientX < r.left || t.clientX > r.right || t.clientY < r.top || t.clientY > r.bottom) {
@@ -406,15 +453,71 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
       })}
       {/* Bottom-only navy tint — counter + dashes stay readable, photo stays the hero */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-sv-navy/50 to-transparent" />
-      {l.video && !(more > 0 && frame === photos.length - 1) ? (
-        <LocalizedLink
-          href={`${href}?play=1`}
+      {playing && videoEmbed ? (
+        <div className="absolute inset-0 z-30 bg-sv-navy">
+          {videoEmbed.type === 'native' ? (
+            <video
+              ref={videoRef}
+              src={videoEmbed.url}
+              aria-label={title}
+              autoPlay
+              muted={videoMuted}
+              loop
+              playsInline
+              preload="auto"
+              {...{ 'webkit-playsinline': '' }}
+              onClick={(e) => {
+                e.preventDefault()
+                const v = videoRef.current
+                if (!v) return
+                if (v.paused) v.play().catch(() => {})
+                else v.pause()
+              }}
+              className="h-full w-full cursor-pointer object-cover"
+            />
+          ) : (
+            <iframe
+              src={videoEmbed.url}
+              title={title}
+              allow="autoplay; encrypted-media; picture-in-picture"
+              referrerPolicy="strict-origin-when-cross-origin"
+              className="h-full w-full border-0"
+            />
+          )}
+          <button
+            type="button"
+            aria-label={t('card.closeVideo')}
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              stopVideo()
+            }}
+            className="absolute right-3 top-3 z-10 grid h-8 w-8 place-items-center rounded-full bg-sv-navy/60 text-white backdrop-blur-md transition-colors duration-200 hover:bg-sv-navy/85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+          >
+            <X className="h-4 w-4" aria-hidden />
+          </button>
+          {videoEmbed.type === 'native' ? (
+            <button
+              type="button"
+              aria-label={videoMuted ? t('card.unmute') : t('card.mute')}
+              aria-pressed={!videoMuted}
+              onClick={toggleVideoSound}
+              className="absolute bottom-3 right-3 z-10 grid h-8 w-8 place-items-center rounded-full bg-sv-navy/60 text-white backdrop-blur-md transition-colors duration-200 hover:bg-sv-navy/85 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+            >
+              {videoMuted ? <VolumeX className="h-4 w-4" aria-hidden /> : <Volume2 className="h-4 w-4" aria-hidden />}
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+      {videoEmbed && !playing && !(more > 0 && frame === photos.length - 1) ? (
+        <button
+          type="button"
           className="group/play absolute left-1/2 top-1/2 z-20 grid h-11 w-11 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-sv-navy/60 text-white shadow-glow-blue-sm backdrop-blur-md transition-colors duration-200 hover:bg-sv-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
           aria-label={t('detail.playVideo')}
-          onClick={(e) => e.stopPropagation()}
+          onClick={playVideo}
         >
           <Play className="ml-0.5 h-4 w-4 fill-white transition-transform group-hover/play:scale-110" />
-        </LocalizedLink>
+        </button>
       ) : null}
       {more > 0 && frame === photos.length - 1 ? (
         <span className="pointer-events-none absolute inset-0 z-[5] grid place-items-center bg-sv-navy/55 text-white backdrop-blur-[2px]">
@@ -506,7 +609,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
         </button>
       </div>
 
-      {multi && (
+      {multi && !playing && (
         <>
           {/* Hover/focus only — touch uses swipe + dashes */}
           <button
@@ -532,10 +635,22 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
         </>
       )}
 
-      {/* Bottom: hairline dashes (center) + 1 / N (right) — Renti layout, real count */}
-      {multi && (
+      {/* Bottom: video chip (left) · hairline dashes (center) + 1 / N (right) */}
+      {multi && !playing && (
         <div className="pointer-events-none absolute inset-x-0 bottom-3 z-20 grid grid-cols-[1fr_auto_1fr] items-center gap-2 px-3">
-          <span />
+          {videoEmbed ? (
+            <button
+              type="button"
+              onClick={playVideo}
+              aria-label={t('detail.playVideo')}
+              className="pointer-events-auto flex items-center gap-1 justify-self-start rounded-full bg-sv-navy/60 px-2 py-0.5 text-[10px] font-bold tracking-wide text-white/95 backdrop-blur-sm transition-colors duration-200 hover:bg-sv-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+            >
+              <Play className="h-2.5 w-2.5 fill-white" aria-hidden />
+              {t('card.hasVideo')}
+            </button>
+          ) : (
+            <span />
+          )}
           <div
             className="pointer-events-auto flex w-[7.5rem] gap-[3px] sm:w-36"
             role="group"

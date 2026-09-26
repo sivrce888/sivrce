@@ -117,6 +117,7 @@ export function parseSearchParams(sp: URLSearchParams): SearchFilters {
     floorTypes: csv("ftype", FLOOR_TYPE_KEYS),
     features: csv("feat", FEATURE_KEYS),
     hasPhoto: sp.get("photo") === "1" || undefined,
+    hasVideo: sp.get("video") === "1" || undefined,
     verifiedOnly: sp.get("verified") === "1" || undefined,
     petsOnly: sp.get("pets") === "1" || undefined,
     nearMetro: sp.get("metro") === "1" || undefined,
@@ -217,6 +218,12 @@ export function buildDbWhere(filters: SearchFilters): Prisma.ListingWhereInput {
   }
   if (filters.features?.length) where.features = { hasEvery: filters.features }
   if (filters.hasPhoto) where.images = { isEmpty: false }
+  // Video lives in extendedFields JSON — matches rows where the key holds a
+  // value (writes go through sanitizeListingVideoUrl, so a stored value is
+  // always a playable URL; null/missing/empty never match).
+  if (filters.hasVideo) {
+    and.push({ NOT: { extendedFields: { path: ["video"], equals: Prisma.AnyNull } } })
+  }
   if (filters.verifiedOnly) where.verified = true
   if (filters.petsOnly) where.petsAllowed = true
   if (filters.sellerType) where.sellerType = filters.sellerType
