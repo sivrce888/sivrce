@@ -108,7 +108,7 @@ async function georgiaSitemap(): Promise<MetadataRoute.Sitemap> {
     { path: '/market', changeFrequency: 'weekly', priority: 0.8 },
     // Quarterly report editions — only quarters with ≥2 district snapshots
     // (thinner quarters are noindex on the page; never list them here).
-    ...(await reportedQuarters()).map((q) => ({ path: `/market/${q}`, changeFrequency: 'monthly' as const, priority: 0.7 })),
+    ...(await reportedQuarters()).map((q) => ({ path: `/market/${q.toLowerCase()}`, changeFrequency: 'monthly' as const, priority: 0.7 })),
     // /countries is the worldwide index — it canonicalises to, and now 308s to,
     // sivrce.com, so it is listed in countrySitemap() instead.
     { path: '/projects', changeFrequency: 'daily', priority: 0.85 },

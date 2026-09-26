@@ -11,6 +11,7 @@ import {
   quarterStats,
   weightedTotal,
   QUARTER_RE,
+  normalizeQuarter,
   type StatRow,
 } from "./market-stats-core"
 
@@ -107,5 +108,10 @@ assert.equal(quarterStats([qrow('2026-07', 0)]), null, 'unpriced months → null
 assert.equal(weightedTotal([{ avgPerM2USD: 1000, activeEnd: 10 }, { avgPerM2USD: 2000, activeEnd: 30 }]), 1750, 'active-weighted mean')
 assert.equal(weightedTotal([{ avgPerM2USD: 1000, activeEnd: 0 }]), null, 'no weight → null')
 
+
+assert.equal(normalizeQuarter('2026-q3'), '2026-Q3', 'lowercase URL quarter normalizes')
+assert.equal(normalizeQuarter('2026-Q3'), '2026-Q3', 'canonical form idempotent')
+assert.equal(normalizeQuarter('2026-q5'), null, 'Q5 garbage')
+assert.equal(normalizeQuarter('x'), null, 'garbage')
 
 console.log("market-stats: ok")

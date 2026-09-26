@@ -4,7 +4,7 @@ import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import LocalizedLink from '@/components/LocalizedLink'
 import { getQuarterReport } from '@/lib/market-stats'
-import { QUARTER_RE, quarterKey } from '@/lib/market-stats-core'
+import { normalizeQuarter, quarterKey } from '@/lib/market-stats-core'
 import { jsonLd } from '@/lib/utils'
 import { isValidLang, type Lang } from '@/lib/i18n/core'
 import { pageAlternates, OG_LOCALE } from '@/lib/i18n/server'
@@ -13,7 +13,7 @@ export const revalidate = 3600
 
 // ponytail: prerender the live quarter in ka only — past editions SSR on demand.
 export function generateStaticParams() {
-  return [{ lang: 'ka', quarter: quarterKey(new Date()) }]
+  return [{ lang: 'ka', quarter: quarterKey(new Date()).toLowerCase() }]
 }
 
 const INTL: Record<Lang, string> = {
@@ -110,9 +110,12 @@ export async function generateMetadata({
 }: {
   params: Promise<{ lang: string; quarter: string }>
 }): Promise<Metadata> {
-  const { lang: raw, quarter } = await params
+  const { lang: raw, quarter: rawQuarter } = await params
   const lang: Lang = isValidLang(raw) ? raw : 'ka'
-  if (!QUARTER_RE.test(quarter)) return {}
+  // URL middleware lowercases paths — canonical URL keeps the lowercase form.
+  const quarter = normalizeQuarter(rawQuarter)
+  if (!quarter) return {}
+  const path = `/market/${quarter.toLowerCase()}`
   const report = await getQuarterReport(quarter)
   // Thin-edition guard: a quarter without district snapshots must not build
   // an indexable empty page (anti-doorway).
@@ -125,12 +128,12 @@ export async function generateMetadata({
       report?.total ? String(report.total.avgPerM2USD) : '—',
       '', report?.total ? String(report.total.activeEnd) : '—',
     ).replace(/\s+/g, ' '),
-    alternates: pageAlternates(`/market/${quarter}`, lang),
+    alternates: pageAlternates(path, lang),
     ...(indexable ? {} : { robots: { index: false, follow: true } }),
     openGraph: {
       title: `Tbilisi property market — ${quarter}`,
       type: 'website',
-      url: `https://sivrce.ge/market/${quarter}`,
+      url: `https://sivrce.ge${path}`,
       siteName: 'sivrce',
       locale: OG_LOCALE[lang],
     },
@@ -142,9 +145,10 @@ export default async function MarketQuarterPage({
 }: {
   params: Promise<{ lang: string; quarter: string }>
 }) {
-  const { lang: raw, quarter } = await params
+  const { lang: raw, quarter: rawQuarter } = await params
   const lang: Lang = isValidLang(raw) ? raw : 'ka'
-  if (!QUARTER_RE.test(quarter) || quarter > quarterKey(new Date())) notFound()
+  const quarter = normalizeQuarter(rawQuarter)
+  if (!quarter || quarter > quarterKey(new Date())) notFound()
   const report = await getQuarterReport(quarter)
   if (!report) notFound()
   const c = COPY[lang as keyof typeof COPY] ?? COPY.en
@@ -169,7 +173,7 @@ export default async function MarketQuarterPage({
     itemListElement: [
       { '@type': 'ListItem', position: 1, name: lang === 'ka' ? 'მთავარი' : lang === 'ru' ? 'Главная' : lang === 'de' ? 'Startseite' : 'Home', item: 'https://sivrce.ge' },
       { '@type': 'ListItem', position: 2, name: lang === 'ka' ? 'ბაზრის ანალიტიკა' : 'Market analytics', item: 'https://sivrce.ge/market' },
-      { '@type': 'ListItem', position: 3, name: quarter, item: `https://sivrce.ge/market/${quarter}` },
+      { '@type': 'ListItem', position: 3, name: quarter, item: `https://sivrce.ge/market/${quarter.toLowerCase()}` },
     ],
   }
 

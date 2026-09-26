@@ -100,6 +100,13 @@ export interface QuarterSnapshotRow {
 
 export const QUARTER_RE = /^\d{4}-Q[1-4]$/
 
+/** Accept any-case quarter ('2026-q3' — the URL middleware lowercases paths)
+ *  → canonical '2026-Q3', or null for garbage. */
+export function normalizeQuarter(raw: string): string | null {
+  const m = /^(\d{4})-q([1-4])$/i.exec(raw.trim())
+  return m ? `${m[1]}-Q${m[2]}` : null
+}
+
 /** '2026-Q3' for a UTC date. */
 export function quarterKey(d: Date): string {
   return `${d.getUTCFullYear()}-Q${Math.floor(d.getUTCMonth() / 3) + 1}`

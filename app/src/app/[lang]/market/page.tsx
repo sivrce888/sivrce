@@ -128,7 +128,7 @@ export default async function MarketPage({ params }: { params: Promise<{ lang: s
         <MarketView data={data} updated={updated} />
         <div className="mx-auto max-w-[1100px] space-y-2 px-5 pb-16 md:px-10">
           <LocalizedLink
-            href={`/market/${quarterKey(new Date())}`}
+            href={`/market/${quarterKey(new Date()).toLowerCase()}`}
             className="flex min-h-14 items-center justify-between gap-4 rounded-card border border-sv-ink/[0.06] bg-sv-surface px-6 py-4 text-[15px] font-extrabold text-sv-ink shadow-card transition-colors hover:text-sv-blue"
           >
             {lang === 'ka'
