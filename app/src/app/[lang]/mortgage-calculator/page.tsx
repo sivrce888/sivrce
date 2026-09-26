@@ -13,7 +13,6 @@ import { type DirLoc } from '@/lib/directory-seo'
 import {
   downCell,
   MORTGAGE_GE_BANKS,
-  MORTGAGE_SUBSIDY,
   NBG_MAX_LTV,
   rateBand,
   termYrs,
@@ -69,7 +68,7 @@ const COPY: Record<DirLoc | 'de', {
   ratesNote: string
   subsidyTitle: string; subsidyChips: { n: string; label: string }[]; subsidyNote: string
   guideTitle: string; guide: string[]
-  faqTitle: string; faqs: { q: string; a: string }[]
+  faqTitle: string; faqs: { q: string; a: string }[]; faqsNote: string
   ctaTitle: string; ctaSub: string; ctaButton: string
   crumbHome: string; crumbCalc: string; lang: string
   sibling: string
@@ -102,6 +101,7 @@ const COPY: Record<DirLoc | 'de', {
       { q: 'რა დამატებითი ხარჯები მოსდევს ქონების ყიდვას?', a: 'საქართველოში გადაცემის გადასახადი საერთოდ არ არსებობს — სახელმწიფო მხოლოდ საჯარო რეესტრის (NAPR) რეგისტრაციის განაკვეთს იღებს: ₾50 სტანდარტული (4 სამუშაო დღე) ან მაქს. ₾350 იმავე დღეს. ნოტარიუსი არასავალდებულოა; დაახლოებით ₾500 დაიხარჯება თარგმანზე/ნოტარიუსზე. აგენტის საკომისიო (≈2%) ჩვეულებრივ გამყიდველი იხდის. 24 თვეში გაყიდვისას მოგებაზე შეიძლება 20% საშემოსავლო გადასახადი დაერიოს; ორი წლის შემდეგ — გათავისუფლებულია.' },
       { q: 'რა ვადით მომგებიანია იპოთეკა?', a: 'მოკლე ვადით (10-15 წელი) პროცენტის ჯამი ორჯერ ნაკლებია, მაგრამ ყოველთვიური თანხა მაღალია. გრძელი ვადა (20-25 წელი) ამცირებს ყოველთვიურ დატვირთვას, მაგრამ საბოლოო ღირებულება იზრდება. ოქროს შუალედი ქართული ბინისთვის — 15-20 წელი.' },
     ],
+    faqsNote: 'ეს გვერდი საინფორმაციოა და არ წარმოადგენს საგადასახადო ან იურიდიულ კონსულტაციას — გარიგებამდე გადაამოწმეთ NAPR-სა და შემოსავლების სამსახურთან.',
     ctaTitle: 'ბინას ეძებთ?',
     ctaSub: 'ვერიფიცირებული განცხადებები AI ფასის შეფასებით — თბილისი, ბათუმი, ქუთაისი.',
     ctaButton: 'ვერიფიცირებული ბინები',
@@ -136,6 +136,7 @@ const COPY: Record<DirLoc | 'de', {
       { q: 'What extra costs come with buying property?', a: 'Georgia charges no transfer tax at all — the state takes only the fixed Public Registry (NAPR) registration fee: ₾50 standard (4 working days) or up to ₾350 same-day. A notary is optional; budget ≈₾500 for notary/translation help. The agency commission (≈2%) is normally paid by the seller. Reselling within 24 months can expose the gain to 20% income tax; after two years of ownership the gain is tax-free.' },
       { q: 'What term is most economical?', a: 'A short term (10–15 years) halves the total interest but raises the monthly payment. A long term (20–25 years) lowers the monthly burden but increases the final cost. The sweet spot for a Georgian apartment is 15–20 years.' },
     ],
+    faqsNote: 'This page is informational and is not tax or legal advice — verify fees with NAPR and the Revenue Service before you transact.',
     ctaTitle: 'Looking for an apartment?',
     ctaSub: 'Verified listings with AI price estimates — Tbilisi, Batumi, Kutaisi.',
     ctaButton: 'Verified apartments',
@@ -170,6 +171,7 @@ const COPY: Record<DirLoc | 'de', {
       { q: 'Какие дополнительные расходы при покупке недвижимости?', a: 'В Грузии нет налога на передачу собственности — государство берёт только фиксированный сбор Публичного реестра (NAPR) за регистрацию: ₾50 стандартно (4 рабочих дня) или до ₾350 в день подачи. Нотариус не обязателен; заложите ≈₾500 на нотариуса/перевод. Комиссию агентства (≈2%) обычно платит продавец. При продаже в течение 24 месяцев прирост стоимости может облагаться 20% подоходным; после двух лет владения — освобождён.' },
       { q: 'На какой срок выгоднее ипотека?', a: 'Короткий срок (10–15 лет) уменьшает сумму процентов вдвое, но платёж выше. Длинный срок (20–25 лет) снижает ежемесячную нагрузку, но увеличивает итоговую стоимость. Золотая середина для грузинской квартиры — 15–20 лет.' },
     ],
+    faqsNote: 'Эта страница носит информационный характер и не является налоговой или юридической консультацией — проверьте сборы в NAPR и Службе доходов до сделки.',
     ctaTitle: 'Ищете квартиру?',
     ctaSub: 'Верифицированные объявления с ИИ-оценкой цены — Тбилиси, Батуми, Кутаиси.',
     ctaButton: 'Верифицированные квартиры',
@@ -204,6 +206,7 @@ const COPY: Record<DirLoc | 'de', {
       { q: 'Welche Zusatzkosten kommen beim Immobilienkauf auf mich zu?', a: 'Georgien erhebt keine Grunderwerbsteuer — der Staat nimmt nur die feste Registrierungsgebühr des öffentlichen Registers (NAPR): ₾50 standardmäßig (4 Werktage) oder bis ₾350 am selben Tag. Ein Notar ist optional; planen Sie ≈₾500 für Notar/Übersetzung ein. Die Maklerprovision (≈2 %) zahlt üblicherweise der Verkäufer. Beim Weiterverkauf innerhalb von 24 Monaten kann der Gewinn mit 20 % Einkommensteuer belegt werden; nach zwei Jahren Eigentum ist er steuerfrei.' },
       { q: 'Welche Laufzeit ist am günstigsten?', a: 'Eine kurze Laufzeit (10–15 Jahre) halbiert die Gesamtzinsen, erhöht aber die Monatsrate. Eine lange Laufzeit (20–25 Jahre) senkt die monatliche Belastung, erhöht aber die Endkosten. Der Sweet Spot für eine georgische Wohnung liegt bei 15–20 Jahren.' },
     ],
+    faqsNote: 'Diese Seite ist informativ und keine Steuer- oder Rechtsberatung — prüfen Sie Gebühren bei NAPR und dem Revenue Service, bevor Sie handeln.',
     ctaTitle: 'Sie suchen eine Wohnung?',
     ctaSub: 'Verifizierte Inserate mit KI-Preisschätzung — Tiflis, Batumi, Kutaissi.',
     ctaButton: 'Verifizierte Wohnungen',
@@ -378,6 +381,7 @@ export default async function MortgageCalculatorPage({
               </details>
             ))}
           </div>
+          <p className="mt-4 text-[12px] font-semibold leading-relaxed text-sv-ink/50">{c.faqsNote}</p>
         </section>
 
         <div className="mt-12 rounded-tile bg-sv-navy p-8 text-center md:p-10">

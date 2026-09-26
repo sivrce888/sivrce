@@ -616,6 +616,7 @@ export default function ListingDetailClient({
   deCosts = null,
   geCosts = null,
   rentEstimate = null,
+  rentSource = null,
 }: {
   listing: Listing
   similar: Listing[]
@@ -646,6 +647,8 @@ export default function ListingDetailClient({
   /** Monthly market rent in the listing's native currency — server-computed so
    *  rent-anchor (→ de.ts city catalog) stays off this client. */
   rentEstimate?: number | null
+  /** Source credit for the rent/yield line — server-computed alongside rentEstimate. */
+  rentSource?: string | null
 }) {
   const { data: session, status: authStatus } = useSession()
   const isOwner = Boolean(ownerId && session?.user?.id === ownerId)
@@ -817,7 +820,7 @@ export default function ListingDetailClient({
     return () => {
       cancelled = true
     }
-  }, [l.coords.lat, l.coords.lng])
+  }, [l.coords.lat, l.coords.lng, lang])
   const recentQueryIds = useMemo(
     () => recentIds.filter((id) => id !== l.id).slice(0, 3),
     [recentIds, l.id],
@@ -1893,6 +1896,7 @@ export default function ListingDetailClient({
                       {lt(lang, 'yieldEst', { pct: grossYieldPct(euroNative ? l.priceOriginal! : l.priceUSD, rentEst) })}
                       {' · '}
                       {lt(lang, 'yieldRent', { rent: euroNative ? formatEur(rentEst) : formatUSD(rentEst) })}
+                      {rentSource ? ` · ${rentSource}` : ''}
                     </div>
                     ) : null}
                   </div>

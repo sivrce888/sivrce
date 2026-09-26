@@ -31,7 +31,7 @@ import { georgiaListingAlternates, surfacePathPrefix, type DomainId } from '@/li
 import { requestDomain, requestHostKind } from '@/lib/request-market'
 import { buyerCostBreakdownByCityName } from '@/lib/countries/de'
 import { geBuyerCosts } from '@/lib/countries/costs'
-import { estimateRent } from '@/lib/rent-anchor'
+import { estimateRent, rentAnchorSource } from '@/lib/rent-anchor'
 import { parseDeExpose } from '@/lib/countries/de-expose'
 
 /**
@@ -388,6 +388,7 @@ export default async function ListingPage({ params }: PageProps) {
         deCosts={deCosts}
         geCosts={geCosts}
         rentEstimate={estimateRent(listing.area, listing.country, listing.city, listing.district)}
+        rentSource={rentAnchorSource(listing.country, listing.city, listing.district)}
       />
       <script
         type="application/ld+json"

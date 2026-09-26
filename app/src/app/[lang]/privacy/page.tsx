@@ -17,36 +17,36 @@ const SECTIONS: Record<string, Section[]> = {
   ka: [
     {
       title: '1. ზოგადი ინფორმაცია',
-      text: 'sivrce პატივს სცემს შენს კონფიდენციალურობას. ეს პოლიტიკა განმარტავს, თუ რა მონაცემებს ვაგროვებთ, რატომ და როგორ ვიყენებთ მათ პლატფორმის გასაუმჯობესებლად.',
+      text: 'sivrce პატივს სცემს თქვენ კონფიდენციალურობას. ეს პოლიტიკა განმარტავს, თუ რა მონაცემებს ვაგროვებთ, რატომ და როგორ ვიყენებთ მათ პლატფორმის გასაუმჯობესებლად.',
     },
     {
       title: '2. რა მონაცემებს ვაგროვებთ',
-      text: 'ვაგროვებთ მხოლოდ იმ მინიმალურ ინფორმაციას, რომელიც სერვისის მუშაობისთვისაა საჭირო: საძიებო მოთხოვნები, საკონტაქტო მონაცემები, რომლებსაც თავად გვაწვდი (სახელი, ელ. ფოსტა, ტელეფონი), და ტექნიკური ინფორმაცია მოწყობილობისა და ბრაუზერის შესახებ.',
+      text: 'ვაგროვებთ მხოლოდ იმ მინიმალურ ინფორმაციას, რომელიც სერვისის მუშაობისთვისაა საჭირო: საძიებო მოთხოვნებს, საკონტაქტო მონაცემებს, რომლებსაც თავად გვაწვდით (სახელი, ელ. ფოსტა, ტელეფონი), და ტექნიკურ ინფორმაციას მოწყობილობისა და ბრაუზერის შესახებ.',
     },
     {
       title: '3. მონაცემების გამოყენება',
-      text: 'შეგროვილი მონაცემები გამოიყენება ძიების შედეგების დასაზუსტებლად, შეტყობინებების მისაწოდებლად, თაღლითობის პრევენციისთვის და პლატფორმის სტატისტიკური ანალიზისთვის. ჩვენ არ ვყიდით შენს პირად მონაცემებს მესამე პირებს.',
+      text: 'შეგროვილი მონაცემები გამოიყენება ძიების შედეგების დასაზუსტებლად, შეტყობინებების მისაწოდებლად, თაღლითობის პრევენციისთვის და პლატფორმის სტატისტიკური ანალიზისთვის. დამუშავების საფუძვლებია: სერვისის მიწოდება, თქვენი თანხმობა, კანონიერი ინტერესი და კანონმდებლობით გათვალისწინებული ვალდებულებები. ჩვენ არ ვყიდით თქვენს პირად მონაცემებს.',
     },
     {
       title: '4. მონაცემების გაზიარება',
-      text: 'საკონტაქტო ინფორმაცია გამყიდველთან ან აგენტთან მხოლოდ შენი ინიციატივით ზიარდება — როდესაც თავად უგზავნი შეტყობინებას ან ტურს დაჯავშნავ. ანალიტიკისთვის გამოიყენება მხოლოდ ანონიმიზებული, აგრეგირებული მონაცემები.',
+      text: 'საკონტაქტო ინფორმაცია გამყიდველთან ან აგენტთან მხოლოდ თქვენი ინიციატივით ზიარდება — როდესაც თავად გაუგზავნით შეტყობინებას ან დაჯავშნით ტურს. ანალიტიკა ჩაირთვევა მხოლოდ თქვენი თანხმობის შემდეგ და იყენებს ფსევდონიმურ იდენტიფიკატორებს (მაგ. შემთხვევით გენერირებულ ანალიტიკურ ID-ს); ეს მონაცემები არ იყიდება და არ ერთდება სარეკლამო პროფილებთან.',
     },
     {
       id: 'cookies',
       title: '5. ქუქიები და ლოკალური მეხსიერება',
-      text: 'sivrce იყენებს ქუქიებსა და ბრაუზერის ლოკალურ მეხსიერებას (localStorage) კომფორტული გამოცდილებისთვის — მაგ. რუკის ხედი (ქუჩები/ჰიბრიდი/მინიმალი, 2D/3D) ინახება sivrce_map_ui ქუქიში. შენი ფავორიტები ინახება ლოკალურად, მხოლოდ შენს მოწყობილობაზე — ეს სია არ იგზავნება ჩვენს სერვერზე და არავის ეძლევა მასზე წვდომა. ქუქიების გამორთვა შეგიძლია ბრაუზერის პარამეტრებიდან, თუმცა ზოგი ფუნქცია შეიძლება შეზღუდული იყოს.',
+      text: 'sivrce იყენებს ქუქიებსა და ბრაუზერის ლოკალურ მეხსიერებას (localStorage) კომფორტული გამოცდილებისთვის — მაგ. რუკის ხედი (ქუჩები/ჰიბრიდი/მინიმალი, 2D/3D) ინახება sivrce_map_ui ქუქიში. თქვენი ფავორიტები ინახება ლოკალურად, მხოლოდ თქვენს მოწყობილობაზე — ეს სია არ იგზავნება ჩვენს სერვერზე და არავის ეძლევა მასზე წვდომა. ანალიტიკაზე თანხმობა შეგიძლიათ ნებისმიერ დროს გააუქმოთ გვერდის ქვედა ნაწილში „ქუქიები“ ღილაკით. ქუქიების გამორთვა ასევე შეგიძლიათ ბრაუზერის პარამეტრებიდან, თუმცა ზოგი ფუნქცია შეიძლება შეზღუდული იყოს.',
     },
     {
       title: '6. მონაცემების შენახვა და დაცვა',
-      text: 'მონაცემები ინახება დაშიფრული არხებით და დაცულ სერვერებზე. ვინახავთ მათ მხოლოდ იმდენ ხანს, რამდენიც სერვისის მიწოდებისთვის ან კანონით გათვალისწინებული ვალდებულებებისთვისაა აუცილებელი.',
+      text: 'მონაცემები ინახება დაშიფრული არხებით და დაცულ სერვერებზე. ანგარიშის მონაცემები ინახება ანგარიშის წაშლამდე, განცხადების — განცხადების გაუქმებამდე, ანალიტიკური მონაცემები — თანხმობის გაუქმებამდე; კანონმდებლობით გათვალისწინებულ შემთხვევებში ვინახავთ კანონით დადგენილ ვადამდე.',
     },
     {
-      title: '7. შენი უფლებები',
-      text: 'გაქვს უფლება მოითხოვო შენი პირადი მონაცემების ნუსხა, გასწორება ან წაშლა. ასევე შეგიძლია ნებისმიერ დროს გააუქმო მარკეტინგული შეტყობინებების მიღება. მოთხოვნისთვის მოგვწერე hi@sivrce.ge-ზე.',
+      title: '7. თქვენი უფლებები',
+      text: 'გაქვთ უფლება მოითხოვოთ თქვენი პირადი მონაცემების ნუსხა, გასწორება, წაშლა ან დაბლოკვა, ასევე ნებისმიერ დროს გააუქმოთ მარკეტინგული შეტყობინებების მიღება. მოთხოვნისთვის მოგვწერეთ hi@sivrce.ge-ზე. საქართველოს კანონმდებლობით გაქვთ აგრეთვე უფლება, საჩივრით მიმართოთ პერსონალურ მონაცემთა დაცვის სამსახურს (personaldata.ge).',
     },
     {
       title: '8. ცვლილებები და კონტაქტი',
-      text: 'ეს პოლიტიკა შეიძლება განახლდეს — ცვლილებები ძალაში შედის ამ გვერდზე გამოქვეყნებისთანავე. კონფიდენციალურობასთან დაკავშირებული ნებისმიერი კითხვისთვის დაგვიკავშირდი: hi@sivrce.ge, თბილისი, საქართველო.',
+      text: 'ეს პოლიტიკა შეიძლება განახლდეს — ცვლილებები ძალაში შედის ამ გვერდზე გამოქვეყნებისთანავე. კონფიდენციალურობასთან დაკავშირებული ნებისმიერი კითხვისთვის დაგვიკავშირდით: hi@sivrce.ge, თბილისი, საქართველო.',
     },
   ],
   en: [
@@ -60,24 +60,24 @@ const SECTIONS: Record<string, Section[]> = {
     },
     {
       title: '3. How data is used',
-      text: 'Collected data is used to refine search results, deliver notifications, prevent fraud, and run statistical analysis of the platform. We never sell your personal data to third parties.',
+      text: 'Collected data is used to refine search results, deliver notifications, prevent fraud, and run statistical analysis of the platform. Processing rests on: providing the service, your consent, our legitimate interest in operating the platform, and legal obligations. We never sell your personal data to third parties.',
     },
     {
       title: '4. Data sharing',
-      text: 'Your contact information reaches a seller or agent only on your initiative — when you send a message or book a tour yourself. Analytics rely solely on anonymized, aggregated data.',
+      text: 'Your contact information reaches a seller or agent only on your initiative — when you send a message or book a tour yourself. Analytics is enabled only after your consent and uses pseudonymous identifiers (e.g. a randomly generated analytics ID); that data is never sold or merged with third-party advertising profiles.',
     },
     {
       id: 'cookies',
       title: '5. Cookies and local storage',
-      text: 'sivrce uses cookies and browser local storage (localStorage) for a comfortable experience — e.g. your map view (streets/hybrid/minimal, 2D/3D) in the sivrce_map_ui cookie. Your favorites are stored locally, only on your device — that list is never sent to our servers and no one is given access to it. You can disable cookies in your browser settings, though some features may become limited.',
+      text: 'sivrce uses cookies and browser local storage (localStorage) for a comfortable experience — e.g. your map view (streets/hybrid/minimal, 2D/3D) in the sivrce_map_ui cookie. Your favorites are stored locally, only on your device — that list is never sent to our servers and no one is given access to it. You can withdraw analytics consent anytime via the “Cookies” button in the footer, or disable cookies in your browser settings, though some features may become limited.',
     },
     {
       title: '6. Storage and protection',
-      text: 'Data is stored over encrypted channels and on secured servers. We keep it only as long as necessary to provide the service or to meet legal obligations.',
+      text: 'Data is stored over encrypted channels and on secured servers. Account data is kept until you delete your account, listings until you remove them, and consent-gated analytics until you withdraw consent; anything the law requires us to keep is kept for the statutory period.',
     },
     {
       title: '7. Your rights',
-      text: 'You may request a copy, correction, or deletion of your personal data. You can also opt out of marketing messages at any time. For any request, write to hi@sivrce.ge.',
+      text: 'You may request a copy, correction, deletion, or blocking of your personal data, and opt out of marketing messages at any time. For any request, write to hi@sivrce.ge. Under Georgian law you may also lodge a complaint with the Personal Data Protection Service of Georgia (personaldata.ge).',
     },
     {
       title: '8. Changes and contact',
@@ -95,24 +95,24 @@ const SECTIONS: Record<string, Section[]> = {
     },
     {
       title: '3. Использование данных',
-      text: 'Собранные данные используются для уточнения результатов поиска, доставки уведомлений, предотвращения мошенничества и статистического анализа платформы. Мы никогда не продаём ваши личные данные третьим лицам.',
+      text: 'Собранные данные используются для уточнения результатов поиска, доставки уведомлений, предотвращения мошенничества и статистического анализа платформы. Основания обработки: оказание сервиса, ваше согласие, законный интерес и требования законодательства. Мы никогда не продаём ваши личные данные третьим лицам.',
     },
     {
       title: '4. Передача данных',
-      text: 'Контактная информация передаётся продавцу или агенту только по вашей инициативе — когда вы сами отправляете сообщение или записываетесь на тур. Для аналитики используются исключительно анонимизированные агрегированные данные.',
+      text: 'Контактная информация передаётся продавцу или агенту только по вашей инициативе — когда вы сами отправляете сообщение или записываетесь на тур. Аналитика включается только после вашего согласия и использует псевдонимные идентификаторы (например, случайно сгенерированный аналитический ID); эти данные не продаются и не объединяются с рекламными профилями.',
     },
     {
       id: 'cookies',
       title: '5. Cookies и локальное хранилище',
-      text: 'sivrce использует cookies и локальное хранилище браузера (localStorage) для удобства — например, вид карты (улицы/гибрид/минимал, 2D/3D) в cookie sivrce_map_ui. Избранное хранится локально, только на вашем устройстве — этот список не отправляется на наши серверы и никому не доступен. Cookies можно отключить в настройках браузера, хотя часть функций может быть ограничена.',
+      text: 'sivrce использует cookies и локальное хранилище браузера (localStorage) для удобства — например, вид карты (улицы/гибрид/минимал, 2D/3D) в cookie sivrce_map_ui. Избранное хранится локально, только на вашем устройстве — этот список не отправляется на наши серверы и никому не доступен. Согласие на аналитику можно отозвать в любой момент кнопкой «Cookies» в подвале сайта; cookies также можно отключить в настройках браузера, хотя часть функций может быть ограничена.',
     },
     {
       title: '6. Хранение и защита данных',
-      text: 'Данные передаются по зашифрованным каналам и хранятся на защищённых серверах. Мы храним их лишь столько, сколько нужно для предоставления сервиса или выполнения требований закона.',
+      text: 'Данные передаются по зашифрованным каналам и хранятся на защищённых серверах. Данные аккаунта хранятся до удаления аккаунта, объявления — до их снятия, аналитика — до отзыва согласия; данные, которые мы обязаны хранить по закону, хранятся установленный законом срок.',
     },
     {
       title: '7. Ваши права',
-      text: 'Вы можете запросить перечень, исправление или удаление своих персональных данных, а также в любой момент отказаться от маркетинговых сообщений. Для запросов пишите на hi@sivrce.ge.',
+      text: 'Вы можете запросить перечень, исправление, удаление или блокировку своих персональных данных, а также в любой момент отказаться от маркетинговых сообщений. Для запросов пишите на hi@sivrce.ge. По законодательству Грузии вы также вправе подать жалобу в Службу защиты персональных данных Грузии (personaldata.ge).',
     },
     {
       title: '8. Изменения и контакты',
@@ -124,21 +124,21 @@ const SECTIONS: Record<string, Section[]> = {
 const META: Record<string, { title: string; description: string; kicker: string; subtitle: string }> = {
   ka: {
     title: 'კონფიდენციალურობის პოლიტიკა',
-    description: 'როგორ იცავს sivrce შენს პირად მონაცემებს — მონაცემთა შეგროვება, გამოყენება, ქუქიები და შენი უფლებები.',
+    description: 'როგორ იცავს sivrce თქვენ პირად მონაცემებს — მონაცემთა შეგროვება, გამოყენება, ქუქიები და თქვენი უფლებები.',
     kicker: 'იურიდიული',
-    subtitle: 'ბოლო განახლება: 2026 წელი',
+    subtitle: 'ბოლო განახლება: 2026-09-26',
   },
   en: {
     title: 'Privacy Policy',
     description: 'How sivrce protects your personal data — collection, usage, cookies and your rights.',
     kicker: 'Legal',
-    subtitle: 'Last updated: 2026',
+    subtitle: 'Last updated: 2026-09-26',
   },
   ru: {
     title: 'Политика конфиденциальности',
     description: 'Как sivrce защищает ваши персональные данные — сбор, использование, cookies и ваши права.',
     kicker: 'Право',
-    subtitle: 'Обновлено: 2026 год',
+    subtitle: 'Обновлено: 2026-09-26',
   },
 }
 
@@ -149,7 +149,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { lang: raw } = await params
   const lang = isValidLang(raw) ? raw : 'ka'
-  const m = META[lang] ?? META.ka
+  const m = META[lang] ?? META.en
   return {
     title: m.title,
     description: m.description,
@@ -165,8 +165,9 @@ export default async function PrivacyPage({
   const origin = await requestOrigin()
   const { lang: raw } = await params
   const lang = isValidLang(raw) ? raw : 'ka'
-  const m = META[lang] ?? META.ka
-  const sections = SECTIONS[lang] ?? SECTIONS.ka
+  // Other locales read English, never Georgian — same rule as the platform i18n.
+  const m = META[lang] ?? META.en
+  const sections = SECTIONS[lang] ?? SECTIONS.en
   const privacyLd = {
     '@context': 'https://schema.org',
     '@graph': [

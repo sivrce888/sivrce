@@ -47,3 +47,10 @@ export function estimateRent(areaSqm: number, country: string | null | undefined
   const a = rentPerSqm(country, city, district)
   return a && areaSqm > 0 ? Math.round((areaSqm * a) / 10) * 10 : null
 }
+
+/** Visible credit for the est. rent / yield line — the platform standard is
+ *  that every published figure names its source. Proper nouns: no i18n. */
+export function rentAnchorSource(country: string | null | undefined, city: string | null | undefined, district?: string | null): string | null {
+  if (rentPerSqm(country, city, district) === null) return null
+  return (country ?? 'GE') === 'GE' ? `Galt & Taggart, ${GE_RENT_AS_OF}` : 'sivrce DE market data'
+}

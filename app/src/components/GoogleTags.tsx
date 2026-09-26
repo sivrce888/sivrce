@@ -42,6 +42,10 @@ export function GoogleTags() {
         window.dataLayer = window.dataLayer || [];
         function gtag(){dataLayer.push(arguments);}
         window.gtag = gtag;
+        // Consent Mode defaults, set before any container tag can fire: a tag
+        // added later in GTM inherits denied, not "unset".
+        gtag('consent', 'default', { analytics_storage: 'denied', ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied' });
+        gtag('consent', 'update', { analytics_storage: 'granted' });
         gtag('js', new Date());
         gtag('config', '${GA_ID}');
       `}</Script>

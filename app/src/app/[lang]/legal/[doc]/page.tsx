@@ -29,9 +29,9 @@ export async function generateMetadata({
     title: loc.title,
     description: loc.description,
     alternates: pageAlternates(`/legal/${doc}`, lang),
-    robots: d.legalReviewRequired
-      ? { index: true, follow: true }
-      : undefined,
+    // Drafts with TODO-OWNER placeholders stay out of the index until counsel
+    // signs off — an indexed "not legally binding" text is a liability.
+    robots: d.legalReviewRequired ? { index: false, follow: true } : undefined,
   }
 }
 
