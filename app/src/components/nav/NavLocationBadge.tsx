@@ -173,6 +173,9 @@ export function NavLocationBadge({
   }, [open])
 
   const [search, setSearch] = useState('')
+  // ponytail: list mounts on first open and stays for the exit fade — 75 closed
+  // market links were ~500 DOM nodes on every page. Sitemap + WorldDesk carry them for crawlers.
+  const [armed, setArmed] = useState(false)
 
   const filteredItems = search.trim()
     ? TOP_ITEMS.filter((m) => {
@@ -193,6 +196,7 @@ export function NavLocationBadge({
       <button
         type="button"
         onClick={() => {
+          setArmed(true)
           setOpen((v) => !v)
           setSearch('')
         }}
@@ -223,48 +227,52 @@ export function NavLocationBadge({
         data-open={open || undefined}
         className="sv-pop glass-light absolute start-0 top-full z-50 mt-2 max-h-[min(24rem,70vh)] w-[min(16rem,calc(100vw-2.5rem))] origin-top-start overflow-hidden rounded-module border border-sv-ink/10 p-2 shadow-card"
       >
-        <div className="mb-2 px-1">
-          <input
-            type="text"
-            name="country-search"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder={T('ქვეყნის ძიება…', 'Land suchen…', 'Search country…')}
-            aria-label={T('ქვეყნის ძიება', 'Land suchen', 'Search country')}
-            className="w-full rounded-control border border-sv-ink/10 bg-sv-surface px-3 py-1.5 text-[12px] font-semibold text-sv-ink placeholder:text-sv-ink/40 focus:border-sv-blue focus:outline-none focus:ring-2 focus:ring-sv-blue/20"
-            autoFocus={open}
-          />
-        </div>
-        <div className="max-h-[min(18rem,55vh)] overflow-y-auto overscroll-contain">
-          {filteredItems.map((m) => {
-            const on = m.id === countryId
-            const label = marketLabel(m.id, lang)
-            return (
-              <a
-                key={m.id}
-                href={marketHref(m.id, lang)}
-                role="menuitemradio"
-                aria-checked={on}
-                onClick={() => {
-                  document.cookie = `sv-geo-v2=${encodeURIComponent(m.id)}; path=/; max-age=31536000; SameSite=Lax`
-                  setOpen(false)
-                }}
-                className={`flex w-full items-center gap-2.5 rounded-control px-3 py-2 text-start text-[13px] font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue ${
-                  on ? 'bg-sv-blue/10 text-sv-blue' : 'text-sv-ink hover:bg-sv-ink/5'
-                }`}
-              >
-                <Flag code={m.flag} size={16} />
-                <span className="flex-1 truncate">{label}</span>
-                {on && <Check className="h-4 w-4 shrink-0" />}
-              </a>
-            )
-          })}
-          {filteredItems.length === 0 && (
-            <div className="py-4 text-center text-[12px] font-semibold text-sv-ink/50">
-              {T('ვერ მოიძებნა', 'Kein Land gefunden', 'No country found')}
+        {armed && (
+          <>
+            <div className="mb-2 px-1">
+              <input
+                type="text"
+                name="country-search"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder={T('ქვეყნის ძიება…', 'Land suchen…', 'Search country…')}
+                aria-label={T('ქვეყნის ძიება', 'Land suchen', 'Search country')}
+                className="w-full rounded-control border border-sv-ink/10 bg-sv-surface px-3 py-1.5 text-[12px] font-semibold text-sv-ink placeholder:text-sv-ink/40 focus:border-sv-blue focus:outline-none focus:ring-2 focus:ring-sv-blue/20"
+                autoFocus={open}
+              />
             </div>
-          )}
-        </div>
+            <div className="max-h-[min(18rem,55vh)] overflow-y-auto overscroll-contain">
+              {filteredItems.map((m) => {
+                const on = m.id === countryId
+                const label = marketLabel(m.id, lang)
+                return (
+                  <a
+                    key={m.id}
+                    href={marketHref(m.id, lang)}
+                    role="menuitemradio"
+                    aria-checked={on}
+                    onClick={() => {
+                      document.cookie = `sv-geo-v2=${encodeURIComponent(m.id)}; path=/; max-age=31536000; SameSite=Lax`
+                      setOpen(false)
+                    }}
+                    className={`flex w-full items-center gap-2.5 rounded-control px-3 py-2 text-start text-[13px] font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue ${
+                      on ? 'bg-sv-blue/10 text-sv-blue' : 'text-sv-ink hover:bg-sv-ink/5'
+                    }`}
+                  >
+                    <Flag code={m.flag} size={16} />
+                    <span className="flex-1 truncate">{label}</span>
+                    {on && <Check className="h-4 w-4 shrink-0" />}
+                  </a>
+                )
+              })}
+              {filteredItems.length === 0 && (
+                <div className="py-4 text-center text-[12px] font-semibold text-sv-ink/50">
+                  {T('ვერ მოიძებნა', 'Kein Land gefunden', 'No country found')}
+                </div>
+              )}
+            </div>
+          </>
+        )}
       </div>
     </div>
   )

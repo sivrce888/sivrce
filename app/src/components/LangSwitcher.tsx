@@ -56,6 +56,7 @@ export function LangSwitcher({ light = false }: { light?: boolean }) {
   const router = useRouter()
   const pathname = usePathname()
   const [open, setOpen] = useState(false)
+  const [armed, setArmed] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
 
   // Switch = navigate to the locale-prefixed URL (ka is unprefixed).
@@ -87,7 +88,10 @@ export function LangSwitcher({ light = false }: { light?: boolean }) {
     <div ref={rootRef} className="relative">
       <button
         type="button"
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => {
+          setArmed(true)
+          setOpen((v) => !v)
+        }}
         aria-haspopup="menu"
         aria-expanded={open}
         aria-label={`${t('nav.language')} ${LANG_CODE[lang]}`}
@@ -102,7 +106,8 @@ export function LangSwitcher({ light = false }: { light?: boolean }) {
         />
       </button>
 
-      {/* Always mounted; .sv-pop does the in/out, inert gates the tab order. */}
+      {/* Panel always mounted (.sv-pop does the in/out, inert gates the tab order);
+          items mount on first open — navbar + mobile menu each carried ~100 idle nodes. */}
       <div
         role="menu"
         aria-label={t('nav.language')}
@@ -110,7 +115,8 @@ export function LangSwitcher({ light = false }: { light?: boolean }) {
         data-open={open || undefined}
         className="sv-pop glass-light absolute end-0 top-full z-50 mt-2 w-44 origin-top-right rounded-module p-1.5 shadow-card"
       >
-            {LANGS.map((code) => {
+        {armed &&
+          LANGS.map((code) => {
               const active = lang === code
               return (
                 <button
@@ -128,7 +134,7 @@ export function LangSwitcher({ light = false }: { light?: boolean }) {
                   {active && <Check className="h-4 w-4" />}
                 </button>
               )
-            })}
+          })}
       </div>
     </div>
   )

@@ -19,14 +19,6 @@ interface Particle {
   orange: boolean
 }
 
-interface WindowCell {
-  x: number
-  y: number
-  duration: string
-  delay: string
-  orange: boolean
-}
-
 interface Star {
   top: string
   left: string
@@ -66,28 +58,41 @@ function buildParticles(): Particle[] {
   }))
 }
 
-function buildWindows(): WindowCell[] {
+/** Rect list → one path "d" — a node per shape was ~170 SVG nodes in the hero. */
+const rects = (r: Array<[number, number, number, number]>) =>
+  r.map(([x, y, w, h]) => `M${x} ${y}h${w}v${h}h${-w}z`).join('')
+
+const WINDOW_PHASES = 4
+
+/** Lit windows bucketed into colour × phase paths: 8 twinkling nodes instead of ~90.
+ *  ponytail: windows in one bucket blink together; 4 phases still read staggered. */
+function buildWindows(): Array<{ d: string; orange: boolean; duration: string; delay: string }> {
   const rnd = seeded(7)
-  const cells: WindowCell[] = []
+  const buckets = Array.from({ length: WINDOW_PHASES * 2 }, () => [] as Array<[number, number, number, number]>)
   BUILDINGS.forEach(([bx, bw, bh]) => {
     const cols = Math.floor((bw - 14) / 14)
     const rows = Math.floor((bh - 20) / 18)
     for (let c = 0; c < cols; c++) {
       for (let r = 0; r < rows; r++) {
         if (rnd() > 0.78) {
-          cells.push({
-            x: bx + 8 + c * 14,
-            y: SV_H - bh + 12 + r * 18,
-            duration: `${(3.5 + rnd() * 5).toFixed(1)}s`,
-            delay: `${(-rnd() * 6).toFixed(1)}s`,
-            orange: rnd() > 0.75,
-          })
+          const phase = Math.floor(rnd() * WINDOW_PHASES)
+          const orange = rnd() > 0.75
+          buckets[phase * 2 + (orange ? 1 : 0)].push([bx + 8 + c * 14, SV_H - bh + 12 + r * 18, 5, 7])
         }
       }
     }
   })
-  return cells
+  return buckets.flatMap((cells, i) => {
+    const phase = Math.floor(i / 2)
+    return cells.length
+      ? [{ d: rects(cells), orange: i % 2 === 1, duration: `${4 + phase * 1.3}s`, delay: `${-phase * 1.5}s` }]
+      : []
+  })
 }
+
+const SKYLINE_BODY = rects(BUILDINGS.map(([x, w, h]) => [x, SV_H - h, w, h]))
+const SKYLINE_CAPS = rects(BUILDINGS.map(([x, w, h]) => [x, SV_H - h, w, 2]))
+const SKYLINE_BACK = rects(BUILDINGS.map(([x, w, h]) => [x + 18, SV_H - h * 0.62, w, h * 0.62]))
 
 /* Sparse twinkling star field — confined to the upper sky so it never collides with the H1/search panel */
 function buildStars(): Star[] {
@@ -197,10 +202,7 @@ export default function HeroBackground() {
         preserveAspectRatio="xMidYMax slice"
         className="sv-skyline-back absolute bottom-0 left-0 h-[30%] w-full opacity-35 blur-[1.5px] dark:h-[38%] dark:opacity-50"
       >
-        {BUILDINGS.map(([x, w, h], i) => {
-          const bh = h * 0.62
-          return <rect key={i} x={x + 18} y={SV_H - bh} width={w} height={bh} fill="var(--skyline-a)" />
-        })}
+        <path d={SKYLINE_BACK} fill="var(--skyline-a)" />
       </svg>
 
       {/* Stylized skyline silhouette with glowing windows */}
@@ -215,24 +217,16 @@ export default function HeroBackground() {
             <stop offset="100%" stopColor="var(--skyline-b)" stopOpacity="1" />
           </linearGradient>
         </defs>
-        {BUILDINGS.map(([x, w, h], i) => (
-          <g key={i}>
-            <rect x={x} y={SV_H - h} width={w} height={h} fill="url(#skylineFill)" />
-            <rect x={x} y={SV_H - h} width={w} height={2} fill="var(--skyline-cap)" opacity="0.22" />
-          </g>
-        ))}
+        <path d={SKYLINE_BODY} fill="url(#skylineFill)" />
+        <path d={SKYLINE_CAPS} fill="var(--skyline-cap)" opacity="0.22" />
         {/* Antenna on tallest */}
         <line x1={584 + 24} y1={SV_H - 300} x2={584 + 24} y2={SV_H - 332} stroke="var(--sv-blue)" strokeWidth="2" opacity="0.5" />
         <circle cx={584 + 24} cy={SV_H - 334} r="3" fill="var(--sv-orange)" opacity="0.9" className="sv-beacon" />
         <circle cx={584 + 24} cy={SV_H - 334} r="8" fill="var(--sv-orange)" opacity="0.14" className="sv-beacon" />
         {windows.map((w, i) => (
-          <rect
+          <path
             key={i}
-            x={w.x}
-            y={w.y}
-            width={5}
-            height={7}
-            rx={1}
+            d={w.d}
             className="sv-window hidden md:block"
             fill={w.orange ? 'var(--sv-orange-light)' : 'var(--sv-blue-light)'}
             style={{ '--w-duration': w.duration, '--w-delay': w.delay } as React.CSSProperties}
