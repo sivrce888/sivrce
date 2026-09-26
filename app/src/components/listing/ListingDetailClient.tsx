@@ -22,7 +22,8 @@ import UserAvatar from '@/components/UserAvatar'
 import { FeatureGlyph } from '@/components/FeatureIcon'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
-import { monthlyPayment, estimateMonthlyRent, grossYieldPct } from '@/lib/finance'
+import { monthlyPayment, grossYieldPct } from '@/lib/finance'
+import { estimateRent } from '@/lib/rent-anchor'
 import ListingCard, { BADGE_STYLE, ExclusiveBadges, ListingStickerStack } from '@/components/ListingCard'
 import { AdCreative } from '@/components/ads/AdCreative'
 import type { PublicAd } from '@/lib/ads'
@@ -735,7 +736,7 @@ export default function ListingDetailClient({
   }, [l.images, photo])
 
   // Mortgage state
-  const [downPct, setDownPct] = useState(l.country === 'GE' ? 30 : 20) // GE: NBG caps USD loans at 70% LTV
+  const [downPct, setDownPct] = useState((l.country ?? 'GE') === 'GE' ? 30 : 20) // GE: NBG caps USD loans at 70% LTV
   const [years, setYears] = useState(l.country === 'DE' ? 25 : 15)
   const [rate, setRate] = useState(l.country === 'DE' ? 3.8 : 9.5)
   const [siteBoost, setSiteBoost] = useState<{
@@ -825,10 +826,13 @@ export default function ListingDetailClient({
     const principal = euroNative ? l.priceOriginal! : l.priceUSD
     return monthlyPayment(principal * (1 - downPct / 100), rate, years)
   }, [l, downPct, rate, years, euroNative])
+  // Area × market rent/m² in the price's own currency; null → yield line hidden.
   const rentEst = useMemo(
-    () => estimateMonthlyRent(euroNative ? l.priceOriginal! : l.priceUSD),
-    [l.priceUSD, l.priceOriginal, euroNative],
+    () => (euroNative === (l.country === 'DE') ? estimateRent(l.area, l.country, l.city, l.district) : null),
+    [l.area, l.country, l.city, l.district, euroNative],
   )
+  // USD view for USD-typed consumers; EUR listings convert at their own price ratio.
+  const rentUSD = rentEst && euroNative ? Math.round((rentEst * l.priceUSD) / l.priceOriginal!) : rentEst
   const fav = has(l.id)
   const compared = inCompare(l.id)
   const isSale = l.dealType === 'sale'
@@ -892,12 +896,12 @@ export default function ListingDetailClient({
       // Only assert a district median when real peers exist — a circular
       // "average of $35/m²" (the listing itself) reads as a fabricated FACT.
       ...(peers.length > 0 && { districtMedianPerSqm: peers[Math.floor(peers.length / 2)] }),
-      estimatedMonthlyRentUSD: isSale ? rentEst : undefined,
+      estimatedMonthlyRentUSD: isSale ? rentUSD ?? undefined : undefined,
       sellerPhoneVerified: Boolean(l.verified || l.agent.verified),
       photosCount: l.photoCount ?? l.images.length,
       hasCadastralCode: l.hasCadastralCode,
     }
-  }, [l, lang, isSale, rentEst, peerPerM2])
+  }, [l, lang, isSale, rentUSD, peerPerM2])
 
   useEffect(() => {
     if (!Number.isFinite(l.coords.lat) || !Number.isFinite(l.coords.lng)) return
@@ -1879,11 +1883,13 @@ export default function ListingDetailClient({
                       {t('detail.approxPerMonth', { gel: formatGEL(Math.round(monthlyUSD * (liveRate || USD_GEL))) })}
                     </div>
                     )}
+                    {rentEst ? (
                     <div className="mt-1 text-[12px] font-bold text-sv-ink/50">
                       {lt(lang, 'yieldEst', { pct: grossYieldPct(euroNative ? l.priceOriginal! : l.priceUSD, rentEst) })}
                       {' · '}
                       {lt(lang, 'yieldRent', { rent: euroNative ? formatEur(rentEst) : formatUSD(rentEst) })}
                     </div>
+                    ) : null}
                   </div>
                   <div className="text-right text-[12px] font-bold leading-relaxed text-sv-ink/60">
                     {t('detail.loanAmount')}<br />
@@ -1911,17 +1917,17 @@ export default function ListingDetailClient({
             <AiAdvisor ctx={advisorCtx} isSale={isSale} />
 
             {/* 10x Institutional Valuation & 3-Scenario Terminal — income model
-                needs rentable space; raw land would fabricate NOI from a guess */}
-            {isSale && l.propType !== 'land' && l.priceUSD > 0 && l.area > 0 && (
+                needs rentable space and a market rent anchor; without them NOI is a guess */}
+            {isSale && l.propType !== 'land' && l.priceUSD > 0 && rentUSD ? (
               <ValuationTerminal
                 priceUSD={l.priceUSD}
                 areaSqm={l.area}
-                monthlyRentUSD={rentEst}
+                monthlyRentUSD={rentUSD}
                 countryCode={l.country}
                 lang={lang}
                 verdict={fairPrice?.position}
               />
-            )}
+            ) : null}
 
             {/* German Energy & Institutional Intelligence Cockpit (GEG 2026 & CO2KostAufG) */}
             {l.country === 'DE' && l.area > 0 && (

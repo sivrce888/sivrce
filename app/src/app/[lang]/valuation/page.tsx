@@ -5,7 +5,8 @@ import { PageHero } from '@/components/PageHero'
 import LocalizedLink from '@/components/LocalizedLink'
 import { getMarketOverview } from '@/lib/market-stats'
 import { USD_GEL } from '@/lib/listings-db'
-import { estimateMonthlyRent, grossYieldPct } from '@/lib/finance'
+import { grossYieldPct } from '@/lib/finance'
+import { estimateRent } from '@/lib/rent-anchor'
 import { calculateValuation10x } from '@/lib/valuation-10x'
 import { MIN_SAMPLE } from '@/lib/market-stats-core'
 import { DISTRICTS } from '@/lib/directory-seo-lite'
@@ -245,7 +246,7 @@ export default async function ValuationPage({
 
   let result: null | {
     valueUSD: number; loUSD: number; hiUSD: number; hwPct: number
-    ppsm: number; rent: number; yieldPct: number; capPct: number
+    ppsm: number; rent: number | null; yieldPct: number; capPct: number
     y5USD: number; closingUSD: number; sample: number
   } = null
   if (row && area) {
@@ -254,9 +255,11 @@ export default async function ValuationPage({
       const valueUSD = Math.round((area * ppsm * CONDITION_FACTOR[cond]) / 100) * 100
       // ±6% at a 40-listing sample, widening to ±16% as the sample thins.
       const hwPct = 6 + Math.max(0, 10 - Math.min(row.stats.sample, 40) / 4)
-      const rent = estimateMonthlyRent(valueUSD)
+      // Anchor needs the district's city; unknown district → no rent/yield rows.
+      const city = DISTRICTS.find((d) => d.ka === districtKa)?.citySlug
+      const rent = estimateRent(area, 'GE', city, districtKa)
       const report = calculateValuation10x({
-        priceUSD: valueUSD, areaSqm: area, monthlyRentUSD: rent, countryCode: 'GE',
+        priceUSD: valueUSD, areaSqm: area, monthlyRentUSD: rent ?? 0, countryCode: 'GE',
       })
       result = {
         valueUSD,
@@ -265,7 +268,7 @@ export default async function ValuationPage({
         hwPct,
         ppsm,
         rent,
-        yieldPct: grossYieldPct(valueUSD, rent),
+        yieldPct: rent ? grossYieldPct(valueUSD, rent) : 0,
         capPct: report.scenarios.base.year1CapRatePct,
         y5USD: report.scenarios.base.year5PropertyValueUSD,
         closingUSD: report.estimatedClosingCostsUSD,
@@ -379,18 +382,22 @@ export default async function ValuationPage({
                   <dt className="text-sv-ink/55">{c.perM2}</dt>
                   <dd className="text-sv-ink">{usd(result.ppsm)}/m²</dd>
                 </div>
-                <div className="flex justify-between gap-3 sm:block">
-                  <dt className="text-sv-ink/55">{c.rent}</dt>
-                  <dd className="text-sv-ink">{usd(result.rent)}</dd>
-                </div>
-                <div className="flex justify-between gap-3 sm:block">
-                  <dt className="text-sv-ink/55">{c.yieldL}</dt>
-                  <dd className="text-sv-ink">{result.yieldPct.toFixed(1)}%</dd>
-                </div>
-                <div className="flex justify-between gap-3 sm:block">
-                  <dt className="text-sv-ink/55">{c.cap}</dt>
-                  <dd className="text-sv-ink">{result.capPct.toFixed(1)}%</dd>
-                </div>
+                {result.rent !== null && (
+                  <>
+                    <div className="flex justify-between gap-3 sm:block">
+                      <dt className="text-sv-ink/55">{c.rent}</dt>
+                      <dd className="text-sv-ink">{usd(result.rent)}</dd>
+                    </div>
+                    <div className="flex justify-between gap-3 sm:block">
+                      <dt className="text-sv-ink/55">{c.yieldL}</dt>
+                      <dd className="text-sv-ink">{result.yieldPct.toFixed(1)}%</dd>
+                    </div>
+                    <div className="flex justify-between gap-3 sm:block">
+                      <dt className="text-sv-ink/55">{c.cap}</dt>
+                      <dd className="text-sv-ink">{result.capPct.toFixed(1)}%</dd>
+                    </div>
+                  </>
+                )}
                 <div className="flex justify-between gap-3 sm:block">
                   <dt className="text-sv-ink/55">{c.y5}</dt>
                   <dd className="text-sv-ink">{usd(result.y5USD)}</dd>

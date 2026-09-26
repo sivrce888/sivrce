@@ -48,12 +48,6 @@ export function amortizationSchedule(principal: number, annualRatePct: number, y
   return schedule
 }
 
-/** Gross monthly rent heuristic: 0.5% of price, rounded to $50. */
-export function estimateMonthlyRent(priceUSD: number): number {
-  if (priceUSD <= 0) return 0
-  return Math.round((priceUSD * 0.005) / 50) * 50
-}
-
 /** Annual gross yield from monthly rent, one decimal. */
 export function grossYieldPct(priceUSD: number, monthlyRent: number): number {
   if (priceUSD <= 0) return 0

@@ -6,7 +6,7 @@ import { readFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { amenityBbox, amenityMeters, hasNeighborhoodSignal, scoreFromAmenities } from './walk-score'
-import { estimateMonthlyRent, grossYieldPct } from './finance'
+import { grossYieldPct } from './finance'
 import { parseSearchHistory } from './search-history'
 
 const empty = scoreFromAmenities([])
@@ -62,8 +62,6 @@ assert.ok(Math.abs(box[1]! - 52.512) < 1e-6)
 assert.ok(Math.abs(box[2]! - 13.413) < 1e-6)
 assert.ok(Math.abs(box[3]! - 52.528) < 1e-6)
 
-assert.equal(estimateMonthlyRent(200_000), 1000)
-assert.equal(estimateMonthlyRent(0), 0)
 assert.equal(grossYieldPct(200_000, 1000), 6)
 assert.equal(grossYieldPct(0, 1000), 0)
 
