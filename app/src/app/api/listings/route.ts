@@ -113,6 +113,21 @@ export async function POST(req: NextRequest) {
     select: { id: true, publicId: true },
   })
 
+  // Baseline event — price history starts at publication, not at the first edit.
+  if (p.price > 0) {
+    void db.listingPriceEvent
+      .create({
+        data: {
+          listingId: listing.id,
+          eventType: "listed",
+          price: p.price,
+          previousPrice: null,
+          currency: p.country === "DE" ? "EUR" : "USD",
+        },
+      })
+      .catch((e) => console.error("[listings] listed event:", (e as Error).message))
+  }
+
   void attributeListing(listing.id).catch(() => {})
   void recomputeNearestPois(listing.id).catch(() => {})
   void linkListingMedia({

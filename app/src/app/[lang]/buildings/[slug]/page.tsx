@@ -10,6 +10,8 @@ import {
   Navigation,
   Calendar,
   TrainFront,
+  TrendingDown,
+  TrendingUp,
 } from 'lucide-react'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
@@ -21,7 +23,7 @@ import { FaqSection } from '@/components/seo/FaqSection'
 import HScroll from '@/components/HScroll'
 import MapEmbed from '@/components/MapEmbed'
 import { getBuilding, relatedBuildings } from '@/data/buildings'
-import { getDeveloper, type Developer } from '@/data/professionals'
+import { getDeveloper, getProject, type Developer } from '@/data/professionals'
 import {
   clusterListingsToBuildings,
   dealLabelKa,
@@ -50,7 +52,11 @@ import {
   nearestMetro,
 } from '@/lib/map/pois'
 import { AmenityChips } from '@/components/places/AmenityChips'
-import { getDistrictPeerPerM2, getListingsByIds } from '@/lib/listings-db'
+import { getDistrictPeerPerM2, getListingsByIds, getBuildingPriceEvents } from '@/lib/listings-db'
+import { listingPath } from '@/lib/listing-slug'
+import { listingTitle } from '@/lib/place-label'
+import { ReportInaccuracy } from '@/components/entities/ReportInaccuracy'
+import { PROJECT_PAGE } from '@/lib/project-page-copy'
 import { type DirLoc } from '@/lib/directory-seo'
 import { DISTRICTS } from '@/lib/seo-pages'
 import { priceScaleOf } from '@/lib/price-scale'
@@ -102,7 +108,8 @@ const T: Record<DirLoc | 'de', {
   avgPrice: string; medianPrice: string; vsDistrict: string
   floorsAbbr: string; unitsAbbr: string; handover: string; perM2From: string
   viewMap: string; project: string; about: string
-  spec: { code: string; district: string; ubani: string; floors: string; units: string; year: string; corpus: string }
+  historyTitle: string; evListed: string; evDrop: string; evRaise: string; evSold: string
+  spec: { code: string; cadastral: string; district: string; ubani: string; floors: string; units: string; year: string; corpus: string }
   around: string; location: string; photos: string; plan: string
   listingsHere: string; noListings: string; related: string
   faqTitle: string
@@ -116,7 +123,8 @@ const T: Record<DirLoc | 'de', {
     avgPrice: 'საშუალო ფასი', medianPrice: 'მედიანური ფასი', vsDistrict: 'რაიონთან შედარებით',
     floorsAbbr: 'სართ.', unitsAbbr: 'ბინა', handover: 'ჩაბარება', perM2From: '/მ²-დან',
     viewMap: 'რუკაზე ნახვა', project: 'პროექტი', about: 'შენობის შესახებ',
-    spec: { code: 'კოდი', district: 'რაიონი', ubani: 'უბანი', floors: 'სართული', units: 'ბინა', year: 'წელი', corpus: 'კორპუსის №' },
+    historyTitle: 'ფასის ისტორია ამ შენობაში', evListed: 'გამოქვეყნდა', evDrop: 'ფასი დაიკლო', evRaise: 'ფასი გაიზარდა', evSold: 'გაიყიდა',
+    spec: { code: 'კოდი', cadastral: 'კადასტრული კოდი', district: 'რაიონი', ubani: 'უბანი', floors: 'სართული', units: 'ბინა', year: 'წელი', corpus: 'კორპუსის №' },
     around: 'ირგვლივ', location: 'მისამართი და მიმართულება', photos: 'ფოტოები', plan: 'გეგმა',
     listingsHere: 'განცხადებები ამ შენობაში', noListings: 'ამ მისამართზე განცხადება არ გვაქვს.',
     related: 'იგივე რაიონში', faqTitle: 'ხშირი კითხვები',
@@ -130,7 +138,8 @@ const T: Record<DirLoc | 'de', {
     avgPrice: 'Average price', medianPrice: 'Median price', vsDistrict: 'vs district',
     floorsAbbr: 'fl.', unitsAbbr: 'units', handover: 'Handover', perM2From: '/m² from',
     viewMap: 'View on map', project: 'Project', about: 'About the building',
-    spec: { code: 'Code', district: 'District', ubani: 'Neighborhood', floors: 'Floors', units: 'Units', year: 'Year', corpus: 'Building №' },
+    historyTitle: 'Price history in this building', evListed: 'Listed', evDrop: 'Price drop', evRaise: 'Price raised', evSold: 'Sold',
+    spec: { code: 'Code', cadastral: 'Cadastre code', district: 'District', ubani: 'Neighborhood', floors: 'Floors', units: 'Units', year: 'Year', corpus: 'Building №' },
     around: 'Around the building', location: 'Location & directions', photos: 'Photos', plan: 'Floor plan',
     listingsHere: 'Listings in this building', noListings: 'No listings at this address yet.',
     related: 'In the same district', faqTitle: 'Frequently asked questions',
@@ -147,7 +156,8 @@ const T: Record<DirLoc | 'de', {
     avgPrice: 'Средняя цена', medianPrice: 'Медианная цена', vsDistrict: 'по району',
     floorsAbbr: 'эт.', unitsAbbr: 'кв.', handover: 'Сдача', perM2From: '/м² от',
     viewMap: 'Открыть карту', project: 'Проект', about: 'О корпусе',
-    spec: { code: 'Код', district: 'Район', ubani: 'Квартал', floors: 'Этажи', units: 'Квартиры', year: 'Год', corpus: 'Корпус №' },
+    historyTitle: 'История цен в этом корпусе', evListed: 'Опубликовано', evDrop: 'Цена снижена', evRaise: 'Цена повышена', evSold: 'Продано',
+    spec: { code: 'Код', cadastral: 'Кадастровый код', district: 'Район', ubani: 'Квартал', floors: 'Этажи', units: 'Квартиры', year: 'Год', corpus: 'Корпус №' },
     around: 'Рядом', location: 'Адрес и маршрут', photos: 'Фото', plan: 'Планировка',
     listingsHere: 'Объявления в этом корпусе', noListings: 'По этому адресу объявлений пока нет.',
     related: 'В том же районе', faqTitle: 'Частые вопросы',
@@ -164,7 +174,8 @@ const T: Record<DirLoc | 'de', {
     avgPrice: 'Durchschnittspreis', medianPrice: 'Medianpreis', vsDistrict: 'vs. Bezirk',
     floorsAbbr: 'OG', unitsAbbr: 'Wohnungen', handover: 'Übergabe', perM2From: '/m² ab',
     viewMap: 'Auf Karte ansehen', project: 'Projekt', about: 'Über das Gebäude',
-    spec: { code: 'Code', district: 'Bezirk', ubani: 'Viertel', floors: 'Etagen', units: 'Wohnungen', year: 'Jahr', corpus: 'Gebäude Nr.' },
+    historyTitle: 'Preishistorie in diesem Gebäude', evListed: 'Veröffentlicht', evDrop: 'Preis gesenkt', evRaise: 'Preis erhöht', evSold: 'Verkauft',
+    spec: { code: 'Code', cadastral: 'Katastercode', district: 'Bezirk', ubani: 'Viertel', floors: 'Etagen', units: 'Wohnungen', year: 'Jahr', corpus: 'Gebäude Nr.' },
     around: 'In der Umgebung', location: 'Lage & Anfahrt', photos: 'Fotos', plan: 'Grundriss',
     listingsHere: 'Inserate in diesem Gebäude', noListings: 'Für diese Adresse gibt es noch keine Inserate.',
     related: 'Im selben Bezirk', faqTitle: 'Häufige Fragen',
@@ -288,6 +299,11 @@ export default async function BuildingPage({ params }: PageProps) {
     rating: aggregate ? aggregate.average : null,
     metroWalkMin: metro ? metro.walkMin : null,
   })
+
+  // Free building-level price history (SS.ge charges 1.99₾/day for this) + project cadastral code.
+  const priceHistory = await getBuildingPriceEvents(listings.map((l) => l.id))
+  const projectRef = building.projectSlug ? getProject(building.projectSlug) : undefined
+  const dayFmt = new Intl.DateTimeFormat(loc === 'ka' ? 'ka-GE' : loc === 'ru' ? 'ru-RU' : loc === 'de' ? 'de-DE' : 'en-GB', { day: 'numeric', month: 'short' })
 
   const cluster = findBuildingBySlug(slug, clusterListingsToBuildings(listings))
   const floorCount = cluster ? buildingFloorCount(cluster) : building.floors
@@ -672,6 +688,7 @@ export default async function BuildingPage({ params }: PageProps) {
           <dl className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {[
               [t.spec.code, building.code],
+              ...(projectRef?.cadastral ? [[t.spec.cadastral, projectRef.cadastral] as const] : []),
               [t.spec.district, geoName(building.district, loc)],
               ...(building.ubani ? [[t.spec.ubani, geoName(building.ubani, loc)] as const] : []),
               [t.spec.floors, String(building.floors)],
@@ -804,6 +821,62 @@ export default async function BuildingPage({ params }: PageProps) {
           )}
         </section>
 
+        {priceHistory.length > 0 && (
+          <section className="mx-auto max-w-[1440px] px-5 pb-12 md:px-10">
+            <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
+              {t.historyTitle}
+            </h2>
+            <ul className="mt-6 max-w-3xl divide-y divide-sv-ink/[0.04] rounded-card border border-sv-ink/[0.06] bg-sv-surface px-5 py-1 shadow-card">
+              {priceHistory.slice(0, 8).map((ev, i) => {
+                const l = cardListings.find((x) => x.id === ev.listingId)
+                return (
+                  <li
+                    key={`${ev.recordedAt}-${ev.listingId}-${i}`}
+                    className="flex items-center gap-2.5 py-2.5 text-[13px] font-semibold"
+                  >
+                    {ev.type === 'price_drop' ? (
+                      <TrendingDown className="h-4 w-4 shrink-0 text-sv-blue" aria-hidden />
+                    ) : ev.type === 'price_increase' ? (
+                      <TrendingUp className="h-4 w-4 shrink-0 text-sv-orange-deep" aria-hidden />
+                    ) : (
+                      <Calendar className="h-4 w-4 shrink-0 text-sv-ink/35" aria-hidden />
+                    )}
+                    <span className="shrink-0 text-sv-ink/70">
+                      {ev.type === 'price_drop' ? t.evDrop
+                        : ev.type === 'price_increase' ? t.evRaise
+                          : ev.type === 'sold' ? t.evSold
+                            : t.evListed}
+                    </span>
+                    {l && (
+                      <Link
+                        href={listingPath(l)}
+                        className="truncate text-sv-blue-deep transition-colors hover:underline"
+                      >
+                        {listingTitle(l.title, l.city, lang)}
+                      </Link>
+                    )}
+                    <span className="ml-auto shrink-0 tabular-nums tracking-tight text-sv-ink">
+                      ${ev.priceUSD.toLocaleString('en-US')}
+                    </span>
+                    {ev.deltaPct !== null && (
+                      <span
+                        className={`w-11 shrink-0 text-right tabular-nums ${
+                          ev.type === 'price_increase' ? 'text-sv-orange-deep' : 'text-sv-blue'
+                        }`}
+                      >
+                        {ev.type === 'price_increase' ? '+' : '−'}{ev.deltaPct}%
+                      </span>
+                    )}
+                    <span className="w-16 shrink-0 text-right text-[12px] font-bold tabular-nums text-sv-ink/60">
+                      {dayFmt.format(new Date(ev.recordedAt))}
+                    </span>
+                  </li>
+                )
+              })}
+            </ul>
+          </section>
+        )}
+
         {related.length > 0 && (
           <section className="mx-auto max-w-[1440px] px-5 pb-12 md:px-10">
             <h2 className="text-[22px] font-black tracking-[-0.02em] text-sv-ink md:text-[26px]">
@@ -835,6 +908,12 @@ export default async function BuildingPage({ params }: PageProps) {
         )}
 
         <FaqSection title={t.faqTitle} items={faqs} className="mx-auto max-w-[1440px] px-5 pb-12 md:px-10" />
+
+        {building.projectSlug && (
+          <section className="mx-auto max-w-[1440px] px-5 pb-12 md:px-10">
+            <ReportInaccuracy kind="project" slug={building.projectSlug} t={PROJECT_PAGE[loc].report} />
+          </section>
+        )}
 
         <section className="mx-auto max-w-[1440px] px-5 pb-16 md:px-10">
           <ReviewsSectionServer targetType="building" targetId={building.slug} />

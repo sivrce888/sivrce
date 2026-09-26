@@ -459,8 +459,12 @@ export async function resolveListingQuery(
   }, null)
 }
 
-/** Active listings whose address matches a street core (Tbilisi street pages). */
-export async function getListingsOnStreet(streetKa: string, districtKa: string): Promise<Listing[]> {
+/** Active listings whose address matches a street core (Tbilisi + regional street pages). */
+export async function getListingsOnStreet(
+  streetKa: string,
+  districtKa?: string,
+  cityKa = "თბილისი",
+): Promise<Listing[]> {
   return safeQuery(async () => {
     const core = streetKa.split(/\s+/).filter((w) => !/^(ქუჩა|გამზირი|ხეივანი|სანაპირო|მოედანი|გზატკეცილი)$/.test(w))
     const needle = core[core.length - 1] ?? streetKa
@@ -468,8 +472,8 @@ export async function getListingsOnStreet(streetKa: string, districtKa: string):
       where: {
         deletedAt: null,
         status: "active",
-        city: "თბილისი",
-        district: districtKa,
+        city: cityKa,
+        ...(districtKa ? { district: districtKa } : {}),
         address: { contains: needle, mode: "insensitive" },
       },
       orderBy: { createdAt: "desc" },
@@ -604,6 +608,32 @@ export async function getListingPriceEvents(listingId: string): Promise<PriceEve
     )
   }, [])
 }
+/** Building-level price timeline: newest events across a building's listings
+ *  (one query, newest first, capped). Empty when the building has no history. */
+export async function getBuildingPriceEvents(
+  listingIds: string[],
+): Promise<(PriceEventView & { listingId: string })[]> {
+  if (!listingIds.length) return []
+  return safeQuery(async () => {
+    const rows = await db.listingPriceEvent.findMany({
+      where: { listingId: { in: listingIds } },
+      orderBy: { recordedAt: "desc" },
+      take: 24,
+    })
+    const views = priceEventViews(
+      rows.map((r) => ({
+        eventType: r.eventType as string,
+        price: r.price,
+        previousPrice: r.previousPrice,
+        currency: r.currency as string,
+        recordedAt: r.recordedAt,
+      })),
+      USD_GEL,
+    )
+    return rows.map((r, i) => ({ ...views[i]!, listingId: r.listingId }))
+  }, [])
+}
+
 /** Full card rows for known ids, in the given order (e.g. a building's map pins). */
 export async function getListingsByIds(ids: string[]): Promise<Listing[]> {
   if (!ids.length) return []
