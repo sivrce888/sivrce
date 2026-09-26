@@ -12,14 +12,17 @@
  */
 
 import type { DealType, MapListing, PropType } from '@/data/listings'
-import { BUILDINGS, type BuildingCatalogEntry } from '@/data/buildings'
+import type { BuildingCatalogEntry } from '@/data/buildings'
 import { DEAL_BRAND, SERVICE_BRAND, STATUS_BRAND } from '@/lib/category-brand'
-// ponytail: this is the last client edge into the ~310 KB professionals catalog
-// (Map3D needs `getDeveloper(slug).name.ka` for pin labels and `projectCode` for
-// the building code). It rides a lazily-loaded map chunk, so it costs nothing
-// until a map opens. Upgrade path when that matters: a generated slug → {name,
-// code} index with a drift check, the same pattern as data/user-place.gen.ts.
-import { getDeveloper, projectCode, type Project } from '@/data/professionals'
+import type { Project } from '@/data/professionals'
+// A generated leaf, not data/buildings + data/professionals: those catalogs
+// shipped ~1.9 MB of world projects (galleries, 3-locale copy) to every map
+// visit for a handful of pin fields. Drift-locked by buildings.check.ts (--write regenerates).
+import {
+  MAP_CATALOG_ROWS,
+  MAP_DEV_NAME_KA,
+  MAP_PROJECT_CODE,
+} from '@/lib/map/map-catalog.gen'
 import type { MapDealFilter, MapKindFilter, MapStatusFilter } from '@/lib/map/map-href'
 import { NEIGHBORHOODS } from '@/data/neighborhoods'
 import { TBILISI_DISTRICT_LABELS } from '@/data/district-labels'
@@ -156,7 +159,7 @@ function footprintCentroid(
 }
 
 /** Catalog pin: prefer committed OSM footprint centroid when present. */
-function catalogCoords(cat: BuildingCatalogEntry): { lat: number; lng: number } {
+function catalogCoords(cat: MapCatalogEntry): { lat: number; lng: number } {
   const fp = footprintEntry({ id: `bldg-${cat.slug}`, slug: cat.slug, projectSlug: cat.projectSlug })
   return (fp ? footprintCentroid(fp) : null) ?? cat.coords
 }
@@ -224,7 +227,6 @@ export type MapBuildingCluster = {
   rating?: number
   yearBuilt?: number
   floors?: number
-  description?: string
   /** Real OSM ring supplied with the cluster (DB-curated buildings); wins over FOOTPRINTS. */
   ring?: [number, number][]
   /** Admin-edited floor inventory (DB); wins over listing-derived floor stacks. */
@@ -398,6 +400,29 @@ function isValidCoords(lat: number, lng: number): boolean {
   return Number.isFinite(lat) && Number.isFinite(lng) && Math.abs(lat) <= 90 && Math.abs(lng) <= 180
 }
 
+const devNameKa = (slug?: string): string | undefined =>
+  slug ? MAP_DEV_NAME_KA[slug] : undefined
+
+/** The catalog fields a map pin reads — the rest stays on the server. */
+export type MapCatalogEntry = Pick<
+  BuildingCatalogEntry,
+  | 'slug' | 'code' | 'name' | 'nameEn' | 'address' | 'city' | 'district' | 'coords'
+  | 'buildingNumber' | 'img' | 'floors' | 'status' | 'developerSlug' | 'projectSlug'
+  | 'yearBuilt' | 'rating'
+>
+
+export const MAP_CATALOG: readonly MapCatalogEntry[] = MAP_CATALOG_ROWS.map(
+  ([slug, code, name, nameEn, address, city, district, lat, lng, buildingNumber, img,
+    floors, status, developerSlug, projectSlug, yearBuilt, rating]) => ({
+    slug, code, name, nameEn, address, city, district, coords: { lat, lng },
+    buildingNumber, img, floors, status,
+    ...(developerSlug != null ? { developerSlug } : {}),
+    ...(projectSlug != null ? { projectSlug } : {}),
+    ...(yearBuilt != null ? { yearBuilt } : {}),
+    ...(rating != null ? { rating } : {}),
+  }),
+)
+
 function countDeals(items: MapListing[]): BuildingDealCounts {
   const counts = emptyCounts()
   for (const l of items) counts[l.dealType]++
@@ -406,10 +431,9 @@ function countDeals(items: MapListing[]): BuildingDealCounts {
 
 function enrichFromCatalog(
   cluster: MapBuildingCluster,
-  cat: BuildingCatalogEntry,
+  cat: MapCatalogEntry,
 ): MapBuildingCluster {
-  const dev = getDeveloper(cat.developerSlug)
-  const pin = catalogCoords(cat)
+    const pin = catalogCoords(cat)
   return {
     ...cluster,
     id: `bldg-${cat.slug}`,
@@ -425,11 +449,10 @@ function enrichFromCatalog(
     slug: cat.slug,
     img: cat.img,
     developerSlug: cat.developerSlug,
-    developerName: dev?.name.ka,
+    developerName: devNameKa(cat.developerSlug),
     rating: cat.rating,
     yearBuilt: cat.yearBuilt,
     floors: cat.floors,
-    description: cat.description.ka,
     projectSlug: cat.projectSlug ?? cluster.projectSlug,
     // ponytail: 110 m cap flattened 40–100 fl project towers; 350 m ≈ 110 fl.
     heightM: cat.projectSlug
@@ -439,7 +462,7 @@ function enrichFromCatalog(
   }
 }
 
-export function catalogToCluster(cat: BuildingCatalogEntry, listings: MapListing[]): MapBuildingCluster {
+export function catalogToCluster(cat: MapCatalogEntry, listings: MapListing[]): MapBuildingCluster {
   const counts = countDeals(listings)
   const dominant = listings.length ? dominantDeal(counts) : ('sale' as DealType)
   const pin = catalogCoords(cat)
@@ -490,7 +513,7 @@ export function clusterListingsToBuildings(listings: MapListing[]): MapBuildingC
   const out: MapBuildingCluster[] = []
   const usedSlugs = new Set<string>()
 
-  for (const cat of BUILDINGS) {
+  for (const cat of MAP_CATALOG) {
     const items = bySlug.get(cat.slug) ?? []
     usedSlugs.add(cat.slug)
     out.push(catalogToCluster(cat, items))
@@ -583,7 +606,7 @@ export function projectsToConstructionBuildings(
   projects: Array<Project & { coords: { lat: number; lng: number }; floors?: number }>,
 ): MapBuildingCluster[] {
   const catalogProjectSlugs = new Set(
-    BUILDINGS.map((b) => b.projectSlug).filter(Boolean) as string[],
+    MAP_CATALOG.map((b) => b.projectSlug).filter(Boolean) as string[],
   )
   // ponytail: SEO alias shares the catalog pin — don't drop a second massing on top.
   catalogProjectSlugs.add('axis-towers-vake')
@@ -600,7 +623,6 @@ export function projectsToConstructionBuildings(
       )
       const bn = parseBuildingNumber(p.location) || '—'
       const completed = p.done >= 100
-      const dev = getDeveloper(p.developerSlug)
       const id = `dev-${p.slug}`
       // NAPR CadRepGeo override wins over OSM/catalog pin when snap script succeeded.
       const naprRaw = naprOverrideFor(p.slug)
@@ -642,8 +664,8 @@ export function projectsToConstructionBuildings(
         progress: p.done,
         projectSlug: p.slug,
         developerSlug: p.developerSlug || undefined,
-        developerName: dev?.name.ka,
-        code: projectCode(p),
+        developerName: devNameKa(p.developerSlug),
+        code: MAP_PROJECT_CODE[p.slug] ?? 'XX-00',
         floors,
         finish: p.finish,
         img: p.img,
@@ -666,7 +688,6 @@ export function applyLiveProjectPins(
     const p = b.projectSlug ? bySlug.get(b.projectSlug) : undefined
     if (!p) return b
     const bn = parseBuildingNumber(p.location)
-    const dev = getDeveloper(p.developerSlug)
     const completed = p.done >= 100
     const naprRaw = naprOverrideFor(p.slug)
     const napr =
@@ -697,7 +718,7 @@ export function applyLiveProjectPins(
       address: p.location || b.address,
       buildingNumber: bn || b.buildingNumber,
       developerSlug: p.developerSlug || b.developerSlug,
-      developerName: dev?.name.ka ?? b.developerName,
+      developerName: devNameKa(p.developerSlug) ?? b.developerName,
       progress: p.done,
       status: completed ? ('completed' as const) : ('construction' as const),
       color: completed ? SERVICE_BRAND.developers.hue : STATUS_BRAND.construction.hue,

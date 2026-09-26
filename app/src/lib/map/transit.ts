@@ -7,7 +7,7 @@
  */
 
 import { inGeorgia, inServiceArea } from './map-geo'
-import { POI_COLORS, POI_LABELS, isPoiCategory, type PoiCategory } from './pois'
+import { POI_COLORS, POI_LABELS, isPoiCategory, type PoiCategory } from './poi-constants'
 
 /** Transit-first: bus stops are the ask; tram/rail ride the same request. */
 export const TRANSIT_CATS = ['bus', 'tram', 'rail'] as const

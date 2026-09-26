@@ -179,9 +179,13 @@ type PlanetJson = {
 
 /**
  * Parsed-style cache — theme toggle back is instant (no fetch/rewrite).
+ * Holds the promise, not the result: a boot fires the same style from the map,
+ * its hybrid-label graft and a fallback at once — one request serves all three.
  * ponytail: structuredClone on hit; MapLibre must not mutate the cached spec.
  */
-const styleCache = new Map<string, StyleSpecification>()
+const styleCache = new Map<string, Promise<StyleSpecification>>()
+/** OFM planet TileJSON — identical for every OFM style, fetched once per tab. */
+let planetOnce: Promise<PlanetJson> | null = null
 
 /** OFM US-only shield layers ship null filters (console spam) — dead in Georgia. */
 const DEAD_SHIELD_LAYERS = new Set([
@@ -190,33 +194,40 @@ const DEAD_SHIELD_LAYERS = new Set([
   'road_shield_us',
 ])
 
+// ponytail: 5s browser / 20s Node — OFM hang used to leave search map white forever
+const fetchJson = <T>(url: string): Promise<T> =>
+  fetch(assetFetchUrl(url), {
+    signal: AbortSignal.timeout(typeof window === 'undefined' ? 20_000 : 5_000),
+  }).then((r) => {
+    if (!r.ok) throw new Error(`map json ${r.status} ${url}`)
+    return r.json() as Promise<T>
+  })
+
 /** Fetch style; proxy URLs; legal credit lives on the attribution control (not sources). */
 export async function loadCleanStyle(styleUrl: string): Promise<StyleSpecification> {
-  const cached = styleCache.get(styleUrl)
-  if (cached) return structuredClone(cached)
+  let p = styleCache.get(styleUrl)
+  if (!p) {
+    p = buildCleanStyle(styleUrl)
+    styleCache.set(styleUrl, p)
+    // A timeout must not poison the cache — the next attempt refetches.
+    p.catch(() => styleCache.delete(styleUrl))
+  }
+  return structuredClone(await p)
+}
 
+async function buildCleanStyle(styleUrl: string): Promise<StyleSpecification> {
   const usesOfm =
     styleUrl.includes('openfreemap') || styleUrl.startsWith(MAP_PROXY_PREFIX)
 
-  // ponytail: 5s browser / 20s Node — OFM hang used to leave search map white forever
-  const fetchMs = typeof window === 'undefined' ? 20_000 : 5_000
-  const styleRaw = await fetch(assetFetchUrl(styleUrl), {
-    cache: 'no-store',
-    signal: AbortSignal.timeout(fetchMs),
-  }).then((r) => {
-    if (!r.ok) throw new Error(`map style ${r.status}`)
-    return r.json() as Promise<StyleSpecification>
-  })
-
-  let planet: PlanetJson | null = null
-  if (usesOfm) {
-    const planetRes = await fetch(
-      assetFetchUrl(`${MAP_PROXY_PREFIX}${PLANET_PATH}?v=${MAP_JSON_CACHE_VER}`),
-      { cache: 'no-store', signal: AbortSignal.timeout(fetchMs) },
-    )
-    if (!planetRes.ok) throw new Error(`map tiles ${planetRes.status}`)
-    planet = (await planetRes.json()) as PlanetJson
+  if (usesOfm && !planetOnce) {
+    planetOnce = fetchJson<PlanetJson>(`${MAP_PROXY_PREFIX}${PLANET_PATH}?v=${MAP_JSON_CACHE_VER}`)
+    planetOnce.catch(() => { planetOnce = null })
   }
+  // Style and TileJSON in parallel — a serial pair cost one extra RTT per cold boot.
+  const [styleRaw, planet] = await Promise.all([
+    fetchJson<StyleSpecification>(styleUrl),
+    usesOfm ? planetOnce : null,
+  ])
 
   const style = rewriteDeep(styleRaw) as StyleSpecification
   const nextSources: StyleSpecification['sources'] = {}
@@ -262,9 +273,7 @@ export async function loadCleanStyle(styleUrl: string): Promise<StyleSpecificati
       return layer
     })
 
-  const out = withNature(withBuilding3d({ ...style, sources: nextSources, layers }))
-  styleCache.set(styleUrl, out)
-  return structuredClone(out)
+  return withNature(withBuilding3d({ ...style, sources: nextSources, layers }))
 }
 
 /**

@@ -8,7 +8,7 @@
 
 import { createElement, type SVGProps } from 'react'
 import type { Map as MlMap } from 'maplibre-gl'
-import { POI_CATEGORIES, POI_COLORS, type PoiCategory } from '@/lib/map/pois'
+import { POI_CATEGORIES, POI_COLORS, type PoiCategory } from '@/lib/map/poi-constants'
 
 /** Official Tbilisi Metro M (Soviet-era mark, SVG Repo CC0). */
 const METRO_M_POINTS =

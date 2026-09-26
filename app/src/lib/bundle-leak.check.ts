@@ -165,6 +165,21 @@ const BANNED: { entry: string; forbidden: string; why: string }[] = [
     why: "one formatGeocodeAddress import from map/geocode shipped the 740 KB street catalog to every map visitor; client code imports map/geocode-format (leaf)",
   },
   {
+    entry: "components/map/Map3D.tsx",
+    forbidden: "data/professionals.ts",
+    why: "lib/map/buildings needed a developer name + project code and shipped the world project catalog (~390 KB gz measured in the /map chunk); pins read lib/map/map-catalog.gen.ts",
+  },
+  {
+    entry: "components/map/Map3D.tsx",
+    forbidden: "data/buildings.ts",
+    why: "the building catalog derives from data/professionals — map pins read the generated map-catalog leaf (drift-locked by buildings.check.ts)",
+  },
+  {
+    entry: "components/map/Map3D.tsx",
+    forbidden: "data/georgia-pois.json",
+    why: "poi-icons/transit imported POI constants from lib/map/pois and shipped the 840 KB POI JSON eagerly, defeating Map3D's after-first-paint import('@/lib/map/pois'); constants live in poi-constants",
+  },
+  {
     entry: "components/add-listing/AddListingClient.tsx",
     forbidden: "data/tbilisi-streets.ts",
     why: "splitStreetHouse/knownCityCenter live in map/geocode-format (leaf), not map/geocode",
