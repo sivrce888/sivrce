@@ -390,7 +390,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
             {avif ? <source srcSet={avif} type="image/avif" /> : null}
             <img
               src={card ?? src}
-              alt={idx === frame ? l.title : ''}
+              alt={idx === frame ? title : ''}
               width={800}
               height={600}
               draggable={false}
@@ -552,7 +552,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
                   e.stopPropagation()
                   setPhoto(idx)
                 }}
-                className="-my-2 flex h-4 min-w-0 flex-1 items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+                className="-my-3 flex h-6 min-w-0 flex-1 items-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
               >
                 <span
                   aria-hidden

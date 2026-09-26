@@ -267,11 +267,11 @@ export function listingHubAnchor(l: {
   propType: PropType
   city: string
   district: string
-}): string | null {
+}, loc: SeoLoc = 'ka'): string | null {
   const path = listingHubPath(l, 'ka')
   if (!path) return null
   const def = parseSeoSlug(path.slice(1).split('/'))
-  return def ? h1Of(def, 'ka') : null
+  return def ? h1Of(def, loc) : null
 }
 
 /* ————— Page model ————— */

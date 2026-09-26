@@ -969,6 +969,7 @@ export default function ListingDetailClient({
   const city = placeLabel(l.city, lang, l.country)
   // GE districts are stored in Mkhedruli — romanize for every non-ka reader.
   const district = placeLabel(l.district, lang, l.country)
+  const agentName = readableName(l.agent.name, lang)
   const title = listingDisplayTitle(l, lang, t)
 
   const specs: { icon: typeof BedDouble; label: string; value: string }[] = [
@@ -1020,7 +1021,7 @@ export default function ListingDetailClient({
     city,
     area: l.area,
     priceLabel: priceMain,
-    agentName: l.agent.name,
+    agentName,
     agency: l.agent.agency,
   }
   const sharePath = listingPath(l)
@@ -1692,7 +1693,11 @@ export default function ListingDetailClient({
             {/* Description */}
             <div className="mt-8">
               <h2 className="text-[20px] font-black tracking-[-0.02em] text-sv-ink">{t('detail.description')}</h2>
-              <p className="speakable-lead mt-3 text-[15px] font-medium leading-[1.8] text-sv-ink/65">
+              {/* Owner-authored text stays as written; lang tells readers/TTS it is Georgian. */}
+              <p
+                lang={lang !== 'ka' && /[\u10A0-\u10FF]/.test(l.description ?? '') ? 'ka' : undefined}
+                className="speakable-lead mt-3 text-[15px] font-medium leading-[1.8] text-sv-ink/65"
+              >
                 {l.description}
               </p>
             </div>
@@ -1708,12 +1713,12 @@ export default function ListingDetailClient({
                       return (
                         <li
                           key={c.category}
-                          title={`${t(`map.poi.${c.category}`)}: ${c.name}`}
-                          aria-label={`${t(`map.poi.${c.category}`)}: ${c.name}, ${c.dist}`}
+                          title={`${t(`map.poi.${c.category}`)}: ${readableName(c.name, lang)}`}
+                          aria-label={`${t(`map.poi.${c.category}`)}: ${readableName(c.name, lang)}, ${c.dist}`}
                           className="flex min-w-0 max-w-full items-center gap-2 rounded-full border border-sv-ink/[0.06] bg-sv-surface py-1.5 pl-2.5 pr-3.5 shadow-card"
                         >
                           <Icon className="h-4 w-4 shrink-0" style={{ color: c.color }} aria-hidden />
-                          <span className="truncate text-[13px] font-extrabold text-sv-ink">{c.name}</span>
+                          <span className="truncate text-[13px] font-extrabold text-sv-ink">{readableName(c.name, lang)}</span>
                           <span className="shrink-0 text-[12px] font-bold text-sv-ink/60">{c.dist}</span>
                         </li>
                       )
@@ -1773,7 +1778,7 @@ export default function ListingDetailClient({
                       <div className="relative aspect-[4/3] overflow-hidden bg-sv-cloud">
                         <Image
                           src={p.img}
-                          alt={p.name}
+                          alt=""
                           fill
                           sizes="220px"
                           loading="lazy"
@@ -1789,7 +1794,7 @@ export default function ListingDetailClient({
                         </div>
                       </div>
                       <div className="p-3">
-                        <p className="truncate text-[14px] font-extrabold text-sv-ink">{p.name}</p>
+                        <p className="truncate text-[14px] font-extrabold text-sv-ink">{readableName(p.name, lang)}</p>
                         <p className="mt-0.5 truncate text-[12px] font-bold text-sv-ink/60">
                           {priceFromLabel(p.priceFromM2, lang === 'de' ? 'de' : dirLoc(lang))}
                         </p>
@@ -1970,12 +1975,12 @@ export default function ListingDetailClient({
                   <LocalizedLink
                     href={l.agent.profileHref}
                     className="shrink-0 transition hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
-                    aria-label={l.agent.name}
+                    aria-label={agentName}
                   >
-                    <UserAvatar name={l.agent.name} image={l.agent.image} size={56} shape="module" />
+                    <UserAvatar name={agentName} image={l.agent.image} size={56} shape="module" />
                   </LocalizedLink>
                 ) : (
-                  <UserAvatar name={l.agent.name} image={l.agent.image} size={56} shape="module" />
+                  <UserAvatar name={agentName} image={l.agent.image} size={56} shape="module" />
                 )}
                 <div className="min-w-0">
                   <div className="flex min-w-0 items-center gap-1.5 text-[16px] font-black text-sv-ink">
@@ -1984,10 +1989,10 @@ export default function ListingDetailClient({
                         href={l.agent.profileHref}
                         className="truncate transition hover:text-sv-blue focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
                       >
-                        {l.agent.name}
+                        {agentName}
                       </LocalizedLink>
                     ) : (
-                      <span className="truncate">{l.agent.name}</span>
+                      <span className="truncate">{agentName}</span>
                     )}
                     {l.agent.verified ? (
                       <BadgeCheck className="h-4 w-4 shrink-0 text-sv-blue" aria-label={t('detail.verifiedAgent')} />
@@ -2129,7 +2134,7 @@ export default function ListingDetailClient({
             <LeadForm
               targetType="listing"
               targetId={l.id}
-              recipientName={l.agent.name}
+              recipientName={agentName}
               className="mt-4"
             />
 

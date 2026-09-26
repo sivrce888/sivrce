@@ -225,17 +225,19 @@ async function HomeBelowFold({ lang, scope }: { lang: Lang; scope: HomeScope | n
     services: <Services lang={lang} />,
     // Project count = the same scoped catalog the rail links to, not the world total.
     stats: <Stats live={{ ...stats, projects: projects.length }} />,
-    forum: (
+    // Forum threads are Georgian-only community posts — a section non-ka readers can't read.
+    forum: lang === 'ka' ? (
       <ForumTeaser
         topics={[...FORUM_THREADS]
           .sort((a, b) => b.lastActivityAt.localeCompare(a.lastActivityAt))
           .slice(0, 3)
           .map((t) => ({ slug: t.slug, title: t.title, category: t.category, replies: t.replies.length }))}
       />
-    ),
+    ) : null,
     blog: (
       <BlogNewsSection
-        articles={blogPosts.slice(0, 4).map((p) => ({
+        // Non-ka readers only get posts with a real translation — no ka fallback titles on /en.
+        articles={blogPosts.filter((p) => lang === 'ka' || p.enTitle).slice(0, 4).map((p) => ({
           slug: p.slug,
           cover: p.cover,
           title: blogTitle(p, lang),

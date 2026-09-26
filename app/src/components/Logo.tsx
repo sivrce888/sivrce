@@ -99,7 +99,11 @@ export function Logo({
           height={mark}
           className={imgClass}
           decoding="async"
-          fetchPriority="high"
+          // White lockup lives on dark bands (footer, below the fold): React
+          // hoists fetchPriority=high imgs into <link rel=preload>, so a high
+          // footer logo stole bandwidth from the LCP photo on every page.
+          loading={light ? 'lazy' : undefined}
+          fetchPriority={light ? 'low' : 'high'}
         />
       )}
     </LocalizedLink>

@@ -14,7 +14,7 @@ import { daysSince } from '@/lib/price-scale'
 import { scalePeers } from '@/lib/peer-rank'
 import { getReviewAggregate } from '@/lib/reviews/aggregate'
 import { listingDisplayTitle, listingKeywordIn, listingPath, listingSlug } from '@/lib/listing-slug'
-import { listingHubAnchor, listingHubPath } from '@/lib/seo-pages'
+import { listingHubAnchor, listingHubPath, seoLocOf } from '@/lib/seo-pages'
 import { isLandLease } from '@/lib/add-listing-fields'
 import { getLandInsights } from '@/lib/land'
 import { listingPublicId } from '@/lib/listing-public-id'
@@ -350,7 +350,7 @@ export default async function ListingPage({ params }: PageProps) {
   }
 
   const hubPath = listingHubPath(listing)
-  const hubAnchor = hubPath ? listingHubAnchor(listing) : null
+  const hubAnchor = hubPath ? listingHubAnchor(listing, seoLocOf(lang)) : null
   const breadcrumbLd = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
