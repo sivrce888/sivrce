@@ -50,6 +50,11 @@ const BUCKET_LABELS: Record<string, string> = {
   careers: "კარიერა",
   general: "კონტაქტი",
   contact: "კონტაქტი",
+  // Demand funnel (IntentFunnel) — lead with no listing behind it.
+  "demand-buy": "მოთხოვნა · ყიდვა",
+  "demand-rent": "მოთხოვნა · ქირა",
+  "demand-daily": "მოთხოვნა · დღიური",
+  "demand-sell": "მოთხოვნა · გაყიდვა",
 }
 
 export function inquiryBucketLabel(listingId: string): string {
