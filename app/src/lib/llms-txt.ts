@@ -91,6 +91,7 @@ sivrce.ge is Georgia's premier real-estate platform: apartments, houses, cottage
 - [Rent vs buy calculator](${BASE}/rent-vs-buy): rent-vs-own wealth comparison for the Georgian market
 - [Miete oder kaufen](${COM_ORIGIN}/de/miete-oder-kaufen): rent-vs-own wealth comparison for Germany with statutory Kaufnebenkosten per Bundesland
 - [ბაზრის ანალიტიკა](${BASE}/market): average price/m², medians, active listings trends
+- [უფასო ბინის შეფასება](${BASE}/valuation): free instant home-value estimate per district from live listing data
 - [Germany](https://sivrce.com/de): Berlin-first guides; sivrce.de → sivrce.com/de
 - [UAE](https://sivrce.com/ae): Dubai & Abu Dhabi; sivrce.ae → sivrce.com/ae; /uae → /ae
 - [Global](https://sivrce.com/): international company hub
