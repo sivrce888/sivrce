@@ -144,7 +144,13 @@ function cityNavHref(c: GeNavCity, pathname: string, lang: string): string {
     return c.slug ? `${lPrefix}/daily/${c.slug}` : `${lPrefix}/daily`
   }
   if (bare.startsWith('/hotels')) {
-    return c.slug ? `${lPrefix}/hotels?city=${c.slug}` : `${lPrefix}/hotels`
+    // Pretty URL only for crawlable destination hubs (mirrors POPULAR_DESTINATIONS
+    // in lib/hotels — not imported: fx-server would leak into the navbar bundle).
+    return c.slug
+      ? ['tbilisi', 'batumi', 'kutaisi'].includes(c.slug)
+        ? `${lPrefix}/hotels/${c.slug}`
+        : `${lPrefix}/hotels?city=${c.slug}`
+      : `${lPrefix}/hotels`
   }
   if (bare.startsWith('/map')) {
     return c.slug ? `${lPrefix}/map?city=${c.slug}` : `${lPrefix}/map`

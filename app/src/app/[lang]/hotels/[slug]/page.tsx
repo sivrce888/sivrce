@@ -8,7 +8,8 @@ import { PageHero } from '@/components/PageHero'
 import { jsonLd } from '@/lib/utils'
 import { pageMeta } from '@/lib/i18n/server'
 import { isValidLang, type Lang } from '@/lib/i18n/core'
-import { compareLinks, hotelRooms, parseStay, placeBySlug } from '@/lib/hotels'
+import { compareLinks, hotelRooms, isPopularDestination, kaIn, parseStay, placeBySlug } from '@/lib/hotels'
+import { HotelsView } from '../page'
 
 interface Copy {
   kicker: string
@@ -117,15 +118,41 @@ const COPY: Record<'ka' | 'en' | 'ru' | 'de', Copy> = {
 const gel = (n: number) => `${Math.round(n).toLocaleString('en-US')} ₾`
 
 interface PageProps {
-  params: Promise<{ lang: string; hotelId: string }>
+  params: Promise<{ lang: string; slug: string }>
   searchParams: Promise<Record<string, string | string[] | undefined>>
 }
 
 const HOTEL_ID = /^[A-Za-z0-9_-]{1,32}$/
 
+/** Crawlable city hub metadata — /hotels/tbilisi etc. */
+function cityMeta(slug: string, lang: Lang): Metadata {
+  const place = placeBySlug(slug)
+  const city = place?.en ?? slug
+  return pageMeta(`/hotels/${slug}`, lang, {
+    ka: {
+      title: `სასტუმროები ${place ? kaIn(place.ka) : slug} — ცოცხალი ფასები და ჯავშანი`,
+      description: `${place?.ka ?? slug}: რეალური სასტუმროები, ცოცხალი ფასები და ჯავშანი Google Hotels-სა და Booking.com-ზე.`,
+    },
+    en: {
+      title: `Hotels in ${city} — live rates and booking`,
+      description: `Real hotels in ${city}. Live prices and booking on Google Hotels and Booking.com. GDS quotes from Amadeus when connected.`,
+    },
+    ru: {
+      title: `Отели в ${city} — живые цены и бронь`,
+      description: `Отели в ${city}: реальные отели, живые цены и бронь на Google Hotels и Booking.com.`,
+    },
+    de: {
+      title: `Hotels in ${city} — Live-Preise und Buchung`,
+      description: `Echte Hotels in ${city}. Live-Preise und Buchung über Google Hotels und Booking.com.`,
+    },
+  })
+}
+
 export async function generateMetadata({ params, searchParams }: PageProps): Promise<Metadata> {
-  const [{ lang: raw, hotelId }, sp] = await Promise.all([params, searchParams])
+  const [{ lang: raw, slug }, sp] = await Promise.all([params, searchParams])
   const lang = isValidLang(raw) ? raw : 'ka'
+  if (isPopularDestination(slug)) return cityMeta(slug, lang)
+  const hotelId = slug
   const { checkIn, checkOut, adults } = stayOf(sp)
   const { hotelName, mode } = await hotelRooms({ hotelId, checkIn, checkOut, adults })
   const name = mode === 'live' ? hotelName : null
@@ -160,7 +187,11 @@ function stayOf(sp: Awaited<PageProps['searchParams']>) {
 }
 
 export default async function HotelDetailPage({ params, searchParams }: PageProps) {
-  const [{ lang: raw, hotelId }, sp] = await Promise.all([params, searchParams])
+  const [{ lang: raw, slug }, sp] = await Promise.all([params, searchParams])
+  // /hotels/tbilisi is a crawlable destination hub, /hotels/g…-d… a hotel — one segment, two personalities.
+  if (isPopularDestination(slug)) return HotelsView({ lang: raw, sp, canonicalCity: slug })
+
+  const hotelId = slug
   const lang: Lang = isValidLang(raw) ? raw : 'ka'
   const copy = COPY[lang as keyof typeof COPY] ?? COPY.en
 

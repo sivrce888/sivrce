@@ -12,9 +12,11 @@ import { WORLD_PLACES } from '@/data/world-places'
 import {
   applyView,
   compareLinks,
+  kaIn,
   parseStay,
   parseView,
   placeBySlug,
+  POPULAR_DESTINATIONS,
   searchHotels,
   type HotelView,
 } from '@/lib/hotels'
@@ -247,19 +249,6 @@ const isoDay = (offset: number) => new Date(Date.now() + offset * 86_400_000).to
 
 const CITIES = [...WORLD_PLACES].sort((a, b) => a.en.localeCompare(b.en))
 
-const POPULAR_DESTINATIONS = [
-  { slug: 'tbilisi', label: 'Tbilisi' },
-  { slug: 'batumi', label: 'Batumi' },
-  { slug: 'kutaisi', label: 'Kutaisi' },
-  { slug: 'berlin', label: 'Berlin' },
-  { slug: 'dubai', label: 'Dubai' },
-  { slug: 'london', label: 'London' },
-  { slug: 'paris', label: 'Paris' },
-  { slug: 'rome', label: 'Rome' },
-  { slug: 'istanbul', label: 'Istanbul' },
-  { slug: 'vienna', label: 'Vienna' },
-]
-
 const CAPS = [100, 250, 500]
 
 const chipCls = (active: boolean) =>
@@ -298,11 +287,28 @@ interface PageProps {
 }
 
 export default async function HotelsPage({ params, searchParams }: PageProps) {
-  const [{ lang: raw }, sp] = await Promise.all([params, searchParams])
+  const [{ lang }, sp] = await Promise.all([params, searchParams])
+  return HotelsView({ lang, sp })
+}
+
+/**
+ * Shared view for /hotels and /hotels/[slug]. canonicalCity pins the crawlable
+ * city hub (sp.city is ignored when set); without it the query-param behaviour
+ * is unchanged.
+ */
+export async function HotelsView({
+  lang: raw,
+  sp,
+  canonicalCity,
+}: {
+  lang: string
+  sp: Record<string, string | string[] | undefined>
+  canonicalCity?: string
+}) {
   const lang: Lang = isValidLang(raw) ? raw : 'ka'
   const copy = COPY[lang as keyof typeof COPY] ?? COPY.en
 
-  const citySlug = typeof sp.city === 'string' && placeBySlug(sp.city) ? sp.city : 'tbilisi'
+  const citySlug = canonicalCity ?? (typeof sp.city === 'string' && placeBySlug(sp.city) ? sp.city : 'tbilisi')
   const checkIn = typeof sp.checkIn === 'string' && sp.checkIn ? sp.checkIn : isoDay(7)
   const checkOut = typeof sp.checkOut === 'string' && sp.checkOut ? sp.checkOut : isoDay(9)
   const adultsRaw = Number.parseInt(typeof sp.adults === 'string' ? sp.adults : '2', 10)
@@ -316,6 +322,8 @@ export default async function HotelsPage({ params, searchParams }: PageProps) {
   const place = placeBySlug(citySlug)!
   const stay = parseStay(checkIn, checkOut)
   const nights = stay?.nights ?? 2
+
+  const heroTitle = canonicalCity ? (lang === 'ka' ? `სასტუმროები ${kaIn(place.ka)}` : `Hotels in ${place.en}`) : copy.title
 
   const base: Record<string, string> = { city: citySlug, checkIn, checkOut, adults: String(adults) }
   if (view.sort !== 'price') base.sort = view.sort
@@ -333,9 +341,9 @@ export default async function HotelsPage({ params, searchParams }: PageProps) {
   return (
     <>
       <Navbar />
-      <PageHero kicker={copy.kicker} title={copy.title} subtitle={copy.subtitle}>
+      <PageHero kicker={copy.kicker} title={heroTitle} subtitle={copy.subtitle}>
         <div className="mx-auto w-full max-w-4xl">
-          <form method="get" className="mt-8 grid grid-cols-1 gap-3 rounded-card bg-sv-surface/10 p-3 backdrop-blur-md border border-white/15 md:grid-cols-12" aria-label={copy.search}>
+          <form method="get" action="/hotels" className="mt-8 grid grid-cols-1 gap-3 rounded-card bg-sv-surface/10 p-3 backdrop-blur-md border border-white/15 md:grid-cols-12" aria-label={copy.search}>
             <label className="flex flex-col gap-1.5 text-[11px] font-extrabold uppercase tracking-[0.14em] text-sv-blue-light md:col-span-4">
               {copy.city}
               <select
@@ -402,7 +410,7 @@ export default async function HotelsPage({ params, searchParams }: PageProps) {
             {POPULAR_DESTINATIONS.map((dest) => (
               <a
                 key={dest.slug}
-                href={`?${qs({ city: dest.slug })}`}
+                href={`/${lang}/hotels/${dest.slug}`}
                 className={`rounded-full px-3 py-1 transition ${
                   citySlug === dest.slug
                     ? 'bg-white text-sv-ink shadow-glow-blue-sm font-extrabold'
@@ -445,6 +453,7 @@ export default async function HotelsPage({ params, searchParams }: PageProps) {
             placeLat={place.lat}
             placeLng={place.lng}
             placeEn={place.en}
+            canonicalCity={canonicalCity}
             checkIn={checkIn}
             checkOut={checkOut}
             adults={adults}
@@ -511,6 +520,7 @@ async function Results({
   placeLat,
   placeLng,
   placeEn,
+  canonicalCity,
   checkIn,
   checkOut,
   adults,
@@ -524,6 +534,7 @@ async function Results({
   placeLat: number
   placeLng: number
   placeEn: string
+  canonicalCity?: string
   checkIn: string
   checkOut: string
   adults: number
@@ -582,13 +593,15 @@ async function Results({
           }))
         : []
 
+  const canonPath = canonicalCity ? `/hotels/${canonicalCity}` : '/hotels'
+
   const hotelsLd = jsonLd({
     '@context': 'https://schema.org',
     '@graph': [
       {
         '@type': 'WebPage',
-        '@id': 'https://sivrce.ge/hotels#webpage',
-        url: 'https://sivrce.ge/hotels',
+        '@id': `https://sivrce.ge${canonPath}#webpage`,
+        url: `https://sivrce.ge${canonPath}`,
         name: copy.title,
         description: copy.subtitle,
         inLanguage: lang,
@@ -602,7 +615,12 @@ async function Results({
         '@type': 'BreadcrumbList',
         itemListElement: [
           { '@type': 'ListItem', position: 1, name: 'sivrce', item: 'https://sivrce.ge' },
-          { '@type': 'ListItem', position: 2, name: copy.kicker, item: 'https://sivrce.ge/hotels' },
+          ...(canonicalCity
+            ? [
+                { '@type': 'ListItem', position: 2, name: copy.kicker, item: 'https://sivrce.ge/hotels' },
+                { '@type': 'ListItem', position: 3, name: placeEn, item: `https://sivrce.ge${canonPath}` },
+              ]
+            : [{ '@type': 'ListItem', position: 2, name: copy.kicker, item: 'https://sivrce.ge/hotels' }]),
         ],
       },
       ...(hotelsItems.length
