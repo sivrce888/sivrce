@@ -1104,10 +1104,14 @@ body::before {
   animation: sv-skyline-front 64s ease-in-out infinite;
 }
 
-/* Below-fold homepage — skip paint until near viewport (LCP stays on hero) */
-.sv-below-fold {
+/* Below-fold homepage — skip layout/paint per section until near viewport
+   (LCP stays on hero). Per section, not one wrapper: content-visibility is
+   all-or-nothing, so a single ~8000px wrapper rendered everything the moment
+   the first rail peeked in. `auto` remembers each section's real height after
+   first render; :not(:empty) keeps null CMS slots from reserving fake space. */
+.sv-below-fold > [data-cms-section]:not(:empty) {
   content-visibility: auto;
-  contain-intrinsic-size: auto 2800px;
+  contain-intrinsic-size: auto 800px;
 }
 
 /* Antenna beacon — soft breathing blink */

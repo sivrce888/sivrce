@@ -609,9 +609,11 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
         </button>
       </div>
 
-      {multi && !playing && (
+      {multi && !playing && warm && (
         <>
-          {/* Hover/focus only — touch uses swipe + dashes */}
+          {/* Hover/focus only — touch uses swipe + dashes. Mounted on first
+              pointerenter/focus (warm): the always-present heart precedes them
+              in tab order, so keyboard users still reach them; SSR skips ~8 nodes/card. */}
           <button
             type="button"
             aria-label={t('detail.prevPhoto')}
