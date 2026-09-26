@@ -27,6 +27,7 @@ import { existsSync } from 'node:fs'
 import path from 'node:path'
 import sharp from 'sharp'
 import { PROJECTS } from '../src/data/professionals'
+import { CURATED_GALLERIES } from '../src/data/project-galleries-curated'
 import { NEW_PROJECTS_TBILISI } from '../src/data/projects-new-tbilisi'
 import { NEW_PROJECTS_BATUMI } from '../src/data/projects-new-batumi'
 import { NEW_PROJECTS_REGIONS } from '../src/data/projects-new-regions'
@@ -64,6 +65,8 @@ type Target = {
   dev?: string
   city: string
   file: 'tbilisi' | 'batumi' | 'regions' | 'professionals'
+  /** Verified provenance page (project-sources.gen.json) — tried before slug guessing. */
+  sourceUrl?: string | null
 }
 
 // ── developer site config (research/developers-verify-2026-07.md) ──────────
@@ -145,7 +148,7 @@ let lastReq = 0
 
 const htmlCache = new Map<string, string | null>()
 
-async function fetchText(url: string): Promise<string | null> {
+export async function fetchText(url: string): Promise<string | null> {
   if (htmlCache.has(url)) return htmlCache.get(url)!
   const gap = Date.now() - lastReq
   if (gap < SPACING_MS) await sleep(SPACING_MS - gap)
@@ -312,7 +315,7 @@ function titleOf(html: string): string {
 }
 
 /** All real content images on the page: og/JSON-LD hero first, then <img> srcs. */
-function extractImages(html: string, pageUrl: string): string[] {
+export function extractImages(html: string, pageUrl: string): string[] {
   const out: string[] = []
   const push = (href: string | undefined | null): void => {
     if (!href) return
@@ -376,7 +379,7 @@ async function looksLikeHero(buf: Buffer, slug: string): Promise<boolean> {
 }
 
 /** Download+convert candidates: candidate 0 is the hero, next `cap` fill the gallery. */
-async function capture(
+export async function capture(
   t: Target,
   images: string[],
   opts: { hero: boolean; gallery: boolean; cap?: number; skipExtras?: number; heroForce?: boolean },
@@ -464,7 +467,7 @@ async function matchOfficial(t: Target): Promise<PageHit | null> {
   return { page, images }
 }
 
-async function matchKorter(t: Target): Promise<PageHit | null> {
+export async function matchKorter(t: Target): Promise<PageHit | null> {
   const cities = new Set<string>()
   const mapped = KORTER_CITY[t.city]
   if (mapped) cities.add(mapped)
@@ -474,15 +477,23 @@ async function matchKorter(t: Target): Promise<PageHit | null> {
   cities.add('batumi')
   const need = distinctiveTokens(t).filter((x) => /[a-z]/.test(x) && x.length >= 4)
 
-  const checkPage = async (url: string): Promise<PageHit | null> => {
+  const checkPage = async (url: string, trusted = false): Promise<PageHit | null> => {
     const html = await fetchText(url)
     if (!html) return null
     const title = titleOf(html)
-    // verify the page actually is about this project
-    if (need.length > 0 && !need.some((tok) => title.includes(tok))) return null
+    // verify the page actually is about this project — skipped for verified
+    // provenance URLs (DB name+city+developer match), where korter titles use
+    // brand names our slugs never contain ("Monogram" vs symbol-residences)
+    if (!trusted && need.length > 0 && !need.some((tok) => title.includes(tok))) return null
     const images = extractImages(html, url)
     if (images.length === 0) return null
     return { page: url, images }
+  }
+
+  // Verified provenance URL (korter import) — no slug guessing needed.
+  if (t.sourceUrl) {
+    const got = await checkPage(t.sourceUrl, true)
+    if (got) return got
   }
 
   // direct slug variants: full slug, phase number stripped, dev prefix
@@ -615,7 +626,7 @@ function batch1Targets(): Target[] {
   for (const { arr, file } of files)
     for (const p of arr)
       if (p.img.startsWith('/images/projects/'))
-        out.push({ slug: p.slug, name: p.name, dev: p.developerSlug, city: p.city, file })
+        out.push({ slug: p.slug, name: p.name, dev: p.developerSlug, city: p.city, file, sourceUrl: p.sourceUrl ?? null })
   return out
 }
 
@@ -632,7 +643,7 @@ function batch2Targets(): Target[] {
 }
 
 // ── manifest ───────────────────────────────────────────────────────────────
-async function loadManifest(): Promise<Map<string, ManifestEntry>> {
+export async function loadManifest(): Promise<Map<string, ManifestEntry>> {
   if (!existsSync(MANIFEST)) return new Map()
   try {
     const arr = JSON.parse(await readFile(MANIFEST, 'utf8')) as ManifestEntry[]
@@ -642,7 +653,7 @@ async function loadManifest(): Promise<Map<string, ManifestEntry>> {
   }
 }
 
-async function saveManifest(map: Map<string, ManifestEntry>): Promise<void> {
+export async function saveManifest(map: Map<string, ManifestEntry>): Promise<void> {
   const arr = [...map.values()].sort((a, b) => a.batch - b.batch || a.slug.localeCompare(b.slug))
   await mkdir(path.dirname(MANIFEST), { recursive: true })
   await writeFile(MANIFEST, JSON.stringify(arr, null, 2) + '\n')
@@ -705,9 +716,11 @@ async function applyBatch2(manifest: Map<string, ManifestEntry>): Promise<void> 
 async function emitGalleries(manifest: Map<string, ManifestEntry>): Promise<void> {
   const rows: string[] = []
   const seen = new Set<string>()
+  // hand-curated slugs live in project-galleries-curated.ts — never emit them here
+  const curated = new Set(Object.keys(CURATED_GALLERIES))
   for (const e of [...manifest.values()].sort((a, b) => a.slug.localeCompare(b.slug))) {
     // a slug may sit in both batches — first-wins, matching PROJECTS dedupe
-    if (!e.gallery?.length || seen.has(e.slug)) continue
+    if (!e.gallery?.length || seen.has(e.slug) || curated.has(e.slug)) continue
     seen.add(e.slug)
     rows.push(`  '${e.slug}': [${e.gallery.map((g) => `'${g}'`).join(', ')}],`)
   }
@@ -794,6 +807,7 @@ async function galleriesMode(
       dev: p.developerSlug,
       city: p.city,
       file: 'professionals',
+      sourceUrl: p.sourceUrl ?? null,
     }
     const hit = (await matchOfficial(t)) ?? (await matchKorter(t)) ?? (await matchWikipedia(t))
     if (!hit) continue
@@ -918,7 +932,10 @@ async function main(): Promise<void> {
   console.log(`\nbatch ${batch} done: official=${okOfficial} korter=${okKorter} failed=${failed}`)
 }
 
-main().catch((err) => {
-  console.error(err)
-  process.exit(1)
-})
+const invoked = process.argv[1] ?? ''
+if (invoked.includes('mirror-project-renders')) {
+  main().catch((err) => {
+    console.error(err)
+    process.exit(1)
+  })
+}

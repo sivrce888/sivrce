@@ -139,7 +139,11 @@ async function main() {
   console.log(`\nUniversal pipeline completed: ${updatedCount} updated, ${skipCount} skipped (already complete), ${unhandledCount} unhandled.`)
 }
 
-main().catch((err) => {
-  console.error(err)
-  process.exit(1)
-})
+// only sweep when run directly — importers (re-emit helpers) must not fetch
+const invoked = process.argv[1] ?? ''
+if (invoked.includes('run-real-photos-pipeline')) {
+  main().catch((err) => {
+    console.error(err)
+    process.exit(1)
+  })
+}
