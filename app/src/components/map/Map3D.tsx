@@ -868,6 +868,12 @@ async function ensureLayers(
     layout: POI_METRO_LAYOUT,
   })
 
+  // Listings outrank context. Clusters and dots were added before the amenity
+  // badges, so a metro sprite (collision-exempt) sat on top of a cluster and
+  // hid its count. Lifted here: the circle covers the badge, and the count's
+  // placement box now thins the bus stops that would crowd it.
+  for (const id of [DOT_ID, DOT_ACTIVE_ID, CLUSTER_ID, CLUSTER_COUNT_ID]) map.moveLayer(id)
+
   /**
    * Price pills go up LAST, and that ordering is load-bearing.
    *
@@ -2863,10 +2869,13 @@ function Map3DInner({
           for (const l of leaves) {
             if (l.geometry.type === 'Point') bounds.extend(l.geometry.coordinates as [number, number])
           }
-          const fit = map.cameraForBounds(bounds, { padding: 96, maxZoom: zooms.detailZoom + 1.5 })
+          const cap = zooms.detailZoom + 1.5
+          const fit = map.cameraForBounds(bounds, { padding: 96, maxZoom: cap })
           map.easeTo({
             center: fit?.center ?? [lng, lat],
-            zoom: Math.max(zoom, fit?.zoom ?? zoom),
+            // A 1 km cluster at z13 fits at +0.3 — still a dead tap. Every tap
+            // steps in at least 1.5 levels, as Apple and Google Maps do.
+            zoom: Math.max(zoom, fit?.zoom ?? zoom, Math.min(map.getZoom() + 1.5, cap)),
             duration: camMs(450),
           })
         })
