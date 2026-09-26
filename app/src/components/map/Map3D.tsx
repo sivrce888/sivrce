@@ -1356,6 +1356,9 @@ function Map3DInner({
     if (!map || !ready) return
     let abort: AbortController | null = null
     let timer: ReturnType<typeof setTimeout> | null = null
+    /** Last bbox URL drawn — a moveend that lands on the same view (boot ease,
+     *  a tap that doesn't pan) must not refetch what is already on screen. */
+    let drawn = ''
     /** Single writer, so the ref always mirrors what the layer is drawing. */
     const push = (src: GeoJSONSource, fc: GeoJSON.FeatureCollection) => {
       transitFcRef.current = fc
@@ -1368,6 +1371,7 @@ function Map3DInner({
       const cats = liveCatsFor(c.lat, c.lng, poiOn)
       const lite = isLiteDevice()
       if (map.getZoom() < (lite ? TRANSIT_LITE_MIN_ZOOM : TRANSIT_MIN_ZOOM) || cats.length === 0) {
+        drawn = ''
         try {
           push(src, shellFcRef.current)
         } catch {
@@ -1377,7 +1381,7 @@ function Map3DInner({
       }
       const b = map.getBounds()
       const url = transitFetchUrl({ w: b.getWest(), s: b.getSouth(), e: b.getEast(), n: b.getNorth() }, cats)
-      if (!url) return // viewport wider than the span cap — keep stale pins
+      if (!url || url === drawn) return // too wide (keep stale pins) or already drawn
       abort?.abort()
       abort = new AbortController()
       const signal = abort.signal
@@ -1396,6 +1400,7 @@ function Map3DInner({
               type: 'FeatureCollection',
               features: [...shell.features, ...live.features],
             })
+            drawn = url
           } catch {
             /* style mid-remount */
           }
