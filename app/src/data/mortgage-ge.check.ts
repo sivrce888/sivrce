@@ -17,6 +17,7 @@ import {
   MORTGAGE_GE_AS_OF,
   MORTGAGE_GE_BANKS,
   MORTGAGE_SUBSIDY,
+  NBG_MAX_LTV,
   NBG_POLICY_RATE,
   rateBand,
   termYrs,
@@ -87,5 +88,17 @@ assert.ok(
 for (const lie of ['transfer tax is 1', 'first 100,000', 'first 100 000']) {
   assert.ok(!page.includes(lie), `page must not claim "${lie}"`)
 }
+
+// NBG LTV is the legal floor: FX stricter than GEL, and no bank may publish a down payment under it.
+assert.ok(NBG_MAX_LTV.fx < NBG_MAX_LTV.gel, 'NBG: FX LTV cap stricter than GEL')
+for (const b of MORTGAGE_GE_BANKS) {
+  if (b.minDownPct !== null) assert.ok(b.minDownPct >= 100 - NBG_MAX_LTV.gel, `${b.slug}: min down under NBG floor`)
+}
+// Rent-vs-buy must not charge buyers a Georgian transfer tax that does not exist.
+const rvb = readFileSync(
+  join(dirname(fileURLToPath(import.meta.url)), '../app/[lang]/rent-vs-buy/page.tsx'),
+  'utf8',
+)
+assert.ok(!rvb.includes('(transfer tax, notary'), 'rent-vs-buy: no invented transfer tax')
 
 console.log(`mortgage-ge.check: ${MORTGAGE_GE_BANKS.length} banks / NBG ${NBG_POLICY_RATE}% / as of ${MORTGAGE_GE_AS_OF} ✓`)

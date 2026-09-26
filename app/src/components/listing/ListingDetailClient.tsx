@@ -735,7 +735,7 @@ export default function ListingDetailClient({
   }, [l.images, photo])
 
   // Mortgage state
-  const [downPct, setDownPct] = useState(20)
+  const [downPct, setDownPct] = useState(l.country === 'GE' ? 30 : 20) // GE: NBG caps USD loans at 70% LTV
   const [years, setYears] = useState(l.country === 'DE' ? 25 : 15)
   const [rate, setRate] = useState(l.country === 'DE' ? 3.8 : 9.5)
   const [siteBoost, setSiteBoost] = useState<{

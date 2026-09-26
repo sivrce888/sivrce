@@ -14,6 +14,7 @@ import {
   downCell,
   MORTGAGE_GE_BANKS,
   MORTGAGE_SUBSIDY,
+  NBG_MAX_LTV,
   rateBand,
   termYrs,
 } from '@/data/mortgage-ge'
@@ -95,7 +96,7 @@ const COPY: Record<DirLoc | 'de', {
     ],
     faqTitle: 'ხშირად დასმული კითხვები',
     faqs: [
-      { q: 'რა არის მინიმალური პირველი შენატანი იპოთეკაზე საქართველოში?', a: 'რეზიდენტი მოქალაქეებისთვის მინიმალური პირველი შენატანი ჩვეულებრივ 10-20% იყო, თუმცა 2026 წლის ბაზარზე ბანკების უმრავლესობა ითხოვს 20-30%-ს (BasisBank — 15%-დან). არარეზიდენტებისთვის მოთხოვნა ხშირად 30-50%-მდე იზრდება, რადგან საქართველოში მიღებული შემოსავალი არ აქვთ.' },
+      { q: 'რა არის მინიმალური პირველი შენატანი იპოთეკაზე საქართველოში?', a: 'რეზიდენტი მოქალაქეებისთვის მინიმალური პირველი შენატანი ჩვეულებრივ 10-20% იყო, თუმცა 2026 წლის ბაზარზე ბანკების უმრავლესობა ითხოვს 20-30%-ს (BasisBank — 15%-დან). არარეზიდენტებისთვის მოთხოვნა ხშირად 30-50%-მდე იზრდება, რადგან საქართველოში მიღებული შემოსავალი არ აქვთ. კანონიერ ზღვარს ეროვნული ბანკი ადგენს: იპოთეკა ქონების ღირებულების მაქს. 90%-ს ფარავს ლარში და 70%-ს დოლარში/ევროში — ანუ მინ. 10% ან 30% შენატანი.' },
       { q: 'რომელი ბანკი იძლევა საუკეთესო იპოთეკურ პირობებს 2026-ში?', a: '2026-ში გამოქვეყნებული დიაპაზონები: TBC — ლარზე 9.9%-დან; BasisBank — 10.9–17.5% ლარზე და 7.9–10.5% დოლარ/ევროზე. Bank of Georgia და TBC მართავენ სასტარტო აქციებს (მაგ. პირველი თვეების 0–1%). ოჯახებისთვის მოქმედებს სახელმწიფო სუბსიდირებული იპოთეკა 200,000 ლარამდე. კონკრეტული პირობები დამოკიდებულია შემოსავალზე, კრედიტის ისტორიაზე და ქონების ტიპზე.' },
       { q: 'შეუძლია თუ არა უცხოელს იპოთეკის აღება საქართველოში?', a: 'დიახ, მაგრამ შეზღუდვებით. საქართველოში მიღებული შემოსავლის გარეშე ბანკები ითხოვენ მსხვილ პირველ შენატანს (30-50%) და მოკლე ვადას (10-15 წელი). TBC-ს აქვს ექსპატებისთვის განკუთვნილი პროგრამა მინ. 20% შენატნით. ზოგიერთი ბანკი მოითხოვს საქართველოში ადგილობრივ გარანტს ან კომპანიის რეგისტრაციას. ქონების სრული თანხის ნაღდად გადახდა ყოველთვის შესაძლებელია და ყველაზე გავრცელებული გზაა უცხოელებისთვის.' },
       { q: 'რა დამატებითი ხარჯები მოსდევს ქონების ყიდვას?', a: 'საქართველოში გადაცემის გადასახადი საერთოდ არ არსებობს — სახელმწიფო მხოლოდ საჯარო რეესტრის (NAPR) რეგისტრაციის განაკვეთს იღებს: ₾50 სტანდარტული (4 სამუშაო დღე) ან მაქს. ₾350 იმავე დღეს. ნოტარიუსი არასავალდებულოა; დაახლოებით ₾500 დაიხარჯება თარგმანზე/ნოტარიუსზე. აგენტის საკომისიო (≈2%) ჩვეულებრივ გამყიდველი იხდის. 24 თვეში გაყიდვისას მოგებაზე შეიძლება 20% საშემოსავლო გადასახადი დაერიოს; ორი წლის შემდეგ — გათავისუფლებულია.' },
@@ -129,7 +130,7 @@ const COPY: Record<DirLoc | 'de', {
     ],
     faqTitle: 'Frequently asked questions',
     faqs: [
-      { q: 'What is the minimum down payment on a mortgage in Georgia?', a: 'For residents the minimum down payment used to be 10–20%, but in the 2026 market most banks ask for 20–30% (BasisBank publishes from 15%). For non-residents the requirement often rises to 30–50% because they have no Georgian income.' },
+      { q: 'What is the minimum down payment on a mortgage in Georgia?', a: 'For residents the minimum down payment used to be 10–20%, but in the 2026 market most banks ask for 20–30% (BasisBank publishes from 15%). For non-residents the requirement often rises to 30–50% because they have no Georgian income. The legal floor comes from the National Bank of Georgia: a mortgage may cover at most 90% of the property value in lari and 70% in USD/EUR — so at least 10% or 30% down.' },
       { q: 'Which bank offers the best mortgage terms in 2026?', a: 'Published 2026 bands: TBC from 9.9% in GEL; BasisBank 10.9–17.5% in GEL and 7.9–10.5% in USD/EUR. Bank of Georgia and TBC run intro campaigns (0–1% for the first months). Families can apply for the state subsidized mortgage of up to ₾200,000. The exact offer depends on income, credit history and property type.' },
       { q: 'Can a foreigner get a mortgage in Georgia?', a: 'Yes, with limitations. Without Georgian income banks require a large down payment (30–50%) and a shorter term (10–15 years). TBC runs a dedicated expat program with a minimum 20% own contribution. Some banks require a local guarantor or a company registered in Georgia. Paying cash for the full price is always possible and is the most common route for foreigners.' },
       { q: 'What extra costs come with buying property?', a: 'Georgia charges no transfer tax at all — the state takes only the fixed Public Registry (NAPR) registration fee: ₾50 standard (4 working days) or up to ₾350 same-day. A notary is optional; budget ≈₾500 for notary/translation help. The agency commission (≈2%) is normally paid by the seller. Reselling within 24 months can expose the gain to 20% income tax; after two years of ownership the gain is tax-free.' },
@@ -163,7 +164,7 @@ const COPY: Record<DirLoc | 'de', {
     ],
     faqTitle: 'Частые вопросы',
     faqs: [
-      { q: 'Какой минимальный первый взнос по ипотеке в Грузии?', a: 'Для резидентов минимальный взнос обычно был 10–20%, но на рынке 2026 года большинство банков требует 20–30% (BasisBank публикует от 15%). Для нерезидентов требование часто вырастает до 30–50%, так как нет грузинского дохода.' },
+      { q: 'Какой минимальный первый взнос по ипотеке в Грузии?', a: 'Для резидентов минимальный взнос обычно был 10–20%, но на рынке 2026 года большинство банков требует 20–30% (BasisBank публикует от 15%). Для нерезидентов требование часто вырастает до 30–50%, так как нет грузинского дохода. Правовой минимум задаёт Национальный банк Грузии: ипотека покрывает не более 90% стоимости в лари и 70% в USD/EUR — то есть взнос от 10% или 30%.' },
       { q: 'Какой банк даёт лучшие ипотечные условия в 2026 году?', a: 'Опубликованные диапазоны 2026 года: TBC — от 9.9% в лари; BasisBank — 10.9–17.5% в лари и 7.9–10.5% в долларах/евро. Bank of Georgia и TBC проводят стартовые акции (0–1% на первые месяцы). Для семей действует государственная субсидируемая ипотека до 200 000 лари. Конкретное предложение зависит от дохода, кредитной истории и типа недвижимости.' },
       { q: 'Может ли иностранец получить ипотеку в Грузии?', a: 'Да, с ограничениями. Без грузинского дохода банки требуют большой первый взнос (30–50%) и короткий срок (10–15 лет). У TBC есть отдельная программа для экспатов с минимум 20% собственных средств. Некоторые банки требуют местного поручителя или регистрацию компании в Грузии. Оплата полной цены наличными всегда возможна и является самым распространённым путём для иностранцев.' },
       { q: 'Какие дополнительные расходы при покупке недвижимости?', a: 'В Грузии нет налога на передачу собственности — государство берёт только фиксированный сбор Публичного реестра (NAPR) за регистрацию: ₾50 стандартно (4 рабочих дня) или до ₾350 в день подачи. Нотариус не обязателен; заложите ≈₾500 на нотариуса/перевод. Комиссию агентства (≈2%) обычно платит продавец. При продаже в течение 24 месяцев прирост стоимости может облагаться 20% подоходным; после двух лет владения — освобождён.' },
@@ -197,7 +198,7 @@ const COPY: Record<DirLoc | 'de', {
     ],
     faqTitle: 'Häufig gestellte Fragen',
     faqs: [
-      { q: 'Wie hoch ist die Mindestanzahlung für eine Hypothek in Georgien?', a: 'Für Ansässige lag die Mindestanzahlung früher bei 10–20 %, im Markt 2026 verlangen die meisten Banken 20–30 % (BasisBank veröffentlicht ab 15 %). Für Nichtansässige steigt die Anforderung oft auf 30–50 %, da kein georgisches Einkommen vorliegt.' },
+      { q: 'Wie hoch ist die Mindestanzahlung für eine Hypothek in Georgien?', a: 'Für Ansässige lag die Mindestanzahlung früher bei 10–20 %, im Markt 2026 verlangen die meisten Banken 20–30 % (BasisBank veröffentlicht ab 15 %). Für Nichtansässige steigt die Anforderung oft auf 30–50 %, da kein georgisches Einkommen vorliegt. Die gesetzliche Untergrenze setzt die Nationalbank Georgiens: Eine Hypothek darf höchstens 90 % des Werts in Lari und 70 % in USD/EUR abdecken — also mindestens 10 % bzw. 30 % Anzahlung.' },
       { q: 'Welche Bank bietet 2026 die besten Hypothekenkonditionen?', a: 'Veröffentlichte Spannen 2026: TBC ab 9,9 % in GEL; BasisBank 10,9–17,5 % in GEL und 7,9–10,5 % in USD/EUR. Bank of Georgia und TBC fahren Einführungsaktionen (0–1 % in den ersten Monaten). Für Familien gibt es die staatlich subventionierte Hypothek bis 200.000 GEL. Das konkrete Angebot hängt von Einkommen, Kreditgeschichte und Immobilientyp ab.' },
       { q: 'Kann ein Ausländer in Georgien eine Hypothek bekommen?', a: 'Ja, mit Einschränkungen. Ohne georgisches Einkommen verlangen Banken eine hohe Anzahlung (30–50 %) und eine kürzere Laufzeit (10–15 Jahre). TBC bietet ein eigenes Expat-Programm mit mindestens 20 % Eigenmitteln. Manche Banken verlangen einen lokalen Bürgen oder eine in Georgien registrierte Firma. Die Barzahlung des vollständigen Preises ist immer möglich und ist der üblichste Weg für Ausländer.' },
       { q: 'Welche Zusatzkosten kommen beim Immobilienkauf auf mich zu?', a: 'Georgien erhebt keine Grunderwerbsteuer — der Staat nimmt nur die feste Registrierungsgebühr des öffentlichen Registers (NAPR): ₾50 standardmäßig (4 Werktage) oder bis ₾350 am selben Tag. Ein Notar ist optional; planen Sie ≈₾500 für Notar/Übersetzung ein. Die Maklerprovision (≈2 %) zahlt üblicherweise der Verkäufer. Beim Weiterverkauf innerhalb von 24 Monaten kann der Gewinn mit 20 % Einkommensteuer belegt werden; nach zwei Jahren Eigentum ist er steuerfrei.' },
@@ -272,7 +273,7 @@ export default async function MortgageCalculatorPage({
   }
   const initial = {
     price: Math.round(num('price', 20_000, 500_000, 120_000) / 5_000) * 5_000,
-    down: Math.round(num('down', 0, 70, 25) / 5) * 5,
+    down: Math.round(num('down', 0, 70, 100 - NBG_MAX_LTV.fx) / 5) * 5,
     rate: Math.round(num('rate', 4, 18, 10) * 10) / 10,
     years: Math.round(num('years', 5, 25, 20)),
   }

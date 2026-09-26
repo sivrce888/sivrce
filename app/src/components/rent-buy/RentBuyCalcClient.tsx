@@ -73,7 +73,7 @@ export default function RentBuyCalcClient({ lang }: { lang: Lang }) {
   const [price, setPrice] = useState(120_000)
   const [rentMonthly, setRentMonthly] = useState(850)
   const [horizonYears, setHorizonYears] = useState(10)
-  const [downPct, setDownPct] = useState(25)
+  const [downPct, setDownPct] = useState(30) // NBG: USD loans ≤70% LTV
   const [ratePct, setRatePct] = useState(10)
   const [appreciationPct, setAppreciationPct] = useState(4)
   const [altReturnPct, setAltReturnPct] = useState(7)

@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import { monthlyPayment, dtiPct } from '@/lib/finance'
+import { NBG_MAX_LTV } from '@/data/mortgage-ge'
 import { formatUSD } from '@/lib/listing-format'
 import type { DirLoc } from '@/lib/directory-seo'
 
@@ -21,7 +22,7 @@ const L: Record<DirLoc | 'de', {
       'მაჩვენებელი გამოთვლილია სტანდარტული ანუიტეტის ფორმულით და არ წარმოადგენს საბანკო შემოთავაზებას.',
     income: 'თვიური შემოსავალი', debts: 'სხვა თვიური ვალდებულებები', burden: 'დატვირთვა',
     verdictOk: 'დამტკიცება სავარაუდოა', verdictMid: 'სასაზღვრო — ბანკი განიხილავს', verdictNo: 'ნაკლებად სავარაუდო — მაღალი დატვირთვა',
-    downWarn: 'ბანკები პირველ შენატანს 15–20%-ზე ნაკლებს იშვიათად ამტკიცებენ',
+    downWarn: 'ეროვნული ბანკის ლიმიტი: დოლარში/ევროში სესხზე მინ. 30% შენატანი (ლარში — 10%)',
   },
   en: {
     price: 'Apartment price', down: (pct) => `Down payment (${pct}%)`, rate: 'Annual interest',
@@ -31,7 +32,7 @@ const L: Record<DirLoc | 'de', {
       'Indicative figure calculated with the standard annuity formula — not a bank offer.',
     income: 'Monthly income', debts: 'Other monthly debt', burden: 'Debt burden',
     verdictOk: 'Likely approvable', verdictMid: 'Borderline — bank review', verdictNo: 'Unlikely — burden too high',
-    downWarn: 'Banks rarely approve below a 15–20% down payment',
+    downWarn: 'NBG rule: USD/EUR mortgages need at least 30% down (10% if the loan is in lari)',
   },
   ru: {
     price: 'Стоимость квартиры', down: (pct) => `Первый взнос (${pct}%)`, rate: 'Годовая ставка',
@@ -41,7 +42,7 @@ const L: Record<DirLoc | 'de', {
       'Расчёт по стандартной аннуитетной формуле — не является банковским предложением.',
     income: 'Доход в месяц', debts: 'Другие платежи в месяц', burden: 'Долговая нагрузка',
     verdictOk: 'Одобрение вероятно', verdictMid: 'На грани — банк решит', verdictNo: 'Маловероятно — нагрузка высока',
-    downWarn: 'Банки редко одобряют первый взнос ниже 15–20%',
+    downWarn: 'Правило НБГ: для кредита в USD/EUR — минимум 30% взноса (в лари — 10%)',
   },
   de: {
     price: 'Wohnungspreis', down: (pct) => `Anzahlung (${pct}%)`, rate: 'Jahreszins',
@@ -51,7 +52,7 @@ const L: Record<DirLoc | 'de', {
       'Richtwert, berechnet mit der Standard-Annuitätenformel — kein Bankangebot.',
     income: 'Monatseinkommen', debts: 'Sonstige monatliche Schulden', burden: 'Schuldenlast',
     verdictOk: 'Bewilligung wahrscheinlich', verdictMid: 'Grenzwertig — Bank prüft', verdictNo: 'Unwahrscheinlich — Last zu hoch',
-    downWarn: 'Banken bewilligen selten unter 15–20 % Anzahlung',
+    downWarn: 'NBG-Regel: Kredite in USD/EUR erfordern mind. 30 % Anzahlung (in Lari 10 %)',
   },
 }
 
@@ -62,11 +63,12 @@ const PRESETS = [
   { label: '$250,000', price: 250_000 },
 ]
 
-/** Payment-to-income verdict bands (Georgian banks commonly decline >~45% DTI;
- *  ≥15% down is the published BasisBank floor, TBC 20%). Indicative only. */
+/** Payment-to-income verdict bands (Georgian banks commonly decline >~45% DTI).
+ *  Down floor = NBG max LTV for FX loans (70%; lari loans 90%) — this calc is in USD.
+ */
 const DTI_OK = 35
 const DTI_MID = 45
-const DOWN_FLOOR = 15
+const DOWN_FLOOR = 100 - NBG_MAX_LTV.fx
 
 export default function MortgageCalcClient({
   loc,
@@ -78,7 +80,7 @@ export default function MortgageCalcClient({
 }) {
   const t = L[loc]
   const [price, setPrice] = useState(initial?.price ?? 120_000)
-  const [downPct, setDownPct] = useState(initial?.down ?? 25)
+  const [downPct, setDownPct] = useState(initial?.down ?? DOWN_FLOOR)
   const [rate, setRate] = useState(initial?.rate ?? 10)
   const [years, setYears] = useState(initial?.years ?? 20)
   const [income, setIncome] = useState(0)
