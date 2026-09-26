@@ -25,20 +25,6 @@ export function seoLocOf(lang: string): SeoLoc {
 
 // Geo registry lives in the client-safe leaf module (client components import it
 // without pulling this file's data/listings graph).
-export {
-  CITIES,
-  DISTRICTS,
-  type GeoLoc,
-  type District,
-  cityMarket,
-  DEALS,
-  TYPES,
-  DEAL_ALIASES,
-  TYPE_ALIASES,
-  DEAL_TO_KA,
-  TYPE_TO_KA,
-  toOrganicKaUrl,
-} from './directory-seo-lite'
 import {
   CITIES,
   DISTRICTS,
@@ -51,6 +37,16 @@ import {
   TYPE_ALIASES,
   DEAL_TO_KA,
   TYPE_TO_KA,
+} from './directory-seo-lite'
+
+export {
+  CITIES,
+  DISTRICTS,
+  type GeoLoc,
+  type District,
+  cityMarket,
+  DEALS,
+  TYPES,
   toOrganicKaUrl,
 } from './directory-seo-lite'
 

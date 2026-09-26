@@ -4,7 +4,6 @@ import {
   getActiveVideoCard,
   setActiveVideoCard,
   subscribeActiveVideoCard,
-  videoEmbedFor,
 } from './listing-video'
 
 console.log('card-inline-video.check: starting assertions...')

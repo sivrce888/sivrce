@@ -19,13 +19,22 @@ const GE = new Set(GEO_CITIES)
 
 // Slugs are the catalog's only key — duplicates would silently shadow rows.
 const devSlugs = new Set<string>()
-for (const d of DEVELOPERS) assert.ok(!devSlugs.has(d.slug), `duplicate developer slug: ${d.slug}`), devSlugs.add(d.slug)
+for (const d of DEVELOPERS) {
+  assert.ok(!devSlugs.has(d.slug), `duplicate developer slug: ${d.slug}`)
+  devSlugs.add(d.slug)
+}
 
 const projSlugs = new Set<string>()
-for (const p of PROJECTS) assert.ok(!projSlugs.has(p.slug), `duplicate project slug: ${p.slug}`), projSlugs.add(p.slug)
+for (const p of PROJECTS) {
+  assert.ok(!projSlugs.has(p.slug), `duplicate project slug: ${p.slug}`)
+  projSlugs.add(p.slug)
+}
 
 const bldSlugs = new Set<string>()
-for (const b of BUILDINGS) assert.ok(!bldSlugs.has(b.slug), `duplicate building slug: ${b.slug}`), bldSlugs.add(b.slug)
+for (const b of BUILDINGS) {
+  assert.ok(!bldSlugs.has(b.slug), `duplicate building slug: ${b.slug}`)
+  bldSlugs.add(b.slug)
+}
 
 // Every developer/project reference must resolve — a dangling slug renders
 // nothing and lies to the user about attribution.
