@@ -35,7 +35,7 @@ import { useNearestMetro } from '@/components/use-nearest-metro'
 import { SparkMark } from '@/components/SparkMark'
 import { sivrceScore } from '@/lib/sivrce-score'
 import { aiLabel } from '@/lib/ai-label'
-import { inlineVideoEmbedFor, getActiveVideoCard, setActiveVideoCard, subscribeActiveVideoCard } from '@/lib/listing-video'
+import { inlineVideoEmbedFor, getActiveVideoCard, setActiveVideoCard, subscribeActiveVideoCard, videoMutedPreference, setVideoMutedPreference } from '@/lib/listing-video'
 
 /* Card lifestyle chips — central FEATURE_ICON (mirrors Collections.tsx) */
 
@@ -270,7 +270,9 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
   // singleton governor = max one card playing globally.
   const videoEmbed = l.video ? inlineVideoEmbedFor(l.video, true) : null
   const [playing, setPlaying] = useState(false)
-  const [videoMuted, setVideoMuted] = useState(true)
+  // Session-scoped: unmute once → next card videos open unmuted too.
+  const [videoMuted, setVideoMuted] = useState(videoMutedPreference)
+  const [videoReady, setVideoReady] = useState(false)
   const videoRef = useRef<HTMLVideoElement>(null)
   const videoKey = useId()
 
@@ -295,6 +297,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
       v.load()
     }
     setPlaying(false)
+    setVideoReady(false)
   }
 
   const playVideo = (e: React.SyntheticEvent) => {
@@ -308,6 +311,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
     e.stopPropagation()
     const next = !videoMuted
     setVideoMuted(next)
+    setVideoMutedPreference(next)
     if (videoRef.current) videoRef.current.muted = next
   }
 
@@ -454,10 +458,15 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
       {/* Bottom-only navy tint — counter + dashes stay readable, photo stays the hero */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-sv-navy/50 to-transparent" />
       {playing && videoEmbed ? (
-        <div className="absolute inset-0 z-30 bg-sv-navy">
+        <div className={`absolute inset-0 z-30 ${videoEmbed.type === 'native' ? '' : 'bg-sv-navy'}`}>
           {videoEmbed.type === 'native' ? (
             <video
-              ref={videoRef}
+              // Safari ignores React's muted prop at autoplay evaluation — set the
+              // property synchronously at attach, before the first frame fetch.
+              ref={(el) => {
+                videoRef.current = el
+                if (el) el.muted = videoMuted
+              }}
               src={videoEmbed.url}
               aria-label={title}
               autoPlay
@@ -466,6 +475,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
               playsInline
               preload="auto"
               {...{ 'webkit-playsinline': '' }}
+              onCanPlay={() => setVideoReady(true)}
               onClick={(e) => {
                 e.preventDefault()
                 const v = videoRef.current
@@ -473,7 +483,11 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
                 if (v.paused) v.play().catch(() => {})
                 else v.pause()
               }}
-              className="h-full w-full cursor-pointer object-cover"
+              // Photo stays visible underneath until frames are decoded — the
+              // video crossfades in, no navy flash on slow networks.
+              className={`h-full w-full cursor-pointer object-cover transition-opacity duration-500 motion-reduce:transition-none ${
+                videoReady ? 'opacity-100' : 'opacity-0'
+              }`}
             />
           ) : (
             <iframe

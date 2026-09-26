@@ -4,6 +4,8 @@ import {
   getActiveVideoCard,
   setActiveVideoCard,
   subscribeActiveVideoCard,
+  videoMutedPreference,
+  setVideoMutedPreference,
 } from './listing-video'
 
 console.log('card-inline-video.check: starting assertions...')
@@ -82,5 +84,12 @@ const prevCount = notificationCount
 setActiveVideoCard('card-3')
 assert.equal(notificationCount, prevCount)
 setActiveVideoCard(null)
+
+// Session mute preference: defaults muted, round-trips, defaults don't leak
+assert.equal(videoMutedPreference(), true, 'videos must start muted')
+setVideoMutedPreference(false)
+assert.equal(videoMutedPreference(), false, 'unmute must persist for the session')
+setVideoMutedPreference(true)
+assert.equal(videoMutedPreference(), true)
 
 console.log('card-inline-video.check: OK ✓ — Apple-grade inline video engine verified')
