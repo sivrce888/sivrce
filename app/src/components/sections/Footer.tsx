@@ -97,7 +97,7 @@ const DE_GRID_COLS = [
       { label: { de: 'Haus kaufen Hamburg', en: 'Buy house Hamburg', ka: 'სახლი ჰამბურგში' }, href: '/search?country=DE&city=hamburg&deal=sale&type=house' },
       { label: { de: 'Mietwohnung Frankfurt', en: 'Rent flat Frankfurt', ka: 'ქირა ფრანკფურტში' }, href: '/search?country=DE&city=frankfurt&deal=rent&type=apartment' },
       { label: { de: 'Altbauwohnung Leipzig', en: 'Period flat Leipzig', ka: 'ბინა ლაიფციგში' }, href: '/search?country=DE&city=leipzig&deal=sale&type=apartment' },
-      { label: { de: 'Neubauprojekte Deutschland', en: 'New developments Germany', ka: 'ახალი პროექტები' }, href: '/de#projects' },
+      { label: { de: 'Neubauprojekte Deutschland', en: 'New developments Germany', ka: 'მშენებარე ბინები' }, href: '/de#projects' },
     ],
   },
   {
@@ -208,7 +208,7 @@ export default function Footer({
             { label: lang === 'de' ? 'Häuser zum Kauf' : lang === 'ka' ? 'სახლები იყიდება' : 'Houses for sale', href: '/search?country=DE&deal=sale&type=house' },
             { label: lang === 'de' ? 'Wohnungen zur Miete' : lang === 'ka' ? 'ბინები ქირავდება' : 'Apartments for rent', href: '/search?country=DE&deal=rent&type=apartment' },
             { label: lang === 'de' ? 'Häuser zur Miete' : lang === 'ka' ? 'სახლები ქირავდება' : 'Houses for rent', href: '/search?country=DE&deal=rent&type=house' },
-            { label: lang === 'de' ? 'Neubauprojekte' : lang === 'ka' ? 'ახალი პროექტები' : 'New developments', href: '/de#projects' },
+            { label: lang === 'de' ? 'Neubauprojekte' : lang === 'ka' ? 'მშენებარე ბინები' : 'New developments', href: '/de#projects' },
             { label: lang === 'de' ? 'Gewerbeimmobilien' : lang === 'ka' ? 'კომერციული' : 'Commercial properties', href: '/search?country=DE&type=commercial' },
             { label: lang === 'de' ? 'Grundstücke' : lang === 'ka' ? 'მიწის ნაკვეთები' : 'Plots & land', href: '/search?country=DE&type=land' },
           ],
