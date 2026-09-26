@@ -6,9 +6,14 @@
 import assert from 'node:assert'
 import { LISTINGS } from '@/data/listings'
 import { footerKeywordCols } from './seo-pages'
-import { listingPath, listingSlug, listingKeyword, listingKeywordIn, listingDisplayTitle, transliterateKa } from './listing-slug'
+import { ka } from '@/lib/i18n/ka'
+import { listingPath, listingSlug, listingKeyword, listingKeywordIn, listingDisplayTitle, transliterateKa, SLUG_KA } from './listing-slug'
 import { translate } from '@/lib/i18n/dicts'
 import { LANGS } from '@/lib/i18n/core'
+
+for (const [k, v] of Object.entries(SLUG_KA)) {
+  assert.equal(ka[k as keyof typeof ka], v, `slug ka drifted from dictionary: ${k}`)
+}
 
 assert.equal(transliterateKa('იყიდება 3-ოთახიანი ბინა გლდანში'), 'iyideba-3-otaxiani-bina-gldanshi')
 assert.equal(transliterateKa('იყიდება 2-ოთახიანი ბინა ორთაჭალაში'), 'iyideba-2-otaxiani-bina-ortachalashi')

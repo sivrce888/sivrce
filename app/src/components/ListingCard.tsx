@@ -226,7 +226,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
   const { has: inCompare, toggle: toggleCompare, full: compareFull } = useCompare()
   const { t, lang } = useI18n()
   const districtPpsm = useDistrictPpsm()
-  // SS.ge-style price position: sale listings only, project teasers excluded
+  // Portal-standard price position: sale listings only, project teasers excluded
   // ("from" prices aren't comparable), quiet/scam bands hidden inside vsDistrict.
   const vsAvg =
     l.dealType === 'sale' && !l.projectCatalog
@@ -473,7 +473,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
               muted={videoMuted}
               loop
               playsInline
-              preload="auto"
+              preload="metadata"
               {...{ 'webkit-playsinline': '' }}
               onCanPlay={() => setVideoReady(true)}
               onClick={(e) => {
@@ -720,7 +720,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
 
   const bodyBlock = (
     <div className="flex min-w-0 flex-1 flex-col p-4 pt-3.5">
-      {/* Price first — scannable like ss.ge / myhome with locked nominal currency */}
+      {/* Price first — scannable, locked nominal currency */}
       <div className="flex min-w-0 items-baseline gap-2 text-[clamp(1.125rem,0.9rem+2.2cqi,1.375rem)] font-black tabular-nums tracking-[-0.03em] text-sv-ink dark:text-sv-blue">
         <span>{displayPrice}</span>
         <span className="text-[13px] font-semibold text-sv-ink/60 dark:text-sv-blue-light/70">{displaySecondaryPrice}</span>

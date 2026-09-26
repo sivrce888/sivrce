@@ -88,6 +88,7 @@ sivrce.ge is Georgia's premier real-estate platform: apartments, houses, cottage
 - [სერვისები](${BASE}/services): renovation, architecture, appraisal, legal services
 - [თბილისის ქუჩები](${BASE}/tbilisi/kuchebi): comprehensive street index
 - [იპოთეკის კალკულატორი](${BASE}/mortgage-calculator): 2026 Georgian bank rates & annuity schedule
+- [ვალუტის კურსი](${BASE}/valuta): live USD/EUR/GBP/TRY/RUB to GEL rates, converter and per-pair pages (hourly refresh)
 - [Rent vs buy calculator](${BASE}/rent-vs-buy): rent-vs-own wealth comparison for the Georgian market
 - [Miete oder kaufen](${COM_ORIGIN}/de/miete-oder-kaufen): rent-vs-own wealth comparison for Germany with statutory Kaufnebenkosten per Bundesland
 - [ბაზრის ანალიტიკა](${BASE}/market): average price/m², medians, active listings trends

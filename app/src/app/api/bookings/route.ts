@@ -3,6 +3,8 @@
  * Guest picks dates → pending request (host confirms in /admin/rentals, then
  * payment attaches via paymentOrderId). Same armor as tours: same-origin,
  * per-IP rate limit, inline validation, tx advisory lock + overlap re-check.
+ * GET serves two reads: ?mine=1 returns the signed-in guest's own bookings
+ * (account hub), ?listingId returns the public availability feed.
  *
  * Booking rows settle in GEL tetri, so a USD/EUR-priced listing is converted
  * with the shared server FX rate (getFx — same feed and fallbacks as the
@@ -33,6 +35,47 @@ const DAY_MS = 86_400_000
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
 const AVAILABILITY_WINDOW_DAYS = 120
 
+const isoDay = (d: Date) => d.toISOString().slice(0, 10)
+
+/**
+ * The signed-in guest's own stay bookings — the account-hub "My stays" card.
+ * Cancellability is decided server-side so the UI never re-derives the rule
+ * (paid bookings need the refund flow that does not exist yet).
+ */
+async function getMyStays(userId: string) {
+  const rows = await db.dailyRentalBooking.findMany({
+    where: { guestId: userId },
+    orderBy: { checkIn: "desc" },
+    take: 50,
+    select: {
+      id: true,
+      status: true,
+      checkIn: true,
+      checkOut: true,
+      nights: true,
+      guestCount: true,
+      totalTetri: true,
+      paidAt: true,
+      paymentOrderId: true,
+      listing: { select: { title: true } },
+    },
+  })
+  return {
+    stays: rows.map((r) => ({
+      id: r.id,
+      status: r.status,
+      checkIn: isoDay(r.checkIn),
+      checkOut: isoDay(r.checkOut),
+      nights: r.nights,
+      guestCount: r.guestCount,
+      totalTetri: r.totalTetri,
+      cancellable:
+        !r.paidAt && !r.paymentOrderId && (r.status === "pending" || r.status === "confirmed"),
+      listing: { title: r.listing.title },
+    })),
+  }
+}
+
 /**
  * Availability feed for the stay calendar: occupied ISO nights + the resolved
  * settings bundle. Defaults here MUST mirror the POST ones — the widget quotes
@@ -40,9 +83,26 @@ const AVAILABILITY_WINDOW_DAYS = 120
  * would show a different total than the one booked.
  */
 export async function GET(req: NextRequest) {
+  if (req.nextUrl.searchParams.get("mine")) {
+    const session = await auth()
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+    }
+    try {
+      return NextResponse.json(await getMyStays(session.user.id))
+    } catch (err) {
+      console.error("My stays error:", (err as Error).message)
+      return NextResponse.json({ error: "Internal server error" }, { status: 500 })
+    }
+  }
   const listingId = req.nextUrl.searchParams.get("listingId")
   if (!listingId) {
     return NextResponse.json({ error: "Missing listingId" }, { status: 400 })
+  }
+  // Public, unauthenticated, two queries — the same armor POST gets, just
+  // sized for calendar loads (widget refetches on every open).
+  if (!rateLimit(`bookings-cal:${clientIp(req.headers)}`, { max: 60 }).ok) {
+    return NextResponse.json({ error: "rate_limited" }, { status: 429 })
   }
   try {
     const listing = await db.listing.findFirst({
@@ -64,8 +124,8 @@ export async function GET(req: NextRequest) {
 
     const from = new Date(tbilisiTodayUtc())
     const to = new Date(from.getTime() + AVAILABILITY_WINDOW_DAYS * DAY_MS)
-    const fromIso = from.toISOString().slice(0, 10)
-    const toIso = to.toISOString().slice(0, 10)
+    const fromIso = isoDay(from)
+    const toIso = isoDay(to)
     const [bookings, blocked] = await Promise.all([
       db.dailyRentalBooking.findMany({
         where: {
@@ -84,11 +144,11 @@ export async function GET(req: NextRequest) {
 
     const nights = new Set<string>()
     for (const b of bookings) {
-      for (const n of expandBookingNights(b.checkIn.toISOString().slice(0, 10), b.checkOut.toISOString().slice(0, 10))) {
+      for (const n of expandBookingNights(isoDay(b.checkIn), isoDay(b.checkOut))) {
         if (n >= fromIso && n <= toIso) nights.add(n)
       }
     }
-    for (const d of blocked) nights.add(d.date.toISOString().slice(0, 10))
+    for (const d of blocked) nights.add(isoDay(d.date))
 
     return NextResponse.json({
       bookable: true,
@@ -202,7 +262,7 @@ export async function POST(req: NextRequest) {
         guestId: session?.user?.id ?? guestPhone,
         guestName,
         guestPhone,
-        guestEmail: guestEmail ?? null,
+        guestEmail: guestEmail || null,
         guestNotes: guestNotes ?? null,
         minNights: settings?.minNights ?? 1,
         maxNights: settings?.maxNights ?? 30,

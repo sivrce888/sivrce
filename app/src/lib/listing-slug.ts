@@ -1,14 +1,14 @@
 /**
  * SIVRCE — competitor-style listing URLs.
- * ss.ge ranks on `/ka/udzravi-qoneba/iyideba-3-otaxiani-bina-gldanshi-35127949`;
- * myhome on `/udzravi-qoneba/25505302/iyideba-2-otaxiani-bina-ortachalashi/`.
- * Ours: `/listing/{publicId}/{transliterated-keyword}` — MyHome-style 8-digit
+ * Portals rank on `/ka/udzravi-qoneba/iyideba-3-otaxiani-bina-gldanshi-35127949`;
+ * also on `/udzravi-qoneba/25505302/iyideba-2-otaxiani-bina-ortachalashi/`.
+ * Ours: `/listing/{publicId}/{transliterated-keyword}` — portal-standard 8-digit
  * public number as the stable lookup key, slug carries the exact Georgian
  * query in Latin. Canonical + 301 live in
  * app/[lang]/listing/[id]/[[...slug]]/page.tsx (uuid links redirect there too).
  */
 
-import { ka, type DictKey } from '@/lib/i18n/ka'
+import type { DictKey } from '@/lib/i18n/ka'
 import type { Lang } from '@/lib/i18n/context'
 import { listingTitle } from '@/lib/place-label'
 import { dealLabelKey } from '@/lib/add-listing-fields'
@@ -42,10 +42,38 @@ const TITLE_TYPE: Record<PropType, DictKey> = {
   hotel: 'prop.hotel',
 }
 
+/**
+ * Georgian strings the public slug actually interpolates.
+ * ponytail: importing `@/lib/i18n/ka` here put the whole ~113 KB dictionary
+ * on every card (listingPath → listingKeyword). Ceiling: a new slug key must
+ * be added below; listing-slug.check fails if it drifts from ka.ts.
+ */
+export const SLUG_KA = {
+  'add.deal.sale': 'იყიდება',
+  'add.deal.rent': 'ქირავდება',
+  'add.deal.daily': 'ქირავდება დღიურად',
+  'add.deal.pledge': 'გირავდება',
+  'add.deal.lease': 'გაიცემა იჯარით',
+  'prop.apartment': 'ბინა',
+  'prop.houseShort': 'სახლი',
+  'prop.villa': 'აგარაკი',
+  'prop.land': 'მიწა',
+  'prop.hotel': 'სასტუმრო',
+  'add.titleType.commercial': 'კომერციული ფართი',
+  'add.autoTitle.rooms': '{deal} {rooms}-ოთახიანი {type} {where}',
+  'add.autoTitle.beds': '{deal} {beds}-საძინებლიანი {type} {where}',
+  'add.autoTitle.simple': '{deal} {type} {where}',
+} as const satisfies Partial<Record<DictKey, string>>
+
+export function slugKa(k: DictKey): string {
+  // Unknown deal dialects (legacy DB rows) must not throw — same as ka[missing].
+  return (SLUG_KA as Partial<Record<DictKey, string>>)[k] ?? ''
+}
+
 /** Keyword-first detail title: "იყიდება 2-საძინებლიანი ბინა თბილისში ვაკეში" — bedrooms first.
  *  World listings keep the authored Latin title (no Mkhedruli auto-title). */
 export function listingKeyword(l: SlugListing): string {
-  return listingKeywordIn(l, 'ka', (k) => ka[k])
+  return listingKeywordIn(l, 'ka', slugKa)
 }
 
 /** Same keyword title in the reader's language ("3-bedroom apartment for sale

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState, type RefObject } from "react"
 import { CalendarDays, CheckCircle2, ChevronLeft, ChevronRight, Minus, Plus, X } from "lucide-react"
 import { toast } from "sonner"
 import { useI18n } from "@/lib/i18n/context"
@@ -185,41 +185,7 @@ export function StayBooker({ listingId }: { listingId: string }) {
 
   const boxRef = useRef<HTMLDivElement>(null)
   const closeRef = useRef<HTMLButtonElement>(null)
-  useEffect(() => {
-    if (!open) return
-    const prev = document.activeElement as HTMLElement | null
-    closeRef.current?.focus()
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        setOpen(false)
-        return
-      }
-      // ponytail: modal trap without a lib — same 2-node pattern as listing video.
-      if (e.key !== "Tab" || !boxRef.current) return
-      const f = Array.from(
-        boxRef.current.querySelectorAll<HTMLElement>(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-        ),
-      ).filter((el) => !el.hasAttribute("disabled") && el.tabIndex >= 0)
-      if (f.length === 0) return
-      const first = f[0]!
-      const last = f[f.length - 1]!
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault()
-        last.focus()
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault()
-        first.focus()
-      }
-    }
-    window.addEventListener("keydown", onKey)
-    document.body.style.overflow = "hidden"
-    return () => {
-      window.removeEventListener("keydown", onKey)
-      document.body.style.overflow = ""
-      prev?.focus?.()
-    }
-  }, [open])
+  useModalArmor(open, boxRef, closeRef)
 
   const data = avail.status === "ready" ? avail.data : null
   const occupied = useMemo(() => new Set(data?.bookable ? data.nights : []), [data])
@@ -655,4 +621,52 @@ export function StayBooker({ listingId }: { listingId: string }) {
       )}
     </>
   )
+}
+
+/**
+ * Booking-modal armor shared by StayBooker + TourBooking: focus the close
+ * button on open, trap Tab inside the dialog, Escape clicks that close button,
+ * freeze body scroll, restore focus on close.
+ * ponytail: lives here so the file-count cap stays put — a sibling module
+ * would need a cap bump. 2-node trap, no lib.
+ */
+export function useModalArmor(
+  open: boolean,
+  boxRef: RefObject<HTMLElement | null>,
+  closeRef: RefObject<HTMLButtonElement | null>,
+) {
+  useEffect(() => {
+    if (!open) return
+    const prev = document.activeElement as HTMLElement | null
+    closeRef.current?.focus()
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        closeRef.current?.click()
+        return
+      }
+      if (e.key !== "Tab" || !boxRef.current) return
+      const f = Array.from(
+        boxRef.current.querySelectorAll<HTMLElement>(
+          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+        ),
+      ).filter((el) => !el.hasAttribute("disabled") && el.tabIndex >= 0)
+      if (f.length === 0) return
+      const first = f[0]!
+      const last = f[f.length - 1]!
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault()
+        last.focus()
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault()
+        first.focus()
+      }
+    }
+    window.addEventListener("keydown", onKey)
+    document.body.style.overflow = "hidden"
+    return () => {
+      window.removeEventListener("keydown", onKey)
+      document.body.style.overflow = ""
+      prev?.focus?.()
+    }
+  }, [open, boxRef, closeRef])
 }

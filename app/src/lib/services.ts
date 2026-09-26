@@ -36,7 +36,8 @@ export type ServiceCategory = {
 
 export const SERVICE_CITIES = ['თბილისი', 'ბათუმი', 'ქუთაისი', 'რუსთავი'] as const
 
-export const SERVICE_CATEGORIES: readonly ServiceCategory[] = [
+function serviceCategories(): readonly ServiceCategory[] {
+  return [
   {
     id: 'renovation',
     name: { ka: 'რემონტი', en: 'Renovation', ru: 'Ремонт' },
@@ -248,15 +249,21 @@ export const SERVICE_CATEGORIES: readonly ServiceCategory[] = [
     brand: CATEGORY_BRAND.newProjects,
   },
 ]
+}
 
-const CATEGORY_BY_ID = new Map(SERVICE_CATEGORIES.map((c) => [c.id, c]))
+// ponytail: @__PURE__ so a client that only needs the reno calculator drops
+// this ~20 KB catalog. Esbuild keeps it otherwise — brand token reads look
+// like side effects. Upgrade: split a leaf file if a second impure const appears.
+export const SERVICE_CATEGORIES: readonly ServiceCategory[] = /* @__PURE__ */ serviceCategories()
 
 export function isServiceCategoryId(v: string): v is ServiceCategoryId {
-  return CATEGORY_BY_ID.has(v as ServiceCategoryId)
+  return (SERVICE_CATEGORY_IDS as readonly string[]).includes(v)
 }
 
 export function serviceCategory(id: string): ServiceCategory | undefined {
-  return CATEGORY_BY_ID.get(id as ServiceCategoryId)
+  // ponytail: a module-scope Map pinned all 14 category blurbs into every
+  // client that imported one helper (RenovationCalc). 14-row find is enough.
+  return SERVICE_CATEGORIES.find((c) => c.id === id)
 }
 
 export function pickLocText(text: LocText, lang: string): string {

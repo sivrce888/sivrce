@@ -1,9 +1,10 @@
 "use client"
 
 import { useRef, useState } from "react"
-import { Calendar, Clock, User, Phone, Mail, MessageSquare } from "lucide-react"
+import { Calendar, Clock, User, Phone, Mail, MessageSquare, X } from "lucide-react"
 import { toast } from "sonner"
 import { useI18n } from "@/lib/i18n/context"
+import { useModalArmor } from "./StayBooker"
 
 interface TourBookingProps {
   listingId: string
@@ -90,6 +91,10 @@ export function TourBooking({ listingId, listingTitle }: TourBookingProps) {
 
   const noSlots = slots.status === "ready" && slots.times.length === 0
 
+  const boxRef = useRef<HTMLDivElement>(null)
+  const closeRef = useRef<HTMLButtonElement>(null)
+  useModalArmor(open, boxRef, closeRef)
+
   return (
     <>
       <button
@@ -101,12 +106,29 @@ export function TourBooking({ listingId, listingTitle }: TourBookingProps) {
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-sv-navy/60 p-4 backdrop-blur-sm" onClick={() => setOpen(false)}>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-sv-navy/60 p-4 backdrop-blur-sm"
+          onClick={() => setOpen(false)}
+          role="presentation"
+        >
           <div
-            className="w-full max-w-md rounded-card bg-sv-surface p-6 shadow-panel-dark"
+            ref={boxRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="tour-booker-title"
+            className="relative w-full max-w-md rounded-card bg-sv-surface p-6 shadow-panel-dark"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="mb-1 font-black text-lg text-sv-ink">{t("detail.tourTitle")}</h3>
+            <button
+              ref={closeRef}
+              type="button"
+              onClick={() => setOpen(false)}
+              aria-label={t("detail.close")}
+              className="absolute right-4 top-4 grid h-9 w-9 place-items-center rounded-full text-sv-ink/50 transition-colors hover:bg-sv-ink/[0.06] hover:text-sv-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sv-blue"
+            >
+              <X className="h-4 w-4" aria-hidden />
+            </button>
+            <h3 id="tour-booker-title" className="mb-1 font-black text-lg text-sv-ink">{t("detail.tourTitle")}</h3>
             <p className="mb-4 text-sm text-sv-ink/60">{listingTitle}</p>
 
             <form onSubmit={handleSubmit} className="space-y-4">

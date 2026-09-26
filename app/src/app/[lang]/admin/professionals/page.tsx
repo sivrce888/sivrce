@@ -423,7 +423,7 @@ async function ProjectsTab({ page, q, state, status = "", sp }: TabProps) {
       {status === "draft" && total > 0 ? (
         <div className="mb-3 flex items-center gap-3 rounded-[var(--radius-card)] border border-amber-200 bg-amber-50 px-4 py-3">
           <p className="text-[13px] font-semibold text-amber-800">
-            {fmtNum(total)} draft projects from the korter import
+            {fmtNum(total)} draft projects from the directory import
             {q ? ` matching “${q}”` : ""} — hidden from the public site.
           </p>
           <ConfirmButton

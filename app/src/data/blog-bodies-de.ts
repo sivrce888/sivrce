@@ -358,4 +358,22 @@ Die Nebenkosten (im Winter kostet die Beheizung eines Hauses 200–400 Dollar �
 ## Stadt vs. Vorort
 
 In der Stadt (Bagebi, die Umgebung von Vake) — nahe an Arbeit und Schule, aber der Garten ist klein und der Preis hoch. Im Vorort (Mzcheta, Natachtari, Zawkissi) — der Garten ist groß, die Luft sauber, der Preis 30–40 % niedriger, aber ein Auto ist unerlässlich. Auf sivrce finden Sie Hausmieten auf der Karte — messen Sie die Entfernung zu Arbeit und Schule, bevor Sie anrufen.`,
+
+  'dolaris-kursi-da-binis-fasi': `Der Tifliser und Batumiser Markt läuft mit zwei Währungen: Die meisten Inserate werden in Dollar angeboten, während Hypothek, Nebenkosten und Registrierungsgebühren in Lari zahlen sind. Der Kurs ist daher kein Klavierthema, sondern Teil der exakten Budgetplanung eines Kaufs.
+
+## Welcher Kurs ist "richtig" — offiziell, Bank oder Markt
+
+Es gibt drei Kurse mit drei verschiedenen Zahlen. Den offiziellen veröffentlicht die Nationalbank täglich — ein Verrechnungskurs. Der Bank-An- und -verkaufskurs schlägt eine Marge darauf. Der dritte — der Mittelkurs (mid-market) — ist die echte Mitte des Weltmarkts, und genau dieser ist der Maßstab, wenn Sie ausrechnen, was eine in Dollar angebotene Wohnung heute in Lari kostet.
+
+## So rechnen Sie den Preis richtig um
+
+Ganz einfach: Öffnen Sie die sivrce-Wechselkursseite (/valuta), geben Betrag und Paar ein — etwa 80.000 $ in Lari — und erhalten die exakte Zahl zum aktuellen Kurs. Jedes sivrce-Inserat zeigt ohnehin beide Währungen automatisch, meist brauchen Sie gar nicht selbst zu rechnen.
+
+## Was ein schwankender Kurs für Käufer bedeutet
+
+Ein stärkerer Dollar drückt das Lari-Budget: Die Wohnung, die sich letzten Monat leisten ließ, sprengt ihn heute. Wer mit festem Lari-Budget sucht, filtert daher auf Lari-Angebote; beim Dollar-Preis bleibt ein Puffer von 5–10 % für Kursschwankungen. Langfristigen Investoren sagt der Kurs weniger — Rendite und Lage entscheiden.
+
+## Goldene Regeln
+
+1) Fragen Sie den Preis immer in beiden Währungen — manche Verkäufer "erhöhen" ihn still mit altem Kurs. 2) Klären Sie den Kurs am Zahltag mit Ihrer eigenen Bank — der Mittelkurs ist Referenz, der Transaktionskurs trägt die Marge. 3) Wählen Sie die Hypothekenwährung bewusst: Der Lari-Kredit ist teurer, aber sicher; der Dollar-Kredit günstiger, aber mit Währungsrisiko.`,
 }
