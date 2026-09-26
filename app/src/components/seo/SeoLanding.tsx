@@ -206,7 +206,9 @@ export function seoMetadata(def: SeoPageDef, loc: SeoLoc, urlPrefix: string = lo
             ? `${placeName} — Real Estate, Prices & Area Guide`
             : `${placeName} — недвижимость, цены и гид`)
     : titleOf(def, loc, marketIso)
-  const description = isCityInfo ? (cityProseOf(def.city!.slug)?.lede ?? '') : descriptionOf(def, loc, marketIso)
+  // ka city-info gets the unique prose lede; other locales read the localized
+  // description template — the ka lede must never ship as an en/ru/de meta.
+  const description = isCityInfo && loc === 'ka' ? (cityProseOf(def.city!.slug)?.lede ?? '') : descriptionOf(def, loc, marketIso)
   const canonicalPath = loc === 'ka' ? (def.kaPath || def.path) : (def.asciiPath || def.path)
   const url = `${urlPrefix}${canonicalPath}`
   return {
