@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import { monthlyPayment } from '@/lib/finance'
+import { monthlyPayment, dtiPct } from '@/lib/finance'
 import { formatUSD } from '@/lib/listing-format'
 import type { DirLoc } from '@/lib/directory-seo'
 
@@ -9,6 +9,9 @@ const L: Record<DirLoc | 'de', {
   price: string; down: (pct: number) => string; rate: string; years: string
   yearsN: (n: number) => string; monthly: string; principal: string
   interest: string; total: string; disclaimer: string
+  income: string; debts: string; burden: string
+  verdictOk: string; verdictMid: string; verdictNo: string
+  downWarn: string
 }> = {
   ka: {
     price: 'ბინის ფასი', down: (pct) => `პირველი შენატანი (${pct}%)`, rate: 'წლიური პროცენტი',
@@ -16,6 +19,9 @@ const L: Record<DirLoc | 'de', {
     principal: 'სესხის თანხა', interest: 'პროცენტის ჯამი', total: 'სულ გადასახდელი',
     disclaimer:
       'მაჩვენებელი გამოთვლილია სტანდარტული ანუიტეტის ფორმულით და არ წარმოადგენს საბანკო შემოთავაზებას.',
+    income: 'თვიური შემოსავალი', debts: 'სხვა თვიური ვალდებულებები', burden: 'დატვირთვა',
+    verdictOk: 'დამტკიცება სავარაუდოა', verdictMid: 'სასაზღვრო — ბანკი განიხილავს', verdictNo: 'ნაკლებად სავარაუდო — მაღალი დატვირთვა',
+    downWarn: 'ბანკები პირველ შენატანს 15–20%-ზე ნაკლებს იშვიათად ამტკიცებენ',
   },
   en: {
     price: 'Apartment price', down: (pct) => `Down payment (${pct}%)`, rate: 'Annual interest',
@@ -23,6 +29,9 @@ const L: Record<DirLoc | 'de', {
     principal: 'Loan amount', interest: 'Total interest', total: 'Total repaid',
     disclaimer:
       'Indicative figure calculated with the standard annuity formula — not a bank offer.',
+    income: 'Monthly income', debts: 'Other monthly debt', burden: 'Debt burden',
+    verdictOk: 'Likely approvable', verdictMid: 'Borderline — bank review', verdictNo: 'Unlikely — burden too high',
+    downWarn: 'Banks rarely approve below a 15–20% down payment',
   },
   ru: {
     price: 'Стоимость квартиры', down: (pct) => `Первый взнос (${pct}%)`, rate: 'Годовая ставка',
@@ -30,6 +39,9 @@ const L: Record<DirLoc | 'de', {
     principal: 'Сумма кредита', interest: 'Сумма процентов', total: 'Всего к выплате',
     disclaimer:
       'Расчёт по стандартной аннуитетной формуле — не является банковским предложением.',
+    income: 'Доход в месяц', debts: 'Другие платежи в месяц', burden: 'Долговая нагрузка',
+    verdictOk: 'Одобрение вероятно', verdictMid: 'На грани — банк решит', verdictNo: 'Маловероятно — нагрузка высока',
+    downWarn: 'Банки редко одобряют первый взнос ниже 15–20%',
   },
   de: {
     price: 'Wohnungspreis', down: (pct) => `Anzahlung (${pct}%)`, rate: 'Jahreszins',
@@ -37,6 +49,9 @@ const L: Record<DirLoc | 'de', {
     principal: 'Kreditbetrag', interest: 'Gesamtzinsen', total: 'Gesamtrückzahlung',
     disclaimer:
       'Richtwert, berechnet mit der Standard-Annuitätenformel — kein Bankangebot.',
+    income: 'Monatseinkommen', debts: 'Sonstige monatliche Schulden', burden: 'Schuldenlast',
+    verdictOk: 'Bewilligung wahrscheinlich', verdictMid: 'Grenzwertig — Bank prüft', verdictNo: 'Unwahrscheinlich — Last zu hoch',
+    downWarn: 'Banken bewilligen selten unter 15–20 % Anzahlung',
   },
 }
 
@@ -46,6 +61,12 @@ const PRESETS = [
   { label: '$180,000', price: 180_000 },
   { label: '$250,000', price: 250_000 },
 ]
+
+/** Payment-to-income verdict bands (Georgian banks commonly decline >~45% DTI;
+ *  ≥15% down is the published BasisBank floor, TBC 20%). Indicative only. */
+const DTI_OK = 35
+const DTI_MID = 45
+const DOWN_FLOOR = 15
 
 export default function MortgageCalcClient({
   loc,
@@ -60,6 +81,8 @@ export default function MortgageCalcClient({
   const [downPct, setDownPct] = useState(initial?.down ?? 25)
   const [rate, setRate] = useState(initial?.rate ?? 10)
   const [years, setYears] = useState(initial?.years ?? 20)
+  const [income, setIncome] = useState(0)
+  const [debts, setDebts] = useState(0)
 
   const { monthly, principal, totalInterest, totalPaid } = useMemo(() => {
     const principal = Math.max(0, price * (1 - downPct / 100))
@@ -68,6 +91,11 @@ export default function MortgageCalcClient({
     const totalInterest = totalPaid - principal
     return { monthly, principal, totalInterest, totalPaid }
   }, [price, downPct, rate, years])
+
+  // Eligibility pre-check: hidden until the user enters an income — a verdict
+  // without income would be noise. downPct < 5 reads as "just exploring".
+  const dti = dtiPct(monthly, debts, income)
+  const verdict = dti === null ? null : dti <= DTI_OK ? 'ok' : dti <= DTI_MID ? 'mid' : 'no'
 
   return (
     <div className="rounded-tile border border-sv-ink/[0.06] bg-sv-surface p-6 shadow-card md:p-10">
@@ -149,6 +177,33 @@ export default function MortgageCalcClient({
               className="w-full accent-sv-blue"
             />
           </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <label htmlFor="mc-income" className="mb-2 block text-[13px] font-black uppercase tracking-wide text-sv-ink/70">
+                {t.income}
+              </label>
+              <input
+                id="mc-income"
+                type="number" min={0} max={100_000} step={100} placeholder="$0"
+                value={income || ''}
+                onChange={(e) => setIncome(Math.max(0, Number(e.target.value) || 0))}
+                className="w-full rounded-control border border-sv-ink/[0.12] bg-white px-3 py-2.5 text-[14px] font-bold text-sv-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue"
+              />
+            </div>
+            <div>
+              <label htmlFor="mc-debts" className="mb-2 block text-[13px] font-black uppercase tracking-wide text-sv-ink/70">
+                {t.debts}
+              </label>
+              <input
+                id="mc-debts"
+                type="number" min={0} max={100_000} step={50} placeholder="$0"
+                value={debts || ''}
+                onChange={(e) => setDebts(Math.max(0, Number(e.target.value) || 0))}
+                className="w-full rounded-control border border-sv-ink/[0.12] bg-white px-3 py-2.5 text-[14px] font-bold text-sv-ink focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue"
+              />
+            </div>
+          </div>
         </div>
 
         {/* Result */}
@@ -173,6 +228,29 @@ export default function MortgageCalcClient({
               <span className="font-bold">{formatUSD(totalPaid)}</span>
             </div>
           </div>
+          {verdict !== null && dti !== null && (
+            <div className="mt-6 border-t border-white/10 pt-4">
+              <div className="flex items-center justify-between text-[12px]">
+                <span className="font-black uppercase tracking-wider text-white/55">{t.burden}</span>
+                <span className="tabular-nums text-white/70">{Math.round(dti)}%</span>
+              </div>
+              <p
+                role="status"
+                className={`mt-2 rounded-control px-3 py-2 text-[13px] font-black ${
+                  verdict === 'ok'
+                    ? 'bg-sv-success/15 text-sv-blue-light'
+                    : verdict === 'mid'
+                      ? 'bg-sv-orange/15 text-sv-orange'
+                      : 'bg-white/10 text-white/80'
+                }`}
+              >
+                {verdict === 'ok' ? t.verdictOk : verdict === 'mid' ? t.verdictMid : t.verdictNo}
+              </p>
+              {downPct > 0 && downPct < DOWN_FLOOR && (
+                <p className="mt-2 text-[12px] font-bold text-sv-orange">{t.downWarn}</p>
+              )}
+            </div>
+          )}
         </div>
       </div>
       <p className="mt-4 text-[12px] font-semibold text-sv-ink/60">

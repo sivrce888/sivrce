@@ -152,3 +152,9 @@ export function grossYieldPct(priceUSD: number, monthlyRent: number): number {
   return Math.round(((monthlyRent * 12) / priceUSD) * 1000) / 10
 }
 
+/** Payment-to-income % for the mortgage eligibility pre-check (client + server parity).
+ *  Null when income is unknown — a verdict without income is noise. */
+export function dtiPct(monthlyUSD: number, otherDebtUSD: number, incomeUSD: number): number | null {
+  return incomeUSD > 0 ? ((monthlyUSD + otherDebtUSD) / incomeUSD) * 100 : null
+}
+

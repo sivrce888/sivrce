@@ -7,6 +7,7 @@ import {
   estimateMonthlyRent,
   grossYieldPct,
   validateLtv,
+  dtiPct,
   GEORGIAN_BANKS,
 } from './finance'
 
@@ -58,4 +59,9 @@ for (const b of GEORGIAN_BANKS) {
   assert.ok(b.maxYears >= 15)
 }
 
-console.log('finance.check: ok — annuity, diff, amort, LTV, tax, yield, banks')
+// 7. DTI pre-check
+assert.ok(Math.abs(dtiPct(1000, 0, 3000)! - 33.3) < 0.1)
+assert.equal(dtiPct(1000, 500, 3000), 50)
+assert.equal(dtiPct(1000, 0, 0), null)
+
+console.log('finance.check: ok — annuity, diff, amort, LTV, tax, yield, banks, dti')
