@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react'
 import {
-  Accessibility, AppWindow, Archive, ArrowUpDown, Bath, Baby, Blinds, Cable, CableCar,
+  Accessibility, AppWindow, Archive, ArrowUpDown, Bath, Baby, Blinds, Cable, CableCar, CalendarClock,
   Check, Cigarette, CookingPot, Crown, DoorClosed, Droplets, Dumbbell, Fence, Flame, FlameKindling,
   Heater, KeyRound, Laptop, MountainSnow, Package, PawPrint, PlugZap, Refrigerator,
   Sailboat, ShieldCheck, Snowflake, Sofa, SquareParking, Store, Sun, Tent,
@@ -67,6 +67,7 @@ export const FEATURE_ICON: Record<Exclude<FeatureKey, 'add.f.partiesAllowed'>, L
   'add.f.workspace': Laptop,
   'add.f.smokingAllowed': Cigarette,
   'add.f.onlineView': Video,
+  'add.f.installment': CalendarClock,
 }
 
 /** Glyph for any feature key — custom party icon included, aria-hidden. */

@@ -1183,12 +1183,16 @@ export default function SearchClient({
               </div>
               <div>
                 <span className={labelClass}>{t('search.seller')}</span>
-                <div className="flex gap-1">
+                <div className="flex flex-wrap gap-1">
                   {(['owner', 'agency'] as const).map((v) => (
                     <button key={v} type="button" onClick={() => patchParams({ seller: seller === v ? undefined : v })} aria-pressed={seller === v} className={numChip(seller === v)}>
                       {t(v === 'owner' ? 'search.sellerOwner' : 'search.sellerAgency')}
                     </button>
                   ))}
+                  {/* Korter-parity: installment payments filter (sale inventory tags it via /add-listing). */}
+                  <button type="button" onClick={() => toggleCsv('feat', feat, 'add.f.installment')} aria-pressed={feat.includes('add.f.installment')} className={tagChip(feat.includes('add.f.installment'))}>
+                    {t('add.f.installment')}
+                  </button>
                 </div>
               </div>
             </div>

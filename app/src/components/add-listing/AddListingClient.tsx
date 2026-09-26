@@ -293,6 +293,7 @@ export default function AddListingClient() {
   const [phoneBusy, setPhoneBusy] = useState(false)
   const [messengers, setMessengers] = useState<string[]>(['WhatsApp', 'Viber'])
   const [onlineView, setOnlineView] = useState(false)
+  const [installment, setInstallment] = useState(false)
   const [terms, setTerms] = useState(false)
 
   const areaN = (Number(area) || 0) * (areaUnit === 'ha' ? 10_000 : 1)
@@ -348,7 +349,8 @@ export default function AddListingClient() {
       if (Array.isArray(d.features)) {
         const feats = d.features.filter((x): x is DictKey => typeof x === 'string')
         setOnlineView(feats.includes('add.f.onlineView') || d.onlineView === true)
-        const raw = feats.filter((f) => f !== 'add.f.onlineView')
+        setInstallment(feats.includes('add.f.installment'))
+        const raw = feats.filter((f) => f !== 'add.f.onlineView' && f !== 'add.f.installment')
         const dDeal = typeof d.deal === 'string' ? (d.deal as Deal) : null
         const dProp = typeof d.propType === 'string' ? (d.propType as PropType) : null
         const dCity = typeof d.city === 'string' ? d.city : undefined
@@ -479,8 +481,9 @@ export default function AddListingClient() {
         setFloorType((L.floorType || '') as DictKey | '')
         setKitchenArea(L.kitchenArea)
         setOnlineView(L.onlineView)
+        setInstallment(L.features.includes('add.f.installment'))
         setFeatures(
-          L.features.filter((f): f is DictKey => typeof f === 'string' && f !== 'add.f.onlineView'),
+          L.features.filter((f): f is DictKey => typeof f === 'string' && f !== 'add.f.onlineView' && f !== 'add.f.installment'),
         )
         setRentPeriod(L.rentPeriod)
         setRentType((L.rentType || '') as DictKey | '')
@@ -539,7 +542,7 @@ export default function AddListingClient() {
           cadastral, cadastralPublic, area, areaUnit, yardArea, rooms, beds, baths,
           floor, totalFloors, condition, status, project, floorType, kitchenArea, features, rentPeriod, rentType,
           guests, video, matterport, price, priceCur, priceMode, negotiable,
-          exchangeable, exclusive, sivrceExclusive, description, name, phone, messengers, onlineView, terms,
+          exchangeable, exclusive, sivrceExclusive, description, name, phone, messengers, onlineView, installment, terms,
         }))
         setDraftSavedAt(Date.now())
       } catch { /* quota / private mode */ }
@@ -551,7 +554,7 @@ export default function AddListingClient() {
     floor, totalFloors, condition, status, project, floorType, kitchenArea, features, rentPeriod, rentType, guests,
     video, matterport, price, priceCur, priceMode, negotiable, exchangeable,
     exclusive, sivrceExclusive,
-    description, name, phone, messengers, onlineView, terms,
+    description, name, phone, messengers, onlineView, installment, terms,
   ])
 
   const pickDeal = (d: Deal) => {
@@ -1252,9 +1255,11 @@ export default function AddListingClient() {
         project: formFields?.project ? project || null : null,
         floorType: formFields?.floorType ? floorType || null : null,
         kitchenArea: formFields?.kitchen ? (Number(kitchenArea) || null) : null,
-        features: onlineView
-          ? [...features.filter((f) => f !== 'add.f.onlineView'), 'add.f.onlineView']
-          : features.filter((f) => f !== 'add.f.onlineView'),
+        features: [
+          ...features.filter((f) => f !== 'add.f.onlineView' && f !== 'add.f.installment'),
+          ...(onlineView ? ['add.f.onlineView'] : []),
+          ...(installment ? ['add.f.installment'] : []),
+        ],
         images, video: video || null, matterport: matterport || null,
         price: priceN, currency: 'USD', negotiable, exchangeable: formFields?.exchange ? exchangeable : false,
         exclusive, sivrceExclusive,
@@ -2482,6 +2487,26 @@ export default function AddListingClient() {
                         <span className={`mt-1 block text-[12px] font-semibold leading-relaxed ${onlineView ? 'text-white/75' : 'text-sv-ink/60'}`}>{t('add.onlineViewHint')}</span>
                       </span>
                     </button>
+
+                    {deal === 'sale' && (
+                      <button
+                        type="button"
+                        onClick={() => setInstallment(!installment)}
+                        className={`flex w-full items-start gap-3 rounded-module border p-4 text-left transition ${
+                          installment
+                            ? 'border-transparent bg-sv-blue text-white shadow-glow-blue-sm'
+                            : 'border-sv-ink/[0.08] bg-sv-cloud/60 hover:border-sv-blue/30'
+                        }`}
+                      >
+                        <span className={`mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-md border ${installment ? 'border-white/40 bg-white/20' : 'border-sv-ink/20 bg-sv-surface'}`}>
+                          {installment && <Check className="h-3.5 w-3.5" />}
+                        </span>
+                        <span>
+                          <span className={`block text-[14px] font-extrabold ${installment ? 'text-white' : 'text-sv-ink'}`}>{t('add.installment')}</span>
+                          <span className={`mt-1 block text-[12px] font-semibold leading-relaxed ${installment ? 'text-white/75' : 'text-sv-ink/60'}`}>{t('add.installmentHint')}</span>
+                        </span>
+                      </button>
+                    )}
                   </div>
                     ) : (
                       <p className="rounded-module bg-sv-cloud px-4 py-6 text-[13px] font-semibold leading-relaxed text-sv-ink/60">{t('add.tip.type')}</p>
