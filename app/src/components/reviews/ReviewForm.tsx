@@ -114,7 +114,8 @@ export function ReviewForm({ targetType, targetId, strings: s, locale, onSubmitt
       })
       if (!res.ok) {
         // 409 = unique [targetType, targetId, authorId] — one review per target.
-        setError(res.status === 409 ? s.errorAlready : s.errorGeneric)
+        const code = ((await res.json().catch(() => null)) as { error?: string } | null)?.error
+        setError(res.status === 409 ? s.errorAlready : code === 'self_review' ? s.errorSelf : s.errorGeneric)
         return
       }
 

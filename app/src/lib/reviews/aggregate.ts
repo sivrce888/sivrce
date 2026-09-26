@@ -93,3 +93,76 @@ export async function syncProfileRating(
     // the next review write for the same target.
   }
 }
+
+// ─── Review trust: self-review block + verified-visit stamp ─────────────────
+
+/**
+ * Who a review target belongs to + which listings count as "dealt with it".
+ * null → target type has no owner/listings (project, building, neighborhood,
+ * service) — never verified, never self-blocked.
+ */
+type TargetScope = { ownerId: string | null; listings: Prisma.ListingWhereInput }
+
+async function targetScope(targetType: string, targetId: string): Promise<TargetScope | null> {
+  if (targetType === "listing") {
+    const l = await db.listing.findFirst({ where: { id: targetId }, select: { ownerId: true } })
+    return l ? { ownerId: l.ownerId, listings: { id: targetId } } : null
+  }
+  if (targetType === "account") return { ownerId: targetId, listings: { ownerId: targetId } }
+  const q = { where: { slug: targetId, deletedAt: null }, select: { ownerId: true } }
+  const p =
+    targetType === "agent"
+      ? await db.agentProfile.findFirst(q)
+      : targetType === "agency"
+        ? await db.agencyProfile.findFirst(q)
+        : targetType === "developer"
+          ? await db.developerProfile.findFirst(q)
+          : null
+  // Unclaimed profile: no owner → nothing to self-review, no listings to visit.
+  return p?.ownerId ? { ownerId: p.ownerId, listings: { ownerId: p.ownerId } } : null
+}
+
+/** Pure: an author reviewing something they own is a fake review. */
+export function isSelfReview(authorId: string, ownerId: string | null): boolean {
+  return ownerId !== null && ownerId === authorId
+}
+
+export type ReviewTrust = { self: boolean; verified: boolean }
+
+/**
+ * Server-side trust stamp for a new review. `verified` = the author finished a
+ * real stay or viewing on the target listing (or any listing its owner runs):
+ * booking completed / confirmed-and-checked-out, tour completed /
+ * confirmed-and-past. Clients can't set it; it is never trusted from input.
+ * ponytail: inquiries don't verify — a message isn't an experience. Add
+ * "agent replied + deal won" once the CRM stage is reliable.
+ */
+export async function reviewTrust(
+  authorId: string,
+  targetType: string,
+  targetId: string,
+  now: Date = new Date(),
+): Promise<ReviewTrust> {
+  const scope = await targetScope(targetType, targetId)
+  if (!scope) return { self: false, verified: false }
+  if (isSelfReview(authorId, scope.ownerId)) return { self: true, verified: false }
+  const [stay, tour] = await Promise.all([
+    db.dailyRentalBooking.findFirst({
+      where: {
+        guestId: authorId,
+        listing: scope.listings,
+        OR: [{ status: "completed" }, { status: "confirmed", checkOut: { lte: now } }],
+      },
+      select: { id: true },
+    }),
+    db.propertyTour.findFirst({
+      where: {
+        userId: authorId,
+        listing: scope.listings,
+        OR: [{ status: "completed" }, { status: "confirmed", tourDate: { lte: now } }],
+      },
+      select: { id: true },
+    }),
+  ])
+  return { self: false, verified: Boolean(stay || tour) }
+}
