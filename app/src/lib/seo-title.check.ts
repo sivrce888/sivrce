@@ -4,7 +4,7 @@
  */
 
 import assert from 'node:assert/strict'
-import { cap1, locIn, locOn, seoTitleParts } from './seo-title'
+import { cap1, locIn, locOn, seoTitleParts, streetLoc } from './seo-title'
 
 /* ——— "in X" locatives ——— */
 assert.equal(locIn('ვაკე'), 'ვაკეში') // curated
@@ -24,24 +24,42 @@ assert.equal(locOn('ვაჟა-ფშაველას გამზირი'
 assert.equal(locOn('კოსტავას ქ.'), 'კოსტავაზე')
 assert.equal(locOn('თამარ მეფის ქუჩა'), 'თამარ მეფეზე') // obstruent epenthesis
 
-/* ——— title parts: ka ——— */
+/* ——— "on X" for street phrases / raw address heads ——— */
+assert.equal(streetLoc('ბელიაშვილის ქუჩა N24'), 'ბელიაშვილის ქუჩაზე') // street word kept + inflected, number dropped
+assert.equal(streetLoc('აკაკი ბელიაშვილის ქუჩა'), 'აკაკი ბელიაშვილის ქუჩაზე') // canonical catalog form
+assert.equal(streetLoc('ჭავჭავაძის 47'), 'ჭავჭავაძეზე') // bare genitive head falls back to locOn
+assert.equal(streetLoc('მშვიდობის ქ. 8'), 'მშვიდობის ქუჩაზე') // abbr expanded
+assert.equal(streetLoc('ვაჟა-ფშაველას გამზირი'), 'ვაჟა-ფშაველას გამზირზე')
+assert.equal(streetLoc('დავით აღმაშენებლის ხეივანი'), 'დავით აღმაშენებლის ხეივანში')
+assert.equal(streetLoc('24'), '') // pure door number → no street part
+assert.equal(streetLoc(''), '')
+
+/* ——— title parts: ka — full chain city → district → street ——— */
 assert.deepEqual(
   seoTitleParts({ lang: 'ka', deal: 'sale', dealLabel: 'იყიდება', street: 'ჭავჭავაძის გამზირი', district: 'ვაკე', city: 'თბილისი' }),
-  { deal: 'იყიდება', where: 'ჭავჭავაძეზე ვაკეში' },
+  { deal: 'იყიდება', where: 'თბილისში ვაკეში ჭავჭავაძის გამზირზე' },
+)
+assert.equal(
+  seoTitleParts({ lang: 'ka', deal: 'sale', dealLabel: 'იყიდება', street: 'აკაკი ბელიაშვილის ქუჩა N24', district: 'დიღმის მასივი', city: 'თბილისი' }).where,
+  'თბილისში დიღმის მასივში აკაკი ბელიაშვილის ქუჩაზე',
 )
 assert.deepEqual(
   seoTitleParts({ lang: 'ka', deal: 'daily', dealLabel: 'ქირავდება დღიურად', district: 'გლდანი', city: 'თბილისი' }),
-  { deal: 'ქირავდება დღიურად', where: 'გლდანში' },
+  { deal: 'ქირავდება დღიურად', where: 'თბილისში გლდანში' },
 )
 assert.deepEqual(
   seoTitleParts({ lang: 'ka', deal: 'pledge', dealLabel: 'გირავდება', district: 'საბურთალო', city: 'თბილისი' }),
-  { deal: 'გირავდება', where: 'საბურთალოზე' },
+  { deal: 'გირავდება', where: 'თბილისში საბურთალოზე' },
+)
+assert.equal(
+  seoTitleParts({ lang: 'ka', deal: 'sale', dealLabel: 'იყიდება', street: 'ნუცუბიძის ფერდობი', district: 'ნუცუბიძის ფერდობი', city: 'თბილისი' }).where,
+  'თბილისში ნუცუბიძის ფერდობზე', // street duplicating the district drops
 )
 
 /* ——— street box holding a bare settlement name — in-X, never *ნიჩბისზე ——— */
 assert.equal(
   seoTitleParts({ lang: 'ka', deal: 'sale', dealLabel: 'იყიდება', propType: 'land', street: 'ნიჩბისი', city: 'მცხეთის მუნიციპალიტეტი' }).where,
-  'ნიჩბისში',
+  'მცხეთის მუნიციპალიტეტში ნიჩბისში',
 )
 assert.equal(
   seoTitleParts({ lang: 'ka', deal: 'sale', dealLabel: 'იყიდება', street: 'ბაკურიანი', city: 'ბაკურიანი' }).where,
@@ -49,11 +67,11 @@ assert.equal(
 )
 assert.equal(
   seoTitleParts({ lang: 'ka', deal: 'sale', dealLabel: 'იყიდება', street: 'საბურთალო', city: 'თბილისი' }).where,
-  'საბურთალოზე', // curated -ზე class survives the bare-name route
+  'თბილისში საბურთალოზე', // curated -ზე class survives the bare-name route
 )
 assert.equal(
   seoTitleParts({ lang: 'ka', deal: 'sale', dealLabel: 'იყიდება', street: 'დიდი დიღომი', city: 'თბილისი' }).where,
-  'დიდ დიღომში', // multi-word curated (syncope) still hits
+  'თბილისში დიდ დიღომში', // multi-word curated (syncope) still hits
 )
 
 /* ——— title parts: en/ru use curated seo-pages phrases ——— */

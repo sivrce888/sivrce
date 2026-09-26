@@ -106,3 +106,4 @@ research/competitor-locations/
 
 # regeneratable OSM street dump (scripts/sync-georgia-streets-osm.py)
 scripts/georgia-streets-osm.json
+research/sat-sheets/

@@ -28,6 +28,8 @@ export interface SlugListing {
   beds: number
   district: string
   city: string
+  /** Free-form address; its first comma segment feeds the ka street keyword ("ბელიაშვილის ქუჩა N24"). */
+  address?: string
 }
 
 /** Title-slot type labels — the SEO keyword forms (კომერციული ფართი, not კომერციული). */
@@ -54,7 +56,10 @@ export function listingKeywordIn(l: SlugListing, lang: Lang, t: (k: DictKey) => 
   const dealLabel = l.dealType === 'daily' && lang === 'ka'
     ? 'ქირავდება დღიურად'
     : t(dealLabelKey(l.dealType, l.propType))
-  const { deal, where } = seoTitleParts({ lang, deal: l.dealType, dealLabel, propType: l.propType, district: l.district, city: l.city })
+  const { deal, where } = seoTitleParts({
+    lang, deal: l.dealType, dealLabel, propType: l.propType, district: l.district, city: l.city,
+    street: l.address?.split(',')[0],
+  })
   const useBeds = l.beds > 0 && l.propType !== 'land'
   const useRooms = !useBeds && l.rooms > 0 && l.propType !== 'land'
   const key = useBeds ? 'add.autoTitle.beds' : useRooms ? 'add.autoTitle.rooms' : 'add.autoTitle.simple'

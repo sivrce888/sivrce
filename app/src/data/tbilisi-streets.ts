@@ -23,7 +23,7 @@ export const STREETS: TbilisiStreet[] = [
   { slug: 'akaki-beliashvilis-kucha', ka: 'აკაკი ბელიაშვილის ქუჩა', en: 'Akaki Beliashvili Street', district: 'digomis-masivi' },
   { slug: 'akaki-tseretlis-gamziri', ka: 'აკაკი წერეთლის გამზირი', en: 'Akaki Tsereteli Avenue', district: 'didube' },
   { slug: 'tsminda-ketevan-dedoplis-gamziri', ka: 'წმინდა ქეთევან დედოფლის გამზირი', en: 'Tsminda Ketevan Dedoflis Avenue', district: 'isani' },
-  { slug: 'tbilisis-shemosavleli-gza', ka: 'თბილისის შემოსავლელი გზა', en: 'Tbilisi Bypass Road', district: 'gldani' },
+  { slug: 'tbilisis-shemovliti-gza', ka: 'თბილისის შემოვლითი გზა', en: 'Tbilisi Bypass Road', district: 'gldani' },
   { slug: 'mirian-mepis-kucha', ka: 'მირიან მეფის ქუჩა', en: 'Mirian Mepe Street', district: 'didi-dighomi' },
   { slug: 'ilia-chavchavadzis-gamziri', ka: 'ილია ჭავჭავაძის გამზირი', en: 'Ilia Chavchavadze Avenue', district: 'vake' },
   { slug: 'javakhetis-kucha', ka: 'ჯავახეთის ქუჩა', en: 'Javakheti Street', district: 'varketili' },
