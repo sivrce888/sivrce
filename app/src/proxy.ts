@@ -95,6 +95,10 @@ function isApiHost(host: string): boolean {
   return host === "api.sivrce.ge" || host === "api.localhost"
 }
 
+function isServicesHost(host: string): boolean {
+  return host === "services.sivrce.ge" || host === "services.localhost"
+}
+
 function isRedirectHost(host: string): boolean {
   return host === "app.sivrce.ge" || host === "analytics.sivrce.ge"
 }
@@ -270,6 +274,35 @@ export function proxy(req: NextRequest) {
     url.pathname =
       pathname === "/" ? "/api" : `/api${pathname.startsWith("/") ? pathname : `/${pathname}`}`
     return NextResponse.rewrite(url)
+  }
+
+  // Services front door: services.sivrce.ge/x → /{lang}/services/x (internal
+  // rewrite — canonicals stay on sivrce.ge/services). Locale mirrors the main
+  // site's rule: locale cookie or accept-language on "/", else ka. No 302s —
+  // one URL shape for the whole subdomain.
+  if (isServicesHost(host)) {
+    if (isRootPassthrough(pathname)) return NextResponse.next()
+    const bare = stripLocale(pathname)
+    const path = bare === "/" ? "/services" : bare.startsWith("/services") ? bare : `/services${bare}`
+    const auto = autoLocalePath({
+      pathname: bare,
+      market: "ge",
+      cookie: req.cookies.get(LANG_COOKIE)?.value,
+      acceptLanguage: req.headers.get("accept-language"),
+      crawler: isCrawler(req.headers.get("user-agent")),
+      internal:
+        req.headers.has("rsc") ||
+        req.headers.has("next-router-prefetch") ||
+        req.headers.has("next-router-state-tree"),
+    })
+    const lang = auto ? auto.slice(1).split("/")[0]! : "ka"
+    const url = req.nextUrl.clone()
+    url.pathname = `/${lang}${path}`
+    return pass(
+      req,
+      NextResponse.rewrite(url, { request: { headers: stampMarket(req, "ge") } }),
+      preview,
+    )
   }
 
   if (isAdminHost(host)) {

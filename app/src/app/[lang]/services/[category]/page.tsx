@@ -14,6 +14,7 @@ import {
   isServiceCategoryId,
   pickLocText,
   SERVICE_CATEGORIES,
+  SERVICE_CITIES,
   type ServiceCategoryId,
 } from '@/lib/services'
 import { listServiceProviders } from '@/lib/services-db'
@@ -26,6 +27,7 @@ export function generateStaticParams() {
 
 interface PageProps {
   params: Promise<{ lang: string; category: string }>
+  searchParams: Promise<{ city?: string }>
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -47,20 +49,24 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   }
 }
 
-export default async function ServiceCategoryPage({ params }: PageProps) {
+export default async function ServiceCategoryPage({ params, searchParams }: PageProps) {
   const { lang: raw, category } = await params
   if (!isServiceCategoryId(category)) notFound()
   const lang = isValidLang(raw) ? raw : 'ka'
   const cat = SERVICE_CATEGORIES.find((x) => x.id === category)!
-  const providers = await listServiceProviders(category as ServiceCategoryId)
+  // Allowlist the query — unknown ?city= values render the unfiltered list.
+  const { city: rawCity } = await searchParams
+  const city = SERVICE_CITIES.find((c) => c === rawCity)
+  const all = await listServiceProviders(category as ServiceCategoryId)
+  const providers = city ? all.filter((p) => p.city === city) : all
 
   const listLd = {
     '@context': 'https://schema.org',
     '@type': 'ItemList',
     name: cat.name.en,
     url: `https://sivrce.ge/services/${category}`,
-    numberOfItems: providers.length,
-    itemListElement: providers.map((p, i) => ({
+    numberOfItems: all.length,
+    itemListElement: all.map((p, i) => ({
       '@type': 'ListItem',
       position: i + 1,
       name: p.name.en,
@@ -110,6 +116,40 @@ export default async function ServiceCategoryPage({ params }: PageProps) {
         )}
 
         <section className="mx-auto max-w-[1440px] px-5 pb-20 md:px-10">
+          <nav aria-label={lang === 'ru' ? 'Города' : lang === 'ka' ? 'ქალაქები' : 'Cities'} className="mb-7 flex flex-wrap gap-2">
+            <LocalizedLink
+              href={`/services/${category}`}
+              aria-current={city ? undefined : 'true'}
+              className={`rounded-full border px-4 py-2 text-[13px] font-extrabold transition ${
+                city
+                  ? 'border-sv-ink/[0.08] bg-sv-surface text-sv-ink hover:border-sv-ink/25'
+                  : 'border-sv-ink bg-sv-ink text-sv-cloud'
+              }`}
+            >
+              {lang === 'ru' ? 'Все города' : lang === 'ka' ? 'ყველა ქალაქი' : lang === 'de' ? 'Alle Städte' : 'All cities'}
+              <span className="ml-1.5 font-bold opacity-60">{all.length}</span>
+            </LocalizedLink>
+            {SERVICE_CITIES.map((c) => {
+              const n = all.filter((p) => p.city === c).length
+              if (n === 0) return null
+              const on = city === c
+              return (
+                <LocalizedLink
+                  key={c}
+                  href={`/services/${category}?city=${encodeURIComponent(c)}`}
+                  aria-current={on ? 'true' : undefined}
+                  className={`rounded-full border px-4 py-2 text-[13px] font-extrabold transition ${
+                    on
+                      ? 'border-sv-ink bg-sv-ink text-sv-cloud'
+                      : 'border-sv-ink/[0.08] bg-sv-surface text-sv-ink hover:border-sv-ink/25'
+                  }`}
+                >
+                  {c}
+                  <span className="ml-1.5 font-bold opacity-60">{n}</span>
+                </LocalizedLink>
+              )
+            })}
+          </nav>
           {providers.length === 0 ? (
             <p className="text-[15px] font-semibold text-sv-ink/60">
               {lang === 'ru'
