@@ -10,6 +10,7 @@ import { randomUUID } from "node:crypto"
 import { type NextRequest, NextResponse } from "next/server"
 
 import { auth } from "@/auth"
+import { background } from "@/lib/background"
 import type { Prisma } from "@/generated/prisma/client"
 import { db } from "@/lib/db"
 import { recomputeNearestPois } from "@/lib/geo/nearest-poi"
@@ -22,7 +23,7 @@ import { linkListingMedia } from "@/lib/media/link-listing-media"
 import { parsePublishBody, persistRoomCounts } from "@/lib/listings-publish"
 import { requestHostKind } from "@/lib/request-market"
 import { runSavedSearchAlerts } from "@/lib/saved-search-alerts"
-import { indexListing } from "@/lib/search"
+import { indexListing, type ListingDocument } from "@/lib/search"
 import { listingIndexUrl, notifyIndexNow } from "@/lib/indexnow"
 import { isSameOrigin } from "@/lib/security/origin"
 import { canonicalizeDistrict } from "@/lib/district-canon"
@@ -115,7 +116,7 @@ export async function POST(req: NextRequest) {
 
   // Baseline event — price history starts at publication, not at the first edit.
   if (p.price > 0) {
-    void db.listingPriceEvent
+    await db.listingPriceEvent
       .create({
         data: {
           listingId: listing.id,
@@ -128,15 +129,16 @@ export async function POST(req: NextRequest) {
       .catch((e) => console.error("[listings] listed event:", (e as Error).message))
   }
 
-  void attributeListing(listing.id).catch(() => {})
-  void recomputeNearestPois(listing.id).catch(() => {})
-  void linkListingMedia({
-    listingId: listing.id,
-    urls: p.images,
-    uploadedBy: session.user.id,
-  }).catch(() => {})
+  // Post-response pipeline: runs after the 201 ships, kept alive by waitUntil.
+  const listingId = listing.id
+  const ownerId = session.user.id
+  background("listing.attribute", () => attributeListing(listingId))
+  background("listing.nearest-poi", () => recomputeNearestPois(listingId))
+  background("listing.media", () =>
+    linkListingMedia({ listingId, urls: p.images, uploadedBy: ownerId }),
+  )
 
-  void indexListing({
+  const searchDoc: ListingDocument = {
     id: listing.id,
     publicId: listing.publicId,
     title: p.title,
@@ -176,10 +178,10 @@ export async function POST(req: NextRequest) {
     status: "active",
     tier: "standard",
     tierRank: 0,
-  }).catch(() => {})
-
-  void runSavedSearchAlerts(listing.id).catch(() => {})
-  notifyIndexNow([listingIndexUrl(listing.id)])
+  }
+  background("listing.index", () => indexListing(searchDoc))
+  background("listing.saved-search-alerts", () => runSavedSearchAlerts(listingId))
+  background("listing.indexnow", () => notifyIndexNow([listingIndexUrl(listingId)]))
 
   if (session.user.role === "buyer") {
     await db.user.update({ where: { id: session.user.id }, data: { role: "seller" } })

@@ -5,6 +5,7 @@
  */
 
 import { db } from "@/lib/db"
+import { background } from "@/lib/background"
 import { Prisma } from "@/generated/prisma/client"
 import { inquiryDealOf, shouldRecordChatLead } from "@/lib/chat-lead"
 import { detectLeadFacts, mergeLeadFacts, type LeadFacts } from "@/lib/lead-facts"
@@ -622,7 +623,7 @@ export async function sendMessage(
 
   // Chat is a lead engine: buyer messages enrich the lead with stated facts,
   // owner/support replies stamp the first response. Never fails the send.
-  void syncChatLead(roomId, senderId, message.id, text).catch(() => {})
+  background("chat.lead-sync", () => syncChatLead(roomId, senderId, message.id, text))
 
   return message
 }

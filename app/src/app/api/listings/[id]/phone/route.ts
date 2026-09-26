@@ -4,6 +4,7 @@
  */
 import { checkBotId } from 'botid/server'
 
+import { background } from '@/lib/background'
 import { clientIp, rateLimit } from '@/lib/rate-limit'
 import { maskPhone, telHref } from '@/lib/inquiries/phone'
 import { bumpPhoneReveals, resolveListingPhone } from '@/lib/listings/phone-vault'
@@ -40,8 +41,8 @@ export async function POST(
     return Response.json({ ok: false, error: 'not_found' }, { status: 404 })
   }
 
-  // Fire-and-forget analytics — never block the reveal.
-  void bumpPhoneReveals(id)
+  // Analytics after the response — never block the reveal.
+  background('listing.phone-reveal', () => bumpPhoneReveals(id))
 
   return Response.json({
     ok: true,

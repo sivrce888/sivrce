@@ -1,7 +1,7 @@
 /**
  * Saved-search alert match engine + notification fan-out.
  *
- * Triggered (fire-and-forget) when a listing becomes active — publish via
+ * Triggered post-response (background()) when a listing becomes active — publish via
  * POST /api/listings, or admin setStatus → active. For every alert-enabled
  * SavedSearch we re-run the SHARED search where-builder (buildDbWhere from
  * @/lib/search-filters — the exact /api/search semantics) with
@@ -141,7 +141,7 @@ export async function runSavedSearchAlerts(listingId: string): Promise<void> {
         select: { id: true },
       })
       if (sub) {
-        void sendEmail({
+        await sendEmail({
           to: user.email,
           subject: title,
           html: `
@@ -158,7 +158,7 @@ export async function runSavedSearchAlerts(listingId: string): Promise<void> {
 
       // Korter gap: WA alerts when phone is verified and Twilio WA is configured.
       if (user.phone && user.phoneVerifiedAt) {
-        void sendWhatsApp({
+        await sendWhatsApp({
           phone: user.phone,
           body: `${title}\n${listing.title} — ${listing.district}, ${listing.city}\n${url}`,
         })
@@ -166,7 +166,7 @@ export async function runSavedSearchAlerts(listingId: string): Promise<void> {
 
       await db.savedSearch.update({ where: { id: s.id }, data: { lastAlertAt: new Date() } })
     } catch (e) {
-      // One bad search must not kill the batch; the trigger is fire-and-forget.
+      // One bad search must not kill the batch.
       console.error("[saved-search-alerts] match failed:", (e as Error).message)
     }
   }
