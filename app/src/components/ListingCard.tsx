@@ -254,6 +254,9 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
   const { photos, multi, more, total } = cardGalleryTeaser(l.images, l.img, l.photoCount)
   const href = l.projectCatalog && l.projectSlug ? `/projects/${l.projectSlug}` : listingPath(l)
   const [photo, setPhoto] = useState(0)
+  // Neighbour frames mount on intent (pointer/touch/focus on the photo), not on paint:
+  // stacked opacity-0 frames sit in the viewport, so lazy-load fetched + decoded 3 photos per card.
+  const [warm, setWarm] = useState(false)
   const { ref: revealRef, inView: revealInView } = useInViewOnce<HTMLElement>('-40px')
   const frame = photos.length ? Math.min(photo, photos.length - 1) : 0
   const imgRef = useRef<HTMLDivElement>(null)
@@ -363,16 +366,18 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
       // z-[1] keeps chrome above the title's full-card ::after hit layer
       className={`relative z-[1] overflow-hidden bg-sv-navy/[0.06] ${layout === 'list' ? 'aspect-[4/3] w-full sm:aspect-auto sm:h-full sm:min-h-[200px] sm:w-[min(17.5rem,38%)] sm:shrink-0' : 'aspect-[4/3]'}`}
       onPointerMove={onImgPointerMove}
+      onPointerEnter={warm ? undefined : () => setWarm(true)}
+      onFocus={warm ? undefined : () => setWarm(true)}
     >
       {/* Current ±1 only — full gallery, no 15-frame stack. CDN masters skip Vercel Image Opt. */}
-      {photoMountIdx(frame, photos.length).map((idx) => {
+      {(warm ? photoMountIdx(frame, photos.length) : [frame]).map((idx) => {
         const src = photos[idx]
         const card = cardOf(src)
         const avif = avifCardOf(src)
         // First card paints the LCP on grid pages — eager + high; the rest lazy.
         // ponytail: 1 high-priority image only — 4×fetchPriority=high contended
-        // with text-LCP bandwidth on home.
-        const eager = i < 1
+        // with text-LCP bandwidth on home. Visible frame only, never its neighbours.
+        const eager = i < 1 && idx === frame
         return (
           // ponytail: native lazy img — next/image was emitting <link rel=preload> for below-fold cards
           // AVIF first (~30% smaller); missing twin (old photos) falls back to WebP automatically.
