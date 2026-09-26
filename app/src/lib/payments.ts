@@ -878,6 +878,7 @@ export async function reindexListingById(listingId: string): Promise<void> {
     pricePerSqm: listing.pricePerSqm ?? undefined,
     verified: listing.verified,
     hasImages: listing.images.length > 0,
+    hasVideo: Boolean(ext?.video),
     petsAllowed: listing.petsAllowed ?? undefined,
     sellerType: listing.sellerType ?? undefined,
     condition: ext?.condition,
