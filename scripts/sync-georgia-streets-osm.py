@@ -56,7 +56,11 @@ STREET_WORDS = (
 
 
 def is_route_label(ka: str) -> bool:
-    if '—' in ka:
+    if '—' in ka or '–' in ka:  # em/en dash: 'ბათუმი — ახალციხე', '… კმ 8 – რუფოთი…'
+        return True
+    if 'კმ ' in ka:  # highway segment marker ('გზის კმ 8')
+        return True
+    if len(ka) > 60:  # real street names are short; longer = maintenance segment labels
         return True
     return '-' in ka and not any(w in ka for w in STREET_WORDS)
 

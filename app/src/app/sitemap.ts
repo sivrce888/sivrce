@@ -4,6 +4,8 @@ import { getAllListings, getWorldListings } from '@/lib/listings-db'
 import { BUILDINGS } from '@/data/buildings'
 import { generateAllSeoParams } from '@/lib/seo-pages'
 import { STREETS } from '@/data/tbilisi-streets'
+import { geoStreetsWithSlugs } from '@/data/georgia-streets'
+import { CITIES as GEO_CITY_HUBS } from '@/lib/directory-seo-lite'
 import { METRO_STATIONS } from '@/data/tbilisi-metro'
 import { BERLIN_S_STATIONS, BERLIN_U_STATIONS } from '@/data/germany-metro'
 import { listBlogPosts } from '@/lib/blog-live'
@@ -239,6 +241,19 @@ async function georgiaSitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.6,
       locale: 'ka',
     })
+  }
+
+  // Regional street landings — every catalog street outside Tbilisi, ka canonical.
+  for (const city of GEO_CITY_HUBS) {
+    if (city.ka === 'თბილისი') continue
+    for (const s of geoStreetsWithSlugs(city.ka)) {
+      entries.push({
+        path: `/locations/${city.slug}/${s.slug}`,
+        changeFrequency: 'weekly',
+        priority: 0.55,
+        locale: 'ka',
+      })
+    }
   }
 
   // Metro-level SEO: all-stations hub + 22 ka-only station pages.

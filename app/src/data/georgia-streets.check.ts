@@ -32,3 +32,19 @@ for (const [city, names] of Object.entries(STREETS)) {
 console.log(
   `georgia-streets.check: ok — ${Object.keys(STREETS).length} cities, ${total} streets`,
 )
+
+// ——— slug index lock (feeds /locations/{city}/{street}) ———
+import { geoStreetBySlug, geoStreetsWithSlugs } from './georgia-streets'
+
+let slugTotal = 0
+for (const city of Object.keys(STREETS)) {
+  const rows = geoStreetsWithSlugs(city)
+  slugTotal += rows.length
+  const slugs = new Set(rows.map((r) => r.slug))
+  assert.equal(slugs.size, rows.length, `duplicate street slug in ${city}`)
+  for (const r of rows) {
+    assert.match(r.slug, /^[a-z0-9][a-z0-9-]{1,90}$/, `${city}: bad slug '${r.slug}' for '${r.ka}'`)
+    assert.equal(geoStreetBySlug(city, r.slug), r.ka, `${city}: slug roundtrip failed for '${r.ka}'`)
+  }
+}
+console.log(`georgia-streets.check: ok — ${slugTotal} unique street slugs`)
