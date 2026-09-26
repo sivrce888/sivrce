@@ -106,6 +106,13 @@ export async function POST(req: Request) {
   }
   const { targetType, targetId, name, phone, email, message } = parsed.data
 
+  // Demand funnel names its side of the market; anything else is bot noise.
+  const rawDeal = typeof body === 'object' && body !== null ? (body as Record<string, unknown>).deal : undefined
+  const deal =
+    typeof rawDeal === 'string' && ['buy', 'rent', 'daily', 'sell'].includes(rawDeal)
+      ? rawDeal
+      : null
+
   // Session is optional — an auth hiccup must never lose a lead.
   const session = await auth().catch(() => null)
 
@@ -160,7 +167,7 @@ export async function POST(req: Request) {
         buyerEmail,
         buyerPhone: phone || null,
         message,
-        deal: listing ? DEAL_MAP[listing.dealType] : "buy",
+        deal: listing ? DEAL_MAP[listing.dealType] : (deal ?? "buy"),
         city,
         district: listing?.district ?? service?.district ?? "",
         price: listing?.priceGEL ?? 0,

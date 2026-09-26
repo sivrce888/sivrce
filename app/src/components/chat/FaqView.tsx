@@ -1,8 +1,9 @@
 "use client"
 
 import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from "react"
-import { LifeBuoy, Send } from "lucide-react"
+import { KeyRound, LifeBuoy, Send } from "lucide-react"
 import { useI18n } from "@/lib/i18n/context"
+import { funnelStrings } from "@/components/lead/i18n"
 import { faqLoc, faqMatch, faqSearch, faqSuggestions, type FaqQA } from "@/lib/faq"
 import { useAutoGrow } from "./useAutoGrow"
 
@@ -22,9 +23,17 @@ interface FaqEntry {
 // users expect their help history back.
 const transcripts = new Map<string, FaqEntry[]>()
 
-export default function FaqView({ onContactSupport }: { onContactSupport: () => void }) {
+export default function FaqView({
+  onContactSupport,
+  onIntent,
+}: {
+  onContactSupport: () => void
+  /** Demand funnel hand-off ("I want to buy / sell") — omitted → no CTA. */
+  onIntent?: () => void
+}) {
   const { t, lang } = useI18n()
   const loc = faqLoc(lang)
+  const funnel = funnelStrings(lang)
 
   const [log, setLog] = useState<FaqEntry[]>(() => {
     const cached = transcripts.get(loc)
@@ -95,6 +104,20 @@ export default function FaqView({ onContactSupport }: { onContactSupport: () => 
         aria-label={t("chat.help")}
         className="flex-1 overflow-y-auto overscroll-contain px-4 py-2"
       >
+        {onIntent && (
+          <button
+            type="button"
+            onClick={onIntent}
+            className="mt-2 flex w-full items-center gap-2.5 rounded-control bg-sv-blue/[0.08] px-3 py-2.5 text-start transition-colors hover:bg-sv-blue/[0.12] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue"
+          >
+            <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-sv-blue/15 text-sv-blue-deep">
+              <KeyRound className="h-4 w-4" aria-hidden />
+            </span>
+            <span className="truncate text-[13px] font-extrabold text-sv-blue-deep">
+              {funnel.tile}
+            </span>
+          </button>
+        )}
         {log.map((entry, i) => (
           <div
             key={i}

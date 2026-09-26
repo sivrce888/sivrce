@@ -353,3 +353,310 @@ const STRINGS: Partial<Record<Lang, LeadStrings>> = { ka, en, ru, tr, ar, de, he
 export function leadStrings(lang: Lang): LeadStrings {
   return STRINGS[lang] ?? en
 }
+
+// ---------------------------------------------------------------------------
+// Demand funnel ("I want to buy / rent / stay / sell") — chip-guided capture
+// for demand with no listing in context. Rendered inside the chat widget.
+// ---------------------------------------------------------------------------
+
+export type DemandIntent = 'buy' | 'rent' | 'daily' | 'sell'
+
+export interface IntentStrings {
+  tile: string
+  title: string
+  subtitle: string
+  intents: Record<DemandIntent, string>
+  /** Full opening sentence for the composed lead message — always ≥10 chars. */
+  sentence: Record<DemandIntent, string>
+  budgetQ: string
+  budgetBuy: string[]
+  budgetRent: string[]
+  budgetDaily: string[]
+  roomsQ: string
+  roomsChips: string[]
+  typeQ: string
+  typeChips: string[]
+  whenQ: string
+  whenChips: string[]
+  contactQ: string
+  successNote: string
+}
+
+const kaIntent: IntentStrings = {
+  tile: 'მინდა ვიყიდო / გავყიდო',
+  title: 'რა გინდა?',
+  subtitle: 'აირჩიე — დაგირეკავთ შესაბამისი ვარიანტებით',
+  intents: { buy: 'ვყიდულობ', rent: 'ვქირავდებ', daily: 'დღიურად', sell: 'ვყიდი' },
+  sentence: {
+    buy: 'ვეძებ შესაძენად',
+    rent: 'ვეძებ ქირავნობით',
+    daily: 'მაინტერესებს დღიური ქირა',
+    sell: 'მაქვს გასაყიდი ქონება',
+  },
+  budgetQ: 'ბიუჯეტი',
+  budgetBuy: ['50 000 $-მდე', '50–80k $', '80–120k $', '120–200k $', '200 000 $+'],
+  budgetRent: ['300 $-მდე', '300–500 $', '500–800 $', '800–1 500 $', '1 500 $+'],
+  budgetDaily: ['50 $-მდე', '50–100 $', '100–200 $', '200 $+'],
+  roomsQ: 'ოთახები',
+  roomsChips: ['სტუდიო', '1', '2', '3', '4+'],
+  typeQ: 'გასაყიდი ქონება',
+  typeChips: ['ბინა', 'სახლი', 'მიწა', 'კომერციული'],
+  whenQ: 'ვადა',
+  whenChips: ['რაც შეიძლება მალე', '1 თვეში', '1–3 თვე', 'ჯერ უყურებ'],
+  contactQ: 'სად დაგირეკოთ?',
+  successNote: 'გუნდი დაგირეკავს შესაბამისი ვარიანტებით — ჩვეულებრივ იმავე დღეს.',
+}
+
+const enIntent: IntentStrings = {
+  tile: 'I want to buy / sell',
+  title: 'What do you need?',
+  subtitle: 'Tap what fits — we’ll call you with matching options',
+  intents: { buy: 'Buy', rent: 'Rent', daily: 'Daily', sell: 'Sell' },
+  sentence: {
+    buy: 'I want to buy',
+    rent: 'I want to rent',
+    daily: 'Looking for a daily stay',
+    sell: 'I want to sell my property',
+  },
+  budgetQ: 'Budget',
+  budgetBuy: ['Under $50k', '$50–80k', '$80–120k', '$120–200k', '$200k+'],
+  budgetRent: ['Under $300', '$300–500', '$500–800', '$800–1,500', '$1,500+'],
+  budgetDaily: ['Under $50', '$50–100', '$100–200', '$200+'],
+  roomsQ: 'Rooms',
+  roomsChips: ['Studio', '1', '2', '3', '4+'],
+  typeQ: 'Selling',
+  typeChips: ['Apartment', 'House', 'Land', 'Commercial'],
+  whenQ: 'Timeline',
+  whenChips: ['ASAP', 'Within a month', '1–3 months', 'Just browsing'],
+  contactQ: 'Where do we reach you?',
+  successNote: 'Our team will call you with matching options — usually the same day.',
+}
+
+const ruIntent: IntentStrings = {
+  tile: 'Хочу купить / продать',
+  title: 'Что вам нужно?',
+  subtitle: 'Выберите — позвоним с подходящими вариантами',
+  intents: { buy: 'Купить', rent: 'Аренда', daily: 'Посуточно', sell: 'Продать' },
+  sentence: {
+    buy: 'Хочу купить',
+    rent: 'Хочу арендовать',
+    daily: 'Ищу посуточно',
+    sell: 'Хочу продать недвижимость',
+  },
+  budgetQ: 'Бюджет',
+  budgetBuy: ['До $50 тыс', '$50–80 тыс', '$80–120 тыс', '$120–200 тыс', '$200 тыс+'],
+  budgetRent: ['До $300', '$300–500', '$500–800', '$800–1 500', '$1 500+'],
+  budgetDaily: ['До $50', '$50–100', '$100–200', '$200+'],
+  roomsQ: 'Комнат',
+  roomsChips: ['Студия', '1', '2', '3', '4+'],
+  typeQ: 'Продаю',
+  typeChips: ['Квартира', 'Дом', 'Участок', 'Коммерция'],
+  whenQ: 'Срок',
+  whenChips: ['Как можно скорее', 'В течение месяца', '1–3 месяца', 'Присматриваюсь'],
+  contactQ: 'Куда перезвонить?',
+  successNote: 'Наша команда позвонит с подходящими вариантами — обычно в тот же день.',
+}
+
+const trIntent: IntentStrings = {
+  tile: 'Almak / satmak istiyorum',
+  title: 'Ne lazım?',
+  subtitle: 'Uygun olanı seç — sana uygun seçeneklerle ararız',
+  intents: { buy: 'Almak', rent: 'Kiralamak', daily: 'Günlük', sell: 'Satmak' },
+  sentence: {
+    buy: 'Satın almak istiyorum',
+    rent: 'Kiralamak istiyorum',
+    daily: 'Günlük kiralık arıyorum',
+    sell: 'Satılık mülküm var',
+  },
+  budgetQ: 'Bütçe',
+  budgetBuy: ['$50k altı', '$50–80k', '$80–120k', '$120–200k', '$200k+'],
+  budgetRent: ['$300 altı', '$300–500', '$500–800', '$800–1.500', '$1.500+'],
+  budgetDaily: ['$50 altı', '$50–100', '$100–200', '$200+'],
+  roomsQ: 'Oda',
+  roomsChips: ['Stüdyo', '1', '2', '3', '4+'],
+  typeQ: 'Satılık',
+  typeChips: ['Daire', 'Ev', 'Arsa', 'Ticari'],
+  whenQ: 'Zaman',
+  whenChips: ['En kısa sürede', '1 ay içinde', '1–3 ay', 'Sadece bakıyorum'],
+  contactQ: 'Nereyi arayalım?',
+  successNote: 'Ekibimiz uygun seçeneklerle seni arayacak — genellikle aynı gün.',
+}
+
+const arIntent: IntentStrings = {
+  tile: 'أريد الشراء / البيع',
+  title: 'ماذا تحتاج؟',
+  subtitle: 'اختر ما يناسبك — سنتصل بك بخيارات مطابقة',
+  intents: { buy: 'شراء', rent: 'إيجار', daily: 'يومي', sell: 'بيع' },
+  sentence: {
+    buy: 'أرغب في الشراء',
+    rent: 'أرغب في الإيجار',
+    daily: 'أبحث عن إقامة يومية',
+    sell: 'أرغب في بيع عقاري',
+  },
+  budgetQ: 'الميزانية',
+  budgetBuy: ['أقل من 50 ألف $', '50–80 ألف $', '80–120 ألف $', '120–200 ألف $', '200 ألف $+'],
+  budgetRent: ['أقل من 300 $', '300–500 $', '500–800 $', '800–1,500 $', '1,500 $+'],
+  budgetDaily: ['أقل من 50 $', '50–100 $', '100–200 $', '200 $+'],
+  roomsQ: 'الغرف',
+  roomsChips: ['استوديو', '1', '2', '3', '4+'],
+  typeQ: 'معروض للبيع',
+  typeChips: ['شقة', 'منزل', 'أرض', 'تجاري'],
+  whenQ: 'المدة',
+  whenChips: ['في أقرب وقت', 'خلال شهر', '1–3 أشهر', 'أتصفح فقط'],
+  contactQ: 'أين نتواصل معك؟',
+  successNote: 'سيتصل بك فريقنا بخيارات مطابقة — عادةً في نفس اليوم.',
+}
+
+const deIntent: IntentStrings = {
+  tile: 'Kaufen / verkaufen',
+  title: 'Was brauchst du?',
+  subtitle: 'Wähle aus — wir rufen dich mit passenden Optionen an',
+  intents: { buy: 'Kaufen', rent: 'Mieten', daily: 'Täglich', sell: 'Verkaufen' },
+  sentence: {
+    buy: 'Ich möchte kaufen',
+    rent: 'Ich möchte mieten',
+    daily: 'Ich suche eine Tagesmiete',
+    sell: 'Ich möchte meine Immobilie verkaufen',
+  },
+  budgetQ: 'Budget',
+  budgetBuy: ['Unter 50k $', '50–80k $', '80–120k $', '120–200k $', '200k $+'],
+  budgetRent: ['Unter 300 $', '300–500 $', '500–800 $', '800–1.500 $', '1.500 $+'],
+  budgetDaily: ['Unter 50 $', '50–100 $', '100–200 $', '200 $+'],
+  roomsQ: 'Zimmer',
+  roomsChips: ['Studio', '1', '2', '3', '4+'],
+  typeQ: 'Verkauf',
+  typeChips: ['Wohnung', 'Haus', 'Grundstück', 'Gewerbe'],
+  whenQ: 'Zeitraum',
+  whenChips: ['So schnell wie möglich', 'Innerhalb eines Monats', '1–3 Monate', 'Nur stöbern'],
+  contactQ: 'Wo erreichen wir dich?',
+  successNote: 'Unser Team ruft dich mit passenden Optionen an — meist noch am selben Tag.',
+}
+
+const heIntent: IntentStrings = {
+  tile: 'לקנות / למכור',
+  title: 'מה צריך?',
+  subtitle: 'בוחרים מה מתאים — נתקשר עם אפשרויות מתאימות',
+  intents: { buy: 'לקנות', rent: 'להשכיר', daily: 'יומי', sell: 'למכור' },
+  sentence: {
+    buy: 'מעוניין לקנות',
+    rent: 'מעוניין לשכור',
+    daily: 'מחפש לינה יומית',
+    sell: 'מעוניין למכור נכס',
+  },
+  budgetQ: 'תקציב',
+  budgetBuy: ['עד 50 אלף $', '50–80 אלף $', '80–120 אלף $', '120–200 אלף $', '200 אלף $ ומעלה'],
+  budgetRent: ['עד 300 $', '300–500 $', '500–800 $', '800–1,500 $', '1,500 $+'],
+  budgetDaily: ['עד 50 $', '50–100 $', '100–200 $', '200 $+'],
+  roomsQ: 'חדרים',
+  roomsChips: ['סטודיו', '1', '2', '3', '4+'],
+  typeQ: 'למכירה',
+  typeChips: ['דירה', 'בית', 'קרקע', 'מסחרי'],
+  whenQ: 'מועד',
+  whenChips: ['בהקדם האפשרי', 'בתוך חודש', '1–3 חודשים', 'רק מסתכל'],
+  contactQ: 'לאן לחזור אליך?',
+  successNote: 'הצוות שלנו יתקשר אליך עם אפשרויות מתאימות — בדרך כלל באותו יום.',
+}
+
+const hyIntent: IntentStrings = {
+  tile: 'Գնել / վաճառել',
+  title: 'Ինչ ես ուզում?',
+  subtitle: 'Ընտրիր — կզանգահարենք համապատասխան տարբերակներով',
+  intents: { buy: 'Գնել', rent: 'Վարձակալել', daily: 'Օրական', sell: 'Վաճառել' },
+  sentence: {
+    buy: 'Ուզում եմ գնել',
+    rent: 'Ուզում եմ վարձակալել',
+    daily: 'Փնտրում եմ օրյա բնակություն',
+    sell: 'Ուզում եմ վաճառել սեփականությունս',
+  },
+  budgetQ: 'Բյուջե',
+  budgetBuy: ['Մինչև 50 հզ $', '50–80 հզ $', '80–120 հզ $', '120–200 հզ $', '200 հզ $+'],
+  budgetRent: ['Մինչև 300 $', '300–500 $', '500–800 $', '800–1,500 $', '1,500 $+'],
+  budgetDaily: ['Մինչև 50 $', '50–100 $', '100–200 $', '200 $+'],
+  roomsQ: 'Սենյակներ',
+  roomsChips: ['Ստուդիա', '1', '2', '3', '4+'],
+  typeQ: 'Վաճառք',
+  typeChips: ['Բնակարան', 'Տուն', 'Հող', 'Կոմերցիոն'],
+  whenQ: 'Ժամկետ',
+  whenChips: ['Ինչքան հնարավոր է շուտ', '1 ամսվա ընթացքում', '1–3 ամիս', 'Ուղղակի դիտում եմ'],
+  contactQ: 'Որտեղ կապվենք քեզ հետ?',
+  successNote: 'Մեր թիմը կզանգահարի համապատասխան տարբերակներով — սովորաբար նույն օրը.',
+}
+
+const azIntent: IntentStrings = {
+  tile: 'Almaq / satmaq istəyirəm',
+  title: 'Nə lazımdır?',
+  subtitle: 'Uyğun olanı seç — uyğun variantlarla zəng edəcəyik',
+  intents: { buy: 'Almaq', rent: 'İcarə', daily: 'Günlük', sell: 'Satmaq' },
+  sentence: {
+    buy: 'Almaq istəyirəm',
+    rent: 'İcarə almaq istəyirəm',
+    daily: 'Günlük icarə axtarıram',
+    sell: 'Satmaq istəyirəm əmlakımı',
+  },
+  budgetQ: 'Büdcə',
+  budgetBuy: ['$50k-dək', '$50–80k', '$80–120k', '$120–200k', '$200k+'],
+  budgetRent: ['$300-dək', '$300–500', '$500–800', '$800–1.500', '$1.500+'],
+  budgetDaily: ['$50-dək', '$50–100', '$100–200', '$200+'],
+  roomsQ: 'Otaq',
+  roomsChips: ['Studiya', '1', '2', '3', '4+'],
+  typeQ: 'Satılır',
+  typeChips: ['Mənzil', 'Ev', 'Torpaq', 'Ticarət'],
+  whenQ: 'Müddət',
+  whenChips: ['Ən qısa zamanda', '1 ay içinde', '1–3 ay', 'Sadece baxıram'],
+  contactQ: 'Sənə hara zəng edək?',
+  successNote: 'Komandamız uyğun variantlarla zəng edəcək — adətən həmin gün.',
+}
+
+const ukIntent: IntentStrings = {
+  tile: 'Хочу купити / продати',
+  title: 'Що вам потрібно?',
+  subtitle: 'Виберіть — зателефонуємо з підходящими варіантами',
+  intents: { buy: 'Купити', rent: 'Оренда', daily: 'Добово', sell: 'Продати' },
+  sentence: {
+    buy: 'Хочу купити',
+    rent: 'Хочу орендувати',
+    daily: 'Шукаю посуточно',
+    sell: 'Хочу продати нерухомість',
+  },
+  budgetQ: 'Бюджет',
+  budgetBuy: ['До $50 тис', '$50–80 тис', '$80–120 тис', '$120–200 тис', '$200 тис+'],
+  budgetRent: ['До $300', '$300–500', '$500–800', '$800–1 500', '$1 500+'],
+  budgetDaily: ['До $50', '$50–100', '$100–200', '$200+'],
+  roomsQ: 'Кімнат',
+  roomsChips: ['Студія', '1', '2', '3', '4+'],
+  typeQ: 'Продаж',
+  typeChips: ['Квартира', 'Будинок', 'Ділянка', 'Комерція'],
+  whenQ: 'Термін',
+  whenChips: ['Якнайшвидше', 'Протягом місяця', '1–3 місяці', 'Присмотрююся'],
+  contactQ: 'Куди передзвонити?',
+  successNote: 'Наша команда зателефонує з підходящими варіантами — зазвичай того ж дня.',
+}
+
+const INTENT_STRINGS: Partial<Record<Lang, IntentStrings>> = {
+  ka: kaIntent, en: enIntent, ru: ruIntent, tr: trIntent, ar: arIntent,
+  de: deIntent, he: heIntent, hy: hyIntent, az: azIntent, uk: ukIntent,
+}
+
+export function funnelStrings(lang: Lang): IntentStrings {
+  return INTENT_STRINGS[lang] ?? enIntent
+}
+
+export interface DemandPicks {
+  budget?: string | null
+  rooms?: string | null
+  type?: string | null
+  when?: string | null
+}
+
+/**
+ * The lead message the team inbox reads — self-describing chips, never a
+ * bare number, so it stays useful after it leaves the funnel UI.
+ */
+export function demandMessage(s: IntentStrings, intent: DemandIntent, p: DemandPicks): string {
+  const parts = [s.sentence[intent]]
+  if (p.budget) parts.push(`${s.budgetQ}: ${p.budget}`)
+  if (p.rooms) parts.push(`${s.roomsQ}: ${p.rooms}`)
+  if (p.type) parts.push(`${s.typeQ}: ${p.type}`)
+  if (p.when) parts.push(`${s.whenQ}: ${p.when}`)
+  return parts.join(' · ')
+}

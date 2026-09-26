@@ -24,6 +24,7 @@ import {
   ExternalLink,
   Flag,
   HelpCircle,
+  KeyRound,
   LifeBuoy,
   LogOut,
   Maximize2,
@@ -44,6 +45,8 @@ import { useI18n } from "@/lib/i18n/context"
 import { useChat, type ChatRoom } from "./ChatProvider"
 import FaqView from "./FaqView"
 import GuestMessageView from "./GuestMessageView"
+import { IntentFunnel } from "@/components/lead/IntentFunnel"
+import { funnelStrings } from "@/components/lead/i18n"
 import { canUnsend, presenceOf } from "@/lib/chat-policy"
 import { listingPriceLabel } from "@/lib/listing-share"
 import { useAutoGrow } from "./useAutoGrow"
@@ -198,19 +201,33 @@ function RoomListItem({
   )
 }
 
-/** Pinned quick actions above the room list — help assistant + support line. */
+/** Pinned quick actions above the room list — demand funnel + help + support line. */
 function QuickTiles({
   showSupport,
+  onIntent,
   onFaq,
   onSupport,
 }: {
   showSupport: boolean
+  onIntent: () => void
   onFaq: () => void
   onSupport: () => void
 }) {
-  const { t } = useI18n()
+  const { t, lang } = useI18n()
   return (
-    <div className={`grid gap-2 px-1 pb-2.5 ${showSupport ? "grid-cols-2" : "grid-cols-1"}`}>
+    <div className="grid grid-cols-2 gap-2 px-1 pb-2.5">
+      <button
+        type="button"
+        onClick={onIntent}
+        className="col-span-2 flex items-center gap-2.5 rounded-control bg-sv-blue/[0.08] px-3 py-2.5 text-left transition-colors hover:bg-sv-blue/[0.12] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sv-blue"
+      >
+        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-sv-blue/15 text-sv-blue-deep">
+          <KeyRound className="h-4 w-4" aria-hidden />
+        </span>
+        <span className="truncate text-[13px] font-extrabold text-sv-blue-deep">
+          {funnelStrings(lang).tile}
+        </span>
+      </button>
       <button
         type="button"
         onClick={onFaq}
@@ -1429,8 +1446,8 @@ export default function ChatWidget() {
   const panelRef = useRef<HTMLDivElement>(null)
   const wasOpenRef = useRef(false)
 
-  /** Room list, help assistant, or the guest leave-a-message form. */
-  const [view, setView] = useState<"rooms" | "faq" | "guest">("rooms")
+  /** Room list, help assistant, demand funnel, or the guest leave-a-message form. */
+  const [view, setView] = useState<"rooms" | "faq" | "guest" | "intent">("rooms")
   /** Room-list filter — rendered only once the list is long enough to need it. */
   const [roomQuery, setRoomQuery] = useState("")
   const visibleRooms =
@@ -1545,9 +1562,11 @@ export default function ChatWidget() {
       : activeRoom.counterpart?.name || activeRoom.listing?.title || activeRoom.title
     : view === "faq"
       ? t("chat.help")
-      : view === "guest"
-        ? t("chat.contactSupport")
-        : t("chat.title")
+      : view === "intent"
+        ? funnelStrings(lang).title
+        : view === "guest"
+          ? t("chat.contactSupport")
+          : t("chat.title")
   // Presence outranks the listing line: "is this person around?" is the
   // question a buyer actually has. Never shown on a blocked thread.
   const presence =
@@ -1686,11 +1705,12 @@ export default function ChatWidget() {
           <div className="flex items-center gap-2.5 border-b border-sv-ink/[0.08] px-3 py-2.5">
             {/* Guests have no room list to go back to — but the guest form is
                 reached from Help, so it keeps its Back. */}
-            {activeRoomId || view === "guest" || (view === "faq" && !guest) ? (
+            {activeRoomId || view === "guest" || view === "intent" || (view === "faq" && !guest) ? (
               <button
                 onClick={() => {
                   if (activeRoomId) setActiveRoom(null)
                   else if (view === "guest") setView("faq")
+                  else if (view === "intent") setView(guest ? "faq" : "rooms")
                   else setView("rooms")
                 }}
                 aria-label={t("chat.back")}
@@ -1725,6 +1745,10 @@ export default function ChatWidget() {
             ) : view === "faq" ? (
               <span className="grid h-[34px] w-[34px] shrink-0 place-items-center rounded-full bg-sv-blue/10 text-sv-blue-deep">
                 <HelpCircle className="h-4 w-4" aria-hidden />
+              </span>
+            ) : view === "intent" ? (
+              <span className="grid h-[34px] w-[34px] shrink-0 place-items-center rounded-full bg-sv-blue/10 text-sv-blue-deep">
+                <KeyRound className="h-4 w-4" aria-hidden />
               </span>
             ) : view === "guest" ? (
               <span className="grid h-[34px] w-[34px] shrink-0 place-items-center rounded-full bg-sv-blue/10 text-sv-blue-deep">
@@ -1780,13 +1804,16 @@ export default function ChatWidget() {
               onUnblock={() => void setRoomBlocked(activeRoomId, false)}
             />
           ) : view === "faq" ? (
-            <FaqView key={lang} onContactSupport={openSupport} />
+            <FaqView key={lang} onContactSupport={openSupport} onIntent={() => setView("intent")} />
           ) : view === "guest" ? (
             <GuestMessageView />
+          ) : view === "intent" ? (
+            <IntentFunnel />
           ) : (
             <div className="flex-1 overflow-y-auto overscroll-contain px-2.5 py-2.5">
               <QuickTiles
                 showSupport={!rooms.some((r) => r.isSupport)}
+                onIntent={() => setView("intent")}
                 onFaq={() => setView("faq")}
                 onSupport={openSupport}
               />
