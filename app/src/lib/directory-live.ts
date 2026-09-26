@@ -446,8 +446,21 @@ const loadProjectRows = ttl60(() =>
   ),
 )
 
+/**
+ * Merged catalogs memoized per DB snapshot: ttl60 hands back the same row
+ * arrays for 60s, so a render calling projectsLive() three times (project
+ * page: direct, byDeveloper, nearby) merges ~1,900 rows once, not thrice.
+ * WeakMap keys = the row arrays — a refresh drops the old entry to GC.
+ * Callers must not mutate the result (none do: filter/map copies only).
+ */
+const devMemo = new WeakMap<object, Developer[]>()
+const projMemo = new WeakMap<object, WeakMap<object, Project[]>>()
+
 export async function developersLive(): Promise<Developer[]> {
-  return mergeDevelopersLive(DEVELOPERS, await loadDevRows())
+  const devRows = await loadDevRows()
+  let hit = devMemo.get(devRows)
+  if (!hit) devMemo.set(devRows, (hit = mergeDevelopersLive(DEVELOPERS, devRows)))
+  return hit
 }
 
 /** Single developer with DB logo/website overlay — curated or DB-only. */
@@ -469,8 +482,14 @@ export async function getLiveDeveloper(slug: string): Promise<Developer | null> 
 
 export async function projectsLive(): Promise<Project[]> {
   const [rows, devRows] = await Promise.all([loadProjectRows(), loadDevRows()])
-  const liveDevs = mergeDevelopersLive(DEVELOPERS, devRows)
-  return mergeProjectsLive(PROJECTS, rows, buildDevNameMap(liveDevs, devRows))
+  let byDevs = projMemo.get(rows)
+  if (!byDevs) projMemo.set(rows, (byDevs = new WeakMap()))
+  let hit = byDevs.get(devRows)
+  if (!hit) {
+    hit = mergeProjectsLive(PROJECTS, rows, buildDevNameMap(await developersLive(), devRows))
+    byDevs.set(devRows, hit)
+  }
+  return hit
 }
 
 /** Single project with DB address/coords/media overlay (slug, name, or fuzzy media). */

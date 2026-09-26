@@ -114,7 +114,12 @@ function medianWithout(sorted: readonly number[], skip: number): number {
  * same scope + deltaPct marketPosition() gives each project (asserted in the
  * check) — so a card chip never disagrees with the detail page.
  */
+const deltaMemo = new WeakMap<readonly Project[], Map<string, { scope: 'district' | 'city'; deltaPct: number }>>()
+
 export function marketDeltas(all: readonly Project[]): Map<string, { scope: 'district' | 'city'; deltaPct: number }> {
+  // Same corpus array (projectsLive memo) → same index; hubs stop re-sorting per request.
+  const memo = deltaMemo.get(all)
+  if (memo) return memo
   const groups = new Map<string, number[]>()
   const key = (p: Project, d: string) => `${p.city}|${priceM2Currency(p.priceFromM2)}|${d}`
   const priced = all.filter((p) => priceM2Number(p.priceFromM2) !== null)
@@ -138,6 +143,7 @@ export function marketDeltas(all: readonly Project[]): Map<string, { scope: 'dis
     const deltaPct = Math.round(((v - med) / med) * 100)
     if (Math.abs(deltaPct) <= MAX_ABS_DELTA) out.set(p.slug, { scope, deltaPct })
   }
+  deltaMemo.set(all, out)
   return out
 }
 
