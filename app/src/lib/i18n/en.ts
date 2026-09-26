@@ -237,6 +237,8 @@ export const en: Dict = {
   'detail.home': 'Home',
   'detail.newComplex': 'New development',
   'detail.views': '{n} views',
+  'detail.viewsToday': '{n} today',
+  'detail.viewsYesterday': '{n} yesterday',
   'detail.prevPhoto': 'Previous photo',
   'detail.nextPhoto': 'Next photo',
   'detail.zoomPhoto': 'Enlarge photo',

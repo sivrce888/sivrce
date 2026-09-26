@@ -237,6 +237,8 @@ export const az: Dict = {
   'detail.home': 'Ana səhifə',
   'detail.newComplex': 'Yeni kompleks',
   'detail.views': '{n} baxış',
+  'detail.viewsToday': '{n} bu gün',
+  'detail.viewsYesterday': '{n} dünən',
   'detail.prevPhoto': 'Əvvəlki şəkil',
   'detail.nextPhoto': 'Növbəti şəkil',
   'detail.zoomPhoto': 'Şəkli böyüt',

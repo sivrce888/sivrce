@@ -237,6 +237,8 @@ export const ar: Dict = {
   'detail.home': 'الرئيسية',
   'detail.newComplex': 'مشروع جديد',
   'detail.views': '{n} مشاهدة',
+  'detail.viewsToday': '{n} اليوم',
+  'detail.viewsYesterday': '{n} أمس',
   'detail.prevPhoto': 'الصورة السابقة',
   'detail.nextPhoto': 'الصورة التالية',
   'detail.zoomPhoto': 'تكبير الصورة',

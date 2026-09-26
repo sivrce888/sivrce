@@ -8,6 +8,7 @@ import {
   getListingOwnerMeta,
   getAllListings,
   getListingPriceEvents,
+  getListingViewDays,
 } from '@/lib/listings-db'
 import { daysSince } from '@/lib/price-scale'
 import { scalePeers } from '@/lib/peer-rank'
@@ -191,7 +192,7 @@ export default async function ListingPage({ params }: PageProps) {
     ? 'agent'
     : profileHref.startsWith('/developers/') ? 'developer' : null
 
-  const [similar, peerPerM2, aggregate, ownerMeta, railAd, priceEvents, land, profileRating, nearbyProjects] = await Promise.all([
+  const [similar, peerPerM2, aggregate, ownerMeta, railAd, priceEvents, land, profileRating, nearbyProjects, viewDays] = await Promise.all([
     getSimilarListings(listing, 8).catch(() => []),
     getDistrictPeerPerM2(listing.city, listing.district, listing.dealType).catch(() => []),
     getReviewAggregate('listing', listing.id).catch(() => null),
@@ -202,6 +203,7 @@ export default async function ListingPage({ params }: PageProps) {
     listing.propType === 'land' ? getLandInsights(listing.coords).catch(() => null) : null,
     ratingType ? getReviewAggregate(ratingType, profileHref.split('/')[2]!).catch(() => null) : null,
     nearbyProjectsLive(listing.coords, listing.city, 6, listing.projectSlug).catch(() => []),
+    getListingViewDays(listing.id).catch(() => ({ today: 0, yesterday: 0 })),
   ])
   const ownerTier = ownerMeta?.tier ?? 'standard'
   // Whole days since posting — feeds the freshness line (60s ISR stays honest).
@@ -373,6 +375,7 @@ export default async function ListingPage({ params }: PageProps) {
         ownerTier={ownerTier}
         railAd={railAd}
         priceEvents={priceEvents}
+        viewDays={viewDays}
         postedDays={postedDays}
         land={land}
         profileRating={profileRating}

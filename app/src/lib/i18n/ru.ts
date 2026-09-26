@@ -237,6 +237,8 @@ export const ru: Dict = {
   'detail.home': 'Главная',
   'detail.newComplex': 'Новый комплекс',
   'detail.views': '{n} {plural:просмотр|просмотра|просмотров}',
+  'detail.viewsToday': '{n} сегодня',
+  'detail.viewsYesterday': '{n} вчера',
   'detail.prevPhoto': 'Предыдущее фото',
   'detail.nextPhoto': 'Следующее фото',
   'detail.zoomPhoto': 'Увеличить фото',

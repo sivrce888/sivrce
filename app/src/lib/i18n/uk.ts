@@ -237,6 +237,8 @@ export const uk: Dict = {
   'detail.home': 'Головна',
   'detail.newComplex': 'Новий комплекс',
   'detail.views': '{n} переглядів',
+  'detail.viewsToday': '{n} сьогодні',
+  'detail.viewsYesterday': '{n} учора',
   'detail.prevPhoto': 'Попереднє фото',
   'detail.nextPhoto': 'Наступне фото',
   'detail.zoomPhoto': 'Збільшити фото',

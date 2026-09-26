@@ -237,6 +237,8 @@ export const tr: Dict = {
   'detail.home': 'Ana sayfa',
   'detail.newComplex': 'Yeni proje',
   'detail.views': '{n} görüntülenme',
+  'detail.viewsToday': '{n} bugün',
+  'detail.viewsYesterday': '{n} dün',
   'detail.prevPhoto': 'Önceki fotoğraf',
   'detail.nextPhoto': 'Sonraki fotoğraf',
   'detail.zoomPhoto': 'Fotoğrafı büyüt',

@@ -634,6 +634,24 @@ export async function getBuildingPriceEvents(
   }, [])
 }
 
+/** Today + yesterday view counts for the detail page (one query, UTC days). */
+export async function getListingViewDays(listingId: string): Promise<{ today: number; yesterday: number }> {
+  return safeQuery(async () => {
+    const now = new Date()
+    const utcDay = (offset: number) => new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - offset))
+    const rows = await db.listingViewDay.findMany({
+      where: { listingId, day: { in: [utcDay(0), utcDay(1)] } },
+      select: { day: true, count: true },
+    })
+    const t0 = utcDay(0).getTime()
+    const t1 = utcDay(1).getTime()
+    return {
+      today: rows.find((r) => r.day.getTime() === t0)?.count ?? 0,
+      yesterday: rows.find((r) => r.day.getTime() === t1)?.count ?? 0,
+    }
+  }, { today: 0, yesterday: 0 })
+}
+
 /** Full card rows for known ids, in the given order (e.g. a building's map pins). */
 export async function getListingsByIds(ids: string[]): Promise<Listing[]> {
   if (!ids.length) return []

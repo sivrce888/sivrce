@@ -607,6 +607,7 @@ export default function ListingDetailClient({
   ownerTier = 'standard',
   railAd = null,
   priceEvents = null,
+  viewDays = { today: 0, yesterday: 0 },
   postedDays = 0,
   land = null,
   profileRating = null,
@@ -624,6 +625,8 @@ export default function ListingDetailClient({
   railAd?: PublicAd | null
   /** Price timeline from DB; rendered when more than the initial "listed". */
   priceEvents?: PriceEventView[] | null
+  /** Today/yesterday views from the daily rollup (server-computed). */
+  viewDays?: { today: number; yesterday: number }
   /** Whole days since posting — computed on the server (pure render). */
   postedDays?: number
   /** Open-Meteo terrain + climate readout — land listings only (lib/land.ts). */
@@ -688,6 +691,7 @@ export default function ListingDetailClient({
   const [lightbox, setLightbox] = useState(false)
   const [videoOpen, setVideoOpen] = useState(false)
   const [views, setViews] = useState(l.views)
+  const [viewsToday, setViewsToday] = useState(viewDays.today)
   const swipeGuard = useRef(false)
   const gradId = useId()
 
@@ -780,6 +784,7 @@ export default function ListingDetailClient({
         const body = (await r.json().catch(() => null)) as { views?: number } | null
         if (typeof body?.views === 'number') setViews(body.views)
         else setViews((v) => v + 1)
+        setViewsToday((n) => n + 1) // this visit is part of today's rollup
       })
       .catch(() => undefined)
   }, [l.id])
@@ -1180,6 +1185,12 @@ export default function ListingDetailClient({
               <div className="flex items-center justify-between">
                 <span className="flex items-center gap-1.5 rounded-full bg-sv-navy/55 px-3 py-1.5 text-[12px] font-bold text-white/90 backdrop-blur">
                   <Eye className="h-3.5 w-3.5" /> {t('detail.views', { n: formatViews(views, lang) })}
+                  {viewsToday + viewDays.yesterday > 0 && (
+                    <span className="font-semibold text-white/65">
+                      · {t('detail.viewsToday', { n: formatViews(viewsToday, lang) })} ·{' '}
+                      {t('detail.viewsYesterday', { n: formatViews(viewDays.yesterday, lang) })}
+                    </span>
+                  )}
                 </span>
                 {l.images.length > 1 ? (
                   // Touch: swipe is the gesture; the dots above stay as labelled buttons.

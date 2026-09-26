@@ -237,6 +237,8 @@ export const hy: Dict = {
   'detail.home': 'Գլխավոր',
   'detail.newComplex': 'Նոր համալիր',
   'detail.views': '{n} դիտում',
+  'detail.viewsToday': '{n} այսօր',
+  'detail.viewsYesterday': '{n} երեկ',
   'detail.prevPhoto': 'Նախորդ լուսանկարը',
   'detail.nextPhoto': 'Հաջորդ լուսանկարը',
   'detail.zoomPhoto': 'Մեծացնել լուսանկարը',

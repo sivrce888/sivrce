@@ -351,6 +351,20 @@ model ListingPriceEvent {
   @@map("listing_price_events")
 }
 
+/// Daily view rollup ("today X · yesterday Y", SS.ge parity). One row per
+/// listing per UTC day; the total counter on listings.views stays untouched.
+model ListingViewDay {
+  id        BigInt   @id @default(autoincrement())
+  listingId String   @map("listing_id") @db.VarChar(120)
+  day       DateTime @db.Date
+  count     Int      @default(0)
+
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@unique([listingId, day], map: "listing_view_day_key")
+  @@map("listing_view_days")
+}
+
 model MarketSnapshot {
   id                  BigInt   @id @default(autoincrement())
   city                String   @db.VarChar(100)
@@ -523,6 +537,7 @@ model Listing {
   nearestPois                   ListingNearestPoi[]
   media                         ListingMedia[]
   priceEvents                   ListingPriceEvent[]
+  viewDays                      ListingViewDay[]
   auction                       Auction?
   dailyRentalSettings           DailyRentalSettings?
   dailyRentalBookings           DailyRentalBooking[]
@@ -2270,12 +2285,14 @@ enum ChatMessageKind {
 }
 
 model ChatRoom {
-  id        String   @id @default(cuid()) @db.VarChar(120)
-  listingId String?  @map("listing_id") @db.VarChar(120)
-  title     String   @db.VarChar(240)
-  status    String   @default("active") @db.VarChar(20)
-  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  id          String   @id @default(cuid()) @db.VarChar(120)
+  listingId   String?  @map("listing_id") @db.VarChar(120)
+  /// Project-scoped buyer↔developer room (null for listing rooms).
+  projectSlug String?  @map("project_slug") @db.VarChar(140)
+  title       String   @db.VarChar(240)
+  status      String   @default("active") @db.VarChar(20)
+  createdAt   DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   listing      Listing?          @relation(fields: [listingId], references: [id], onDelete: SetNull)
   participants ChatParticipant[]

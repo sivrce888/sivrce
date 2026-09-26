@@ -237,6 +237,8 @@ export const ka = {
   'detail.home': 'მთავარი',
   'detail.newComplex': 'ახალი კომპლექსი',
   'detail.views': '{n} ნახვა',
+  'detail.viewsToday': '{n} დღეს',
+  'detail.viewsYesterday': '{n} გუშინ',
   'detail.prevPhoto': 'წინა ფოტო',
   'detail.nextPhoto': 'შემდეგი ფოტო',
   'detail.zoomPhoto': 'ფოტოს გადიდება',

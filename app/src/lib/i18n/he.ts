@@ -237,6 +237,8 @@ export const he: Dict = {
   'detail.home': 'בית',
   'detail.newComplex': 'פרויקט חדש',
   'detail.views': '{n} צפיות',
+  'detail.viewsToday': '{n} היום',
+  'detail.viewsYesterday': '{n} אתמול',
   'detail.prevPhoto': 'תמונה קודמת',
   'detail.nextPhoto': 'תמונה הבאה',
   'detail.zoomPhoto': 'הגדלת תמונה',

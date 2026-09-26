@@ -35,6 +35,15 @@ export async function POST(
     if (res.count === 0) {
       return Response.json({ ok: false, error: 'not_found' }, { status: 404 })
     }
+    // Daily rollup for the "today · yesterday" strip (fire-and-forget).
+    const day = new Date(Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate()))
+    void db.listingViewDay
+      .upsert({
+        where: { listingId_day: { listingId: id, day } },
+        update: { count: { increment: 1 } },
+        create: { listingId: id, day, count: 1 },
+      })
+      .catch(() => {})
     const row = await db.listing.findUnique({
       where: { id },
       select: { views: true },
