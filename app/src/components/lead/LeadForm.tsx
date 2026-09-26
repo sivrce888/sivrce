@@ -23,6 +23,9 @@ export interface LeadFormProps {
   /** Displayed as the form heading context, e.g. agent or developer name. */
   recipientName?: string
   className?: string
+  /** 'panel' = embedded in the chat sheet: no card chrome, no page anchor
+   *  (the on-page form keeps #lead-form), no "continue in chat" loop. */
+  variant?: 'card' | 'panel'
 }
 
 /** Stable anchor so StickyLeadBar can scroll to / focus the on-page form. */
@@ -30,7 +33,8 @@ export const LEAD_FORM_ID = 'lead-form'
 
 type Status = 'idle' | 'sending' | 'success'
 
-export function LeadForm({ targetType, targetId, recipientName, className }: LeadFormProps) {
+export function LeadForm({ targetType, targetId, recipientName, className, variant = 'card' }: LeadFormProps) {
+  const panel = variant === 'panel'
   const { lang } = useI18n()
   const { capture } = usePostHog()
   const s = leadStrings(lang)
@@ -88,7 +92,7 @@ export function LeadForm({ targetType, targetId, recipientName, className }: Lea
         return
       }
       setStatus('success')
-      capture('lead_submitted', { target_type: targetType, target_id: targetId })
+      capture('lead_submitted', { target_type: targetType, target_id: targetId, surface: panel ? 'chat' : 'page' })
       // Move focus to the confirmation so AT users don't lose context.
       requestAnimationFrame(() => successRef.current?.focus())
     } catch {
@@ -122,9 +126,11 @@ export function LeadForm({ targetType, targetId, recipientName, className }: Lea
 
   return (
     <div
-      id={LEAD_FORM_ID}
+      id={panel ? undefined : LEAD_FORM_ID}
       className={cn(
-        'scroll-mt-24 rounded-card border border-sv-ink/[0.06] bg-gradient-to-b from-sv-cloud to-sv-surface p-6 shadow-card md:p-7',
+        panel
+          ? 'p-4'
+          : 'scroll-mt-24 rounded-card border border-sv-ink/[0.06] bg-gradient-to-b from-sv-cloud to-sv-surface p-6 shadow-card md:p-7',
         className,
       )}
     >
@@ -136,7 +142,7 @@ export function LeadForm({ targetType, targetId, recipientName, className }: Lea
           <h3 className="mt-4 text-[20px] font-extrabold text-sv-ink">{s.successTitle}</h3>
           <p className="mt-2 text-[14px] font-semibold leading-relaxed text-sv-ink/60">{s.successBody(recipientName)}</p>
           <p className="mt-1 text-[14px] font-semibold leading-relaxed text-sv-ink/60">{s.successNote}</p>
-          {targetType === 'listing' ? (
+          {targetType === 'listing' && !panel ? (
             <button
               type="button"
               onClick={continueInChat}
@@ -157,8 +163,9 @@ export function LeadForm({ targetType, targetId, recipientName, className }: Lea
         </div>
       ) : (
         <>
-          <h3 className="text-[20px] font-extrabold text-sv-ink">{s.formTitle}</h3>
-          <p className="mt-1 text-[13px] font-semibold text-sv-ink/60">
+          {/* Panel: the chat header already reads formTitle. */}
+          {panel ? null : <h3 className="text-[20px] font-extrabold text-sv-ink">{s.formTitle}</h3>}
+          <p className={cn('text-[13px] font-semibold text-sv-ink/60', !panel && 'mt-1')}>
             {recipientName ? s.formSubtitleTo(recipientName) : s.formSubtitle}
           </p>
 
