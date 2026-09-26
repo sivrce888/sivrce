@@ -29,7 +29,7 @@ import {
 import { MAP_LISTINGS_TAG } from "@/lib/map/db-buildings"
 import { deleteListing, indexListing, type ListingDocument } from "@/lib/search"
 import { streetHrefForListing } from "@/lib/street-href"
-import { metroMeters } from "@/lib/map/pois"
+import { metroMeters } from "@/lib/map/metro-near"
 import { worldMetroMeters } from "@/lib/countries/world-metro-all"
 import {
   activeColorUntil,

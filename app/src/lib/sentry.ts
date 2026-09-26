@@ -1,14 +1,13 @@
 /**
  * SIVRCE — Sentry thin adapter.
  *
- * ponytail: two helpers — captureError for catching, setSentryUser for auth
- * context. Graceful: if Sentry isn't configured (no DSN), all calls are no-ops.
- *
- * Client-safe: these use the @sentry/nextjs package which handles both
- * client and server environments.
+ * Browser-only, lazy: a static `import * as Sentry` here put the whole 3 MB
+ * server SDK into the SSR layer (via global-error) even with no DSN. The
+ * `typeof window` guard is compiled to a constant on the server, so the import
+ * is dead code there and no server chunk is emitted. Server errors are
+ * reported by onRequestError in src/instrumentation.ts.
+ * Graceful: if Sentry isn't configured (no DSN), calls are no-ops.
  */
-
-import * as Sentry from '@sentry/nextjs'
 
 const hasDsn =
   typeof process !== 'undefined' &&
@@ -16,36 +15,20 @@ const hasDsn =
 
 /**
  * Capture an error with optional context tags.
- * Safe to call from any component or server action — no-ops if Sentry isn't set up.
+ * Client components only (no-op on the server and without a DSN).
  */
 export function captureError(
   error: unknown,
   context?: Record<string, string>,
 ): void {
-  if (!hasDsn) return
-  if (context) {
-    Sentry.withScope((scope) => {
-      scope.setTags(context)
-      if (error instanceof Error) {
-        Sentry.captureException(error)
-      } else {
-        Sentry.captureMessage(String(error), 'error')
-      }
-    })
-  } else {
-    if (error instanceof Error) {
-      Sentry.captureException(error)
-    } else {
-      Sentry.captureMessage(String(error), 'error')
-    }
-  }
-}
-
-/**
- * Set the current user context for Sentry.
- * Call after login/identify to attach user info to error reports.
- */
-export function setSentryUser(user: { id: string; email?: string }): void {
-  if (!hasDsn) return
-  Sentry.setUser({ id: user.id, email: user.email })
+  if (typeof window === 'undefined' || !hasDsn) return
+  void import('@sentry/nextjs')
+    .then((Sentry) =>
+      Sentry.withScope((scope) => {
+        if (context) scope.setTags(context)
+        if (error instanceof Error) Sentry.captureException(error)
+        else Sentry.captureMessage(String(error), 'error')
+      }),
+    )
+    .catch(() => {}) // reporting must never throw inside an error boundary
 }

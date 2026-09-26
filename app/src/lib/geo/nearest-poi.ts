@@ -1,14 +1,14 @@
 /**
  * Seed `pois` from committed georgia-pois.json + recompute listing_nearest_poi.
  * Map JSON categories → PoiKind enum (university/gym/landmark → other; shop → supermarket).
+ * Seed data (~2 MB JSON) is imported inside the cron-only seeders so listing
+ * create/update routes that call recomputeNearestPois never parse it.
  */
 
 import type { PoiKind } from "@/generated/prisma/client"
-import raw from "@/data/georgia-pois.json"
 import { db } from "@/lib/db"
 import { METRO_MAX_CATCHMENT_M } from "@/lib/geo/nearest-poi-constants"
 import { poiUuid } from "@/lib/geo/nearest-poi-pure"
-import { worldMetroSeedRows } from "@/lib/countries/world-metro-all"
 
 export { nearMetroWhere, METRO_NEAR_M, poiUuid } from "@/lib/geo/nearest-poi-pure"
 
@@ -31,6 +31,7 @@ const CAT_TO_KIND: Record<string, PoiKind> = {
 }
 
 export async function seedPoisFromJson(): Promise<{ upserted: number }> {
+  const { default: raw } = await import("@/data/georgia-pois.json")
   const pois = (raw as { pois: JsonPoi[] }).pois
   let upserted = 0
   for (const p of pois) {
@@ -138,6 +139,7 @@ export async function recomputeNearestPoisBatch(opts?: {
  * listings via true PostGIS geodesic distance; no query changes needed.
  */
 export async function seedWorldMetroPois(): Promise<{ upserted: number }> {
+  const { worldMetroSeedRows } = await import("@/lib/countries/world-metro-all")
   const rows = worldMetroSeedRows()
   const CHUNK = 500
   let upserted = 0

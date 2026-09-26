@@ -12,7 +12,8 @@ import {
   activeUrgentUntil,
   effectiveTierKey,
 } from "@/lib/promo-pricing"
-import { METRO_NEAR_M, nearestMetro } from "@/lib/map/pois"
+import { METRO_NEAR_M } from "@/lib/geo/nearest-poi-constants"
+import { nearestMetro } from "@/lib/map/metro-near"
 import { worldMetroChip, worldMetroMeters } from "@/lib/countries/world-metro-all"
 import { collapseHits, type CollapseHit } from "@/lib/trust/dedupe-collapse"
 import { listingIdsInBbox } from "@/lib/geo/postgis"
