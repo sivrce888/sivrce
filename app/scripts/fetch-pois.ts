@@ -60,8 +60,6 @@ type Poi = {
   lat: number
   lng: number
   city: BoxKey
-  osmType: 'node' | 'way' | 'relation'
-  osmId: number
 }
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
@@ -184,18 +182,17 @@ function toPoi(el: any, city: BoxKey): Poi | null {
   if (!c) return null
   const category = classify(el.tags)
   if (!category) return null
-  const osmType = el.type as Poi['osmType']
+  const osmType = el.type as string
   if (osmType !== 'node' && osmType !== 'way' && osmType !== 'relation') return null
   const name = nameOf(el.tags) || fallbackName(category)
   return {
     id: `${osmType}/${el.id}`,
     category,
     name,
-    lat: c.lat,
-    lng: c.lng,
+    // ponytail: 5 dp ≈ 1 m — plenty for a POI pin; osmType/osmId dropped (id carries both).
+    lat: Math.round(c.lat * 1e5) / 1e5,
+    lng: Math.round(c.lng * 1e5) / 1e5,
     city,
-    osmType,
-    osmId: el.id,
   }
 }
 
@@ -325,8 +322,7 @@ out center tags;`
         byCity,
         pois,
       },
-      null,
-      1,
+      // ponytail: compact — this ships to every map visitor; pretty-print for diffs costs 40 %.
     ),
   )
   console.log(`wrote ${pois.length} pois → ${out.pathname}`)
