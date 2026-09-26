@@ -9,6 +9,8 @@
  */
 
 import { ka, type DictKey } from '@/lib/i18n/ka'
+import type { Lang } from '@/lib/i18n/context'
+import { listingTitle } from '@/lib/place-label'
 import { dealLabelKey } from '@/lib/add-listing-fields'
 import { cap1, fillTpl, seoTitleParts } from '@/lib/seo-title'
 import { PUBLIC_ID_BASE } from '@/lib/listing-public-id'
@@ -41,18 +43,36 @@ const TITLE_TYPE: Record<PropType, DictKey> = {
 /** Keyword-first detail title: "იყიდება 2-საძინებლიანი ბინა ვაკეში" — bedrooms first.
  *  World listings keep the authored Latin title (no Mkhedruli auto-title). */
 export function listingKeyword(l: SlugListing): string {
+  return listingKeywordIn(l, 'ka', (k) => ka[k])
+}
+
+/** Same keyword title in the reader's language ("3-bedroom apartment for sale
+ *  in Vake, Tbilisi"). `t` = that locale's raw dict lookup (client useI18n or
+ *  getServerT) so this leaf never bundles every dictionary. */
+export function listingKeywordIn(l: SlugListing, lang: Lang, t: (k: DictKey) => string): string {
   if ((l.country ?? 'GE') !== 'GE' && l.title) return l.title
-  const dealLabel = l.dealType === 'daily'
+  const dealLabel = l.dealType === 'daily' && lang === 'ka'
     ? 'ქირავდება დღიურად'
-    : ka[dealLabelKey(l.dealType, l.propType)]
-  const { deal, where } = seoTitleParts({ lang: 'ka', deal: l.dealType, dealLabel, propType: l.propType, district: l.district, city: l.city })
+    : t(dealLabelKey(l.dealType, l.propType))
+  const { deal, where } = seoTitleParts({ lang, deal: l.dealType, dealLabel, propType: l.propType, district: l.district, city: l.city })
   const useBeds = l.beds > 0 && l.propType !== 'land'
   const useRooms = !useBeds && l.rooms > 0 && l.propType !== 'land'
   const key = useBeds ? 'add.autoTitle.beds' : useRooms ? 'add.autoTitle.rooms' : 'add.autoTitle.simple'
+  const type = t(TITLE_TYPE[l.propType])
   return cap1(fillTpl(
-    ka[key],
-    { deal, rooms: l.rooms, beds: l.beds, type: ka[TITLE_TYPE[l.propType]], where },
+    t(key),
+    // Mid-sentence type word: "3-bedroom apartment", not "3-bedroom Apartment".
+    { deal, rooms: l.rooms, beds: l.beds, type: lang === 'de' ? type : type.toLowerCase(), where },
   ))
+}
+
+const MKHEDRULI = /[\u10A0-\u10FF]/
+
+/** Title a reader can read: authored title for ka (or Latin titles); a
+ *  Georgian-authored title on a non-ka page becomes the localized keyword. */
+export function listingDisplayTitle(l: SlugListing & { title: string }, lang: Lang, t: (k: DictKey) => string): string {
+  if (lang !== 'ka' && (l.country ?? 'GE') === 'GE' && MKHEDRULI.test(l.title)) return listingKeywordIn(l, lang, t)
+  return listingTitle(l.title, l.city, lang)
 }
 
 /* Georgian Mkhedruli → Latin, matching the romanization Georgians actually

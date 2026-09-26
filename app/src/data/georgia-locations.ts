@@ -75,4 +75,18 @@ export function geoPickerColumns(city: string): GeoPickerGroup[][] {
   return groups.map((g) => [g])
 }
 
+const CITY_SET = new Set(GEO.cities)
+
+/** 'ახალციხის მუნიციპალიტეტი' → 'ახალციხე' (seat, nominative) so non-ka UI can
+ *  say "Akhaltsikhe Municipality", not the romanized genitive. Genitive -ის
+ *  drops a final ი/ა/ე and may syncopate (გარდაბნის ← გარდაბანი); -ო/-უ stay. */
+export function geoMuniSeat(name: string): string | null {
+  const m = /^(.+)ს (?:მუნიციპალიტეტი|რაიონი)$/.exec(name)
+  if (!m) return null
+  const gen = m[1]!
+  const base = gen.endsWith('ი') ? gen.slice(0, -1) : gen
+  const syn = (v: string) => `${base.slice(0, -1)}${v}${base.slice(-1)}ი`
+  return [gen, `${base}ი`, `${base}ა`, `${base}ე`, syn('ა'), syn('ე')].find((c) => CITY_SET.has(c)) ?? null
+}
+
 export const GEO_SOURCE = GEO.source

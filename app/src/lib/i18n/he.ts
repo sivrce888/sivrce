@@ -58,6 +58,7 @@ export const he: Dict = {
   'loc.searchPh': 'עיר, שכונה או רחוב',
   'loc.popular': 'ערים פופולריות',
   'loc.muni': 'רשויות',
+  'loc.muniOf': 'עיריית {name}',
   'loc.districts': 'שכונות',
   'loc.streets': 'רחובות',
   'loc.villages': 'כפרים',

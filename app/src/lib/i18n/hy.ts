@@ -58,6 +58,7 @@ export const hy: Dict = {
   'loc.searchPh': 'Քաղաք, թաղամաս կամ փողոց',
   'loc.popular': 'Հանրաճանաչ քաղաքներ',
   'loc.muni': 'Համայնքներ',
+  'loc.muniOf': '{name} համայնք',
   'loc.districts': 'Թաղամասեր',
   'loc.streets': 'Փողոցներ',
   'loc.villages': 'Գյուղեր',

@@ -10,8 +10,8 @@ import {
 } from 'lucide-react'
 import type { Listing } from '@/data/listings'
 import { formatPerM2, formatFloor, postedDaysAgo, postedAgoLabel, stayCount, stayLine, priceOnRequestLabel } from '@/lib/listing-format'
-import { listingTitle, placeLabel } from '@/lib/place-label'
-import { listingPath } from '@/lib/listing-slug'
+import { placeLabel } from '@/lib/place-label'
+import { listingDisplayTitle, listingPath } from '@/lib/listing-slug'
 import { listingPublicId } from '@/lib/listing-public-id'
 import { listingShareLines, listingShareText } from '@/lib/listing-share'
 import { useCurrency, formatListingPrice } from '@/lib/currency'
@@ -248,7 +248,7 @@ export default function ListingCard({ l, i = 0, layout = 'grid', animate = true,
   const displayLabel = aiLabel(displayScore, lang)
   const city = placeLabel(l.city, lang, l.country)
   const district = placeLabel(l.district, lang, l.country)
-  const title = listingTitle(l.title, l.city, lang)
+  const title = listingDisplayTitle(l, lang, t)
   const onRequest = Boolean(l.projectCatalog && l.priceUSD <= 0)
 
   const { photos, multi, more, total } = cardGalleryTeaser(l.images, l.img, l.photoCount)

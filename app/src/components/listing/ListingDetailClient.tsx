@@ -23,7 +23,6 @@ import { FeatureGlyph } from '@/components/FeatureIcon'
 import Navbar from '@/components/sections/Navbar'
 import Footer from '@/components/sections/Footer'
 import { monthlyPayment, grossYieldPct } from '@/lib/finance'
-import { estimateRent } from '@/lib/rent-anchor'
 import ListingCard, { BADGE_STYLE, ExclusiveBadges, ListingStickerStack } from '@/components/ListingCard'
 import { AdCreative } from '@/components/ads/AdCreative'
 import type { PublicAd } from '@/lib/ads'
@@ -51,10 +50,10 @@ import { scoreReasonKey, sivrceScore } from '@/lib/sivrce-score'
 // ponytail: type-only — AiAdvisor ships as its own lazy chunk
 import type { PropertyCopilotContext } from '@/lib/ai-copilot'
 import { aiLabel } from '@/lib/ai-label'
-import { listingTitle, placeLabel } from '@/lib/place-label'
+import { placeLabel } from '@/lib/place-label'
 import { readableName } from '@/lib/ka-latin'
 import type { TasPublicDoc } from '@/lib/map/tas-arch'
-import { listingPath } from '@/lib/listing-slug'
+import { listingDisplayTitle, listingPath } from '@/lib/listing-slug'
 import { ShareSheet, openWhatsAppShare } from '@/components/listing/SharePack'
 import type { ListingShareInput } from '@/lib/listing-share'
 import { lt } from './i18n'
@@ -616,6 +615,7 @@ export default function ListingDetailClient({
   hubLink = null,
   deCosts = null,
   geCosts = null,
+  rentEstimate = null,
 }: {
   listing: Listing
   similar: Listing[]
@@ -643,6 +643,9 @@ export default function ListingDetailClient({
   deCosts?: BuyerCostBreakdown | null
   /** GE sale closing fees — server-computed so costs.ts stays off this client. */
   geCosts?: GeBuyerCosts | null
+  /** Monthly market rent in the listing's native currency — server-computed so
+   *  rent-anchor (→ de.ts city catalog) stays off this client. */
+  rentEstimate?: number | null
 }) {
   const { data: session, status: authStatus } = useSession()
   const isOwner = Boolean(ownerId && session?.user?.id === ownerId)
@@ -827,10 +830,7 @@ export default function ListingDetailClient({
     return monthlyPayment(principal * (1 - downPct / 100), rate, years)
   }, [l, downPct, rate, years, euroNative])
   // Area × market rent/m² in the price's own currency; null → yield line hidden.
-  const rentEst = useMemo(
-    () => (euroNative === (l.country === 'DE') ? estimateRent(l.area, l.country, l.city, l.district) : null),
-    [l.area, l.country, l.city, l.district, euroNative],
-  )
+  const rentEst = euroNative === (l.country === 'DE') ? rentEstimate : null
   // USD view for USD-typed consumers; EUR listings convert at their own price ratio.
   const rentUSD = rentEst && euroNative ? Math.round((rentEst * l.priceUSD) / l.priceOriginal!) : rentEst
   const fav = has(l.id)
@@ -890,8 +890,8 @@ export default function ListingDetailClient({
       priceUSD: l.priceUSD,
       areaSqm: l.area,
       // Localized — the copilot interpolates it into prose ("… within Dighomi Massive").
-      district: readableName(placeLabel(l.district, lang, l.country), lang),
-      city: readableName(placeLabel(l.city, lang, l.country), lang),
+      district: placeLabel(l.district, lang, l.country),
+      city: placeLabel(l.city, lang, l.country),
       countryCode: l.country,
       // Only assert a district median when real peers exist — a circular
       // "average of $35/m²" (the listing itself) reads as a fabricated FACT.
@@ -968,8 +968,8 @@ export default function ListingDetailClient({
   const displayLabel = aiLabel(displayScore, lang)
   const city = placeLabel(l.city, lang, l.country)
   // GE districts are stored in Mkhedruli — romanize for every non-ka reader.
-  const district = readableName(placeLabel(l.district, lang, l.country), lang)
-  const title = listingTitle(l.title, l.city, lang)
+  const district = placeLabel(l.district, lang, l.country)
+  const title = listingDisplayTitle(l, lang, t)
 
   const specs: { icon: typeof BedDouble; label: string; value: string }[] = [
     { icon: BedDouble, label: t('spec.beds'), value: l.beds > 0 ? String(l.beds) : '—' },
@@ -1111,7 +1111,7 @@ export default function ListingDetailClient({
                     src={heroSrc.card ?? heroSrc.master}
                     srcSet={heroSrc.set}
                     sizes={HERO_SIZES}
-                    alt={`${l.title} — ${t('detail.photo', { n: String(photo + 1) })}`}
+                    alt={`${title} — ${t('detail.photo', { n: String(photo + 1) })}`}
                     width={2560}
                     height={1600}
                     draggable={false}
@@ -1243,7 +1243,7 @@ export default function ListingDetailClient({
                       : 'opacity-75 hover:opacity-100'
                   }`}
                 >
-                  <Image src={cardOf(src) ?? src} alt={`${l.title} — ${t('detail.photo', { n: String(i + 1) })}`} fill sizes="(max-width:1024px) 25vw, 420px" unoptimized={isCdnMedia(src)} className="object-cover" {...blurProps(src)} />
+                  <Image src={cardOf(src) ?? src} alt={`${title} — ${t('detail.photo', { n: String(i + 1) })}`} fill sizes="(max-width:1024px) 25vw, 420px" unoptimized={isCdnMedia(src)} className="object-cover" {...blurProps(src)} />
                   {moreTile && (
                     <span className="absolute inset-0 grid place-items-center bg-sv-navy/55 text-white backdrop-blur-[2px]">
                       <span className="flex flex-col items-center gap-1">
@@ -1313,11 +1313,11 @@ export default function ListingDetailClient({
                     href={streetHref}
                     className="mt-2 flex items-center gap-1.5 text-[15px] font-semibold text-sv-blue transition-colors hover:text-sv-blue-deep"
                   >
-                    <MapPin className="h-4 w-4 shrink-0" /> {l.address}
+                    <MapPin className="h-4 w-4 shrink-0" /> {readableName(l.address, lang)}
                   </LocalizedLink>
                 ) : (
                   <p className="mt-2 flex items-center gap-1.5 text-[15px] font-semibold text-sv-ink/60">
-                    <MapPin className="h-4 w-4 shrink-0 text-sv-blue" /> {l.address}
+                    <MapPin className="h-4 w-4 shrink-0 text-sv-blue" /> {readableName(l.address, lang)}
                   </p>
                 )}
               </div>
@@ -1735,7 +1735,7 @@ export default function ListingDetailClient({
                     <div className="pointer-events-auto flex flex-wrap items-center justify-between gap-3">
                       <div className="rounded-module glass px-4 py-2.5">
                         <div className="flex items-center gap-1.5 text-[13px] font-extrabold text-white">
-                          <MapPin className="h-3.5 w-3.5 text-sv-blue-light" /> {l.address}
+                          <MapPin className="h-3.5 w-3.5 text-sv-blue-light" /> {readableName(l.address, lang)}
                         </div>
                         <div className="mt-0.5 text-[11px] font-bold text-white/55">
                           {l.coords.lat.toFixed(4)}, {l.coords.lng.toFixed(4)}

@@ -1818,7 +1818,7 @@ export default function AddListingClient() {
                       >
                         <MapPin className={`h-4 w-4 shrink-0 ${city ? 'text-sv-blue' : 'text-sv-ink/35'}`} />
                         <span className={city ? 'text-sv-ink' : 'text-sv-ink/35'}>
-                          {locationLabel({ city, district, street: '' })}
+                          {locationLabel({ city, district, street: '' }, undefined, lang)}
                         </span>
                       </button>
                       <LocationPicker

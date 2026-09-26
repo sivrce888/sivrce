@@ -58,6 +58,7 @@ export const ar: Dict = {
   'loc.searchPh': 'مدينة أو حي أو شارع',
   'loc.popular': 'مدن شائعة',
   'loc.muni': 'البلديات',
+  'loc.muniOf': 'بلدية {name}',
   'loc.districts': 'أحياء',
   'loc.streets': 'الشوارع',
   'loc.villages': 'القرى',

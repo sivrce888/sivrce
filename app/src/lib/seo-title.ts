@@ -13,6 +13,7 @@
 import { CITIES as SEO_CITIES, DEALS as SEO_DEALS, DISTRICTS as SEO_DISTRICTS } from '@/lib/directory-seo-lite'
 import type { DealType, PropType } from '@/data/listings'
 import type { Lang } from '@/lib/i18n/context'
+import { toLatin } from '@/lib/ka-latin'
 
 /**
  * First letter uppercase. Georgian is excluded explicitly — V8 maps Mkhedruli
@@ -76,10 +77,11 @@ export function locOn(street: string): string {
 
 /* ————— en/ru place names ————— */
 
+// Registry miss → national romanization: a non-ka title never carries Mkhedruli.
 const enName = (n: string): string =>
-  SEO_DISTRICTS.find((d) => d.ka === n)?.en ?? SEO_CITIES.find((c) => c.ka === n)?.en ?? n
+  SEO_DISTRICTS.find((d) => d.ka === n)?.en ?? SEO_CITIES.find((c) => c.ka === n)?.en ?? toLatin(n)
 const ruName = (n: string): string =>
-  SEO_DISTRICTS.find((d) => d.ka === n)?.ru ?? SEO_CITIES.find((c) => c.ka === n)?.ru ?? n
+  SEO_DISTRICTS.find((d) => d.ka === n)?.ru ?? SEO_CITIES.find((c) => c.ka === n)?.ru ?? toLatin(n)
 
 /* ————— title parts ————— */
 
@@ -104,7 +106,9 @@ export function seoTitleParts(o: {
       ? (SEO_DEALS[slug!]?.en ?? o.dealLabel)
       : o.lang === 'ru'
         ? (SEO_DEALS[slug!]?.ru ?? o.dealLabel)
-        : o.dealLabel
+        : o.lang === 'de'
+          ? (SEO_DEALS[slug!]?.de ?? o.dealLabel)
+          : o.dealLabel
 
   const place = o.district || o.city || ''
   let where: string
@@ -119,13 +123,11 @@ export function seoTitleParts(o: {
     if (!st) where = loc
     else if (STREET_WORDS.test(st) || /[აეიოუ]ს$/.test(st)) where = `${locOn(st)} ${loc}`.trim()
     else where = locIn(st)
-  } else if (o.lang === 'en' || o.lang === 'ru') {
-    const name = o.lang === 'en' ? enName : ruName
+  } else {
+    const name = o.lang === 'ru' ? ruName : enName
     const d = o.district ? name(o.district) : ''
     const c = o.city ? name(o.city) : ''
     where = d && c && d !== c ? `${d}, ${c}` : d || c
-  } else {
-    where = place
   }
   return { deal, where: where || '—' }
 }

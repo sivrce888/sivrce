@@ -142,7 +142,7 @@ async function HomeBelowFold({ lang, scope }: { lang: Lang; scope: HomeScope | n
     .map((d) => ({
       slug: d.slug,
       name: d.name,
-      city: readableName(placeLabel(d.city, lang), lang),
+      city: placeLabel(d.city, lang),
       verified: d.verified,
       logoUrl: d.logoUrl,
       projectsDone: d.projectsDone,

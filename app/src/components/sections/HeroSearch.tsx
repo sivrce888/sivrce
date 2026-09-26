@@ -420,7 +420,7 @@ export default function HeroSearch({ quick = QUICK, country }: { quick?: HeroQui
             <MapPin className={`h-4 w-4 shrink-0 ${loc.city ? 'text-sv-blue' : 'text-sv-ink/35 dark:text-white/40'}`} />
             <span className="min-w-0 flex-1">
               <span className={fieldCap}>{t('loc.where')}</span>
-              <span className={fieldVal}>{locationLabel(loc, t('search.allGeorgia'))}</span>
+              <span className={fieldVal}>{locationLabel(loc, t('search.allGeorgia'), lang)}</span>
             </span>
           </button>
           {locMounted && (

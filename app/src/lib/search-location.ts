@@ -1,5 +1,7 @@
 /** Map an autocomplete pick → search URL filters. City/district survive a street pick. */
 
+import { placeLabel } from '@/lib/place-label'
+
 export type SuggestKind = 'city' | 'district' | 'street' | 'developer' | 'project' | 'building' | 'listing' | 'country' | 'poi' | 'metro'
 
 export type LocationValue = { city: string; district: string; street: string; metro?: boolean }
@@ -43,17 +45,20 @@ export function pushLocRecent(v: LocationValue): LocationValue[] {
 }
 
 /** Compact label for the location trigger. */
-export function locationLabel(v: LocationValue, empty = 'აირჩიე ქალაქი'): string {
-  const districts = splitDistricts(v.district)
-  if (v.street) {
-    if (districts[0]) return `${v.street}, ${districts[0]}`
-    if (v.city) return `${v.street}, ${v.city}`
-    return v.street
+export function locationLabel(v: LocationValue, empty = 'აირჩიე ქალაქი', lang = 'ka'): string {
+  // Values stay ka (URL/filter contract); only the label is localized.
+  const city = placeLabel(v.city, lang)
+  const districts = splitDistricts(v.district).map((d) => placeLabel(d, lang))
+  const street = placeLabel(v.street, lang)
+  if (street) {
+    if (districts[0]) return `${street}, ${districts[0]}`
+    if (city) return `${street}, ${city}`
+    return street
   }
-  if (districts.length === 1) return v.city ? `${districts[0]}, ${v.city}` : districts[0]!
+  if (districts.length === 1) return city ? `${districts[0]}, ${city}` : districts[0]!
   if (districts.length === 2) return districts.join(', ')
-  if (districts.length > 2) return v.city ? `${v.city} · ${districts.length}` : String(districts.length)
-  if (v.city) return v.city
+  if (districts.length > 2) return city ? `${city} · ${districts.length}` : String(districts.length)
+  if (city) return city
   return empty
 }
 

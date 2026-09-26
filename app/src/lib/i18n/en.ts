@@ -58,6 +58,7 @@ export const en: Dict = {
   'loc.searchPh': 'District, city, neighborhood or street',
   'loc.popular': 'Popular cities',
   'loc.muni': 'Municipalities',
+  'loc.muniOf': '{name} Municipality',
   'loc.districts': 'Districts',
   'loc.streets': 'Streets',
   'loc.villages': 'Villages',

@@ -29,14 +29,14 @@ import { blurProps, cardOf } from '@/lib/media'
 import { useCurrency } from '@/lib/currency'
 import { useI18n, type DictKey } from '@/lib/i18n/context'
 import { localizedHref } from '@/lib/i18n/core'
-import { listingPath } from '@/lib/listing-slug'
+import { listingDisplayTitle, listingPath } from '@/lib/listing-slug'
 import { CATEGORY_BRAND, DEAL_BRAND } from '@/lib/category-brand'
 import { PartyHouseIcon } from '@/components/PartyHouseIcon'
 import { FeatureGlyph } from '@/components/FeatureIcon'
 import { CONDITION_KEYS, BUILDING_STATUS_KEYS, FEATURE_KEYS, PROJECT_KEYS, FLOOR_TYPE_KEYS, featureLabel } from '@/lib/features'
 import { dealLabelKey as dealKeyFor, featuresFor, rentPeriodKey } from '@/lib/add-listing-fields'
 import { mapSearchHit } from '@/lib/map-search-hit'
-import { placeLabel, listingTitle } from '@/lib/place-label'
+import { placeLabel } from '@/lib/place-label'
 import { suggestionToFilters, splitDistricts } from '@/lib/search-location'
 import { aiParseQuery, explainPropertyMatch, nlFromSearchParams, nlHasListingConstraints, nlHasStructure, nlToSearchPatch, parseNlQuery } from '@/lib/nl-search'
 import { isExactLookupQuery } from '@/lib/listing-public-id'
@@ -154,7 +154,7 @@ function CompactCard({ l }: { l: Listing }) {
         <span className="block text-[14px] font-extrabold text-sv-ink transition-colors group-hover:text-sv-blue">
           {format(l.priceGEL)}{suffix}
         </span>
-        <span className="block truncate text-[12px] font-semibold text-sv-ink/70">{listingTitle(l.title, l.city, lang)}</span>
+        <span className="block truncate text-[12px] font-semibold text-sv-ink/70">{listingDisplayTitle(l, lang, t)}</span>
         <span className="block text-[12px] font-semibold text-sv-ink/60">{l.area} {t('add.areaUnit.m2')} · {placeLabel(l.city, lang, l.country)}</span>
       </span>
     </Link>
@@ -952,7 +952,7 @@ export default function SearchClient({
             >
               <MapPin className={`h-3.5 w-3.5 shrink-0 ${city ? 'text-sv-blue' : 'text-sv-ink/35'}`} />
               <span className="min-w-0 flex-1 truncate">
-                {distList.length > 2 ? `${city} · ${t('loc.nDistricts', { n: distList.length })}` : locationLabel(locValue, t('search.allGeorgia'))}
+                {distList.length > 2 ? `${placeLabel(city, lang)} · ${t('loc.nDistricts', { n: distList.length })}` : locationLabel(locValue, t('search.allGeorgia'), lang)}
               </span>
             </button>
           </div>
@@ -1068,7 +1068,7 @@ export default function SearchClient({
           >
             <MapPin className={`h-3.5 w-3.5 shrink-0 ${city ? 'text-sv-blue' : 'text-sv-ink/35'}`} />
             <span className="min-w-0 flex-1 truncate">
-              {distList.length > 2 ? `${city} · ${t('loc.nDistricts', { n: distList.length })}` : locationLabel(locValue, t('search.allGeorgia'))}
+              {distList.length > 2 ? `${placeLabel(city, lang)} · ${t('loc.nDistricts', { n: distList.length })}` : locationLabel(locValue, t('search.allGeorgia'), lang)}
             </span>
           </button>
 

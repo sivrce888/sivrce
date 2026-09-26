@@ -74,4 +74,7 @@ console.log(`bilingual.check: OK (${PROJECTS.length} projects swept)`)
 assert.equal(readableName('ვაჟა-ფშაველა', 'en'), 'Vazha-Pshavela')
 assert.equal(readableName('ნუცუბიძის 77, საბურთალო, თბილისი', 'de'), 'Nutsubidzis 77, Saburtalo, Tbilisi')
 assert.equal(readableName('ვაკე', 'ka'), 'ვაკე')
+// National system: ქ=k, ყ=q (street signs, Google Maps) — never 'Qutaisi'.
+assert.equal(readableName('ქეთევან წამებულის', 'en'), 'Ketevan Tsamebulis')
+assert.equal(readableName('ყვარელი', 'en'), 'Qvareli')
 assert.equal(readableName('Axis Towers', 'en'), 'Axis Towers')

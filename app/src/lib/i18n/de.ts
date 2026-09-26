@@ -60,6 +60,7 @@ export const de: Dict = {
   'loc.searchPh': 'Bezirk, Stadt, Stadtteil oder Straße',
   'loc.popular': 'Beliebte Städte',
   'loc.muni': 'Gemeinden',
+  'loc.muniOf': 'Gemeinde {name}',
   'loc.districts': 'Stadtteile',
   'loc.streets': 'Straßen',
   'loc.villages': 'Dörfer',

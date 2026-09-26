@@ -6,7 +6,9 @@
 import assert from 'node:assert'
 import { LISTINGS } from '@/data/listings'
 import { footerKeywordCols } from './seo-pages'
-import { listingPath, listingSlug, listingKeyword, transliterateKa } from './listing-slug'
+import { listingPath, listingSlug, listingKeyword, listingKeywordIn, listingDisplayTitle, transliterateKa } from './listing-slug'
+import { translate } from '@/lib/i18n/dicts'
+import { LANGS } from '@/lib/i18n/core'
 
 assert.equal(transliterateKa('იყიდება 3-ოთახიანი ბინა გლდანში'), 'iyideba-3-otaxiani-bina-gldanshi')
 assert.equal(transliterateKa('იყიდება 2-ოთახიანი ბინა ორთაჭალაში'), 'iyideba-2-otaxiani-bina-ortachalashi')
@@ -75,3 +77,19 @@ for (const c of cols)
 
 console.log(`listing-slug OK — ${LISTINGS.length} listings, e.g. ${listingPath(l)}`)
 console.log(`footer cols OK — ${cols.map((c) => `${c.id}:${c.links.length}`).join(', ')}`)
+
+// Localized keyword: every non-ka reader gets a Latin/own-script title, no Mkhedruli.
+{
+  const vake = { id: 'x', dealType: 'sale' as const, propType: 'apartment' as const, rooms: 4, beds: 3, district: 'ვაკე', city: 'თბილისი', title: 'იყიდება ბინა ვაკეში' }
+  const tr = (lang: (typeof LANGS)[number]) => (k: Parameters<typeof translate>[1]) => translate(lang, k)
+  assert.equal(listingKeywordIn(vake, 'en', tr('en')), '3-bedroom apartment for sale in Vake, Tbilisi')
+  assert.equal(listingKeywordIn(vake, 'ka', tr('ka')), listingKeyword(vake))
+  for (const lang of LANGS) {
+    if (lang === 'ka') continue
+    const shown = listingDisplayTitle(vake, lang, tr(lang))
+    assert.ok(!/[\u10A0-\u10FF]/.test(shown), `${lang} title leaks Mkhedruli: ${shown}`)
+    assert.ok(!/\{\w+\}/.test(shown), `${lang} title has unfilled slot: ${shown}`)
+  }
+  assert.equal(listingDisplayTitle(vake, 'ka', tr('ka')), vake.title)
+  assert.equal(listingDisplayTitle({ ...vake, title: 'Penthouse with a view' }, 'en', tr('en')), 'Penthouse with a view')
+}

@@ -57,6 +57,7 @@ export const ka = {
   'loc.searchPh': 'ჩაწერე რაიონი, ქალაქი, უბანი ან ქუჩა',
   'loc.popular': 'პოპულარული ქალაქები',
   'loc.muni': 'მუნიციპალიტეტები',
+  'loc.muniOf': '{name} მუნიციპალიტეტი',
   'loc.districts': 'უბნები',
   'loc.streets': 'ქუჩები',
   'loc.villages': 'სოფლები',

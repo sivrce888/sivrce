@@ -58,6 +58,7 @@ export const ru: Dict = {
   'loc.searchPh': 'Район, город, квартал или улица',
   'loc.popular': 'Популярные города',
   'loc.muni': 'Муниципалитеты',
+  'loc.muniOf': 'Муниципалитет {name}',
   'loc.districts': 'Районы',
   'loc.streets': 'Улицы',
   'loc.villages': 'Сёла',

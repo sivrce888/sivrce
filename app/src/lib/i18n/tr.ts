@@ -58,6 +58,7 @@ export const tr: Dict = {
   'loc.searchPh': 'İlçe, şehir, mahalle veya sokak',
   'loc.popular': 'Popüler şehirler',
   'loc.muni': 'Belediyeler',
+  'loc.muniOf': '{name} Belediyesi',
   'loc.districts': 'Semtler',
   'loc.streets': 'Sokaklar',
   'loc.villages': 'Köyler',

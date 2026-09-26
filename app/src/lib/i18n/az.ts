@@ -58,6 +58,7 @@ export const az: Dict = {
   'loc.searchPh': 'Rayon, şəhər və ya küçə',
   'loc.popular': 'Məşhur şəhərlər',
   'loc.muni': 'Bələdiyyələr',
+  'loc.muniOf': '{name} bələdiyyəsi',
   'loc.districts': 'Rayonlar',
   'loc.streets': 'Küçələr',
   'loc.villages': 'Kəndlər',

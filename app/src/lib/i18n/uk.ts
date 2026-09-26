@@ -58,6 +58,7 @@ export const uk: Dict = {
   'loc.searchPh': 'Район, місто, квартал або вулиця',
   'loc.popular': 'Популярні міста',
   'loc.muni': 'Муніципалітети',
+  'loc.muniOf': 'Муніципалітет {name}',
   'loc.districts': 'Райони',
   'loc.streets': 'Вулиці',
   'loc.villages': 'Села',

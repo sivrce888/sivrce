@@ -4,6 +4,7 @@
  * rides ListingCard onto every card page (bundle-leak.check locks it).
  */
 import { CITY_NAMES, CITY_NAME_ALIASES } from '@/lib/city-names.gen'
+import { readableName } from '@/lib/ka-latin'
 
 const MKHEDRULI = /[\u10A0-\u10FF]/
 
@@ -36,7 +37,9 @@ export function placeLabel(
   const pin = cityNameHit(raw)
   if (pin) return lang === 'ka' ? pin.ka : pin.en
   if (lang !== 'ka' && country && country !== 'GE' && MKHEDRULI.test(raw)) return ''
-  return raw
+  // Gazetteer miss (უბანი, street, village): romanize like Tbilisi street signs
+  // — every non-ka reader gets Latin, never unreadable Mkhedruli.
+  return readableName(raw, lang)
 }
 
 export function listingTitle(title: string, city: string | undefined, lang: string): string {

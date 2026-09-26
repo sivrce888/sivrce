@@ -26,7 +26,9 @@ assert.equal(placeLabel('Berlin', 'ka'), 'ბერლინი')
 assert.equal(placeLabel('თბილისი', 'en'), 'Tbilisi')
 assert.equal(placeLabel('მიტე', 'en', 'DE'), '')
 assert.equal(placeLabel('მიტე', 'ka', 'DE'), 'მიტე')
-assert.equal(placeLabel('ვაკე', 'en', 'GE'), 'ვაკე')
+assert.equal(placeLabel('ვაკე', 'en', 'GE'), 'Vake')
+assert.equal(placeLabel('ვაკე', 'ka', 'GE'), 'ვაკე')
+assert.equal(placeLabel('ვაკე-საბურთალო', 'ru'), 'Vake-Saburtalo')
 assert.equal(
   listingTitle('Quartier Lilienthal — ბერლინი', 'ბერლინი', 'en'),
   'Quartier Lilienthal — Berlin',
