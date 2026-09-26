@@ -17,6 +17,7 @@ import {
   type CompiledHay,
 } from "@/lib/suggest-match"
 import { DEVELOPERS, PROJECTS, getDeveloper } from "@/data/professionals"
+import { lookupKind } from "@/lib/listing-public-id"
 import { NEW_DEVELOPERS_BERLIN, NEW_PROJECTS_BERLIN } from "@/data/projects-new-berlin"
 import { NEW_DEVELOPERS_GERMANY, NEW_PROJECTS_GERMANY } from "@/data/projects-new-germany"
 import { BUILDINGS } from "@/data/buildings"
@@ -41,7 +42,7 @@ import { hostFromRequest } from "@/lib/domain-scope"
 export const maxDuration = 5
 
 export interface Suggestion {
-  kind: "city" | "district" | "street" | "developer" | "project" | "building" | "country" | "poi" | "metro"
+  kind: "city" | "district" | "street" | "developer" | "project" | "building" | "listing" | "country" | "poi" | "metro"
   /** Georgian label shown in the dropdown and used as the search term */
   ka: string
   /** Latin subtitle (en) for recognition */
@@ -495,8 +496,7 @@ export async function GET(req: Request) {
   }
 
   // Typo rescue — nothing matched, one char is off: fuzzy rescue for entities.
-  if (prefix.length === 0 && partial.length === 0 && q.length >= 4) {
-    for (const r of DEVELOPER_ROWS) {
+  if (prefix.length === 0 && partial.length === 0 && q.length >= 4) {    for (const r of DEVELOPER_ROWS) {
       if (suggestFuzzyPrepared(r.raw, cq)) push(r, false)
     }
     for (const r of PROJECT_ROWS) {
@@ -521,6 +521,28 @@ export async function GET(req: Request) {
     }
   }
 
+  // Cadastral code / public ID / phone (MyHome parity) — strict digit-shape gate,
+  // so text keystrokes never touch the DB; `slug` 308s to the canonical path.
+  // ponytail: prisma loads lazily — text-only cold starts never pay for it.
+  let listingHit: Suggestion | null = null
+  if (lookupKind(q) && prefix.length === 0 && partial.length === 0) {
+    // bare-node checks (no react-server condition) can't import server-only modules
+    try {
+      const { resolveListingQuery } = await import("@/lib/listings-db")
+      const hit = await resolveListingQuery(q)
+      if (hit) {
+        listingHit = {
+          kind: "listing",
+          ka: `№ ${hit.publicId}`,
+          en: hit.count > 1 ? `${hit.count}` : undefined,
+          slug: hit.count === 1 ? `/listing/${hit.publicId}` : `/search?q=${encodeURIComponent(q)}`,
+        }
+      }
+    } catch {
+      /* no server env (bare-node checks) — lookup rows simply don't render */
+    }
+  }
+
   const out = (r: Row): Suggestion => ({
     kind: r.kind,
     ka: r.ka,
@@ -529,5 +551,7 @@ export async function GET(req: Request) {
     district: r.district,
     slug: r.slug,
   })
-  return Response.json({ ok: true, suggestions: [...prefix, ...partial].slice(0, 10).map(out) }, { headers: CACHE })
+  const rows = [...prefix, ...partial].slice(0, listingHit ? 9 : 10).map(out)
+  if (listingHit) rows.unshift(listingHit)
+  return Response.json({ ok: true, suggestions: rows }, { headers: CACHE })
 }

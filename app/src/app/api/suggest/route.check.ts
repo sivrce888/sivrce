@@ -47,6 +47,15 @@ async function main() {
   const berlinOnly = await deSuggest('Tor', 'Berlin')
   if (berlinOnly.length === 0) throw new Error('Berlin street prefix empty')
 
+  // Cadastral/ID/phone lookup: strict digit-shape gate — a text query must never
+  // hit the DB path, and a lookup-shaped query must not crash without a DB.
+  const textHits = await suggest('ჭავჭავაძე')
+  if (textHits.some((s) => s.kind === 'listing')) throw new Error('listing row leaked for a text query')
+  const cadHits = await suggest('01.10.01.001.001')
+  if (cadHits.some((s) => s.kind !== 'listing')) throw new Error('cadastral query must only ever yield a listing row')
+  const idHits = await suggest('10001234')
+  if (idHits.some((s) => s.kind !== 'listing')) throw new Error('public-id query must only ever yield a listing row')
+
   // Developers suggestion check (e.g. Archi, m2)
   const archiHits = await suggest('Archi')
   if (!archiHits.some((s) => s.kind === 'developer' || s.kind === 'project')) {

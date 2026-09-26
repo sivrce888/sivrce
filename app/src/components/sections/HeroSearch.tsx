@@ -252,6 +252,10 @@ export default function HeroSearch({ quick = QUICK, country }: { quick?: HeroQui
       router.push(`/buildings/${s.slug}`)
       return
     }
+    if (s.kind === 'listing' && s.slug) {
+      router.push(s.slug)
+      return
+    }
     if (s.kind === 'country' && s.slug) {
       router.push(`/${s.slug}`)
       return

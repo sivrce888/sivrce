@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useId, useRef, useState } from 'react'
-import { Search, Building2, MapPin, Route, X, Briefcase, Hammer, Landmark, Globe, Store, TrainFront } from 'lucide-react'
+import { Search, Building2, MapPin, Route, X, Briefcase, Hammer, Landmark, Globe, Store, TrainFront, Home } from 'lucide-react'
 import { useI18n } from '@/lib/i18n/context'
 import { exactSuggestHit } from '@/lib/search-location'
 import { isExactLookupQuery, lookupKind } from '@/lib/listing-public-id'
@@ -10,7 +10,7 @@ import { readableName } from '@/lib/ka-latin'
 /** Keyword input with city / district / street / developer / project / building autocomplete. Keyboard: ↑↓ Enter Esc. */
 
 export interface Suggestion {
-  kind: 'city' | 'district' | 'street' | 'developer' | 'project' | 'building' | 'country' | 'poi' | 'metro'
+  kind: 'city' | 'district' | 'street' | 'developer' | 'project' | 'building' | 'listing' | 'country' | 'poi' | 'metro'
   ka: string
   en?: string
   city?: string
@@ -27,6 +27,7 @@ const KIND_ORDER: Suggestion['kind'][] = [
   'developer',
   'project',
   'building',
+  'listing',
   'district',
   'country',
   'street',
@@ -42,6 +43,7 @@ const KIND_ICON = {
   developer: Briefcase,
   project: Hammer,
   building: Landmark,
+  listing: Home,
   district: MapPin,
   country: Globe,
   street: Route,
@@ -262,6 +264,8 @@ export default function SearchSuggest({
                 ? t('nav.projects')
                 : g.kind === 'building'
                 ? t('nav.buildings')
+                : g.kind === 'listing'
+                ? T('განცხადება', 'Anzeige', 'Listing')
                 : g.kind === 'district'
                 ? t('search.district')
                 : g.kind === 'country'

@@ -834,6 +834,10 @@ export default function SearchClient({
           router.push(`/buildings/${s.slug}`)
           return
         }
+        if (s.kind === 'listing' && s.slug) {
+          router.push(s.slug)
+          return
+        }
         if (s.kind === 'country' && s.slug) {
           router.push(`/${s.slug}`)
           return

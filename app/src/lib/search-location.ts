@@ -1,6 +1,6 @@
 /** Map an autocomplete pick → search URL filters. City/district survive a street pick. */
 
-export type SuggestKind = 'city' | 'district' | 'street' | 'developer' | 'project' | 'building' | 'country' | 'poi' | 'metro'
+export type SuggestKind = 'city' | 'district' | 'street' | 'developer' | 'project' | 'building' | 'listing' | 'country' | 'poi' | 'metro'
 
 export type LocationValue = { city: string; district: string; street: string; metro?: boolean }
 
@@ -125,7 +125,7 @@ export function searchHref(f: Record<string, string | undefined>): string {
 export function exactSuggestHit(items: SuggestHit[], q: string): SuggestHit | undefined {
   const needle = q.trim().toLowerCase()
   if (!needle) return undefined
-  const order: SuggestKind[] = ['city', 'developer', 'project', 'building', 'district', 'country', 'street', 'poi', 'metro']
+  const order: SuggestKind[] = ['city', 'developer', 'project', 'building', 'listing', 'district', 'country', 'street', 'poi', 'metro']
   for (const k of order) {
     const hit = items.find((s) => s.kind === k && (s.ka.toLowerCase() === needle || s.en?.toLowerCase() === needle))
     if (hit) return hit

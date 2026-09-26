@@ -2992,6 +2992,8 @@ function Map3DInner({
   const flyToQuery = useCallback(async (q: string, s?: Suggestion) => {
     const needle = (s?.ka ?? q).trim()
     if (!needle) return
+    // A listing pick has no place to fly to — the browser owns that navigation.
+    if (s?.kind === 'listing') return
     // Catalog building / project → open its card, exactly like tapping its pin.
     const b = !s?.slug
       ? null
