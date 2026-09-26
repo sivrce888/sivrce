@@ -242,7 +242,7 @@ export default async function HotelDetailPage({ params, searchParams }: PageProp
               <a
                 href={book.url}
                 target="_blank"
-                rel="noopener nofollow"
+                rel="sponsored nofollow noopener"
                 className="mt-6 inline-flex items-center gap-2 rounded-control bg-sv-orange px-5 py-3 text-[14px] font-extrabold text-sv-ink shadow-glow-orange"
               >
                 {copy.bookLive} <ExternalLink size={14} />
@@ -280,7 +280,7 @@ export default async function HotelDetailPage({ params, searchParams }: PageProp
                     <a
                       href={book.url}
                       target="_blank"
-                      rel="noopener nofollow"
+                      rel="sponsored nofollow noopener"
                       className="rounded-control bg-sv-orange px-5 py-3 text-[14px] font-black text-sv-ink shadow-glow-orange"
                     >
                       {copy.bookLive}
@@ -301,7 +301,7 @@ export default async function HotelDetailPage({ params, searchParams }: PageProp
                 <a
                   href={l.url}
                   target="_blank"
-                  rel="noopener nofollow"
+                  rel="sponsored nofollow noopener"
                   className="text-sv-blue underline decoration-sv-blue/30 underline-offset-2 hover:decoration-sv-blue font-bold"
                 >
                   {l.name}

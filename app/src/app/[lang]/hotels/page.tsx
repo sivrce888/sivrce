@@ -673,7 +673,7 @@ async function Results({
             <a
               href={l.url}
               target="_blank"
-              rel="noopener nofollow"
+              rel="sponsored nofollow noopener"
               className="text-sv-blue underline decoration-sv-blue/30 underline-offset-2 hover:decoration-sv-blue font-semibold hover:text-sv-blue-deep"
             >
               {l.name}
@@ -738,7 +738,7 @@ async function Results({
                   <a
                     href={book.url}
                     target="_blank"
-                    rel="noopener nofollow"
+                    rel="sponsored nofollow noopener"
                     className="inline-flex items-center justify-center gap-2 rounded-control bg-sv-orange px-4 py-3 text-[14px] font-extrabold text-sv-ink shadow-glow-orange"
                   >
                     {copy.bookLive} <ExternalLink size={14} />
@@ -756,7 +756,7 @@ async function Results({
                       <a
                         href={h.website}
                         target="_blank"
-                        rel="noopener nofollow"
+                        rel="sponsored nofollow noopener"
                         className="inline-flex items-center gap-1 text-sv-blue underline decoration-sv-blue/30 underline-offset-2 hover:decoration-sv-blue"
                       >
                         {copy.website} <ExternalLink size={12} />
@@ -863,7 +863,7 @@ async function Results({
                 <a
                   href={book.url}
                   target="_blank"
-                  rel="noopener nofollow"
+                  rel="sponsored nofollow noopener"
                   className="inline-flex items-center justify-center gap-2 rounded-control bg-sv-orange px-4 py-3 text-[14px] font-extrabold text-sv-ink shadow-glow-orange"
                 >
                   {copy.bookLive} <ExternalLink size={14} />

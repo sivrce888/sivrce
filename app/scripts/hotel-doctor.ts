@@ -121,16 +121,10 @@ async function main() {
   if (!hasAmadeus) {
     console.log(warn("No keys → every search falls back to the OSM directory + Xotelo."))
     console.log(
-      "    Get free test keys: https://developers.amadeus.com → register → activate via email\n" +
-        "    → My Self-Service Workspace → Create new app → copy Key + Secret into .env.local.",
+      "    Amadeus Self-Service is CLOSED to new signups (paused Mar 2026, portal sunset) —\n" +
+        "    existing keys still work, new ones cannot be created. LiteAPI above is the free\n" +
+        "    signup route for real prices AND bookings.",
     )
-    console.log(
-      warn("Test keys return Amadeus TEST inventory, not real Tbilisi hotels — they prove the"),
-    )
-    console.log(
-      "    code path, not the prices. Real rates need a Production key (same workspace →",
-    )
-    console.log("    select app → Get Production environment → billing form + ToS).")
   } else {
     let token: string | null = null
     try {
