@@ -946,7 +946,7 @@ export default function AddListingClient() {
   const formOk = sectionOk.every(Boolean)
 
   const propLabel = propType ? t(PROP_TYPES.find((p) => p.key === propType)!.labelKey) : ''
-  /* SEO title: bedrooms first — "იყიდება 2-საძინებლიანი ბინა ჭავჭავაძეზე ვაკეში" */
+  /* SEO title: bedrooms first — "იყიდება 2-საძინებლიანი ბინა თბილისში ვაკეში ჭავჭავაძის გამზირზე" */
   const titleLabel = propType ? t(PROP_TYPES.find((p) => p.key === propType)!.titleKey) : ''
   const dealLabel = deal ? t(dealLabelKey(deal, propType)) : ''
   const { deal: dealWord, where } = seoTitleParts({ lang, deal, dealLabel, propType: propType ?? undefined, street, district, city })
@@ -2551,7 +2551,7 @@ export default function AddListingClient() {
                                   {' · '}
                                   {priceMode === 'total'
                                     ? `≈ $${Math.round((priceCur === 'GEL' ? priceEntered / USD_GEL : priceEntered) / areaN)} / ${areaSym(lang)}`
-                                    : `${lang === 'ka' ? 'სრული' : lang === 'de' ? 'Gesamt' : 'Total'}: $${Math.round((priceCur === 'GEL' ? priceEntered / USD_GEL : priceEntered) * areaN)}`}
+                                    : `${lang === 'ka' ? 'სულ' : lang === 'de' ? 'Gesamt' : 'Total'}: $${Math.round((priceCur === 'GEL' ? priceEntered / USD_GEL : priceEntered) * areaN)}`}
                                 </>
                               )}
                             </p>

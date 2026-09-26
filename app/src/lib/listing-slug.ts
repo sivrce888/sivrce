@@ -42,7 +42,7 @@ const TITLE_TYPE: Record<PropType, DictKey> = {
   hotel: 'prop.hotel',
 }
 
-/** Keyword-first detail title: "იყიდება 2-საძინებლიანი ბინა ვაკეში" — bedrooms first.
+/** Keyword-first detail title: "იყიდება 2-საძინებლიანი ბინა თბილისში ვაკეში" — bedrooms first.
  *  World listings keep the authored Latin title (no Mkhedruli auto-title). */
 export function listingKeyword(l: SlugListing): string {
   return listingKeywordIn(l, 'ka', (k) => ka[k])

@@ -121,7 +121,7 @@ const L = {
     enable: "ჩართვა",
     delete: "წაშლა",
     expires: "ვადა",
-    sendToClient: "კლიენტს",
+    sendToClient: "გაუგზავნე კლიენტს",
     rented: "გაქირავებულია",
     sold: "გაყიდულია",
     renew30: "გაგრძელება +30 დღე",
